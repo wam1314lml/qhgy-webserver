@@ -1,5 +1,5 @@
 // 标签页配置
-export const tabs = ['基础', '种植', '订单', '公会', '任务', '活动']
+export const tabs = ['基础', '种植', '订单', '公会', '活动']
 
 export const bodyOptions = [
   { value: 0, label: '元体' },

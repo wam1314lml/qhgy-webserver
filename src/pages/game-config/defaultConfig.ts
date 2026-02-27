@@ -1,7 +1,8 @@
 import type { GameConfig } from './types'
 
 // 默认配置
-export const createDefaultGameConfig = (): GameConfig => ({
+export const createDefaultGameConfig = (): GameConfig =>
+  ({
   reconnectInterval: 300000,
   nickName: '徐少万天尊',
   basic: {
@@ -25,6 +26,57 @@ export const createDefaultGameConfig = (): GameConfig => ({
     defaultSpiritIndex2: 1,
     forceOnlineEnabled: false,
     forceOnlineTimeRanges: ['23:50-00:00'],
+    reputation: {
+      enabled: false,
+      threshold: 80,
+    },
+    debug: false,
+    task: {
+      daily: false,
+      weekly: false,
+      main: false,
+      story: false,
+      achieve: false,
+    },
+    mail: false,
+    benefit: {
+      buff: false,
+      box: false,
+      shareRwd: false,
+      antiScamBox: false,
+    },
+    sign: {
+      daily: false,
+      patch: false,
+    },
+    pearl: {
+      freePearl: false,
+      autoHire: false,
+      maxHireTicketUsage: 1,
+      protectEnabled: false,
+      autoBuyHireTicket: false,
+      maxSpendDmd: 25,
+    },
+    shop: {
+      videoFreeGift: false,
+      cultivateShop: {
+        autoBuy: false,
+        maxSpendGold: 0,
+      },
+      vipShop: {
+        autoBuy: false,
+        maxSpendDmd: 0,
+        maxSpendFloralCoin: 0,
+      },
+    },
+    randomEvent: false,
+    feedCat: {
+      enabled: false,
+      autoRecall: false,
+      autoBuyFood: false,
+      autoFeed: false,
+      autoStroke: false,
+    },
     pet: {
       enabled: true,
       autoCapture: true,
@@ -99,6 +151,113 @@ export const createDefaultGameConfig = (): GameConfig => ({
       23,
     ], // 默认推荐时间段
     xianYuAlreadyStealNum: 3, // 默认使用3个位置
+  },
+  plant: {
+    cultivate: {
+      enabled: false,
+      videoSpeedUp: false,
+      upgradeEnabled: false,
+      tagetLevel: 20,
+    },
+    flower: {
+      autoUnlockLand: false,
+      harvestEnabled: false,
+      plantEnabled: false,
+      videoSpeedUp: false,
+      useSpeedUpTicket: false,
+      speedUpTicketMax: 20,
+      waterThreshold: 0,
+      taskMode: false,
+      taskLogEnabled: false,
+      taskPriorityConfig: {
+        顾客订单: 1,
+        居民订单: 1,
+        花艺售卖: 1,
+        莳花纪闻: 2,
+        宫廷订单: 3,
+      },
+      plantingMode: 'count',
+      minFlowerLevel: 0,
+      qualities: [1, 2, 3, 4, 5],
+      flowerCount: 4,
+      specificFlowerIds: [],
+    },
+    friendSteal: {
+      enabled: false,
+      stealElves: false,
+      stealMode: 'quality',
+      stealQualities: [1, 2, 3, 4, 5],
+      stealFlowerIds: [],
+      buyStealEnabled: false,
+      buyStealCount: 0,
+    },
+    elves: {
+      enabled: false,
+      requestAid: false,
+      recvAid: false,
+      helpFrd: false,
+      dispatch: false,
+      speedUpDispatch: false,
+      recvDispatch: false,
+      recvPass: false,
+      recvPassTask: false,
+      recvFlowerPass: false,
+      recvFlowerPassTask: false,
+    },
+    water: {
+      enabled: false,
+      timedEnabled: false,
+      minWaterThreshold: 0,
+    },
+    artSell: {
+      autoSellArt: false,
+      specifiedArts: [],
+      flowerArtPerRack: 12,
+      autoUnlockStand: false,
+      recvArtCreateRwd: false,
+      recvCollectRwd: false,
+    },
+    market: {
+      autoUnlockShelf: false,
+      putEnabled: false,
+      putMode: 'inventory',
+      specificFlowerIds: [],
+      maxSell: 25,
+      priceIndex: 2,
+      putFlowerPassword: '',
+      autoBuyPutCount: false,
+      buyPutCount: 0,
+      autoBuyFromFriend: false,
+      buyMode: 'all',
+      buySpecificFlowerIds: [],
+      buyQualities: [],
+      minPutTimeDiff: 0,
+    },
+  },
+  order: {
+    resident: {
+      normalEnabled: false,
+      satinEnabled: false,
+      decorateEnabled: false,
+      normalMaxNum: 1200,
+      satinMaxNum: 120,
+      decorateMaxNum: 120,
+      qualities: [1, 2, 3, 4, 5],
+    },
+    customer: {
+      enabled: false,
+      rejectEnabled: false,
+    },
+    palace: {
+      enabled: false,
+      qualities: [1, 2, 3, 4, 5],
+    },
+    team: {
+      enabled: false,
+      oneMore: false,
+      submitOnlyCultivatedFlowers: true,
+      qualities: [1, 2, 3, 4, 5],
+    },
   },
   chopTree: {
     enabled: true,
@@ -182,6 +341,36 @@ export const createDefaultGameConfig = (): GameConfig => ({
   union: {
     unionBargainNum: 0,
     unionBargainPrice: 0,
+    land: {
+      harvest: false,
+      flowers: [1, 2, 3, 4, 5],
+    },
+    build: {
+      free: false,
+      gld: false,
+      dmd: false,
+    },
+    flower: {
+      share: false,
+      shareMode: 'quality',
+      shareQualities: [1, 2, 3, 4, 5],
+      shareFlowerIds: [],
+      take: false,
+      takeMode: 'quality',
+      takeQualities: [1, 2, 3, 4, 5],
+      takeFlowerIds: [],
+    },
+    fmlRace: {
+      enabled: false,
+      autoEnableModules: false,
+      upgradeTask: false,
+      minTaskScore: 0,
+      deleteTask: false,
+      deleteTaskMaxScore: 0,
+    },
+    redPacket: {
+      enabled: false,
+    },
     UnionBounty: {
       enabled: true,
       UnionBountyRob_enabled: true,
@@ -254,6 +443,48 @@ export const createDefaultGameConfig = (): GameConfig => ({
     },
   },
   activity: {
+    cyclicNote: {
+      enabled: false,
+      unlockSlot: false,
+      autoEnableModules: false,
+    },
+    actCyclicStory: {
+      enabled: false,
+      refreshEnabled: false,
+      maxFinshCntPerBatch: 0,
+    },
+    fishMerge: {
+      enabled: false,
+      showResult: false,
+      autoRestart: false,
+    },
+    magicBubble: {
+      enabled: false,
+    },
+    fishFun: {
+      enabled: false,
+      showResult: false,
+      autoRestart: false,
+      autoClaimEnergy: false,
+      speed: 1,
+    },
+    actElim: {
+      enabled: false,
+      autoClaimEnergy: false,
+      speed: 1,
+    },
+    redPacket: {
+      enabled: false,
+    },
+    recvLuck: {
+      enabled: false,
+    },
+    yzCall: {
+      enabled: false,
+    },
+    moneyTree: {
+      enabled: false,
+    },
     autoFreePurchase: true,
     xianyuActivityIDs: [],
     castSword: {
@@ -437,8 +668,8 @@ export const createDefaultGameConfig = (): GameConfig => ({
       ],
     },
   },
-  mall: {
-    buyGoodLists: [],
-    popupGoodLists: [],
-  },
-})
+    mall: {
+      buyGoodLists: [],
+      popupGoodLists: [],
+    },
+  }) as GameConfig
