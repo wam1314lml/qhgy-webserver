@@ -1,0 +1,189 @@
+.register-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.register-header h1 {
+  color: #333;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.invite-notice {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invite-icon {
+  font-size: 16px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.invite-info {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.invite-valid {
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.inviter-info {
+  color: #15803d;
+  font-size: 11px;
+}
+
+/* 邮箱验证码样式 */
+.email-code-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.email-code-group .ant-input {
+  flex: 1;
+}
+
+.send-code-button {
+  flex-shrink: 0;
+  min-width: 120px;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.send-code-button:hover:not(:disabled) {
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+.send-code-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.code-sent-message {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.register-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.register-footer span {
+  color: #666;
+}
+
+/* 响应式设计 */
+/* 平板尺寸优化 */
+@media (max-width: 768px) and (min-width: 481px) {
+  .register-container {
+    padding: 20px;
+  }
+
+  .register-card {
+    max-width: 500px;
+    padding: 35px;
+  }
+}
+
+/* 手机尺寸优化 */
+@media (max-width: 480px) {
+  .register-container {
+    padding: 15px;
+    padding-top: max(15px, env(safe-area-inset-top)); /* 支持刘海屏等安全区域 */
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+  }
+
+  .register-card {
+    padding: 20px 20px;
+    margin: 10px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .register-header h1 {
+    font-size: 24px;
+  }
+
+  .register-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  /* 移动端邮箱验证码样式 */
+  .email-code-group {
+    gap: 8px;
+  }
+
+  .send-code-button {
+    min-width: unset;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-card {
+  animation: fadeInUp 0.6s ease-out;
+}

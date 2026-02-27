@@ -1,0 +1,98 @@
+/* iOS风格底部导航栏 */
+.bottom-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px; /* 减小高度 */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-width: 60px;
+  position: relative;
+}
+
+.nav-item.active {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.nav-icon {
+  font-size: 20px; /* 减小图标 */
+  margin-bottom: 2px;
+  transition: all 0.2s ease;
+}
+
+.nav-item.active .nav-icon {
+  color: #007AFF; /* iOS蓝色 */
+  transform: scale(1.1);
+}
+
+.nav-item:not(.active) .nav-icon {
+  color: #8E8E93; /* iOS灰色 */
+}
+
+.nav-label {
+  font-size: 10px; /* 减小文字 */
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: 1px;
+}
+
+.nav-item.active .nav-label {
+  color: #007AFF;
+  font-weight: 600;
+}
+
+.nav-item:not(.active) .nav-label {
+  color: #8E8E93;
+}
+
+/* 点击动画 */
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+/* 适配安全区域 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav-bar {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(60px + env(safe-area-inset-bottom));
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 375px) {
+  .bottom-nav-bar {
+    padding: 0 10px;
+  }
+  
+  .nav-item {
+    min-width: 50px;
+    padding: 4px 8px;
+  }
+  
+  .nav-icon {
+    font-size: 18px;
+  }
+  
+  .nav-label {
+    font-size: 9px;
+  }
+}

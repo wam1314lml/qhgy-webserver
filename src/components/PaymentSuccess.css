@@ -1,0 +1,141 @@
+/* 支付成功页面样式 */
+.payment-success-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.payment-success-card {
+  max-width: 600px;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.payment-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f5f5;
+}
+
+.payment-loading-card {
+  text-align: center;
+  min-width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.payment-result-success .ant-result-icon > .anticon {
+  color: #52c41a !important;
+}
+
+.payment-result-error .ant-result-icon > .anticon {
+  color: #ff4d4f !important;
+}
+
+.payment-order-details {
+  margin-top: 24px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.payment-order-details .ant-card-head {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.payment-tips {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.payment-tips div {
+  margin-bottom: 4px;
+}
+
+.payment-tips div:last-child {
+  margin-bottom: 0;
+}
+
+.payment-success-buttons {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.payment-success-buttons .ant-btn {
+  margin: 0 8px;
+  border-radius: 6px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 500;
+}
+
+.payment-success-buttons .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.payment-success-buttons .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .payment-success-container {
+    padding: 10px;
+  }
+
+  .payment-success-card {
+    margin: 0;
+  }
+
+  .payment-success-buttons .ant-btn {
+    margin: 4px;
+    width: 120px;
+  }
+}
+
+/* 动画效果 */
+.payment-success-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.payment-loading-card {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

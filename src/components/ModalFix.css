@@ -1,0 +1,127 @@
+/* 通用弹窗修复样式 */
+
+/* 确保所有弹窗都有足够高的z-index */
+.modal-overlay,
+.game-config-modal-overlay,
+.log-modal-overlay,
+[class*="modal-overlay"],
+[class*="Modal-overlay"] {
+  z-index: 10000000 !important; /* 提高到更高层级 */
+}
+
+/* 当配置弹窗打开时，强制解除外层对定位/高度的影响，确保全屏展示 */
+@media (max-width: 768px) {
+  /* 去除外层容器动画带来的 transform 限制，避免 fixed/高度计算异常 */
+  body:has(.game-config-modal-overlay) .dashboard-with-bottom-nav,
+  body:has(.game-config-modal-overlay) .mobile-page-container,
+  body:has(.game-config-modal-overlay) [class*="PageTransition"],
+  body:has(.game-config-modal-overlay) [class*="page-transition"] {
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  /* 让 overlay 真正铺满视口，取消任何额外内边距/对齐 */
+  body:has(.game-config-modal-overlay) .game-config-modal-overlay {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    z-index: 10000001 !important;
+    transform: none !important;
+    overflow: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* 配置弹窗主体使用 100dvh，避免移动端 100vh 误差，并取消圆角避免裁剪 */
+  body:has(.game-config-modal-overlay) .game-config-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    top: 0 !important;
+  }
+}
+
+/* 当任何弹窗打开时，隐藏所有下拉菜单 */
+body:has(.modal-overlay) .dropdown-menu,
+body:has(.modal-overlay) .user-dropdown,
+body:has(.modal-overlay) [class*="dropdown"]:not([class*="modal"] *),
+body:has(.game-config-modal-overlay) .dropdown-menu,
+body:has(.game-config-modal-overlay) .user-dropdown,
+body:has(.game-config-modal-overlay) [class*="dropdown"]:not(.game-config-modal *),
+body:has(.log-modal-overlay) .dropdown-menu,
+body:has(.log-modal-overlay) .user-dropdown,
+body:has(.log-modal-overlay) [class*="dropdown"]:not(.log-modal *) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+/* 确保弹窗内容居中 */
+.modal-overlay,
+.game-config-modal-overlay,
+.log-modal-overlay,
+[class*="modal-overlay"],
+[class*="Modal-overlay"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 移动端弹窗适配 */
+@media (max-width: 768px) {
+  .modal-overlay,
+  .game-config-modal-overlay,
+  .log-modal-overlay,
+  [class*="modal-overlay"],
+  [class*="Modal-overlay"] {
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
+  
+  .modal-content,
+  .game-config-modal,
+  .log-modal,
+  [class*="modal-content"],
+  [class*="Modal-content"] {
+    max-width: calc(100vw - 40px) !important;
+    max-height: calc(100vh - 120px) !important; /* 为底部导航栏预留空间 */
+    width: auto !important;
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* 底部导航栏存在时的额外间距 */
+@media (max-width: 768px) {
+  .dashboard-with-bottom-nav .modal-overlay,
+  .dashboard-with-bottom-nav .game-config-modal-overlay,
+  .dashboard-with-bottom-nav .log-modal-overlay,
+  .dashboard-with-bottom-nav [class*="modal-overlay"],
+  .dashboard-with-bottom-nav [class*="Modal-overlay"] {
+    padding-bottom: 80px !important;
+  }
+  
+  .dashboard-with-bottom-nav .modal-content,
+  .dashboard-with-bottom-nav .game-config-modal,
+  .dashboard-with-bottom-nav .log-modal,
+  .dashboard-with-bottom-nav [class*="modal-content"],
+  .dashboard-with-bottom-nav [class*="Modal-content"] {
+    max-height: calc(100vh - 160px) !important; /* 为底部导航栏预留更多空间 */
+  }
+}

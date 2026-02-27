@@ -1,0 +1,36 @@
+.ant-steps {
+  flex-direction: row !important;
+}
+
+.ant-steps-item-content {
+  min-height: initial !important;
+}
+
+.ant-tour {
+  width: initial !important;
+}
+
+@media (max-width: 575px) {
+  .ant-steps-item-tail {
+    display: none !important;
+  }
+  .ant-form .ant-form-item .ant-form-item-label {
+    flex: 0 0 33.33333333333333%;
+  }
+  .ant-form .ant-form-item .ant-form-item-control {
+    flex: 0 0 66.66666%;
+    max-width: 100%;
+  }
+}
+
+/* 移动端表格横向滚动优化 */
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ant-table {
+    min-width: 100%;
+  }
+}

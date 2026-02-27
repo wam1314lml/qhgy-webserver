@@ -1,0 +1,400 @@
+.performance-management {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+}
+
+.performance-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.performance-header h1 {
+  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.performance-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.performance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.performance-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.performance-card h2 {
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* 邀请工具卡片 */
+.invite-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.invite-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invite-tool label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.invite-code-container,
+.invite-link-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.invite-code,
+.invite-link {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #495057;
+  word-break: break-all;
+}
+
+/* 统计概览卡片 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 邀请用户列表卡片 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.invite-search-input {
+  width: 260px;
+}
+
+.invited-users-table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 0.8fr 0.8fr 1fr 0.8fr 1fr 1.2fr;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 0.8fr 0.8fr 1fr 0.8fr 1fr 1.2fr;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.table-cell {
+  padding: 16px 12px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.username {
+  font-weight: 500;
+  color: #333;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.role-admin {
+  background: #dc3545;
+  color: white;
+}
+
+.role-vip {
+  background: #ffc107;
+  color: #212529;
+}
+
+.role-user {
+  background: #6c757d;
+  color: white;
+}
+
+.points {
+  font-weight: 500;
+  color: #28a745;
+}
+
+.recharge-amount {
+  font-weight: 500;
+  color: #007bff;
+}
+
+.recharge-count {
+  font-weight: 500;
+  color: #17a2b8;
+  background: #e7f3ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.last-recharge {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.date {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* 无数据状态 */
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.no-data-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.no-data p {
+  margin: 8px 0;
+}
+
+.no-data-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* 加载和错误状态 */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #f5c6cb;
+}
+
+.error-message h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.retry-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 15px;
+  transition: background-color 0.2s;
+}
+
+.retry-button:hover {
+  background: #c82333;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .performance-management {
+    padding: 15px;
+  }
+
+  .performance-header h1 {
+    font-size: 2rem;
+  }
+
+  .performance-subtitle {
+    font-size: 1rem;
+  }
+
+  .performance-card {
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .table-cell {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .table-cell:last-child {
+    border-bottom: none;
+  }
+
+  .invite-code-container,
+  .invite-link-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .copy-btn {
+    align-self: flex-end;
+    width: fit-content;
+  }
+
+  .card-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .invite-search-input {
+    width: 100%;
+  }
+
+  .invited-users-card .refresh-btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>公告功能测试</h1>
+    
+    <button onclick="testAnnouncementAPI()">测试公告API</button>
+    <button onclick="showTestModal()">测试弹窗显示</button>
+    <button onclick="clearLog()">清空日志</button>
+    
+    <div id="log"></div>
+    
+    <!-- 公告弹窗 -->
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>系统公告</h2>
+            <div id="announcementContent"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        async function testAnnouncementAPI() {
+            log('开始测试公告API...');
+            
+            try {
+                const response = await fetch('/api/admin/announcements/active');
+                log(`API响应状态: ${response.status}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`API返回数据: ${JSON.stringify(data, null, 2)}`);
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        log(`找到 ${data.data.length} 条启用的公告`);
+                        
+                        // 显示第一条公告
+                        const announcement = data.data[0];
+                        document.getElementById('announcementContent').innerHTML = `
+                            <h3>${announcement.title}</h3>
+                            <div>${announcement.content}</div>
+                            <p><small>发布时间: ${new Date(announcement.created_at).toLocaleString()}</small></p>
+                        `;
+                        
+                        document.getElementById('announcementModal').style.display = 'block';
+                        log('公告弹窗已显示');
+                    } else {
+                        log('没有找到启用的公告');
+                    }
+                } else {
+                    log(`API请求失败: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                log(`API请求错误: ${error.message}`);
+            }
+        }
+
+        function showTestModal() {
+            log('显示测试弹窗...');
+            document.getElementById('announcementContent').innerHTML = `
+                <h3>测试公告</h3>
+                <p>这是一个测试公告，用于验证弹窗功能是否正常工作。</p>
+            `;
+            document.getElementById('announcementModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('announcementModal').style.display = 'none';
+            log('公告弹窗已关闭');
+        }
+
+        // 页面加载时自动测试
+        window.onload = function() {
+            log('页面加载完成，准备测试公告功能');
+        };
+    </script>
+</body>
+</html>

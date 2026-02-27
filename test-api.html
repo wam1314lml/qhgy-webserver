@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API测试</title>
+</head>
+<body>
+    <h1>API端点测试</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            const token = localStorage.getItem('token') || 'test-token';
+            
+            // 测试余额API
+            try {
+                const response = await fetch('/api/points/balance', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                results.innerHTML += `<p>余额API状态: ${response.status}</p>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<p>余额数据: ${JSON.stringify(data)}</p>`;
+                } else {
+                    results.innerHTML += `<p>余额API失败: ${response.statusText}</p>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<p>余额API错误: ${error.message}</p>`;
+            }
+            
+            // 测试充值API
+            try {
+                const response = await fetch('/api/points/recharge', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ amount: 1 })
+                });
+                
+                results.innerHTML += `<p>充值API状态: ${response.status}</p>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    results.innerHTML += `<p>充值数据: ${JSON.stringify(data)}</p>`;
+                } else {
+                    results.innerHTML += `<p>充值API失败: ${response.statusText}</p>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<p>充值API错误: ${error.message}</p>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

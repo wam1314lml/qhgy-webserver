@@ -1,0 +1,275 @@
+.recharge-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.recharge-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.packages-section h4,
+.custom-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.packages-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.package-card {
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  flex: 0 0 140px;
+  min-width: 140px;
+}
+
+.package-card.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* 超值 - 红色/橙红色（最大优惠，最吸引眼球） */
+.badge-超值 {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.3);
+}
+
+/* 热门 - 橙色/金色（醒目但不如超值强烈） */
+.badge-热门 {
+  background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%);
+  box-shadow: 0 2px 4px rgba(250, 140, 22, 0.3);
+}
+
+/* 优惠 - 蓝色（温和的提示色） */
+.badge-优惠 {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
+}
+
+.selected-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: #52c41a;
+  color: white;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.package-quantity {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.discount-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff4d4f;
+  background: #fff1f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #ffccc7;
+}
+
+.package-price {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.package-bonus {
+  font-size: 12px;
+  color: #52c41a;
+  margin-bottom: 4px;
+}
+
+.custom-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quantity-range {
+  font-size: 12px;
+  color: #666;
+}
+
+.bonus-row {
+  color: #52c41a;
+}
+
+.total-row {
+  font-weight: bold;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.total-points {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.modal-actions .ant-btn {
+  min-width: 100px;
+}
+
+/* 支付宝支付容器样式 */
+.alipay-payment-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.alipay-payment-info {
+  text-align: center;
+}
+
+.alipay-payment-info p {
+  color: #666;
+}
+
+.alipay-payment-info p:first-of-type {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 支付步骤样式 */
+.payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.payment-info {
+  text-align: center;
+}
+
+.payment-info h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.order-info {
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.order-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.payment-status {
+  text-align: center;
+}
+
+.payment-status p {
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 支付成功样式 */
+.payment-success {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.success-icon {
+  margin-bottom: 24px;
+}
+
+.payment-success h3 {
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  color: #52c41a;
+}
+
+.success-info {
+  background: #f6ffed;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 24px 0;
+  border: 1px solid #b7eb8f;
+}
+
+.success-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.auto-close-tip {
+  font-size: 12px;
+  color: #999;
+  margin-top: 16px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .packages-grid {
+    justify-content: space-between;
+  }
+
+  .package-card {
+    flex: 0 0 calc(50% - 6px);
+    min-width: calc(50% - 6px);
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .ant-btn {
+    width: 100%;
+  }
+
+  .payment-success {
+    padding: 20px 10px;
+  }
+}

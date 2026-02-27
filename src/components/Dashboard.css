@@ -1,0 +1,652 @@
+/* 整体布局 */
+.dashboard-wrapper {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow-x: hidden;
+  /* 防止整个页面水平滚动 */
+  width: 100%;
+  max-width: 100vw;
+}
+
+.expiry-alert {
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 30px;
+  background: #fff0e3;
+  font-size: 13px;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #e58900;
+}
+
+.expiry-alert-track {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.expiry-alert-text {
+  display: block;
+  white-space: nowrap;
+  padding-left: 0;
+  text-align: center;
+  animation: none;
+}
+
+@keyframes expiry-alert-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.logo-text {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Menu 组件样式 */
+.nav-menu {
+  border-bottom: none !important;
+  background: transparent !important;
+  flex: 1;
+  min-width: 0;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 点数余额显示 */
+.points-balance {
+  display: flex;
+  align-items: center;
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.balance-display:hover {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.balance-icon {
+  font-size: 14px;
+}
+
+.balance-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.balance-amount {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.balance-unit {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.user-avatar-container {
+  position: relative;
+}
+
+.user-name {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  /* .expiry-alert {
+    height: 28px;
+    line-height: 28px;
+  } */
+
+  .expiry-alert-track {
+    justify-content: flex-start;
+  }
+
+  .expiry-alert-text {
+    display: inline-block;
+    font-size: 16px;
+    padding-left: 100%;
+    text-align: left;
+    animation: expiry-alert-scroll 10s linear infinite;
+  }
+
+  /* 菜单容器优化 */
+  .nav-tabs {
+    flex: 1;
+    min-width: 0;
+    /* 允许收缩 */
+    overflow: hidden;
+  }
+
+  /* Menu 组件移动端优化 */
+  .nav-menu {
+    border-bottom: none !important;
+    background: transparent !important;
+    overflow-x: auto;
+    /* 允许菜单水平滚动 */
+    scrollbar-width: none;
+    /* Firefox 隐藏滚动条 */
+    -ms-overflow-style: none;
+    /* IE 隐藏滚动条 */
+  }
+
+  /* 隐藏菜单滚动条 */
+  .nav-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 菜单项移动端样式 */
+  .nav-menu .ant-menu-item {
+    padding: 0 8px !important;
+    /* 减小菜单项内边距 */
+    margin: 0 2px !important;
+    /* 减小菜单项间距 */
+    font-size: 13px !important;
+    /* 减小字体大小 */
+    white-space: nowrap;
+    /* 防止换行 */
+    flex-shrink: 0;
+    /* 防止收缩 */
+  }
+
+  /* 确保用户头像容器在移动端有正确的定位 */
+  .user-avatar-container {
+    position: relative !important;
+    z-index: 9999998 !important;
+    flex-shrink: 0;
+    /* 防止头像被压缩 */
+  }
+
+  /* 确保主内容区域不会遮挡下拉菜单 */
+  .dashboard-content {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
+
+.logout-item {
+  color: #e74c3c;
+}
+
+.logout-item:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* 主内容区域 */
+.main-content {
+  padding: 24px;
+}
+
+.dashboard-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 卡片样式 */
+.actions-card,
+.user-info-card,
+.transactions-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.user-info-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-details-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username-display {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.invite-code-display {
+  font-family: monospace;
+  font-size: 15px;
+  color: #666;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  padding-left: 0;
+  border-radius: 4px;
+}
+
+.help-button,
+.copy-link-button {
+  color: #666 !important;
+  padding: 4px !important;
+  border: none !important;
+  height: auto !important;
+  min-width: auto !important;
+}
+
+.help-button:hover {
+  color: #667eea !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.copy-link-button:hover {
+  color: #52c41a !important;
+  background: rgba(82, 196, 26, 0.1) !important;
+}
+
+/* 操作按钮 */
+.actions-card h3 {
+  margin: 0 0 16px 0;
+  color: #2c3e50;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recharge-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.recharge-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.recharge-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.dashboard-container .action-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.dashboard-container .recharge-button {
+  background: linear-gradient(135deg, #52c41a, #389e0d);
+  color: white;
+}
+
+.dashboard-container .recharge-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(82, 196, 26, 0.4);
+}
+
+.dashboard-container .consume-button {
+  background: linear-gradient(135deg, #fa8c16, #d46b08);
+  color: white;
+}
+
+.dashboard-container .consume-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(250, 140, 22, 0.4);
+}
+
+.dashboard-container .action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 用户信息卡片 */
+
+.stats-section {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.invite-code {
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.invite-features {
+  margin-top: 16px;
+}
+
+.invite-link-section {
+  margin-bottom: 16px;
+}
+
+.invite-link-section label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.invite-link-container {
+  display: flex;
+  gap: 8px;
+}
+
+.invited-users h4 {
+  margin: 0 0 12px 0;
+  color: #2c3e50;
+}
+
+.invited-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.invited-user {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.invited-username {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.invited-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.more-invites {
+  text-align: center;
+  padding: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+/* 交易历史 */
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.transactions-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.transactions-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-type {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.transaction-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.transaction-meta {
+  font-size: 12px;
+  color: #999;
+}
+
+.transaction-amount {
+  text-align: right;
+}
+
+.amount {
+  font-size: 18px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.amount.positive {
+  color: #52c41a;
+}
+
+.amount.negative {
+  color: #f5222d;
+}
+
+.balance-after {
+  font-size: 12px;
+  color: #666;
+}
+
+.no-transactions {
+  text-align: center;
+  color: #999;
+  padding: 32px;
+  font-size: 14px;
+}
+
+.loading {
+  color: #999;
+  padding: 16px;
+  font-size: 14px;
+}
+
+.error-message {
+  text-align: center;
+  color: #f5222d;
+  padding: 32px;
+  background: rgba(245, 34, 45, 0.1);
+  border-radius: 8px;
+  margin: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  /* 移动端点数余额显示 */
+  .balance-display {
+    padding: 6px 8px;
+    border-radius: 16px;
+  }
+
+  .balance-text {
+    display: none;
+  }
+
+  .balance-icon {
+    font-size: 12px;
+  }
+
+  .balance-amount {
+    font-size: 14px;
+  }
+
+  .dashboard-container {
+    padding: 16px;
+  }
+
+  .recharge-section {
+    flex-direction: column;
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .transaction-amount {
+    text-align: left;
+  }
+
+  /* 用户信息区域移动端适配 */
+  .user-info-content {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .username-display {
+    font-size: 16px;
+  }
+
+  .invite-code-display {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .points-number {
+    font-size: 36px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .logo-icon {
+    font-size: 20px;
+  }
+
+  .nav-menu :deep(.ant-menu-item) {
+    padding: 0 12px !important;
+  }
+
+  .balance-display {
+    padding: 4px 6px;
+    border-radius: 12px;
+  }
+
+  .balance-amount {
+    font-size: 13px;
+  }
+}

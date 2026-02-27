@@ -1,0 +1,511 @@
+/* ScriptConfig 组件样式 */
+.script-config-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 账号网格布局 */
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* 账号卡片 */
+.account-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  width: 360px;
+}
+
+.account-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* 账号头部 */
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.account-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* 账号信息 */
+.account-info {
+  margin-bottom: 12px;
+}
+
+.info-line {
+  padding: 2px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.server-line {
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.stats-line {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.expire-line {
+  color: #666;
+  font-size: 13px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 账号操作区域 */
+.account-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.account-actions .ant-btn {
+  padding: 4px 12px;
+}
+
+/* 状态指示器 */
+.status-indicator {
+  padding: 5px;
+  border-radius: 20px;
+}
+
+.status-indicator.active {
+  background: #4ade80;
+}
+
+.status-indicator.inactive {
+  background: #94a3b8;
+}
+
+.status-indicator.error {
+  background: #ff6b6b;
+}
+
+/* 添加账号卡片 */
+.add-account-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  width: 360px;
+}
+
+.add-account-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.add-icon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 12px;
+}
+
+.add-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .accounts-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .account-card {
+    padding: 16px;
+  }
+}
+
+/* 三点菜单样式 */
+.menu-container {
+  position: relative;
+}
+
+.menu-trigger {
+  background: none !important;
+  border: none !important;
+  font-size: 16px !important;
+  color: #666 !important;
+  cursor: pointer;
+  padding: 4px 8px !important;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  min-width: auto !important;
+}
+
+.menu-trigger:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.menu-item.delete {
+  color: #ff4757;
+}
+
+.menu-item.delete:hover:not(:disabled) {
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 过期状态样式 */
+.account-card.expired {
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.account-card.expired .account-name {
+  color: #999;
+}
+
+.modal-content.quota-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.quota-info {
+  margin-bottom: 24px;
+}
+
+.quota-info p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.quota-info .points {
+  font-weight: 600;
+  color: #4ade80;
+  font-size: 16px;
+}
+
+.quota-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quota-option {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quota-option:hover {
+  border-color: rgba(102, 126, 234, 0.3);
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.quota-option.selected {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.no-options {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-options p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.no-options p:first-child {
+  font-weight: 500;
+  color: #374151;
+}
+
+.option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.option-header .days {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.option-header .cost {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ff6b6b;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #999;
+}
+
+.delete-warning {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.warning-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.delete-warning p {
+  margin: 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.delete-warning strong {
+  color: #ff4757;
+  font-weight: 600;
+}
+
+.warning-text {
+  color: #ff4757 !important;
+  font-weight: 500;
+  margin: 16px 0 !important;
+}
+
+.countdown-info {
+  margin: 20px 0;
+}
+
+.countdown {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.countdown-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 71, 87, 0.2);
+  border-radius: 3px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.countdown-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4757, #ff6b7a);
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+.ready-to-delete {
+  margin: 20px 0;
+}
+
+.ready-text {
+  color: #4ade80 !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* 客服模态框样式 */
+.customer-service-content {
+  text-align: center;
+  padding-top: 16px;
+}
+
+.qrcode-container {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  min-height: 220px;
+  align-items: center;
+}
+
+.qrcode-image {
+  width: 220px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+  max-width: 100%;
+}
+
+.no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+}
+
+.no-image p {
+  color: #999;
+  font-size: 14px;
+  margin: 0;
+}
+
+.service-text {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.service-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 480px) {
+  .script-config-container {
+    padding: 16px 0;
+  }
+
+  .accounts-grid {
+    gap: 12px;
+  }
+
+  .modal-content.quota-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .quota-options {
+    gap: 8px;
+  }
+
+  .quota-option {
+    padding: 12px;
+  }
+
+  .qrcode-image {
+    width: 180px;
+    height: auto;
+  }
+}
+
+/* 开通试用菜单项金色样式 */
+li.ant-dropdown-menu-item.trial-item,
+.ant-dropdown-menu-item.trial-item {
+  color: #d4af37 !important; /* 金色文字 */
+  font-weight: 700 !important; /* 加粗 */
+}
+
+li.ant-dropdown-menu-item.trial-item span,
+.ant-dropdown-menu-item.trial-item span {
+  color: #d4af37 !important; /* 金色文字 */
+  font-weight: 700 !important; /* 加粗 */
+}
+
+li.ant-dropdown-menu-item.trial-item:hover,
+.ant-dropdown-menu-item.trial-item:hover {
+  background: rgba(212, 175, 55, 0.1) !important; /* 金色半透明背景 */
+}
+
+li.ant-dropdown-menu-item.trial-item .anticon,
+.ant-dropdown-menu-item.trial-item .anticon {
+  color: #d4af37 !important; /* 金色图标 */
+}

@@ -1,0 +1,1211 @@
+<template>
+  <a-modal
+    :open="isOpen"
+    :title="'添加游戏账号'"
+    :footer="null"
+    :width="700"
+    :mask-closable="false"
+    centered
+    @cancel="handleClose"
+    class="add-account-modal-antd"
+  >
+    <div class="modal-content">
+      <!-- 步骤指示器 -->
+      <a-steps :current="currentStepIndex" class="custom-steps" size="small">
+        <a-step v-for="step in steps" :key="step.key" :title="step.title" />
+      </a-steps>
+
+      <!-- 步骤内容 -->
+      <div class="step-content">
+        <!-- 选择渠道 -->
+        <div v-if="currentStep === 'channel'" class="step-panel">
+          <h4>选择游戏渠道</h4>
+          <a-radio-group v-model:value="selectedChannel" class="channel-options">
+            <a-radio :value="0" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper channel-icon-app">
+                  <span class="app-text">APP</span>
+                  <img src="/icons/wechat.svg" alt="微信" class="wechat-badge" />
+                </div>
+              </div>
+            </a-radio>
+            <a-radio :value="1" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/alipay.svg" alt="支付宝" class="channel-icon" />
+                </div>
+              </div>
+            </a-radio>
+            <a-radio :value="2" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/qq.svg" alt="QQ" class="channel-icon" />
+                </div>
+              </div>
+            </a-radio>
+            <a-radio :value="3" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/huawei.svg" alt="华为" class="channel-icon" />
+                </div>
+              </div>
+            </a-radio>
+          </a-radio-group>
+        </div>
+
+        <!-- 登录 -->
+        <div v-if="currentStep === 'login'" class="step-panel">
+          <h4>登录游戏账号</h4>
+
+          <!-- QQ登录 -->
+          <p v-if="selectedChannel === 2">
+            QQ小程序转账号密码链接：
+            <a
+              href="https://activity.37.com/zt/publish/tplhd/1003/202504/index_29223033_m.html?game_id=918"
+              target="_blank"
+              >https://activity.37.com/zt/publish/tplhd/1003/202504/index_29223033_m.html?game_id=918</a
+            >
+          </p>
+
+          <!-- 支付宝扫码登录界面 -->
+          <div v-if="selectedChannel === 1" class="alipay-login">
+            <div v-if="!qrcodeUrl" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始支付宝扫码登录</p>
+            </div>
+            <div v-else class="qrcode-container">
+              <h5>请使用支付宝扫描二维码</h5>
+              <div class="qrcode-display">
+                <div class="qrcode-wrapper">
+                  <div v-if="qrcodeImage" class="qrcode-content">
+                    <!-- 使用Ant Design的QRCode组件 -->
+                    <a-qrcode :value="qrcodeImage" :size="200" />
+                    <p class="qrcode-status-text">
+                      {{ isPolling ? '⏳ 等待扫码中...' : '📱 请使用支付宝扫描二维码' }}
+                    </p>
+                  </div>
+                  <div v-else class="qrcode-loading">二维码加载中...</div>
+                </div>
+              </div>
+
+              <div class="qrcode-status">
+                <p v-if="isPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
+                <p v-else-if="alipayLoginData" style="color: #52c41a">✅ 扫码登录成功！</p>
+                <p v-else style="color: #faad14">📱 请使用支付宝扫描上方二维码</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 华为扫码登录界面 -->
+          <div v-else-if="selectedChannel === 3" class="huawei-login">
+            <div v-if="!huaweiQrcodeUrl" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始华为扫码登录</p>
+            </div>
+            <div v-else class="qrcode-container">
+              <h5>请使用华为账号登陆花瓣轻游、或者微信扫二维码后输入华为账号</h5>
+              <div class="qrcode-display">
+                <div class="qrcode-wrapper">
+                  <div v-if="huaweiQrcodeImage" class="qrcode-content">
+                    <!-- 使用Ant Design的QRCode组件 -->
+                    <a-qrcode :value="huaweiQrcodeImage" :size="200" />
+                    <p class="qrcode-status-text">
+                      {{ isHuaweiPolling ? '⏳ 等待扫码中...' : '📱 请使用华为账号扫描二维码' }}
+                    </p>
+                  </div>
+                  <div v-else class="qrcode-loading">二维码加载中...</div>
+                </div>
+              </div>
+
+              <div class="qrcode-status">
+                <p v-if="isHuaweiPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
+                <p v-else-if="huaweiLoginData" style="color: #52c41a">✅ 扫码登录成功！</p>
+                <p v-else style="color: #faad14">📱 请使用华为账号扫描上方二维码</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 账号密码登录界面 -->
+          <div v-else class="password-login">
+            <a-form
+              ref="loginFormRef"
+              :model="loginForm"
+              :rules="loginRules"
+              layout="vertical"
+              class="login-form mt-5"
+            >
+              <a-form-item label="游戏账号" name="username" class="form-group">
+                <a-input
+                  v-model:value.trim="loginForm.username"
+                  placeholder="请输入游戏账号"
+                  class="form-input"
+                  size="large"
+                />
+              </a-form-item>
+              <a-form-item label="游戏密码" name="password" class="form-group">
+                <a-input-password
+                  v-model:value.trim="loginForm.password"
+                  placeholder="请输入游戏密码"
+                  class="form-input"
+                  size="large"
+                />
+              </a-form-item>
+            </a-form>
+          </div>
+        </div>
+
+        <!-- 选择区服 -->
+        <div v-if="currentStep === 'server'" class="step-panel">
+          <!-- QQ认证提示 -->
+          <p v-if="selectedChannel === 2">
+            未实名请下载app登录游戏实名，下载链接：
+            <a
+              href="https://dlres.37wan.com/h5sdk/851735-qqxyx/xddq_qqxyx/xddqapp.apk"
+              target="_blank"
+            >
+              https://dlres.37wan.com/h5sdk/851735-qqxyx/xddq_qqxyx/xddqapp.apk
+            </a>
+          </p>
+
+          <a-form
+            ref="serverFormRef"
+            :model="serverForm"
+            :rules="serverRules"
+            layout="vertical"
+            class="server-form"
+          >
+            <a-form-item label="游戏区服" name="server" class="form-group">
+              <a-select
+                v-model:value="serverForm.server"
+                placeholder="请选择游戏区服"
+                size="large"
+                class="form-input"
+                :loading="!Array.isArray(serverList) || serverList.length === 0"
+                :filter-option="filterServerOption"
+                @change="handleServerChange"
+              >
+                <a-select-option
+                  v-for="(server, index) in serverList"
+                  :key="index"
+                  :value="server.serverId"
+                  :label="`${server.serverName} (ID: ${server.serverId})`"
+                >
+                  <div class="server-option">
+                    <span class="server-name text-4!">{{ server.serverName }}</span>
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <div v-if="!Array.isArray(serverList) || serverList.length === 0" class="no-servers">
+              <p>暂无可用服务器</p>
+              <p class="server-hint">请检查游戏账号信息是否正确</p>
+            </div>
+          </a-form>
+
+          <div class="script-server-info">
+            <p>自动为您分配最优的服务器</p>
+            <div v-if="selectedScriptServer" class="selected-server">
+              <span>已选择: {{ selectedScriptServer.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="modal-actions">
+        <a-button
+          v-if="currentStep !== 'channel'"
+          class="btn btn-secondary"
+          @click="handlePreviousStep"
+          :disabled="loading"
+          size="large"
+        >
+          上一步
+        </a-button>
+
+        <!-- 简单的测试按钮 -->
+        <!-- <a-button
+            @click="simpleTestButton"
+            style="
+              padding: 12px 24px;
+              background-color: #ef4444;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              margin-right: 10px;
+            "
+          >
+            简单测试
+          </a-button> -->
+
+        <a-button
+          @click="handleMainButton"
+          :disabled="loading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData)"
+          type="primary"
+          size="large"
+        >
+          {{
+            loading
+              ? '处理中...'
+              : currentStep === 'server'
+                ? '确认绑定'
+                : currentStep === 'login' && selectedChannel === 1
+                  ? qrcodeUrl
+                    ? alipayLoginData
+                      ? '进入服务器选择'
+                      : isPolling
+                        ? '等待扫码中...'
+                        : '重新扫码'
+                    : '获取二维码'
+                  : currentStep === 'login' && selectedChannel === 3
+                    ? huaweiQrcodeUrl
+                      ? huaweiLoginData
+                        ? '进入服务器选择'
+                        : isHuaweiPolling
+                          ? '等待扫码中...'
+                          : '重新扫码'
+                      : '获取二维码'
+                    : '下一步'
+          }}
+        </a-button>
+      </div>
+    </div>
+  </a-modal>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import axios from '../utils/axios'
+import { message, type FormInstance } from 'ant-design-vue'
+import type { Rule } from 'ant-design-vue/es/form'
+
+// 支付宝登录数据接口
+interface AlipayLoginData {
+  userId: string
+  uid: string
+  sessionId: string
+  cookie: string
+  authCode?: string
+  alipayRealUserId?: string // 支付宝真实ID，用于生成稳定的parent_id
+  quickAppData?: string // quickAppEnter返回的完整data字段，用于游戏登录
+}
+
+// MD5哈希函数 (使用简单的MD5实现，返回24位哈希)
+const generateMD5Hash = (input: string): string => {
+  // 简单的MD5实现
+  function md5(input: string): string {
+    function rotateLeft(value: number, amount: number): number {
+      return (value << amount) | (value >>> (32 - amount))
+    }
+
+    function addUnsigned(x: number, y: number): number {
+      const lsw = (x & 0xffff) + (y & 0xffff)
+      const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
+      return (msw << 16) | (lsw & 0xffff)
+    }
+
+    function F(x: number, y: number, z: number): number {
+      return (x & y) | (~x & z)
+    }
+    function G(x: number, y: number, z: number): number {
+      return (x & z) | (y & ~z)
+    }
+    function H(x: number, y: number, z: number): number {
+      return x ^ y ^ z
+    }
+    function I(x: number, y: number, z: number): number {
+      return y ^ (x | ~z)
+    }
+
+    function FF(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(F(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function GG(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(G(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function HH(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(H(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function II(
+      a: number,
+      b: number,
+      c: number,
+      d: number,
+      x: number,
+      s: number,
+      ac: number,
+    ): number {
+      a = addUnsigned(a, addUnsigned(addUnsigned(I(b, c, d), x), ac))
+      return addUnsigned(rotateLeft(a, s), b)
+    }
+
+    function convertToWordArray(input: string): number[] {
+      const lMessageLength = input.length
+      const lNumberOfWords_temp1 = lMessageLength + 8
+      const lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64
+      const lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16
+      const lWordArray: number[] = []
+      let lBytePosition = 0
+      let lByteCount = 0
+      let lWordCount = 0
+
+      while (lByteCount < lMessageLength) {
+        lWordCount = (lByteCount - (lByteCount % 4)) / 4
+        lBytePosition = (lByteCount % 4) * 8
+        lWordArray[lWordCount] =
+          lWordArray[lWordCount] | (input.charCodeAt(lByteCount) << lBytePosition)
+        lByteCount++
+      }
+
+      lWordCount = (lByteCount - (lByteCount % 4)) / 4
+      lBytePosition = (lByteCount % 4) * 8
+      lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition)
+      lWordArray[lNumberOfWords - 2] = lMessageLength << 3
+      lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29
+
+      return lWordArray
+    }
+
+    function wordToHex(lValue: number): string {
+      let wordToHexValue = ''
+      let wordToHexValue_temp = ''
+      let lByte: number
+      let lCount: number
+
+      for (lCount = 0; lCount <= 3; lCount++) {
+        lByte = (lValue >>> (lCount * 8)) & 255
+        wordToHexValue_temp = '0' + lByte.toString(16)
+        wordToHexValue =
+          wordToHexValue + wordToHexValue_temp.substr(wordToHexValue_temp.length - 2, 2)
+      }
+
+      return wordToHexValue
+    }
+
+    const x = convertToWordArray(input)
+    let a = 0x67452301
+    let b = 0xefcdab89
+    let c = 0x98badcfe
+    let d = 0x10325476
+
+    for (let k = 0; k < x.length; k += 16) {
+      const AA = a
+      const BB = b
+      const CC = c
+      const DD = d
+      a = FF(a, b, c, d, x[k + 0], 7, 0xd76aa478)
+      d = FF(d, a, b, c, x[k + 1], 12, 0xe8c7b756)
+      c = FF(c, d, a, b, x[k + 2], 17, 0x242070db)
+      b = FF(b, c, d, a, x[k + 3], 22, 0xc1bdceee)
+      a = FF(a, b, c, d, x[k + 4], 7, 0xf57c0faf)
+      d = FF(d, a, b, c, x[k + 5], 12, 0x4787c62a)
+      c = FF(c, d, a, b, x[k + 6], 17, 0xa8304613)
+      b = FF(b, c, d, a, x[k + 7], 22, 0xfd469501)
+      a = FF(a, b, c, d, x[k + 8], 7, 0x698098d8)
+      d = FF(d, a, b, c, x[k + 9], 12, 0x8b44f7af)
+      c = FF(c, d, a, b, x[k + 10], 17, 0xffff5bb1)
+      b = FF(b, c, d, a, x[k + 11], 22, 0x895cd7be)
+      a = FF(a, b, c, d, x[k + 12], 7, 0x6b901122)
+      d = FF(d, a, b, c, x[k + 13], 12, 0xfd987193)
+      c = FF(c, d, a, b, x[k + 14], 17, 0xa679438e)
+      b = FF(b, c, d, a, x[k + 15], 22, 0x49b40821)
+      a = GG(a, b, c, d, x[k + 1], 5, 0xf61e2562)
+      d = GG(d, a, b, c, x[k + 6], 9, 0xc040b340)
+      c = GG(c, d, a, b, x[k + 11], 14, 0x265e5a51)
+      b = GG(b, c, d, a, x[k + 0], 20, 0xe9b6c7aa)
+      a = GG(a, b, c, d, x[k + 5], 5, 0xd62f105d)
+      d = GG(d, a, b, c, x[k + 10], 9, 0x2441453)
+      c = GG(c, d, a, b, x[k + 15], 14, 0xd8a1e681)
+      b = GG(b, c, d, a, x[k + 4], 20, 0xe7d3fbc8)
+      a = GG(a, b, c, d, x[k + 9], 5, 0x21e1cde6)
+      d = GG(d, a, b, c, x[k + 14], 9, 0xc33707d6)
+      c = GG(c, d, a, b, x[k + 3], 14, 0xf4d50d87)
+      b = GG(b, c, d, a, x[k + 8], 20, 0x455a14ed)
+      a = GG(a, b, c, d, x[k + 13], 5, 0xa9e3e905)
+      d = GG(d, a, b, c, x[k + 2], 9, 0xfcefa3f8)
+      c = GG(c, d, a, b, x[k + 7], 14, 0x676f02d9)
+      b = GG(b, c, d, a, x[k + 12], 20, 0x8d2a4c8a)
+      a = HH(a, b, c, d, x[k + 5], 4, 0xfffa3942)
+      d = HH(d, a, b, c, x[k + 8], 11, 0x8771f681)
+      c = HH(c, d, a, b, x[k + 11], 16, 0x6d9d6122)
+      b = HH(b, c, d, a, x[k + 14], 23, 0xfde5380c)
+      a = HH(a, b, c, d, x[k + 1], 4, 0xa4beea44)
+      d = HH(d, a, b, c, x[k + 4], 11, 0x4bdecfa9)
+      c = HH(c, d, a, b, x[k + 7], 16, 0xf6bb4b60)
+      b = HH(b, c, d, a, x[k + 10], 23, 0xbebfbc70)
+      a = HH(a, b, c, d, x[k + 13], 4, 0x289b7ec6)
+      d = HH(d, a, b, c, x[k + 0], 11, 0xeaa127fa)
+      c = HH(c, d, a, b, x[k + 3], 16, 0xd4ef3085)
+      b = HH(b, c, d, a, x[k + 6], 23, 0x4881d05)
+      a = HH(a, b, c, d, x[k + 9], 4, 0xd9d4d039)
+      d = HH(d, a, b, c, x[k + 12], 11, 0xe6db99e5)
+      c = HH(c, d, a, b, x[k + 15], 16, 0x1fa27cf8)
+      b = HH(b, c, d, a, x[k + 2], 23, 0xc4ac5665)
+      a = II(a, b, c, d, x[k + 0], 6, 0xf4292244)
+      d = II(d, a, b, c, x[k + 7], 10, 0x432aff97)
+      c = II(c, d, a, b, x[k + 14], 15, 0xab9423a7)
+      b = II(b, c, d, a, x[k + 5], 21, 0xfc93a039)
+      a = II(a, b, c, d, x[k + 12], 6, 0x655b59c3)
+      d = II(d, a, b, c, x[k + 9], 10, 0x8f0ccc92)
+      c = II(c, d, a, b, x[k + 6], 15, 0xffeff47d)
+      b = II(b, c, d, a, x[k + 3], 21, 0x85845dd1)
+      a = II(a, b, c, d, x[k + 10], 6, 0x6fa87e4f)
+      d = II(d, a, b, c, x[k + 1], 10, 0xfe2ce6e0)
+      c = II(c, d, a, b, x[k + 8], 15, 0xa3014314)
+      b = II(b, c, d, a, x[k + 15], 21, 0x4e0811a1)
+      a = II(a, b, c, d, x[k + 4], 6, 0xf7537e82)
+      d = II(d, a, b, c, x[k + 11], 10, 0xbd3af235)
+      c = II(c, d, a, b, x[k + 2], 15, 0x2ad7d2bb)
+      b = II(b, c, d, a, x[k + 13], 21, 0xeb86d391)
+      a = addUnsigned(a, AA)
+      b = addUnsigned(b, BB)
+      c = addUnsigned(c, CC)
+      d = addUnsigned(d, DD)
+    }
+
+    const temp = wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d)
+    return temp.toLowerCase()
+  }
+
+  // 生成32位MD5，然后缩短到24位
+  const fullMd5 = md5(input)
+  // 取前24位字符
+  return fullMd5.substring(0, 24)
+}
+
+interface ScriptServer {
+  id: string
+  name: string
+  ip: string
+  port: number
+  maxAccounts: number
+  currentAccounts: number
+  status: string
+}
+
+interface ServerInfo {
+  serverId: string
+  serverName: string
+}
+
+interface Props {
+  isOpen: boolean
+  token: string
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  close: []
+  success: []
+}>()
+
+const currentStep = ref<'channel' | 'login' | 'server'>('channel')
+
+// 步骤定义
+const steps = [
+  { title: '选择渠道', key: 'channel' },
+  { title: '登录', key: 'login' },
+  { title: '选择区服', key: 'server' },
+  // { title: '绑定账号', key: 'bind' }
+]
+
+// 计算当前步骤索引
+const currentStepIndex = computed(() => {
+  return steps.findIndex((step) => step.key === currentStep.value)
+})
+
+// 表单引用和数据
+const loginFormRef = ref<FormInstance>()
+const loginForm = ref({
+  username: '',
+  password: '',
+})
+
+const serverFormRef = ref<FormInstance>()
+const serverForm = ref({
+  server: undefined as string | undefined,
+})
+
+// 表单验证规则
+const loginRules: Record<string, Rule[]> = {
+  username: [
+    { required: true, message: '请输入游戏用户名', trigger: 'blur' },
+    { min: 1, max: 50, message: '用户名长度应在1-50字符之间', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入游戏密码', trigger: 'blur' },
+    { min: 1, max: 100, message: '密码长度应在1-100字符之间', trigger: 'blur' },
+  ],
+}
+
+const serverRules: Record<string, Rule[]> = {
+  server: [{ required: true, message: '请选择游戏区服', trigger: 'change' }],
+}
+
+// 保持向后兼容的引用
+const username = computed({
+  get: () => loginForm.value.username,
+  set: (value: string) => {
+    loginForm.value.username = value
+  },
+})
+const password = computed({
+  get: () => loginForm.value.password,
+  set: (value: string) => {
+    loginForm.value.password = value
+  },
+})
+const selectedChannel = ref<number>(0)
+const selectedServer = ref<ServerInfo | null>(null)
+const serverList = ref<ServerInfo[]>([])
+const loading = ref(false)
+const scriptServers = ref<ScriptServer[]>([])
+const selectedScriptServer = ref<ScriptServer | null>(null)
+const uid = ref<string>('')
+const gameToken = ref<string>('')
+
+// 支付宝扫码相关状态
+const qrcodeUrl = ref<string>('')
+const qrcodeImage = ref<string>('')
+const isPolling = ref(false)
+const alipayLoginData = ref<AlipayLoginData | null>(null)
+
+// 华为扫码相关状态
+const huaweiQrcodeUrl = ref<string>('')
+const huaweiQrcodeImage = ref<string>('')
+const isHuaweiPolling = ref(false)
+const huaweiLoginData = ref<any>(null)
+
+// 获取服务器列表
+const fetchScriptServers = async () => {
+  try {
+    console.log('🔍 开始获取服务器列表...')
+    const response = await axios.get('/api/game-accounts/script-servers')
+
+    console.log('📡 服务器响应:', response.data)
+
+    if (response.data.success) {
+      scriptServers.value = response.data.data
+      // 自动选择第一个可用的服务器
+      if (response.data.data.length > 0) {
+        selectedScriptServer.value = response.data.data[0]
+        console.log('✅ 已选择服务器:', response.data.data[0])
+      } else {
+        console.warn('⚠️ 没有可用的服务器')
+        message.warning('没有可用的服务器，请联系管理员')
+      }
+    } else {
+      console.error('❌ 获取服务器失败:', response.data.message)
+      message.error('获取服务器失败: ' + response.data.message)
+    }
+  } catch (error: any) {
+    console.error('❌ 获取服务器失败:', error)
+    if (error.response?.status === 401) {
+      message.error('认证失败，请重新登录')
+    } else if (error.response?.status === 500) {
+      message.error('服务器内部错误，请稍后重试')
+    } else {
+      message.error('网络错误，请检查网络连接')
+    }
+  }
+}
+
+const handleNextStep = async () => {
+  switch (currentStep.value) {
+    case 'channel':
+      if (selectedChannel.value === 0 || selectedChannel.value === 1 || selectedChannel.value === 2 || selectedChannel.value === 3) {
+        currentStep.value = 'login'
+      } else {
+        alert('请选择游戏渠道')
+        return
+      }
+      break
+    case 'login':
+      // 如果是支付宝渠道，使用扫码登录
+      if (selectedChannel.value === 1) {
+        // 如果已经有支付宝登录数据，直接跳转到下一步
+        if (alipayLoginData.value) {
+          console.log('🎉 支付宝已登录，直接跳转到服务器选择')
+          currentStep.value = 'server'
+          return
+        }
+        await handleLogin()
+      } else if (selectedChannel.value === 3) {
+        // 如果是华为渠道，使用扫码登录
+        if (huaweiLoginData.value) {
+          currentStep.value = 'server'
+          return
+        }
+        await handleLogin()
+      } else {
+        try {
+          await loginFormRef.value?.validateFields()
+          await handleLogin()
+        } catch (error) {
+          console.log('表单验证失败:', error)
+          // 验证失败时不继续执行，Ant Design Vue会自动显示错误信息
+          return
+        }
+      }
+      break
+    case 'server':
+      try {
+        await serverFormRef.value?.validateFields()
+        if (!selectedServer.value) {
+          message.error('请选择游戏区服')
+          return
+        }
+        if (!selectedScriptServer.value) {
+          message.error('请等待服务器加载完成')
+          return
+        }
+        // 华为扫码登录不需要检查uid和gameToken，其他渠道需要
+        if (selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+          message.error('游戏账号信息不完整，请重新登录')
+          return
+        }
+        // 直接进行绑定
+        await handleBind()
+      } catch (error) {
+        console.log('服务器选择验证失败:', error)
+        // 验证失败时不继续执行，Ant Design Vue会自动显示错误信息
+        return
+      }
+      break
+    default:
+      console.error('未知的步骤:', currentStep.value)
+      break
+  }
+}
+
+const handleLogin = async () => {
+  // 如果是支付宝渠道，使用扫码登录
+  if (selectedChannel.value === 1) {
+    await handleAlipayLogin()
+    return
+  }
+
+  // 如果是华为渠道，使用扫码登录
+  if (selectedChannel.value === 3) {
+    await handleHuaweiLogin()
+    return
+  }
+
+  // 其他渠道使用账号密码登录
+  loading.value = true
+  try {
+    const response = await axios.post('/api/game-accounts/login', {
+      username: username.value,
+      password: password.value.trim(),
+      platform: selectedChannel.value, // 传递 platform 参数
+    })
+
+    if (response.data.success) {
+      const { server_list, uid: uidFromResponse, token: gameTokenFromResponse } = response.data.data
+      console.log('🔍 登录响应数据:', response.data.data)
+      console.log('📋 服务器列表:', server_list)
+      console.log('🆔 UID:', uidFromResponse)
+      console.log('🎫 游戏Token:', gameTokenFromResponse)
+
+      // 新的数据结构：server_list.servers
+      if (server_list && server_list.servers && Array.isArray(server_list.servers)) {
+        serverList.value = server_list.servers
+      } else {
+        console.error('❌ server_list.servers 不是数组:', server_list)
+        message.error('服务器获取失败！', server_list)
+        serverList.value = []
+        return // 不继续到下一步
+      }
+
+      uid.value = uidFromResponse || ''
+      gameToken.value = gameTokenFromResponse || ''
+      currentStep.value = 'server'
+    } else {
+      message.error(response.data.message || '登录失败')
+    }
+  } catch {
+    message.error('服务器获取失败2！')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 支付宝扫码登录
+const handleAlipayLogin = async () => {
+  loading.value = true
+  try {
+    // 获取二维码
+    const qrcodeResponse = await axios.post('/api/game-accounts/alipay/qrcode', {})
+
+    if (qrcodeResponse.data.success) {
+      const { qrcodeUrl: qrUrl, sessionId, token: alipayToken } = qrcodeResponse.data.data
+      qrcodeUrl.value = qrUrl
+
+      // 直接设置二维码URL，使用Ant Design的QRCode组件来渲染
+      qrcodeImage.value = qrUrl
+
+      message.success('二维码生成成功，请使用支付宝扫码')
+
+      // 开始轮询
+      await startAlipayPolling()
+    } else {
+      message.error('获取二维码失败')
+    }
+  } catch (error: any) {
+    console.error('获取二维码失败:', error)
+    message.error(error.response?.data?.message || '获取二维码失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 开始支付宝轮询
+const startAlipayPolling = async () => {
+  isPolling.value = true
+  alipayLoginData.value = null
+
+  try {
+    message.loading('等待扫码中...', 2)
+
+    const response = await axios.get('/api/game-accounts/alipay/poll', {
+      timeout: 130000, // 2分钟超时 + 10秒缓冲
+    })
+
+    if (response.data.success && response.data.data.status === 'success') {
+      const loginInfo = response.data.data
+      alipayLoginData.value = loginInfo
+
+      // 设置支付宝登录信息到表单
+      uid.value = loginInfo.uid
+      gameToken.value = loginInfo.sessionId // 使用sessionId作为token
+
+      // 设置从后端获取的真实服务器列表
+      if (loginInfo.serverList && Array.isArray(loginInfo.serverList)) {
+        serverList.value = loginInfo.serverList.map((server: any) => ({
+          serverId: server.serverId.toString(),
+          serverName: server.serverName,
+          labelName: server.labelName,
+          address: server.address,
+          serverState: server.serverState,
+          openTime: server.openTime,
+          new: server.new,
+        }))
+        console.log(`✅ 已加载 ${serverList.value.length} 个服务器`)
+        message.success(`加载${serverList.value.length}个服务器！`)
+      } else {
+        console.error('❌ 未获取到服务器列表，但仍允许继续，将在下一步重新获取')
+        serverList.value = []
+        // 不再直接返回，允许用户继续到下一步，在下一步中处理服务器列表问题
+        message.success('未获取到服务器列表，请稍后再试...')
+      }
+
+      // 确保服务器也已加载
+      if (!selectedScriptServer.value) {
+        console.log('🔄 支付宝登录成功后重新加载服务器...')
+        await fetchScriptServers()
+      }
+
+      message.success('支付宝扫码登录成功！正在跳转到服务器选择...')
+      console.log('🎉 支付宝登录成功！完整信息如下:')
+      console.log('👤 支付宝用户ID:', loginInfo.userId)
+      console.log('🎮 游戏UID:', loginInfo.uid)
+      console.log('🔑 SessionID:', loginInfo.sessionId)
+      console.log('🍪 Cookie:', loginInfo.cookie ? '已获取' : '未获取')
+      console.log('🔐 AuthCode:', loginInfo.authCode ? '已获取' : '未获取')
+      console.log('📊 完整登录数据:', loginInfo)
+
+      // 添加延迟确保UI更新
+      setTimeout(() => {
+        console.log('🚀 正在跳转到服务器选择页面...')
+        currentStep.value = 'server'
+        // 如果服务器列表为空，尝试重新获取
+        if (serverList.value.length === 0) {
+          console.log('🔄 服务器列表为空，尝试重新获取...')
+          message.warning('服务器列表加载中，请稍候...')
+        }
+      }, 500)
+    } else {
+      message.error('扫码失败或超时')
+    }
+  } catch (error: any) {
+    console.error('轮询失败:', error)
+    if (error.code === 'ECONNABORTED') {
+      message.error('扫码超时，请重新获取二维码')
+    } else {
+      message.error(error.response?.data?.message || '扫码检查失败')
+    }
+  } finally {
+    isPolling.value = false
+  }
+}
+
+// 华为扫码登录
+const handleHuaweiLogin = async () => {
+  loading.value = true
+  try {
+    // 获取华为二维码
+    const qrcodeResponse = await axios.post('/api/game-accounts/huawei/qrcode', {})
+
+    if (qrcodeResponse.data.success) {
+      const { qrcodeUrl: qrUrl } = qrcodeResponse.data.data
+      huaweiQrcodeUrl.value = qrUrl
+
+      // 直接设置二维码URL，使用Ant Design的QRCode组件来渲染
+      huaweiQrcodeImage.value = qrUrl
+
+      message.success('二维码生成成功，请使用华为账号扫码')
+
+      // 开始轮询
+      await startHuaweiPolling()
+    } else {
+      message.error('获取华为二维码失败')
+    }
+  } catch (error: any) {
+    console.error('获取华为二维码失败:', error)
+    message.error(error.response?.data?.message || '获取二维码失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 开始华为轮询
+const startHuaweiPolling = async () => {
+  isHuaweiPolling.value = true
+  huaweiLoginData.value = null
+
+  try {
+    message.loading('等待扫码中...', 2)
+
+    const response = await axios.get('/api/game-accounts/huawei/poll', {
+      timeout: 130000, // 2分钟超时 + 10秒缓冲
+    })
+
+    if (response.data.success && response.data.code === 'COMPLETED') {
+      const loginInfo = response.data.data
+      huaweiLoginData.value = loginInfo
+
+      // 设置从后端获取的真实服务器列表
+      if (loginInfo.serverList && Array.isArray(loginInfo.serverList)) {
+        serverList.value = loginInfo.serverList.map((server: any) => ({
+          serverId: server.serverId.toString(),
+          serverName: server.serverName,
+        }))
+        message.success(`已加载${serverList.value.length}个服务器`)
+      } else {
+        serverList.value = []
+        message.warning('未获取到服务器列表，请稍后再试')
+      }
+
+      // 确保脚本服务器也已加载
+      if (!selectedScriptServer.value) {
+        await fetchScriptServers()
+      }
+
+      message.success('华为扫码登录成功！正在跳转...')
+
+      // 添加延迟确保UI更新
+      setTimeout(() => {
+        currentStep.value = 'server'
+        if (serverList.value.length === 0) {
+          message.warning('服务器列表加载中，请稍候...')
+        }
+      }, 500)
+    } else if (response.data.success && response.data.code === 'PENDING') {
+      message.warning('扫码超时，请重试')
+    } else {
+      message.error(response.data?.message || '扫码失败')
+    }
+  } catch (error: any) {
+    console.error('华为轮询失败:', error.message)
+    
+    if (error.code === 'ECONNABORTED') {
+      message.error('⏰ 请求超时，请检查网络连接', 5)
+    } else if (error.response) {
+      const status = error.response.status
+      
+      // 特别处理504 Gateway Timeout
+      if (status === 504) {
+        console.error('504 Gateway Timeout - Nginx超时错误')
+        message.error('⏰ 服务器网关超时(504)，请联系管理员检查Nginx配置', 8)
+        message.warning('可能原因：Nginx proxy_read_timeout配置过短', 6)
+      } else {
+        const errMsg = error.response?.data?.message || error.response?.data?.technicalDetails || `服务器错误 ${status}`
+        message.error(errMsg, 5)
+      }
+    } else if (error.request) {
+      message.error('网络错误，请求未收到响应', 5)
+    } else {
+      message.error(error.message || '扫码检查失败', 5)
+    }
+  } finally {
+    isHuaweiPolling.value = false
+  }
+}
+
+const handleBind = async () => {
+  console.log('  - gameToken:', gameToken.value ? '已设置' : '未设置')
+  console.log('  - selectedChannel:', selectedChannel.value)
+  console.log('  - alipayLoginData:', alipayLoginData.value)
+
+  if (!selectedServer.value) {
+    message.error('请选择游戏区服')
+    return
+  }
+  if (!selectedScriptServer.value) {
+    message.error('服务器未加载完成')
+    return
+  }
+  // 华为扫码登录不需要检查uid和gameToken，其他渠道需要
+  if (selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+    message.error('游戏账号信息不完整，请重新登录')
+    return
+  }
+
+  loading.value = true
+  try {
+    // 检查是否是支付宝扫码登录
+    if (selectedChannel.value === 1 && alipayLoginData.value) {
+      console.log('🎮 使用支付宝扫码登录绑定流程')
+
+      // 生成 parent_id：支付宝真实ID+服务器ID 的MD5哈希（使用支付宝真实ID作为username）
+      const alipayRealId = alipayLoginData.value.alipayRealUserId || alipayLoginData.value.uid
+      const parentIdInput = `${alipayRealId}${selectedServer.value.serverId}`
+      const parentId = generateMD5Hash(parentIdInput)
+
+      console.log('🔑 支付宝绑定 parent_id:', parentId)
+      console.log('📝 输入字符串（使用支付宝真实ID）:', parentIdInput)
+      console.log('📋 支付宝数据详情:')
+      console.log('  - 支付宝真实ID (稳定):', alipayLoginData.value.alipayRealUserId)
+      console.log('  - 游戏UID:', alipayLoginData.value.uid)
+      console.log('  - 会话userId (变化):', alipayLoginData.value.userId)
+      console.log('  - 服务器ID:', selectedServer.value.serverId)
+
+      const qrcodeBindPayload = {
+        alipay_data:
+          alipayLoginData.value.quickAppData ||
+          JSON.stringify({
+            uid: alipayLoginData.value.uid,
+            sessionId: alipayLoginData.value.sessionId,
+            authCode: alipayLoginData.value.authCode,
+          }),
+        cookie: alipayLoginData.value.cookie,
+        server_id: selectedServer.value.serverId,
+        server_name: selectedServer.value.serverName,
+        parent_id: parentId,
+        alipayRealUserId: alipayRealId,
+        uid: alipayLoginData.value.uid,
+        token: alipayLoginData.value.sessionId,
+        platform: 1, // 支付宝渠道固定为 1
+      }
+
+      console.log('📦 支付宝绑定请求数据:')
+      console.log('  - alipay_data类型:', typeof qrcodeBindPayload.alipay_data)
+      console.log('  - alipay_data内容:', qrcodeBindPayload.alipay_data)
+      console.log('  - 是否使用quickAppData:', !!alipayLoginData.value.quickAppData)
+
+      console.log('📦 支付宝绑定请求数据:', qrcodeBindPayload)
+
+      const response = await axios.post('/api/game-accounts/bind_qrcode', qrcodeBindPayload)
+
+      if (response.data.success) {
+        message.success('支付宝账号绑定成功！')
+        resetForm()
+        emit('success')
+        emit('close')
+      } else {
+        message.error(response.data.message || '支付宝绑定失败')
+      }
+    } else if (selectedChannel.value === 3 && huaweiLoginData.value) {
+      // 华为扫码登录绑定流程
+      const huaweiUid = huaweiLoginData.value.wanData?.uid || ''
+      const parentIdInput = `${huaweiUid}${selectedServer.value.serverId}`
+      const parentId = generateMD5Hash(parentIdInput)
+
+      const huaweiBindPayload = {
+        huawei_data: {
+          serviceToken: huaweiLoginData.value.serviceToken,
+          wanData: huaweiLoginData.value.wanData,
+        },
+        server_id: selectedServer.value.serverId,
+        server_name: selectedServer.value.serverName,
+        parent_id: parentId,
+      }
+
+      const response = await axios.post('/api/game-accounts/bind_huawei_qrcode', huaweiBindPayload)
+
+      if (response.data.success) {
+        message.success('华为账号绑定成功！')
+        resetForm()
+        emit('success')
+        emit('close')
+      } else {
+        message.error(response.data.message || '华为绑定失败')
+      }
+    } else {
+      // 普通账号密码绑定流程
+      const parentIdInput = `${username.value}${password.value.trim()}${selectedServer.value.serverId}`
+      const parentId = generateMD5Hash(parentIdInput)
+
+      const bindPayload = {
+        username: username.value,
+        password: password.value.trim(),
+        server_id: selectedServer.value.serverId,
+        server_name: selectedServer.value.serverName,
+        platform: selectedChannel.value,
+        uid: uid.value,
+        token: gameToken.value,
+        parent_id: parentId,
+      }
+
+      const response = await axios.post('/api/game-accounts/bind', bindPayload)
+
+      if (response.data.success) {
+        message.success('游戏账号绑定成功！')
+        resetForm()
+        emit('success')
+        emit('close')
+      } else {
+        message.error(response.data.message || '绑定失败')
+      }
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const resetForm = () => {
+  currentStep.value = 'channel'
+  loginForm.value = {
+    username: '',
+    password: '',
+  }
+  serverForm.value = {
+    server: undefined,
+  }
+  loginFormRef.value?.resetFields()
+  serverFormRef.value?.resetFields()
+  selectedChannel.value = 0
+  selectedServer.value = null
+  serverList.value = []
+  selectedScriptServer.value = null
+  uid.value = ''
+  gameToken.value = ''
+
+  // 清理支付宝相关状态
+  qrcodeUrl.value = ''
+  qrcodeImage.value = ''
+  isPolling.value = false
+  alipayLoginData.value = null
+
+  // 清理华为相关状态
+  huaweiQrcodeUrl.value = ''
+  huaweiQrcodeImage.value = ''
+  isHuaweiPolling.value = false
+  huaweiLoginData.value = null
+}
+
+// 处理服务器选择变化
+const handleServerChange = (serverId: string) => {
+  console.log('服务器选择变化:', serverId)
+  const server = serverList.value.find((s) => s.serverId === serverId)
+  if (server) {
+    selectedServer.value = server
+    console.log('已选择服务器:', server)
+  }
+}
+
+// 服务器选项搜索过滤
+const filterServerOption = (input: string, option: any) => {
+  const serverName = option.label || ''
+  return serverName.toLowerCase().indexOf(input.toLowerCase()) >= 0
+}
+
+const handleClose = () => {
+  // 如果获取了华为二维码，调用取消接口
+  if (huaweiQrcodeUrl.value || isHuaweiPolling.value) {
+    axios.post('/api/game-accounts/huawei/cancel').catch(() => {})
+  }
+
+  resetForm()
+  emit('close')
+}
+
+const handlePreviousStep = () => {
+  if (currentStep.value === 'login') currentStep.value = 'channel'
+  else if (currentStep.value === 'server') currentStep.value = 'login'
+}
+
+const handleMainButton = () => {
+  console.log('🔘 按钮被点击！')
+  console.log('🔍 当前步骤:', currentStep.value)
+  console.log('🚀 准备调用 handleNextStep')
+  handleNextStep()
+}
+
+// 监听isOpen变化
+watch(
+  () => props.isOpen,
+  (isOpen) => {
+    if (isOpen) {
+      fetchScriptServers()
+      // 设置默认渠道选择为APP/微信
+      selectedChannel.value = 0
+    }
+  },
+)
+</script>
+
+<style scoped>
+@import './AddAccountModal.css';
+</style>
+
+<style>
+/* 非 scoped 样式确保选中态生效 */
+.add-account-modal-antd .ant-radio-wrapper-checked .channel-content {
+  border-color: #1890ff !important;
+  background: #e6f7ff !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2) !important;
+}
+
+.add-account-modal-antd .ant-radio-wrapper-checked .channel-icon {
+  transform: scale(1.1);
+}
+
+.add-account-modal-antd .ant-radio-wrapper-checked .channel-icon-app {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
+  transform: scale(1.05);
+}
+
+.add-account-modal-antd .ant-radio-wrapper-checked .app-text {
+  color: white !important;
+}
+</style>

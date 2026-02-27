@@ -1,0 +1,86 @@
+/* 配额设置管理样式 */
+.quota-settings-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.quota-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quota-settings-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.no-permission {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.no-permission h3 {
+  color: #dc2626;
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
+
+.no-permission p {
+  color: #7f1d1d;
+  margin: 0;
+  font-size: 14px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  color: #6b7280;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* 表单样式 */
+.quota-form {
+  padding: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .quota-settings-container {
+    padding: 16px;
+  }
+
+  .quota-settings-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .quota-settings-header h2 {
+    font-size: 20px;
+  }
+}

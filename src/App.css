@@ -1,0 +1,12 @@
+.App {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 只对登录/注册表单进行居中，不影响Dashboard */
+.App > .login-container,
+.App > .register-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

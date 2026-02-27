@@ -1,0 +1,363 @@
+/* 添加游戏账号模态框样式 */
+/* 保留自定义按钮样式 */
+
+.custom-steps {
+  flex-direction: row !important;
+}
+
+/* 步骤内容 */
+.step-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.step-panel {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-panel h4 {
+  margin: 8px 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+  text-align: center;
+}
+
+/* 渠道选择 */
+.channel-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 0;
+}
+
+/* 隐藏ant design radio的默认圆圈 */
+.channel-option :deep(.ant-radio) {
+  display: none;
+}
+
+.channel-option {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+.channel-option :deep(.ant-radio-wrapper) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  padding: 0;
+  margin: 0;
+}
+
+.channel-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  padding: 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.channel-content:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* 选中状态 - 使用多种选择器确保生效 */
+.channel-option :deep(.ant-radio-wrapper-checked) .channel-content {
+  border-color: #1890ff !important;
+  background: #e6f7ff !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2) !important;
+}
+
+.channel-option :deep(.ant-radio-wrapper-checked) .channel-icon {
+  transform: scale(1.1);
+}
+
+/* 针对 Ant Design Vue 4.x 的选中态 */
+:deep(.ant-radio-wrapper-checked) .channel-content {
+  border-color: #1890ff !important;
+  background: #e6f7ff !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2) !important;
+}
+
+:deep(.ant-radio-checked) ~ .channel-content {
+  border-color: #1890ff !important;
+  background: #e6f7ff !important;
+}
+
+.channel-options :deep(.ant-radio-input:checked) ~ .channel-content {
+  border-color: #1890ff !important;
+  background: #e6f7ff !important;
+}
+
+.channel-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+}
+
+.channel-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+/* APP/微信复合图标 */
+.channel-icon-app {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.app-text {
+  font-size: 22px;
+  font-weight: bold;
+  color: #1890ff;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.wechat-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 选中状态下的特殊样式 */
+.channel-option :deep(.ant-radio-wrapper-checked) .channel-icon-app {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  transform: scale(1.05);
+}
+
+.channel-option :deep(.ant-radio-wrapper-checked) .app-text {
+  color: white;
+}
+
+/* 服务器选择 */
+.server-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.server-form {
+  margin: 20px 0;
+}
+
+/* 服务器下拉框选项样式 */
+
+.no-servers {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-servers p {
+  margin: 8px 0;
+}
+
+.server-hint {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.script-server-info {
+  text-align: center;
+}
+
+.script-server-info p {
+  margin: 0 0 12px 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.selected-server {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* 支付宝扫码登录样式 */
+.alipay-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.qrcode-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.qrcode-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.qrcode-container h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #374151;
+  text-align: center;
+}
+
+.qrcode-display {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.qrcode-wrapper {
+  width: 240px;
+  height: 240px;
+}
+
+.qrcode-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.qrcode-status-text {
+  margin-top: 10px;
+  color: #1890ff;
+  font-size: 0.9rem;
+}
+
+.qrcode-loading {
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.login-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-info p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #374151;
+  word-break: break-all;
+}
+
+.login-info strong {
+  color: #1f2937;
+}
+
+.qrcode-status {
+  text-align: center;
+}
+
+.qrcode-status p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.password-login {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* 操作按钮 */
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* 响应式设计 */
+
+@media (max-width: 768px) {
+  .channel-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    max-width: 100%;
+  }
+
+  .channel-option {
+    display: flex;
+    justify-content: center;
+    width: calc(50% - 8px);
+    max-width: 140px;
+  }
+
+  .channel-option :deep(.ant-radio-wrapper) {
+    width: 100%;
+    height: 120px;
+  }
+
+  .channel-content {
+    width: 100%;
+    height: 120px;
+  }
+
+  .channel-icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

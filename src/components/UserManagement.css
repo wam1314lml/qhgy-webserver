@@ -1,0 +1,99 @@
+.user-management {
+  background: #f5f5f5;
+  min-height: 100%;
+}
+
+.user-management .ant-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-management .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.user-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.stat-card p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.referral-info {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.referral-chain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.referral-user {
+  background: #e6f7ff;
+  color: #1890ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .user-management {
+    padding: 12px;
+  }
+
+  .user-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card h3 {
+    font-size: 24px;
+  }
+
+  /* 移动端搜索栏优化 */
+  .user-management .ant-input-search {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .user-management .ant-space {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .user-management .ant-space-item {
+    width: 100%;
+  }
+}
