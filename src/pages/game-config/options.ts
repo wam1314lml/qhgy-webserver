@@ -1,3 +1,6 @@
+export { flowerOptions } from './flowerOptions'
+export { flowerArtOptions } from './flowerArtOptions'
+
 // 标签页配置
 export const tabs = ['基础', '种植', '订单', '公会', '活动']
 
@@ -51,6 +54,14 @@ export const hourOptions = Array.from({ length: 24 }, (_, i) => ({
   label: `${i}点`,
   value: i,
 }))
+
+export const flowerQualityOptions = [
+  { label: '绿', value: 1 },
+  { label: '蓝', value: 2 },
+  { label: '紫', value: 3 },
+  { label: '金', value: 4 },
+  { label: '红', value: 5 },
+]
 
 export const defaultFateThresholds = {
   1017: 1.5, // 最终增伤

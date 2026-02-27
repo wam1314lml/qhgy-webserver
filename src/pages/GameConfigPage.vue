@@ -62,7 +62,7 @@
               name="basic.reputation.enabled"
               tooltip="每5分钟检查礼仪分，低于阈值时自动停止所有任务"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.reputation.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="礼仪分阈值"
@@ -70,7 +70,7 @@
               tooltip="礼仪分低于此值时停止所有任务"
             >
               <custom-input-number
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.basic.reputation.threshold"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -80,7 +80,7 @@
               name="basic.debug"
               tooltip="开启后显示背包道具的增加和消耗详情"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.debug" />
             </CustomFormItem>
             <CustomFormItem
               label="重连间隔"
@@ -88,10 +88,11 @@
               tooltip="自动顶号间隔，建议设置为 5 分钟"
             >
               <CustomInputNumber
-                :value="Math.round(config.reconnectInterval / 60000)"
+                :value="Math.round(config.basic.reconnectInterval / 60000)"
                 @change="
                   (value: number) =>
-                    (config.reconnectInterval = (typeof value === 'number' ? value : 5) * 60000)
+                    (config.basic.reconnectInterval =
+                      (typeof value === 'number' ? value : 5) * 60000)
                 "
                 :min="1"
                 :step="1"
@@ -103,26 +104,42 @@
             </CustomFormItem>
             <Divider orientation="left">任务配置</Divider>
 
-            <CustomFormItem label="每日任务" name="basic.task.daily">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="每日任务"
+              name="basic.task.daily"
+              tooltip="自动领取每日任务完成奖励，阶段宝箱奖励"
+            >
+              <Switch v-model:checked="config.basic.task.daily" />
             </CustomFormItem>
 
-            <CustomFormItem label="每周任务" name="basic.task.weekly">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="每周任务"
+              name="basic.task.weekly"
+              tooltip="自动领取每周任务完成奖励"
+            >
+              <Switch v-model:checked="config.basic.task.weekly" />
             </CustomFormItem>
 
-            <CustomFormItem label="主线任务" name="basic.task.main">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="主线任务"
+              name="basic.task.main"
+              tooltip="自动领取主线任务完成奖励"
+            >
+              <Switch v-model:checked="config.basic.task.main" />
             </CustomFormItem>
-            <CustomFormItem label="主线剧情" name="basic.task.story">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="主线剧情" name="basic.task.story" tooltip="自动解锁主线剧情">
+              <Switch v-model:checked="config.basic.task.story" />
             </CustomFormItem>
-            <CustomFormItem label="花坊悬赏" name="basic.task.achieve">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="花坊悬赏"
+              name="basic.task.achieve"
+              tooltip="自动领取花坊悬赏完成奖励"
+            >
+              <Switch v-model:checked="config.basic.task.achieve" />
             </CustomFormItem>
             <Divider orientation="left">邮件配置</Divider>
-            <CustomFormItem label="自动领取" name="basic.mail">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动领取" name="basic.mail" tooltip="自动领取邮件奖励">
+              <Switch v-model:checked="config.basic.mail" />
             </CustomFormItem>
 
             <Divider orientation="left">福利配置</Divider>
@@ -131,40 +148,48 @@
               name="basic.benefit.buff"
               tooltip="每4小时自动看视频领取双倍金币福利"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.benefit.buff" />
             </CustomFormItem>
             <CustomFormItem
               label="福利宝箱"
               name="basic.benefit.box"
               tooltip="每1小时自动开启福利宝箱"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.benefit.box" />
             </CustomFormItem>
             <CustomFormItem
               label="分享奖励"
               name="basic.benefit.shareRwd"
               tooltip="当制作了新花艺、培育了新花朵或升级时自动分享，领取分享奖励"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.benefit.shareRwd" />
             </CustomFormItem>
-            <CustomFormItem label="防骗宝箱" name="basic.benefit.antiScamBox">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="防骗宝箱"
+              name="basic.benefit.antiScamBox"
+              tooltip="每天自动签到并领取防骗宝箱奖励"
+            >
+              <Switch v-model:checked="config.basic.benefit.antiScamBox" />
             </CustomFormItem>
 
             <Divider orientation="left">签到配置</Divider>
             <CustomFormItem label="自动签到" name="basic.sign.daily">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.sign.daily" />
             </CustomFormItem>
             <CustomFormItem label="自动补签" name="basic.sign.patch">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.sign.patch" />
             </CustomFormItem>
             <Divider orientation="left">珍珠配置</Divider>
 
-            <CustomFormItem label="免费珍珠" name="basic.pearl.freePearl" tooltip="自动看视频领取免费珍珠">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="免费珍珠"
+              name="basic.pearl.freePearl"
+              tooltip="自动看视频领取免费珍珠"
+            >
+              <Switch v-model:checked="config.basic.pearl.freePearl" />
             </CustomFormItem>
             <CustomFormItem label="雇佣劳工" name="basic.pearl.autoHire" tooltip="自动雇佣劳工">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.pearl.autoHire" />
             </CustomFormItem>
 
             <CustomFormItem
@@ -173,7 +198,7 @@
               tooltip="当日最大可以使用的雇佣券数量, 为0则不限制。"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.basic.pearl.maxHireTicketUsage"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -183,14 +208,14 @@
               name="basic.pearl.protectEnabled"
               tooltip="开启后别人雇佣自己会消耗防身符"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.pearl.protectEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="买雇佣书"
               name="basic.pearl.autoBuyHireTicket"
               tooltip="雇佣书不足时自动购买"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.pearl.autoBuyHireTicket" />
             </CustomFormItem>
             <CustomFormItem
               label="元宝上限"
@@ -198,7 +223,7 @@
               tooltip="购买雇佣书消耗最大元宝"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.basic.pearl.maxSpendDmd"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -210,14 +235,14 @@
               name="basic.shop.videoFreeGift"
               tooltip="自动观看视频领取礼包商城免费礼包"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.shop.videoFreeGift" />
             </CustomFormItem>
             <CustomFormItem
               label="材料商店"
               name="basic.shop.cultivateShop.autoBuy"
               tooltip="自动买光材料商店所有耗材，自动刷新"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.shop.cultivateShop.autoBuy" />
             </CustomFormItem>
 
             <CustomFormItem
@@ -225,50 +250,30 @@
               name="basic.shop.vipShop.autoBuy"
               tooltip="自动购买VIP商店物品"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.basic.shop.vipShop.autoBuy" />
             </CustomFormItem>
 
             <Divider orientation="left">随机事件</Divider>
-            <CustomFormItem
-              label="自动处理"
-              name="basic.randomEvent"
-              tooltip="自动处理随机事件"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动处理" name="basic.randomEvent" tooltip="自动处理随机事件">
+              <Switch v-model:checked="config.basic.randomEvent" />
             </CustomFormItem>
 
             <Divider orientation="left">喂猫撸猫</Divider>
-            <CustomFormItem label="总开关" name="basic.feedCat.enabled" tooltip="自动购买VIP商店物品">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="总开关" name="basic.feedCat.enabled">
+              <Switch v-model:checked="config.basic.feedCat.enabled" />
             </CustomFormItem>
 
-            <CustomFormItem
-              label="自动召回"
-              name="basic.feedCat.autoRecall"
-              tooltip="自动购买VIP商店物品"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动召回" name="basic.feedCat.autoRecall">
+              <Switch v-model:checked="config.basic.feedCat.autoRecall" />
             </CustomFormItem>
-            <CustomFormItem
-              label="自动购买猫粮"
-              name="basic.feedCat.autoBuyFood"
-              tooltip="自动购买VIP商店物品"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动购买猫粮" name="basic.feedCat.autoBuyFood">
+              <Switch v-model:checked="config.basic.feedCat.autoBuyFood" />
             </CustomFormItem>
-            <CustomFormItem
-              label="自动喂猫"
-              name="basic.feedCat.autoFeed"
-              tooltip="保持猫粮盆满"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动喂猫" name="basic.feedCat.autoFeed" tooltip="保持猫粮盆满">
+              <Switch v-model:checked="config.basic.feedCat.autoFeed" />
             </CustomFormItem>
-            <CustomFormItem
-              label="自动撸猫"
-              name="basic.feedCat.autoStroke"
-              tooltip="自动购买VIP商店物品"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动撸猫" name="basic.feedCat.autoStroke">
+              <Switch v-model:checked="config.basic.feedCat.autoStroke" />
             </CustomFormItem>
           </div>
           <!-- 种植设置 -->
@@ -279,10 +284,14 @@
               name="plant.cultivate.enabled"
               tooltip="自动培育可培育花种"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.cultivate.enabled" />
             </CustomFormItem>
-            <CustomFormItem label="视频加速" name="plant.cultivate.videoSpeedUp" tooltip="自动观看视频加速培育正在培育的花种，培育时间减半">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="视频加速"
+              name="plant.cultivate.videoSpeedUp"
+              tooltip="自动观看视频加速培育正在培育的花种，培育时间减半"
+            >
+              <Switch v-model:checked="config.plant.cultivate.videoSpeedUp" />
             </CustomFormItem>
 
             <CustomFormItem
@@ -290,7 +299,7 @@
               name="plant.cultivate.upgradeEnabled"
               tooltip="自动花费金币进行鲜花升级"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.cultivate.upgradeEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="目标等级"
@@ -298,7 +307,7 @@
               tooltip="鲜花升级到目标等级"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.cultivate.tagetLevel"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -306,10 +315,14 @@
 
             <Divider orientation="left">水滴配置</Divider>
             <CustomFormItem label="水车水滴" name="plant.water.enabled" tooltip="自动领取水车水滴">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.water.enabled" />
             </CustomFormItem>
-            <CustomFormItem label="限时水滴" name="plant.water.timedEnabled" tooltip="自动领取限时水滴">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="限时水滴"
+              name="plant.water.timedEnabled"
+              tooltip="自动领取限时水滴"
+            >
+              <Switch v-model:checked="config.plant.water.timedEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="水滴阈值"
@@ -317,7 +330,7 @@
               tooltip="水滴少于此值才开始领取，0则不限制"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.water.minWaterThreshold"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -329,35 +342,35 @@
               name="plant.flower.autoUnlockLand"
               tooltip="自动花费金币解锁可解锁的土地"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.autoUnlockLand" />
             </CustomFormItem>
             <CustomFormItem
               label="自动收获"
               name="plant.flower.harvestEnabled"
               tooltip="自动完成土地收获"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.harvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="自动种植"
               name="plant.flower.plantEnabled"
               tooltip="自动完成土地浇水，加速，种植"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.plantEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="视频加速"
               name="plant.flower.videoSpeedUp"
               tooltip="自动观看视频加速收获，当所有土地种了花且可加速才会使用，避免浪费视频加速次数"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.videoSpeedUp" />
             </CustomFormItem>
             <CustomFormItem
               label="使用加速"
               name="plant.flower.useSpeedUpTicket"
               tooltip="使用加速券加速收获"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.useSpeedUpTicket" />
             </CustomFormItem>
             <CustomFormItem
               label="保留水滴"
@@ -365,54 +378,77 @@
               tooltip="保留多少水滴不用于浇花"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.flower.waterThreshold"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
             <CustomFormItem label="任务优先" name="plant.flower.taskMode">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.taskMode" />
             </CustomFormItem>
             <CustomFormItem
               label="任务日志"
               name="plant.flower.taskLogEnabled"
               tooltip="是否显示种植任务队列日志"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.flower.taskLogEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="种植模式"
               name="plant.flower.plantingMode"
               tooltip="选择种植模式，只能启用一种模式。需要保持种植整洁的玩家请自行清空所有土地"
             >
-              <Radio.Group v-model:value="config.homeland.drainStaminaStealMode">
+              <Radio.Group v-model:value="config.plant.flower.plantingMode">
                 <Space direction="vertical">
-                  <Radio :value="0">指定品质 </Radio>
-                  <Radio :value="1">指定种类 </Radio>
-                  <Radio :value="2">指定花朵 </Radio>
+                  <Radio value="quality">指定品质 </Radio>
+                  <Radio value="count">指定种类 </Radio>
+                  <Radio value="specific">指定花朵 </Radio>
                 </Space>
               </Radio.Group>
             </CustomFormItem>
+            <!-- 指定品质模式 -->
+            <CustomFormItem
+              label="选择品质"
+              name="plant.flower.qualities"
+              tooltip="选择要种植的花朵品质，可多选，库存少的优先种植。"
+              v-if="config.plant.flower.plantingMode === 'quality'"
+            >
+              <CustomSelect
+                v-model:value="config.plant.flower.qualities"
+                mode="multiple"
+                :options="flowerQualityOptions"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <!-- 指定种类模式 -->
             <CustomFormItem
               label="选择数量"
               name="plant.flower.flowerCount"
               tooltip="选择要种植几种花，库存少的优先种植。"
+              v-if="config.plant.flower.plantingMode === 'count'"
             >
-              <Select
-                v-model:value="config.homeland.exclusiveMode"
-                class="w-42! sm:w-48!"
-                @change="
-                  () => {
-                    config.homeland.xianYuStealTimeRange = []
-                  }
-                "
-              >
-                <Select.Option :value="0">1</Select.Option>
-                <Select.Option :value="1">2</Select.Option>
-                <Select.Option :value="2">4</Select.Option>
-                <Select.Option :value="2">8</Select.Option>
-                <Select.Option :value="3">16</Select.Option>
+              <Select v-model:value="config.plant.flower.flowerCount" class="w-42! sm:w-48!">
+                <Select.Option :value="1">1</Select.Option>
+                <Select.Option :value="2">2</Select.Option>
+                <Select.Option :value="4">4</Select.Option>
+                <Select.Option :value="8">8</Select.Option>
+                <Select.Option :value="16">16</Select.Option>
               </Select>
+            </CustomFormItem>
+            <!-- 指定花朵模式 -->
+            <CustomFormItem
+              label="选择花朵"
+              name="plant.flower.specificFlowerIds"
+              tooltip="选择要种植的花朵，可多选，库存少的优先种植。"
+              v-if="config.plant.flower.plantingMode === 'specific'"
+            >
+              <CustomSelect
+                v-model:value="config.plant.flower.specificFlowerIds"
+                mode="multiple"
+                placeholder="请选择花朵"
+                :options="flowerOptions"
+                style="width: 100%"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="限制花朵等级"
@@ -420,28 +456,36 @@
               tooltip="限制种植的最低花朵等级，0则不限制"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.flower.minFlowerLevel"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
 
             <Divider orientation="left">好友偷花</Divider>
-            <CustomFormItem label="自动偷花" name="plant.friendSteal.enabled" tooltip="默认不会偷取花灵">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动偷花"
+              name="plant.friendSteal.enabled"
+              tooltip="默认不会偷取花灵"
+            >
+              <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
-            <CustomFormItem label="偷取花灵" name="plant.friendSteal.stealElves" tooltip="开启后偷取有花灵的地块，关闭则跳过有花灵的地块">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="偷取花灵"
+              name="plant.friendSteal.stealElves"
+              tooltip="开启后偷取有花灵的地块，关闭则跳过有花灵的地块"
+            >
+              <Switch v-model:checked="config.plant.friendSteal.stealElves" />
             </CustomFormItem>
             <CustomFormItem
               label="偷花模式"
               name="plant.friendSteal.stealMode"
               tooltip="选择偷花过滤模式：指定品质或指定花朵"
             >
-              <Radio.Group v-model:value="config.homeland.drainStaminaStealMode">
+              <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
                 <Space direction="vertical">
-                  <Radio :value="0">指定品质 </Radio>
-                  <Radio :value="1">指定花朵 </Radio>
+                  <Radio value="quality">指定品质 </Radio>
+                  <Radio value="specific">指定花朵 </Radio>
                 </Space>
               </Radio.Group>
             </CustomFormItem>
@@ -451,15 +495,9 @@
               tooltip="只偷取指定品质的花朵"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.plant.friendSteal.stealQualities"
                 mode="multiple"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerQualityOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
@@ -468,7 +506,7 @@
               name="plant.friendSteal.buyStealEnabled"
               tooltip="花费好友币购买偷取次数"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.friendSteal.buyStealEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="购买次数"
@@ -476,7 +514,7 @@
               tooltip="每个好友购买多少次偷取次数"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.friendSteal.buyStealCount"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -488,74 +526,98 @@
               name="plant.elves.enabled"
               tooltip="自动选择双倍加成花灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日花灵达到收获上限后恢复到原有种植模式"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="自动申请协助"
               name="plant.elves.requestAid"
-              tooltip="自动参与花贸市场"
+              tooltip="自动申请好友协助花灵种植"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.requestAid" />
             </CustomFormItem>
             <CustomFormItem
               label="自动领取协助加成"
               name="plant.elves.recvAid"
               tooltip="当协助人数达到5人时自动领取协助加成"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.recvAid" />
             </CustomFormItem>
             <CustomFormItem
               label="自动协助好友"
               name="plant.elves.helpFrd"
-              tooltip="自动参与花贸市场"
+              tooltip="自动协助好友花灵种植"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.helpFrd" />
             </CustomFormItem>
             <CustomFormItem
               label="自动派遣花灵"
               name="plant.elves.dispatch"
               tooltip="自动将背包中的花灵派遣到空闲位置"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.dispatch" />
             </CustomFormItem>
             <CustomFormItem
               label="自动加速派遣"
               name="plant.elves.speedUpDispatch"
               tooltip="花费元宝加速派遣中的花灵"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.speedUpDispatch" />
             </CustomFormItem>
             <CustomFormItem
               label="自动领取派遣奖励"
               name="plant.elves.recvDispatch"
               tooltip="派遣完成后自动领取星辰币奖励"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.elves.recvDispatch" />
             </CustomFormItem>
 
             <Divider orientation="left">花灵密令</Divider>
-            <CustomFormItem label="等级奖励" name="plant.elves.recvPass" tooltip="自动领取花灵密令等级奖励">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="等级奖励"
+              name="plant.elves.recvPass"
+              tooltip="自动领取花灵密令等级奖励"
+            >
+              <Switch v-model:checked="config.plant.elves.recvPass" />
             </CustomFormItem>
-            <CustomFormItem label="任务奖励" name="plant.elves.recvPassTask" tooltip="自动领取花灵密令任务奖励">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="任务奖励"
+              name="plant.elves.recvPassTask"
+              tooltip="自动领取花灵密令任务奖励"
+            >
+              <Switch v-model:checked="config.plant.elves.recvPassTask" />
             </CustomFormItem>
 
             <Divider orientation="left">花之密令</Divider>
-            <CustomFormItem label="等级奖励" name="plant.elves.recvFlowerPass" tooltip="自动领取花之密令等级奖励">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="等级奖励"
+              name="plant.elves.recvFlowerPass"
+              tooltip="自动领取花之密令等级奖励"
+            >
+              <Switch v-model:checked="config.plant.elves.recvFlowerPass" />
             </CustomFormItem>
-            <CustomFormItem label="任务奖励" name="plant.elves.recvFlowerPassTask" tooltip="自动领取花之密令任务奖励">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="任务奖励"
+              name="plant.elves.recvFlowerPassTask"
+              tooltip="自动领取花之密令任务奖励"
+            >
+              <Switch v-model:checked="config.plant.elves.recvFlowerPassTask" />
             </CustomFormItem>
 
             <Divider orientation="left">花艺上架</Divider>
-            <CustomFormItem label="自动解锁花架" name="plant.artSell.autoUnlockStand" tooltip="自动解锁花架">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动解锁花架"
+              name="plant.artSell.autoUnlockStand"
+              tooltip="自动解锁花架"
+            >
+              <Switch v-model:checked="config.plant.artSell.autoUnlockStand" />
             </CustomFormItem>
 
-            <CustomFormItem label="自动上架" name="plant.artSell.autoSellArt" tooltip="自动上架花艺，自动领取金币收益">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动上架"
+              name="plant.artSell.autoSellArt"
+              tooltip="自动上架花艺，自动领取金币收益"
+            >
+              <Switch v-model:checked="config.plant.artSell.autoSellArt" />
             </CustomFormItem>
             <CustomFormItem
               label="指定花艺"
@@ -563,15 +625,9 @@
               tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.plant.artSell.specifiedArts"
                 mode="multiple"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerArtOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
@@ -581,35 +637,47 @@
               tooltip="每个花架上架多少花艺"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.plant.artSell.flowerArtPerRack"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
-            <CustomFormItem label="花艺经验" name="plant.artSell.recvArtCreateRwd" tooltip="自动领取花艺制作经验">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="花艺经验"
+              name="plant.artSell.recvArtCreateRwd"
+              tooltip="自动领取花艺制作经验"
+            >
+              <Switch v-model:checked="config.plant.artSell.recvArtCreateRwd" />
             </CustomFormItem>
-            <CustomFormItem label="图鉴奖励" name="plant.artSell.recvCollectRwd" tooltip="自动领取鲜花收藏，花瓶收藏，花艺收藏奖励">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="图鉴奖励"
+              name="plant.artSell.recvCollectRwd"
+              tooltip="自动领取鲜花收藏，花瓶收藏，花艺收藏奖励"
+            >
+              <Switch v-model:checked="config.plant.artSell.recvCollectRwd" />
             </CustomFormItem>
 
             <Divider orientation="left">花贸市场</Divider>
-            <CustomFormItem label="解锁货架" name="plant.market.autoUnlockShelf" tooltip="自动花费元宝解锁花贸市场货架">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="解锁货架"
+              name="plant.market.autoUnlockShelf"
+              tooltip="自动花费元宝解锁花贸市场货架"
+            >
+              <Switch v-model:checked="config.plant.market.autoUnlockShelf" />
             </CustomFormItem>
             <CustomFormItem
               label="自动上架"
               name="plant.market.putEnabled"
               tooltip="自动领取花贸市场收益并上架花朵，注意上架会消耗元宝，请谨慎开启！"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.market.putEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="好友摊位扫货"
               name="plant.market.autoBuyFromFriend"
               tooltip="自动购买好友货架的花朵"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.plant.market.autoBuyFromFriend" />
             </CustomFormItem>
           </div>
           <!-- 订单配置 -->
@@ -620,7 +688,7 @@
               name="order.resident.normalEnabled"
               tooltip="自动提交普通居民订单，不包括建材和绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.resident.normalEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="普通订单上限"
@@ -628,7 +696,7 @@
               tooltip="普通居民订单单日最大完成次数"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.order.resident.normalMaxNum"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -638,7 +706,7 @@
               name="order.resident.satinEnabled"
               tooltip="自动提交绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.resident.satinEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="绸缎订单上限"
@@ -646,7 +714,7 @@
               tooltip="绸缎订单单日最大完成次数"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.order.resident.satinMaxNum"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -656,7 +724,7 @@
               name="order.resident.decorateEnabled"
               tooltip="自动提交建材订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.resident.decorateEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="建材订单上限"
@@ -664,7 +732,7 @@
               tooltip="建材订单单日最大完成次数"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.order.resident.decorateMaxNum"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -682,46 +750,44 @@
               tooltip="仅提交指定品质的花朵到居民订单"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.order.resident.qualities"
                 mode="multiple"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerQualityOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
 
             <Divider orientation="left">顾客订单</Divider>
-            <CustomFormItem label="自动完成" name="order.customer.enabled" tooltip="自动完成顾客订单">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动完成"
+              name="order.customer.enabled"
+              tooltip="自动完成顾客订单"
+            >
+              <Switch v-model:checked="config.order.customer.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="自动拒绝"
               name="order.customer.rejectEnabled"
               tooltip="自动拒绝无法培育且库存不足的订单"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.customer.rejectEnabled" />
             </CustomFormItem>
 
             <Divider orientation="left">宫廷订单</Divider>
             <CustomFormItem label="自动完成" name="order.palace.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.palace.enabled" />
             </CustomFormItem>
 
             <Divider orientation="left">组团订单</Divider>
             <CustomFormItem label="自动完成" name="order.team.enabled" tooltip="自动完成团单">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.order.team.enabled" />
             </CustomFormItem>
           </div>
           <!-- 公会配置 -->
           <div v-if="activeTab === '公会'" class="config-section">
             <Divider orientation="left">公会种植</Divider>
             <CustomFormItem label="自动收获" name="union.land.harvest" tooltip="公会土地自动收获">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.land.harvest" />
             </CustomFormItem>
 
             <CustomFormItem
@@ -730,39 +796,49 @@
               tooltip="限定要在公会土地种植的花朵品质"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.union.land.flowers"
                 mode="multiple"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerQualityOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
 
             <Divider orientation="left">公会建设</Divider>
-            <CustomFormItem label="视频建设" name="union.build.free" tooltip="自动观看视频进行公会建设">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="视频建设"
+              name="union.build.free"
+              tooltip="自动观看视频进行公会建设"
+            >
+              <Switch v-model:checked="config.union.build.free" />
             </CustomFormItem>
-            <CustomFormItem label="金币建设" name="union.build.gld" tooltip="自动花费金币进行公会建设">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="金币建设"
+              name="union.build.gld"
+              tooltip="自动花费金币进行公会建设"
+            >
+              <Switch v-model:checked="config.union.build.gld" />
             </CustomFormItem>
-            <CustomFormItem label="元宝建设" name="union.build.dmd" tooltip="自动花费元宝进行公会建设">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="元宝建设"
+              name="union.build.dmd"
+              tooltip="自动花费元宝进行公会建设"
+            >
+              <Switch v-model:checked="config.union.build.dmd" />
             </CustomFormItem>
 
             <Divider orientation="left">公会分享</Divider>
-            <CustomFormItem label="自动分享" name="union.flower.share" tooltip="自动分享花到公会分享栏">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动分享"
+              name="union.flower.share"
+              tooltip="自动分享花到公会分享栏"
+            >
+              <Switch v-model:checked="config.union.flower.share" />
             </CustomFormItem>
             <CustomFormItem label="分享模式" name="union.flower.shareMode">
-              <Radio.Group v-model:value="config.homeland.drainStaminaStealMode1">
+              <Radio.Group v-model:value="config.union.flower.shareMode">
                 <Space direction="vertical">
-                  <Radio :value="0">指定品质 </Radio>
-                  <Radio :value="1">指定花朵 </Radio>
+                  <Radio value="quality">指定品质</Radio>
+                  <Radio value="specific">指定花朵</Radio>
                 </Space>
               </Radio.Group>
             </CustomFormItem>
@@ -770,18 +846,12 @@
               label="品质限定"
               name="union.flower.shareQualities"
               tooltip="限定要分享到公会的花朵品质"
-              v-if="config.homeland.drainStaminaStealMode1 === 0"
+              v-if="config.union.flower.shareMode === 'quality'"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.union.flower.shareQualities"
                 mode="multiple"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerQualityOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
@@ -789,19 +859,13 @@
               label="选择花朵"
               name="union.flower.shareFlowerIds"
               tooltip="选择要分享到公会的具体花朵"
-              v-if="config.homeland.drainStaminaStealMode1 === 1"
+              v-if="config.union.flower.shareMode === 'specific'"
             >
               <CustomSelect
-                v-model:value="config.challenge.common.towerSkills"
+                v-model:value="config.union.flower.shareFlowerIds"
                 mode="multiple"
                 placeholder="请选择花朵"
-                :options="[
-                  { value: 1001, label: '蓝色' },
-                  { value: 1011, label: '紫色' },
-                  { value: 1012, label: '金色' },
-                  { value: 1013, label: '红色' },
-                  { value: 1014, label: '绿色' },
-                ]"
+                :options="flowerOptions"
                 style="width: 100%"
               />
             </CustomFormItem>
@@ -812,7 +876,42 @@
               name="union.flower.take"
               tooltip="自动摸取别人分享的花"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.flower.take" />
+            </CustomFormItem>
+            <CustomFormItem label="摸花模式" name="union.flower.takeMode">
+              <Radio.Group v-model:value="config.union.flower.takeMode">
+                <Space direction="vertical">
+                  <Radio value="quality">指定品质</Radio>
+                  <Radio value="specific">指定花朵</Radio>
+                </Space>
+              </Radio.Group>
+            </CustomFormItem>
+            <CustomFormItem
+              label="品质限定"
+              name="union.flower.takeQualities"
+              tooltip="限定要从公会拿取的花朵品质"
+              v-if="config.union.flower.takeMode === 'quality'"
+            >
+              <CustomSelect
+                v-model:value="config.union.flower.takeQualities"
+                mode="multiple"
+                :options="flowerQualityOptions"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="指定花朵"
+              name="union.flower.takeFlowerIds"
+              tooltip="选择要从公会摸取的具体花朵"
+              v-if="config.union.flower.takeMode === 'specific'"
+            >
+              <CustomSelect
+                v-model:value="config.union.flower.takeFlowerIds"
+                mode="multiple"
+                placeholder="请选择花朵"
+                :options="flowerOptions"
+                style="width: 100%"
+              />
             </CustomFormItem>
 
             <Divider orientation="left">公会竞赛</Divider>
@@ -821,21 +920,21 @@
               name="union.fmlRace.enabled"
               tooltip="自动领取，完成公会竞赛任务"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.fmlRace.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="自动启用模块"
               name="union.fmlRace.autoEnableModules"
               tooltip="根据任务类型自动启用相关模块"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.fmlRace.autoEnableModules" />
             </CustomFormItem>
             <CustomFormItem
               label="自动升级任务"
               name="union.fmlRace.upgradeTask"
               tooltip="领取任务后花费元宝自动升级"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.fmlRace.upgradeTask" />
             </CustomFormItem>
             <CustomFormItem
               label="限制分数"
@@ -843,7 +942,7 @@
               tooltip="只接分数不低于此值的任务，0 表示不限制"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.union.fmlRace.minTaskScore"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -853,7 +952,7 @@
               name="union.fmlRace.deleteTask"
               tooltip="会长/副会长专属：自动删除低于指定分数的任务"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.fmlRace.deleteTask" />
             </CustomFormItem>
             <CustomFormItem
               label="删除分数上限"
@@ -861,7 +960,7 @@
               tooltip="低于此分数的未领取任务将被自动删除"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.union.fmlRace.deleteTaskMaxScore"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -873,40 +972,10 @@
               name="union.redPacket.enabled"
               tooltip="自动领取公会红包"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.union.redPacket.enabled" />
             </CustomFormItem>
           </div>
 
-          <!-- 任务设置 -->
-          <div v-if="activeTab === '任务'" class="config-section">
-            <Divider orientation="left">随机事件</Divider>
-            <CustomFormItem
-              label="道具日志"
-              name="basic.hasSeparation"
-              tooltip="是否开启道具奖励消耗详情(开启后日志量激增)"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-
-            <Divider orientation="left">喂猫撸猫</Divider>
-            <CustomFormItem label="总开关" name="basic.hasSeparation">
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-
-            <CustomFormItem label="自动召回" name="basic.hasSeparation">
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-
-            <CustomFormItem label="自动购买猫粮" name="basic.hasSeparation">
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-            <CustomFormItem label="自动喂猫" name="basic.hasSeparation">
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-            <CustomFormItem label="自动撸猫" name="basic.hasSeparation">
-              <Switch v-model:checked="config.basic.hasSeparation" />
-            </CustomFormItem>
-          </div>
           <!-- 活动设置 -->
           <div v-if="activeTab === '活动'" class="config-section">
             <Divider orientation="left">花笺集芳</Divider>
@@ -915,21 +984,21 @@
               name="activity.cyclicNote.enabled"
               tooltip="自动完成花笺集芳任务，自动领取阶段宝箱奖励"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.cyclicNote.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="解锁槽位"
               name="activity.cyclicNote.unlockSlot"
               tooltip="自动花费元宝解锁任务槽位"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.cyclicNote.unlockSlot" />
             </CustomFormItem>
             <CustomFormItem
               label="自动开启模块"
               name="activity.cyclicNote.autoEnableModules"
               tooltip="根据任务自动启用对应功能模块（种植、花艺售卖、居民订单、顾客订单、珍珠雇佣等），任务完成后自动恢复到您开始的设置"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.cyclicNote.autoEnableModules" />
             </CustomFormItem>
 
             <Divider orientation="left">莳花纪闻</Divider>
@@ -938,14 +1007,14 @@
               name="activity.actCyclicStory.enabled"
               tooltip="自动完成莳花纪闻订单任务，如果花库存不足，需要配合种植开启任务优先使用"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.actCyclicStory.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="任务刷新"
               name="activity.actCyclicStory.refreshEnabled"
               tooltip="花费元宝刷新莳花纪闻订单任务"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.actCyclicStory.refreshEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="完成分数"
@@ -953,7 +1022,7 @@
               tooltip="每期活动最多完成多少分，即获得花史残页数量，0则不限制"
             >
               <CustomInputNumber
-                v-model:value="config.homeland.xianYuNum"
+                v-model:value="config.activity.actCyclicStory.maxFinshCntPerBatch"
                 :min="0"
                 class="w-42! sm:w-48!"
               />
@@ -961,109 +1030,100 @@
 
             <Divider orientation="left">丰仓鱼干</Divider>
             <CustomFormItem label="自动参与" name="activity.fishMerge.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishMerge.enabled" />
             </CustomFormItem>
 
             <CustomFormItem label="显示结果" name="activity.fishMerge.showResult">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishMerge.showResult" />
             </CustomFormItem>
             <CustomFormItem label="失败重启" name="activity.fishMerge.autoRestart">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishMerge.autoRestart" />
             </CustomFormItem>
 
             <Divider orientation="left">奇妙泡泡</Divider>
             <CustomFormItem label="自动参与" name="activity.magicBubble.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.magicBubble.enabled" />
             </CustomFormItem>
 
             <Divider orientation="left">鱼乐无穷</Divider>
             <CustomFormItem label="自动参与" name="activity.fishFun.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishFun.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="体力领取"
               name="activity.fishFun.autoClaimEnergy"
               tooltip="自动领取每日任务完成后的体力奖励"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishFun.autoClaimEnergy" />
             </CustomFormItem>
             <CustomFormItem
               label="游戏倍速"
               name="activity.fishFun.speed"
               tooltip="选择游戏倍速，倍速越高单次移动消耗体力越多"
             >
-              <Select
-                v-model:value="config.homeland.exclusiveMode"
-                class="w-42! sm:w-48!"
-                @change="
-                  () => {
-                    config.homeland.xianYuStealTimeRange = []
-                  }
-                "
-              >
-                <Select.Option :value="0">1倍速</Select.Option>
-                <Select.Option :value="1">4倍速</Select.Option>
-                <Select.Option :value="2">8倍速</Select.Option>
-                <Select.Option :value="3">16倍速</Select.Option>
+              <Select v-model:value="config.activity.fishFun.speed" class="w-42! sm:w-48!">
+                <Select.Option :value="1">1倍速</Select.Option>
+                <Select.Option :value="4">4倍速</Select.Option>
+                <Select.Option :value="8">8倍速</Select.Option>
+                <Select.Option :value="16">16倍速</Select.Option>
               </Select>
             </CustomFormItem>
             <CustomFormItem label="显示结果" name="activity.fishFun.showResult">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishFun.showResult" />
             </CustomFormItem>
             <CustomFormItem label="失败重启" name="activity.fishFun.autoRestart">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.fishFun.autoRestart" />
             </CustomFormItem>
 
             <Divider orientation="left">花漾物语</Divider>
             <CustomFormItem label="自动参与" name="activity.actElim.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.actElim.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="体力领取"
               name="activity.actElim.autoClaimEnergy"
               tooltip="自动领取每日任务完成后的体力奖励"
             >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.actElim.autoClaimEnergy" />
             </CustomFormItem>
             <CustomFormItem
               label="游戏倍速"
               name="activity.actElim.speed"
               tooltip="选择游戏倍速，倍速越高单次移动消耗体力越多"
             >
-              <Select
-                v-model:value="config.homeland.exclusiveMode"
-                class="w-42! sm:w-48!"
-                @change="
-                  () => {
-                    config.homeland.xianYuStealTimeRange = []
-                  }
-                "
-              >
-                <Select.Option :value="0">1倍速</Select.Option>
-                <Select.Option :value="1">4倍速</Select.Option>
-                <Select.Option :value="2">8倍速</Select.Option>
-                <Select.Option :value="3">16倍速</Select.Option>
+              <Select v-model:value="config.activity.actElim.speed" class="w-42! sm:w-48!">
+                <Select.Option :value="1">1倍速</Select.Option>
+                <Select.Option :value="5">5倍速</Select.Option>
+                <Select.Option :value="10">10倍速</Select.Option>
               </Select>
             </CustomFormItem>
 
             <Divider orientation="left">红包雨</Divider>
-            <CustomFormItem label="自动参与" name="activity.redPacket.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem label="自动参与" name="activity.redPacket.enabled" tooltip="自动抢红包">
+              <Switch v-model:checked="config.activity.redPacket.enabled" />
             </CustomFormItem>
 
             <Divider orientation="left">迎新接福</Divider>
-            <CustomFormItem label="自动领取" name="activity.recvLuck.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动领取"
+              name="activity.recvLuck.enabled"
+              tooltip="自动领取福袋"
+            >
+              <Switch v-model:checked="config.activity.recvLuck.enabled" />
             </CustomFormItem>
 
             <Divider orientation="left">杨紫打call</Divider>
-            <CustomFormItem label="自动打call" name="activity.yzCall.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+            <CustomFormItem
+              label="自动打call"
+              name="activity.yzCall.enabled"
+              tooltip="自动为杨紫打call活动"
+            >
+              <Switch v-model:checked="config.activity.yzCall.enabled" />
             </CustomFormItem>
 
             <Divider orientation="left">摇钱树</Divider>
             <CustomFormItem label="自动摇钱" name="activity.moneyTree.enabled">
-              <Switch v-model:checked="config.basic.hasSeparation" />
+              <Switch v-model:checked="config.activity.moneyTree.enabled" />
             </CustomFormItem>
           </div>
         </Form>
@@ -1212,6 +1272,9 @@ import {
   bodyOptions,
   createDefaultBodyAttributes,
   defaultFateThresholds,
+  flowerArtOptions,
+  flowerQualityOptions,
+  flowerOptions,
   hourOptions,
   magicOptions,
   petNames,
@@ -1529,7 +1592,7 @@ const fetchConfig = async () => {
           // 使用独立的时间校验方法
           mergedConfig.basic.specific.DreamFreeSpeedUpTime = validateTimeRange(
             DreamFreeSpeedUpTime,
-            '07:00-23:59'
+            '07:00-23:59',
           )
         }
 
@@ -1544,7 +1607,7 @@ const fetchConfig = async () => {
         if (typeof useItemTimeHour === 'number') {
           mergedConfig.activity.composeBall.useItemTimeHour = `${String(useItemTimeHour).padStart(
             2,
-            '0'
+            '0',
           )}:00`
         }
 
@@ -1697,7 +1760,7 @@ const getBodyName = (bodyKey: string) => {
 // 福地相关方法
 const removeTimeRule = (timeIndex: number) => {
   const newRules = config.value.homeland.homelandRulesByTime.filter(
-    (_, index) => index !== timeIndex
+    (_, index) => index !== timeIndex,
   )
   config.value.homeland.homelandRulesByTime = newRules
 }
@@ -1898,7 +1961,7 @@ watch(
   () => {
     syncBodyAttributesToConfig()
   },
-  { deep: true }
+  { deep: true },
 )
 
 onMounted(() => {
