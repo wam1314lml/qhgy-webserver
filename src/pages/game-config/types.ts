@@ -30,7 +30,9 @@ export interface GameConfig {
     pearl: {
       freePearl: boolean
       autoHire: boolean
+      maxHireLevel: number
       maxHireTicketUsage: number
+      autoPearlDraw: boolean
       protectEnabled: boolean
       autoBuyHireTicket: boolean
       maxSpendDmd: number
@@ -84,14 +86,16 @@ export interface GameConfig {
     friendSteal: {
       enabled: boolean
       stealElves: boolean
-      stealMode: 'quality' | 'specific' | string
+      stealMode: 'quality' | 'specific' | 'exclude' | string
       stealQualities: number[]
       stealFlowerIds: Array<number | string>
+      excludeFlowerIds: Array<number | string>
       buyStealEnabled: boolean
       buyStealCount: number
     }
     elves: {
       enabled: boolean
+      selectedElvesIds: Array<number | string>
       requestAid: boolean
       recvAid: boolean
       helpFrd: boolean
@@ -163,7 +167,11 @@ export interface GameConfig {
   union: {
     land: {
       harvest: boolean
+      autoPlant: boolean
+      plantMode: 'quality' | 'specific' | string
       flowers: number[]
+      specificFlowerIds: Array<number | string>
+      maxFlowerLevel: number
     }
     build: {
       free: boolean
@@ -183,12 +191,19 @@ export interface GameConfig {
     fmlRace: {
       enabled: boolean
       autoEnableModules: boolean
-      upgradeTask: boolean
+      useSpeedUpTicketInTask: boolean
       minTaskScore: number
+      onlyUpgradeTask: boolean
+      excludeOthersUpgradeTask: boolean
+      taskTypePriority: Record<string, number>
+      upgradeTask: boolean
       deleteTask: boolean
       deleteTaskMaxScore: number
     }
     redPacket: {
+      enabled: boolean
+    }
+    fmlForest: {
       enabled: boolean
     }
   }
@@ -220,6 +235,23 @@ export interface GameConfig {
       speed: number
     }
     actElim: {
+      enabled: boolean
+      autoClaimEnergy: boolean
+      speed: number
+    }
+    zooGameElim: {
+      enabled: boolean
+    }
+    lanternFestival: {
+      enabled: boolean
+    }
+    actDessert: {
+      enabled: boolean
+      autoClaimEnergy: boolean
+      useItems: boolean
+      speed: number
+    }
+    actMerge2: {
       enabled: boolean
       autoClaimEnergy: boolean
       speed: number

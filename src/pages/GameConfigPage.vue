@@ -60,7 +60,7 @@
             <CustomFormItem
               label="礼仪分监控"
               name="basic.reputation.enabled"
-              tooltip="每5分钟检查礼仪分，低于阈值时自动停止所有任务"
+              tooltip="每10分钟检查礼仪分，低于阈值时自动停止所有任务"
             >
               <Switch v-model:checked="config.basic.reputation.enabled" />
             </CustomFormItem>
@@ -73,6 +73,7 @@
               <custom-input-number
                 v-model:value="config.basic.reputation.threshold"
                 :min="0"
+                :max="100"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -173,8 +174,8 @@
               <Switch v-model:checked="config.basic.benefit.antiScamBox" />
             </CustomFormItem>
 
-            <Divider orientation="left">签到配置</Divider>
-            <CustomFormItem label="自动签到" name="basic.sign.daily">
+            <Divider orientation="left">每日祈愿</Divider>
+            <CustomFormItem label="自动祈愿" name="basic.sign.daily">
               <Switch v-model:checked="config.basic.sign.daily" />
             </CustomFormItem>
             <CustomFormItem label="自动补签" name="basic.sign.patch">
@@ -194,6 +195,19 @@
             </CustomFormItem>
 
             <CustomFormItem
+              label="等级限制"
+              name="basic.pearl.maxHireLevel"
+              tooltip="只雇佣等级<=此值的用户，0表示不限制"
+              v-if="config.basic.pearl.autoHire"
+            >
+              <CustomInputNumber
+                v-model:value="config.basic.pearl.maxHireLevel"
+                :min="0"
+                :max="100"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="雇佣券上限"
               name="basic.pearl.maxHireTicketUsage"
               tooltip="当日最大可以使用的雇佣券数量, 为0则不限制。"
@@ -204,6 +218,9 @@
                 :min="0"
                 class="w-42! sm:w-48!"
               />
+            </CustomFormItem>
+            <CustomFormItem label="自动开珍珠" name="basic.pearl.autoPearlDraw">
+              <Switch v-model:checked="config.basic.pearl.autoPearlDraw" />
             </CustomFormItem>
             <CustomFormItem
               label="开启防身"
@@ -228,6 +245,7 @@
               <CustomInputNumber
                 v-model:value="config.basic.pearl.maxSpendDmd"
                 :min="0"
+                :step="25"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -262,9 +280,9 @@
             </CustomFormItem>
 
             <CustomFormItem
-              label="VIP商店"
+              label="vip商店"
               name="basic.shop.vipShop.autoBuy"
-              tooltip="自动购买VIP商店物品"
+              tooltip="自动购买vip商店物品"
             >
               <Switch v-model:checked="config.basic.shop.vipShop.autoBuy" />
             </CustomFormItem>
@@ -272,7 +290,7 @@
               <CustomFormItem
                 label="元宝上限"
                 name="basic.shop.vipShop.maxSpendDmd"
-                tooltip="VIP商店花费元宝上限，0则不限制"
+                tooltip="vip商店花费元宝上限，0则不限制"
               >
                 <CustomInputNumber
                   v-model:value="config.basic.shop.vipShop.maxSpendDmd"
@@ -283,7 +301,7 @@
               <CustomFormItem
                 label="花坊币上限"
                 name="basic.shop.vipShop.maxSpendFloralCoin"
-                tooltip="VIP商店花费花坊币上限，0则不限制"
+                tooltip="vip商店花费花坊币上限，0则不限制"
               >
                 <CustomInputNumber
                   v-model:value="config.basic.shop.vipShop.maxSpendFloralCoin"
@@ -351,7 +369,8 @@
             >
               <CustomInputNumber
                 v-model:value="config.plant.cultivate.tagetLevel"
-                :min="0"
+                :min="1"
+                :max="20"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -440,7 +459,10 @@
                 />
               </CustomFormItem>
               <CustomFormItem label="任务优先" name="plant.flower.taskMode">
-                <Switch v-model:checked="config.plant.flower.taskMode" />
+                <Switch
+                  :checked="config.plant.flower.taskMode"
+                  @change="handleTaskModeChange"
+                />
               </CustomFormItem>
               <CustomFormItem
                 label="任务日志"
@@ -538,13 +560,11 @@
                 tooltip="选择要种植几种花，库存少的优先种植。"
                 v-if="config.plant.flower.plantingMode === 'count'"
               >
-                <Select v-model:value="config.plant.flower.flowerCount" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">1</Select.Option>
-                  <Select.Option :value="2">2</Select.Option>
-                  <Select.Option :value="4">4</Select.Option>
-                  <Select.Option :value="8">8</Select.Option>
-                  <Select.Option :value="16">16</Select.Option>
-                </Select>
+                <Select
+                  v-model:value="config.plant.flower.flowerCount"
+                  :options="flowerCountOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
               <!-- 指定花朵模式 -->
               <CustomFormItem
@@ -569,6 +589,7 @@
                 <CustomInputNumber
                   v-model:value="config.plant.flower.minFlowerLevel"
                   :min="0"
+                  :max="21"
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
@@ -593,12 +614,13 @@
               <CustomFormItem
                 label="偷花模式"
                 name="plant.friendSteal.stealMode"
-                tooltip="选择偷花过滤模式：指定品质或指定花朵"
+                tooltip="选择偷花过滤模式：指定品质或指定花朵或排除花朵"
               >
                 <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
                   <Space direction="vertical">
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="specific">指定花朵 </Radio>
+                    <Radio value="exclude">排除花朵 </Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -618,13 +640,27 @@
               <CustomFormItem
                 label="指定花朵"
                 name="plant.friendSteal.stealFlowerIds"
-                tooltip="只偷取指定花朵"
+                tooltip="只偷取指定的花朵"
                 v-if="config.plant.friendSteal.stealMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.stealFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
+                  :options="flowerOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.friendSteal.excludeFlowerIds"
+                tooltip="不偷取指定的花朵"
+                v-if="config.plant.friendSteal.stealMode === 'exclude'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.excludeFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择要排除的花朵"
                   :options="flowerOptions"
                   style="width: 100%"
                 />
@@ -654,14 +690,26 @@
             <CustomFormItem
               label="自动种花灵"
               name="plant.elves.enabled"
-              tooltip="自动选择双倍加成花灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日花灵达到收获上限后恢复到原有种植模式"
+              tooltip="优先种植指定花灵，否则选择当期双倍加成花灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日花灵达到收获上限后恢复到原有种植模式"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
             <CustomFormItem
+              label="指定花灵"
+              name="plant.elves.selectedElvesIds"
+              v-if="config.plant.elves.enabled"
+            >
+              <CustomSelect
+                v-model:value="config.plant.elves.selectedElvesIds"
+                mode="multiple"
+                placeholder="请选择花灵"
+                :options="elfOptions"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="自动申请协助"
               name="plant.elves.requestAid"
-              tooltip="自动申请好友协助花灵种植"
             >
               <Switch v-model:checked="config.plant.elves.requestAid" />
             </CustomFormItem>
@@ -675,7 +723,6 @@
             <CustomFormItem
               label="自动协助好友"
               name="plant.elves.helpFrd"
-              tooltip="自动协助好友花灵种植"
             >
               <Switch v-model:checked="config.plant.elves.helpFrd" />
             </CustomFormItem>
@@ -770,6 +817,7 @@
                 <CustomInputNumber
                   v-model:value="config.plant.artSell.flowerArtPerRack"
                   :min="0"
+                  :max="12"
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
@@ -940,21 +988,22 @@
           <div v-if="activeTab === '订单'" class="config-section">
             <Divider orientation="left">居民订单</Divider>
             <CustomFormItem
-              label="普通订单"
+              label="居民订单"
               name="order.resident.normalEnabled"
-              tooltip="自动提交普通居民订单，不包括建材和绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
+              tooltip="自动提交居民订单，不包括建材和绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
               <Switch v-model:checked="config.order.resident.normalEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              label="普通订单上限"
+              label="居民订单上限"
               name="order.resident.normalMaxNum"
-              tooltip="普通居民订单单日最大完成次数"
+              tooltip="居民订单单日最大完成次数"
               v-if="config.order.resident.normalEnabled"
             >
               <CustomInputNumber
                 v-model:value="config.order.resident.normalMaxNum"
                 :min="0"
+                :max="1200"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -974,6 +1023,7 @@
               <CustomInputNumber
                 v-model:value="config.order.resident.satinMaxNum"
                 :min="0"
+                :max="120"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -993,6 +1043,7 @@
               <CustomInputNumber
                 v-model:value="config.order.resident.decorateMaxNum"
                 :min="0"
+                :max="120"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -1087,24 +1138,69 @@
           </div>
           <!-- 公会配置 -->
           <div v-if="activeTab === '公会'" class="config-section">
-            <Divider orientation="left">公会种植</Divider>
-            <CustomFormItem label="自动收获" name="union.land.harvest" tooltip="公会土地自动收获">
+            <Divider orientation="left">公会土地</Divider>
+            <CustomFormItem label="自动收获" name="union.land.harvest">
               <Switch v-model:checked="config.union.land.harvest" />
             </CustomFormItem>
-
             <CustomFormItem
-              label="品质限定"
-              name="union.land.flowers"
-              tooltip="限定要在公会土地种植的花朵品质"
-              v-if="config.union.land.harvest"
+              label="自动种植"
+              name="union.land.autoPlant"
+              tooltip="自动种植空闲土地，自动将不符合限定条件的已种土地替换为目标花朵"
             >
-              <CustomSelect
-                v-model:value="config.union.land.flowers"
-                mode="multiple"
-                :options="flowerQualityOptions"
-                style="width: 100%"
-              />
+              <Switch v-model:checked="config.union.land.autoPlant" />
             </CustomFormItem>
+            <template v-if="config.union.land.autoPlant">
+              <CustomFormItem
+                label="种植策略"
+                name="union.land.plantMode"
+                tooltip="两种模式均为低等级优先"
+              >
+                <Radio.Group v-model:value="config.union.land.plantMode">
+                  <Space direction="vertical">
+                    <Radio value="quality">指定品质</Radio>
+                    <Radio value="specific">指定花朵</Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定品质"
+                name="union.land.flowers"
+                tooltip="留空则不限制品质"
+                v-if="config.union.land.plantMode === 'quality'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.land.flowers"
+                  mode="multiple"
+                  :options="flowerQualityOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花朵"
+                name="union.land.specificFlowerIds"
+                tooltip="留空则不限定花朵"
+                v-if="config.union.land.plantMode === 'specific'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.land.specificFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择花朵"
+                  :options="flowerOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="最高等级限制"
+                name="union.land.maxFlowerLevel"
+                tooltip="花朵等级高于该值的不种，0表示不限制"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.land.maxFlowerLevel"
+                  :min="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">公会建设</Divider>
             <CustomFormItem
@@ -1138,7 +1234,11 @@
               <Switch v-model:checked="config.union.flower.share" />
             </CustomFormItem>
             <template v-if="config.union.flower.share">
-              <CustomFormItem label="分享模式" name="union.flower.shareMode">
+              <CustomFormItem
+                label="分享模式"
+                name="union.flower.shareMode"
+                tooltip="选择分享模式：品质模式或指定花模式"
+              >
                 <Radio.Group v-model:value="config.union.flower.shareMode">
                   <Space direction="vertical">
                     <Radio value="quality">指定品质</Radio>
@@ -1160,7 +1260,7 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="选择花朵"
+                label="指定花朵"
                 name="union.flower.shareFlowerIds"
                 tooltip="选择要分享到公会的具体花朵"
                 v-if="config.union.flower.shareMode === 'specific'"
@@ -1168,7 +1268,7 @@
                 <CustomSelect
                   v-model:value="config.union.flower.shareFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="选择要分享的花朵"
                   :options="flowerOptions"
                   style="width: 100%"
                 />
@@ -1184,7 +1284,11 @@
               <Switch v-model:checked="config.union.flower.take" />
             </CustomFormItem>
             <template v-if="config.union.flower.take">
-              <CustomFormItem label="摸花模式" name="union.flower.takeMode">
+              <CustomFormItem
+                label="摸花模式"
+                name="union.flower.takeMode"
+                tooltip="选择摸花模式：品质模式或指定花模式"
+              >
                 <Radio.Group v-model:value="config.union.flower.takeMode">
                   <Space direction="vertical">
                     <Radio value="quality">指定品质</Radio>
@@ -1214,7 +1318,7 @@
                 <CustomSelect
                   v-model:value="config.union.flower.takeFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="选择要摸取的花朵"
                   :options="flowerOptions"
                   style="width: 100%"
                 />
@@ -1232,9 +1336,62 @@
             <CustomFormItem
               label="自动启用模块"
               name="union.fmlRace.autoEnableModules"
-              tooltip="根据任务类型自动启用相关模块"
+              tooltip="根据任务类型自动启用相关模块，任务完成后自动恢复原始配置"
             >
               <Switch v-model:checked="config.union.fmlRace.autoEnableModules" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="种植任务用加速卡"
+              name="union.fmlRace.useSpeedUpTicketInTask"
+              tooltip="公会竞赛种植任务期间临时开启加速卡，忽略加速卡上限（任务结束后自动恢复原始配置）"
+            >
+              <Switch v-model:checked="config.union.fmlRace.useSpeedUpTicketInTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="限制分数"
+              name="union.fmlRace.minTaskScore"
+              tooltip="只接分数不低于此值的任务，0 表示不限制。如果任务是升级过的任务，此分数针对升级前的分数进行限制。"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.minTaskScore"
+                :min="0"
+                :max="60"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="只接已升级任务"
+              name="union.fmlRace.onlyUpgradeTask"
+              tooltip="包括系统升级和用户升级的任务"
+            >
+              <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="排除他人升级任务"
+              name="union.fmlRace.excludeOthersUpgradeTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.excludeOthersUpgradeTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="任务优先级"
+              name="union.fmlRace.taskTypePriority"
+              tooltip="设置每种任务类型的接取优先级。数字越小越优先；填 0 表示不接此类任务。优先级相同时分数高优先。"
+            >
+              <div class="w-full max-w-[420px] flex flex-col gap-2">
+                <div
+                  v-for="item in fmlRaceTaskTypes"
+                  :key="item.key"
+                  class="flex items-center justify-between gap-2"
+                >
+                  <span class="text-sm min-w-[100px]">{{ item.label }}</span>
+                  <CustomInputNumber
+                    v-model:value="config.union.fmlRace.taskTypePriority[item.key]"
+                    :min="0"
+                    :max="99"
+                    class="w-20!"
+                  />
+                </div>
+              </div>
             </CustomFormItem>
             <CustomFormItem
               label="自动升级任务"
@@ -1242,17 +1399,6 @@
               tooltip="领取任务后花费元宝自动升级"
             >
               <Switch v-model:checked="config.union.fmlRace.upgradeTask" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="限制分数"
-              name="union.fmlRace.minTaskScore"
-              tooltip="只接分数不低于此值的任务，0 表示不限制"
-            >
-              <CustomInputNumber
-                v-model:value="config.union.fmlRace.minTaskScore"
-                :min="0"
-                class="w-42! sm:w-48!"
-              />
             </CustomFormItem>
             <CustomFormItem
               label="删除低分任务"
@@ -1270,17 +1416,23 @@
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.deleteTaskMaxScore"
                 :min="0"
+                :max="60"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
 
-            <Divider orientation="left">公会摸花</Divider>
+            <Divider orientation="left">公会红包</Divider>
             <CustomFormItem
               label="自动领取"
               name="union.redPacket.enabled"
               tooltip="自动领取公会红包"
             >
               <Switch v-model:checked="config.union.redPacket.enabled" />
+            </CustomFormItem>
+
+            <Divider orientation="left">能量森林</Divider>
+            <CustomFormItem label="自动收集能量" name="union.fmlForest.enabled">
+              <Switch v-model:checked="config.union.fmlForest.enabled" />
             </CustomFormItem>
           </div>
 
@@ -1321,9 +1473,9 @@
             </CustomFormItem>
             <template v-if="config.activity.actCyclicStory.enabled">
               <CustomFormItem
-                label="任务刷新"
+                label="元宝刷新"
                 name="activity.actCyclicStory.refreshEnabled"
-                tooltip="花费元宝刷新莳花纪闻订单任务"
+                tooltip="花费元宝立即刷新莳花纪闻订单任务"
               >
                 <Switch v-model:checked="config.activity.actCyclicStory.refreshEnabled" />
               </CustomFormItem>
@@ -1412,6 +1564,8 @@
                   <Select.Option :value="1">1倍速</Select.Option>
                   <Select.Option :value="5">5倍速</Select.Option>
                   <Select.Option :value="10">10倍速</Select.Option>
+                  <Select.Option :value="25">25倍速</Select.Option>
+                  <Select.Option :value="100">100倍速</Select.Option>
                 </Select>
               </CustomFormItem>
             </template>
@@ -1443,181 +1597,121 @@
             <CustomFormItem label="自动摇钱" name="activity.moneyTree.enabled">
               <Switch v-model:checked="config.activity.moneyTree.enabled" />
             </CustomFormItem>
+
+            <Divider orientation="left">花香满园</Divider>
+            <CustomFormItem
+              label="自动参与"
+              name="activity.zooGameElim.enabled"
+              tooltip="自动进行花香满园消消乐活动"
+            >
+              <Switch v-model:checked="config.activity.zooGameElim.enabled" />
+            </CustomFormItem>
+
+            <Divider orientation="left">元宵灯谜</Divider>
+            <CustomFormItem
+              label="自动答题"
+              name="activity.lanternFestival.enabled"
+              tooltip="自动完成元宵灯谜答题并领取奖励"
+            >
+              <Switch v-model:checked="config.activity.lanternFestival.enabled" />
+            </CustomFormItem>
+
+            <Divider orientation="left">香卉甜糕</Divider>
+            <CustomFormItem label="自动投放" name="activity.actDessert.enabled">
+              <Switch v-model:checked="config.activity.actDessert.enabled" />
+            </CustomFormItem>
+            <template v-if="config.activity.actDessert.enabled">
+              <CustomFormItem
+                label="体力领取"
+                name="activity.actDessert.autoClaimEnergy"
+                tooltip="自动领取每日任务完成后的体力奖励"
+              >
+                <Switch v-model:checked="config.activity.actDessert.autoClaimEnergy" />
+              </CustomFormItem>
+              <CustomFormItem label="使用道具" name="activity.actDessert.useItems">
+                <Switch v-model:checked="config.activity.actDessert.useItems" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="游戏倍速"
+                name="activity.actDessert.speed"
+                tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要解锁足够积分才能使用高倍速"
+              >
+                <Select v-model:value="config.activity.actDessert.speed" class="w-42! sm:w-48!">
+                  <Select.Option :value="1">普通</Select.Option>
+                  <Select.Option :value="2">快速</Select.Option>
+                  <Select.Option :value="3">高速</Select.Option>
+                  <Select.Option :value="4">极速</Select.Option>
+                  <Select.Option :value="5">神速</Select.Option>
+                </Select>
+              </CustomFormItem>
+            </template>
+
+            <Divider orientation="left">田园奇趣</Divider>
+            <CustomFormItem label="自动合并" name="activity.actMerge2.enabled">
+              <Switch v-model:checked="config.activity.actMerge2.enabled" />
+            </CustomFormItem>
+            <template v-if="config.activity.actMerge2.enabled">
+              <CustomFormItem
+                label="体力领取"
+                name="activity.actMerge2.autoClaimEnergy"
+                tooltip="自动领取每日任务完成后的体力奖励"
+              >
+                <Switch v-model:checked="config.activity.actMerge2.autoClaimEnergy" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="游戏倍速"
+                name="activity.actMerge2.speed"
+                tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要消耗足够体力才能使用高倍速"
+              >
+                <Select v-model:value="config.activity.actMerge2.speed" class="w-42! sm:w-48!">
+                  <Select.Option :value="1">1x 普通</Select.Option>
+                  <Select.Option :value="2">2x 快速</Select.Option>
+                  <Select.Option :value="4">4x 高速</Select.Option>
+                  <Select.Option :value="8">8x 极速</Select.Option>
+                  <Select.Option :value="16">16x 神速</Select.Option>
+                  <Select.Option :value="32">32x 超速</Select.Option>
+                </Select>
+              </CustomFormItem>
+            </template>
           </div>
         </Form>
       </div>
     </div>
 
-    <!-- 特质保留配置弹窗 -->
-    <Modal
-      v-model:open="fateModalVisible"
-      title="属性阈值保留配置"
-      :width="600"
-      @ok="saveFateConfig"
-      @cancel="fateModalVisible = false"
-      okText="确定"
-      cancelText="取消"
-    >
-      <div class="mb-4 text-gray-600">
-        请为需要保留的属性设置数值阈值。例如输入10，则代表有弟子该属性大于或等于10%时则保留
-      </div>
-
-      <Form layout="horizontal" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }">
-        <Form.Item label="最终增伤">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1017]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-
-        <Form.Item label="最终减伤">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1018]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-
-        <Form.Item label="强化治疗">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1021]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-
-        <Form.Item label="弱化治疗">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1022]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-
-        <Form.Item label="强化灵兽">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1023]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-
-        <Form.Item label="弱化灵兽">
-          <div class="flex items-center gap-2">
-            <span class="mr-2">阈值：</span>
-            <CustomInputNumber
-              v-model:value="fateThresholds[1024]"
-              :min="0"
-              :max="10"
-              :step="0.1"
-              :precision="1"
-              class="flex-1"
-            />
-            <span class="ml-2">%</span>
-          </div>
-        </Form.Item>
-      </Form>
-    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, reactive, watch, h } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import dayjs from 'dayjs'
-import { QuestionCircleOutlined } from '@ant-design/icons-vue'
 import {
   Form,
   Input,
   Switch,
   Divider,
-  Tag,
   message,
   Select,
-  Checkbox,
   Radio,
   Space,
   Modal,
-  TimePicker,
-  Tooltip,
 } from 'ant-design-vue'
 import axios from '../utils/axios'
-import ShoppingComponent from '../components/ShoppingComponent.vue'
 import TopNavBar from '../components/TopNavBar.vue'
 import CustomFormItem from '../components/CustomFormItem.vue'
 import CustomSelect from '../components/CustomSelect.vue'
 import CustomInputNumber from '../components/CustomInputNumber.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
 import {
-  MoveCityKeywords,
-  attributeMap,
-  bodyOptions,
-  createDefaultBodyAttributes,
-  defaultFateThresholds,
+  elfOptions,
   flowerArtOptions,
+  flowerCountOptions,
   flowerQualityOptions,
   flowerOptions,
-  hourOptions,
-  magicOptions,
-  petNames,
-  pupilQualityOptions,
-  pupilTypeOptions,
-  qualityOptions,
-  spiritOptions,
-  talentAttributeOptions,
-  talentQualityOptions,
-  talentSkillOptions,
+  fmlRaceTaskTypes,
   tabs,
-  towerSkillOptions,
-  weekDayOptions,
-  xianyuActivityOptions,
 } from './game-config/options'
-import {
-  deepMerge,
-  disabledHoursForRandomJoin,
-  disabledMinutesForRandomJoin,
-  getDisabledTime,
-  getDisabledTimeForSetTime,
-  timeStringToDayjs,
-  validateTimeRange,
-} from './game-config/utils'
-import type { BodyAttributes, GameConfig } from './game-config/types'
+import { deepMerge } from './game-config/utils'
+import type { GameConfig } from './game-config/types'
 
 // 路由相关
 const route = useRoute()
@@ -1628,199 +1722,42 @@ const accountId = computed(() => Number(route.params.accountId))
 
 const loading = ref(false)
 const activeTab = ref('基础')
-const configLoaded = ref(true)
 const formRef = ref()
 
-// 特质保留配置弹窗
-const fateModalVisible = ref(false)
-const fateThresholds = reactive({ ...defaultFateThresholds })
-
-// 随便入阵时间相关
-const randomJoinTimeValue = computed(() => {
-  if (!config.value.cave.gatherEnergy.randomJoinMinute) return undefined
-  // 解析时间字符串 "HH:mm" 格式
-  const timeStr = config.value.cave.gatherEnergy.randomJoinMinute
-  const [hour, minute] = timeStr.split(':').map(Number)
-  return dayjs().hour(hour).minute(minute).second(0)
-})
-
-const handleRandomJoinTimeChange = (time: any) => {
-  if (time) {
-    // 保存为 "HH:mm" 格式的字符串
-    config.value.cave.gatherEnergy.randomJoinMinute = time.format('HH:mm')
-  }
-}
-
-// 处理打幻境开关变化
-const handleHuanjingChange = (checked: boolean | string | number) => {
+// 处理任务优先开关变化
+const handleTaskModeChange = (checked: boolean | string | number) => {
   const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
 
   if (isChecked) {
-    // 如果是打开，弹出警告对话框
     Modal.confirm({
-      title: '注意！！！',
-      content: '挑战失败后有极小的概率会吞牌子，慎用（官方问题，手打也是一样的）',
-      okText: '确定',
+      title: '任务优先模式',
+      content: h('div', [
+        h('p', [h('strong', '开启后：')]),
+        h('ul', { style: 'padding-left:20px;margin-top:10px' }, [
+          h('li', ['如果订单里', h('strong', '缺花'), '，系统会', h('strong', '先种订单需要的花')]),
+          h('li', ['发现有', h('strong', '空地'), '时，会', h('strong', '直接插队'), '用来种这些花']),
+          h('li', [
+            '花',
+            h('strong', '种完以后'),
+            '，会',
+            h('strong', '自动恢复'),
+            '到你原来设置的模式（指定品质 / 指定种类 / 指定花朵）',
+          ]),
+        ]),
+      ]),
+      okText: '确认开启',
       cancelText: '取消',
       onOk() {
-        // 点击确定才真正开启
-        config.value.activity.xiyou.enableSecretChallenge = true
+        config.value.plant.flower.taskMode = true
       },
       onCancel() {
-        // 点击取消，不改变状态（保持关闭）
-        config.value.activity.xiyou.enableSecretChallenge = false
+        config.value.plant.flower.taskMode = false
       },
     })
   } else {
-    // 如果是关闭，直接关闭
-    config.value.activity.xiyou.enableSecretChallenge = false
+    config.value.plant.flower.taskMode = false
   }
 }
-
-// 处理启用技能预设开关变化
-const handleSkillPresetChange = (checked: boolean | string | number) => {
-  const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-  if (isChecked) {
-    // 如果是打开，弹出警告对话框
-    Modal.confirm({
-      title: '启用技能预设',
-      content:
-        '启用后，打关卡boss、幻境时，会三个预设技能都打一遍过去，注意！！！必须自己先设置好三套预设技能！！！！不启用则只用当前技能打boss',
-      okText: '确定',
-      cancelText: '取消',
-      onOk() {
-        // 点击确定才真正开启
-        config.value.activity.xiyou.switchPreviewSkill = true
-      },
-      onCancel() {
-        // 点击取消，不改变状态（保持关闭）
-        config.value.activity.xiyou.switchPreviewSkill = false
-      },
-    })
-  } else {
-    // 如果是关闭，直接关闭
-    config.value.activity.xiyou.switchPreviewSkill = false
-  }
-}
-
-// 处理强制上线时间段开关变化
-// const handleForceOnlineChange = (checked: boolean | string | number) => {
-//   const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-//   if (isChecked) {
-//     // 如果是打开，弹出警告对话框
-//     Modal.confirm({
-//       title: h('div', { style: { color: 'red', fontWeight: 'bold' } }, '注意！！！'),
-//       content:
-//         '开启此功能后，选择的时间点内，辅助会无视重连间隔，但凡检测到被顶号，或者其他异常原因断线，就会直接上线，确保一些活动的关键时间点顺利运行',
-//       okText: '确定',
-//       cancelText: '取消',
-//       onOk() {
-//         // 点击确定才真正开启
-//         config.value.basic.forceOnlineEnabled = true
-//         // 默认选中23:50-00:00
-//         if (
-//           !config.value.basic.forceOnlineTimeRanges ||
-//           config.value.basic.forceOnlineTimeRanges.length === 0
-//         ) {
-//           config.value.basic.forceOnlineTimeRanges = ['23:50-00:00']
-//         }
-//       },
-//       onCancel() {
-//         // 点击取消，不改变状态（保持关闭）
-//         config.value.basic.forceOnlineEnabled = false
-//       },
-//     })
-//   } else {
-//     // 如果是关闭，直接关闭
-//     config.value.basic.forceOnlineEnabled = false
-//   }
-// }
-
-// 处理挑战只打守卫开关变化
-const handleChallengeOnlyGuardsChange = (checked: boolean | string | number) => {
-  const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-  if (isChecked) {
-    // 如果是打开，弹出警告对话框
-    Modal.confirm({
-      title: h('div', { style: { color: 'red', fontWeight: 'bold' } }, '注意！！！'),
-      content:
-        '开启此功能后，会把包括2次免费和所有的仙玉刷新用完，只打人机，如果刷新次数都用完了还有挑战次数，那么就不会打了，需要手动操作',
-      okText: '确定',
-      cancelText: '取消',
-      onOk() {
-        // 点击确定才真正开启
-        config.value.cave.DestinyFight.challengeOnlyGuards = true
-      },
-      onCancel() {
-        // 点击取消，不改变状态（保持关闭）
-        config.value.cave.DestinyFight.challengeOnlyGuards = false
-      },
-    })
-  } else {
-    // 如果是关闭，直接关闭
-    config.value.cave.DestinyFight.challengeOnlyGuards = false
-  }
-}
-// 处理迁城开关变化
-const handleMoveCityEnabledChange = (checked: boolean | string | number) => {
-  const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-  if (isChecked) {
-    // 如果是打开，弹出警告对话框
-    Modal.confirm({
-      title: h('div', { style: { color: 'red', fontWeight: 'bold' } }, '注意！！！'),
-      content:
-        '开启此功能后，10：00-19：00会根据战略指挥管理标记的高战、低战、随便，这三个词语进行迁城，追求完美请手动，此功能只是给实在没空的用户用的',
-      okText: '确定',
-      cancelText: '取消',
-      onOk() {
-        // 点击确定才真正开启
-        config.value.activity.WarSeason.MoveCityEnabled = true
-      },
-      onCancel() {
-        console.log('test, cancel')
-        // 点击取消，不改变状态（保持关闭）
-        config.value.activity.WarSeason.MoveCityEnabled = false
-      },
-    })
-  } else {
-    // 如果是关闭，直接关闭
-    config.value.activity.WarSeason.MoveCityEnabled = false
-  }
-}
-// 处理攻城开关变化
-const handleAttackCityEnabledChange = (checked: boolean | string | number) => {
-  const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-  if (isChecked) {
-    // 如果是打开，弹出警告对话框
-    Modal.confirm({
-      title: h('div', { style: { color: 'red', fontWeight: 'bold' } }, '注意！！！'),
-      content:
-        '开启此功能后，19：00-22：00，若所在城池有可攻打的城池，那么就会派遣所有分身去攻打，死了也会用免费复活起来继续攻打，若同时在攻打多个城池，那么只会1个1个城池攻打，直到第一个城池拿下后才会攻打第二个城池，追求完美请手动，此功能只是给实在没空的用户用的',
-      okText: '确定',
-      cancelText: '取消',
-      onOk() {
-        // 点击确定才真正开启
-        config.value.activity.WarSeason.AttackCityEnabled = true
-      },
-      onCancel() {
-        console.log('test, cancel')
-        // 点击取消，不改变状态（保持关闭）
-        config.value.activity.WarSeason.AttackCityEnabled = false
-      },
-    })
-  } else {
-    // 如果是关闭，直接关闭
-    config.value.activity.WarSeason.AttackCityEnabled = false
-  }
-}
-
-// 分身属性选择状态
-const bodyAttributes = reactive(createDefaultBodyAttributes()) as BodyAttributes
 
 // 表单验证规则
 const formRules = {
@@ -1829,34 +1766,6 @@ const formRules = {
 }
 
 const config = ref<GameConfig>(createDefaultGameConfig())
-
-// 移除了移动端检测和侧边栏滑动相关方法
-
-// 打开特质保留配置弹窗
-const openFateModal = () => {
-  // 从config中读取当前配置
-  if (config.value.cave.pupil.fateList && config.value.cave.pupil.fateList.length > 0) {
-    config.value.cave.pupil.fateList.forEach((item: any) => {
-      if (fateThresholds[item.type as keyof typeof fateThresholds] !== undefined) {
-        fateThresholds[item.type as keyof typeof fateThresholds] = item.value
-      }
-    })
-  }
-  fateModalVisible.value = true
-}
-
-// 保存特质保留配置
-const saveFateConfig = () => {
-  config.value.cave.pupil.fateList = [
-    { type: 1017, value: fateThresholds[1017] },
-    { type: 1018, value: fateThresholds[1018] },
-    { type: 1021, value: fateThresholds[1021] },
-    { type: 1022, value: fateThresholds[1022] },
-    { type: 1023, value: fateThresholds[1023] },
-    { type: 1024, value: fateThresholds[1024] },
-  ]
-  fateModalVisible.value = false
-}
 
 // 获取配置
 const fetchConfig = async () => {
@@ -1875,69 +1784,10 @@ const fetchConfig = async () => {
       if (response.data && !response.data['未找到账号']) {
         // 使用深度合并确保所有默认字段都存在
         const mergedConfig = deepMerge(config.value, response.data.data)
-        // 数据检查
-        const specifyTimeSetting = mergedConfig.cave?.DestinyFight?.specifyTimeSetting
-        if (specifyTimeSetting) {
-          // 使用独立的时间校验方法
-          mergedConfig.cave.DestinyFight.specifyTimeSetting = validateTimeRange(specifyTimeSetting)
-        }
-
-        // 数据检查 - WarSeason RepeatBossTimeRange
-        const repeatBossTimeRange = mergedConfig.activity?.WarSeason?.RepeatBossTimeRange
-        if (repeatBossTimeRange) {
-          // 使用独立的时间校验方法
-          mergedConfig.activity.WarSeason.RepeatBossTimeRange =
-            validateTimeRange(repeatBossTimeRange)
-        }
-
-        // 数据检查 - WarSeason ManorTimeRange
-        const manorTimeRange = mergedConfig.activity?.WarSeason?.ManorTimeRange
-        if (manorTimeRange) {
-          mergedConfig.activity.WarSeason.ManorTimeRange = '22:00-07:00'
-          // console.log('🔄 数据检查:', mergedConfig.activity.WarSeason.ManorTimeRange)
-          // // 强制将开始时间设置为22:00，保持结束时间不变
-          // const endTime = manorTimeRange.split('-')[1] || '07:00'
-          // const fixedTimeRange = '22:00-' + endTime
-          // // 使用独立的时间校验方法
-          // mergedConfig.activity.WarSeason.ManorTimeRange = validateTimeRange(
-          //   fixedTimeRange,
-          //   '22:00-07:00',
-          // )
-        }
-        // 数据检查 - DreamFreeSpeedUpTime
-        const DreamFreeSpeedUpTime = mergedConfig.basic.specific.DreamFreeSpeedUpTime
-        if (DreamFreeSpeedUpTime) {
-          // 使用独立的时间校验方法
-          mergedConfig.basic.specific.DreamFreeSpeedUpTime = validateTimeRange(
-            DreamFreeSpeedUpTime,
-            '07:00-23:59',
-          )
-        }
-
-        // 数据检查 - composeBall useItemMaxNum
-        const useItemMaxNum = mergedConfig.activity?.composeBall?.useItemMaxNum
-        if (useItemMaxNum !== undefined && useItemMaxNum > 3) {
-          mergedConfig.activity.composeBall.useItemMaxNum = 3
-        }
-
-        // 数据兼容性处理 - composeBall useItemTimeHour (数字格式转字符串格式)
-        const useItemTimeHour = mergedConfig.activity?.composeBall?.useItemTimeHour
-        if (typeof useItemTimeHour === 'number') {
-          mergedConfig.activity.composeBall.useItemTimeHour = `${String(useItemTimeHour).padStart(
-            2,
-            '0',
-          )}:00`
-        }
-
         config.value = mergedConfig
-
-        // 配置加载后同步到bodyAttributes
-        syncConfigToBodyAttributes()
-        configLoaded.value = true
         console.log('✅ 配置加载成功')
       } else {
         console.log('⚠️ 未找到账号配置，使用默认配置')
-        configLoaded.value = true
 
         // 使用 Modal 弹窗提示错误
         Modal.error({
@@ -1953,7 +1803,6 @@ const fetchConfig = async () => {
     }
   } catch (error) {
     console.error('获取配置失败:', error)
-    configLoaded.value = true
 
     // 使用 Modal 弹窗提示错误
     Modal.error({
@@ -1974,9 +1823,6 @@ const fetchConfig = async () => {
 const saveConfig = async () => {
   loading.value = true
   try {
-    // 保存前同步bodyAttributes到config
-    syncBodyAttributesToConfig()
-
     console.log('🔄 开始保存配置:', {
       accountId: accountId.value,
       configSize: JSON.stringify(config.value).length,
@@ -2008,280 +1854,6 @@ const onSave = async () => {
   }
 }
 
-// 砍树相关方法
-const toggleChopTreePrimaryAttribute = (attrId: number) => {
-  const currentAttrs = config.value.chopTree.main[0].primaryAttribute
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id: number) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  config.value.chopTree.main[0].primaryAttribute = newAttrs
-}
-
-const toggleChopTreeSecondaryAttribute = (attrId: number) => {
-  const currentAttrs = config.value.chopTree.main[0].secondaryAttribute
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id: number) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  config.value.chopTree.main[0].secondaryAttribute = newAttrs
-}
-
-const toggleTalentPrimaryAttribute = (attrId: number) => {
-  // 确保数据结构存在
-  if (!config.value.talent.main[0]) {
-    config.value.talent.main[0] = { primaryAttribute: [], secondaryAttribute: [] }
-  }
-  if (!config.value.talent.main[0].primaryAttribute) {
-    config.value.talent.main[0].primaryAttribute = []
-  }
-
-  const currentAttrs = config.value.talent.main[0].primaryAttribute
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id: number) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  config.value.talent.main[0].primaryAttribute = newAttrs
-}
-
-const toggleTalentSecondaryAttribute = (attrId: number) => {
-  // 确保数据结构存在
-  if (!config.value.talent.main[0]) {
-    config.value.talent.main[0] = { primaryAttribute: [], secondaryAttribute: [] }
-  }
-  if (!config.value.talent.main[0].secondaryAttribute) {
-    config.value.talent.main[0].secondaryAttribute = []
-  }
-
-  const currentAttrs = config.value.talent.main[0].secondaryAttribute
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id: number) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  config.value.talent.main[0].secondaryAttribute = newAttrs
-}
-
-const toggleAttribute = (bodyKey: string, attrType: string, attrId: number) => {
-  const currentAttrs = (bodyAttributes[bodyKey] as any)[attrType] as number[]
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id: number) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  ;(bodyAttributes[bodyKey] as any)[attrType] = newAttrs
-}
-
-const getBodyName = (bodyKey: string) => {
-  const names: Record<string, string> = { yuanti: '元体', yangshen: '阳神', yinshen: '阴身' }
-  return names[bodyKey] || bodyKey
-}
-
-// 福地相关方法
-const removeTimeRule = (timeIndex: number) => {
-  const newRules = config.value.homeland.homelandRulesByTime.filter(
-    (_, index) => index !== timeIndex,
-  )
-  config.value.homeland.homelandRulesByTime = newRules
-}
-
-const updateTimeRule = (timeIndex: number, field: string, time: any) => {
-  const newRules = [...config.value.homeland.homelandRulesByTime]
-  if (newRules[timeIndex]) {
-    // 将 dayjs 对象转换为 HH:mm 格式的字符串
-    const timeValue = time ? time.format('HH:mm') : '00:00'
-    ;(newRules[timeIndex] as any)[field] = timeValue
-    config.value.homeland.homelandRulesByTime = newRules
-  }
-}
-
-const addTimeRule = () => {
-  const defaultRules = [
-    { ItemId: 100004, minItemLv: 3, isCheck: true, description: '仙桃' },
-    { ItemId: 100025, minItemLv: 5, isCheck: false, description: '净瓶水' },
-    { ItemId: 100000, minItemLv: 5, isCheck: false, description: '仙玉' },
-    { ItemId: 100003, minItemLv: 5, isCheck: false, description: '灵石' },
-    { ItemId: 100029, minItemLv: 5, isCheck: false, description: '琉璃珠' },
-    { ItemId: 100044, minItemLv: 5, isCheck: false, description: '天衍令' },
-    { ItemId: 100047, minItemLv: 5, isCheck: false, description: '昆仑铁' },
-  ]
-
-  const newTimeRule = {
-    startTime: '00:00',
-    endTime: '23:59',
-    rules: defaultRules,
-  }
-
-  config.value.homeland.homelandRulesByTime = [
-    ...config.value.homeland.homelandRulesByTime,
-    newTimeRule,
-  ]
-}
-
-// 通用偷桃设置
-const showPresetConfirm = () => {
-  Modal.confirm({
-    title: () => h('div', { style: { color: 'red', fontWeight: 'bold' } }, '注意！！！'),
-    content: '点击确认将读取通用偷桃设置，适用于半老区，老区跟新区请自行微调偷取的桃瓶等级',
-    okText: '确认',
-    cancelText: '取消',
-    centered: true,
-    onOk() {
-      loadPresetStealSettings()
-    },
-  })
-}
-
-const loadPresetStealSettings = () => {
-  // 时间段1：22:00-01:00 偷取4桃3瓶
-  const timeRule1 = {
-    startTime: '22:00',
-    endTime: '01:00',
-    rules: [
-      { ItemId: 100004, minItemLv: 4, isCheck: true, description: '仙桃' },
-      { ItemId: 100025, minItemLv: 3, isCheck: true, description: '净瓶水' },
-      { ItemId: 100000, minItemLv: 5, isCheck: false, description: '仙玉' },
-      { ItemId: 100003, minItemLv: 5, isCheck: false, description: '灵石' },
-      { ItemId: 100029, minItemLv: 5, isCheck: false, description: '琉璃珠' },
-      { ItemId: 100044, minItemLv: 5, isCheck: false, description: '天衍令' },
-      { ItemId: 100047, minItemLv: 5, isCheck: false, description: '昆仑铁' },
-    ],
-  }
-
-  // 时间段2：10:00-14:30 偷取4桃3瓶
-  const timeRule2 = {
-    startTime: '10:00',
-    endTime: '14:30',
-    rules: [
-      { ItemId: 100004, minItemLv: 4, isCheck: true, description: '仙桃' },
-      { ItemId: 100025, minItemLv: 3, isCheck: true, description: '净瓶水' },
-      { ItemId: 100000, minItemLv: 5, isCheck: false, description: '仙玉' },
-      { ItemId: 100003, minItemLv: 5, isCheck: false, description: '灵石' },
-      { ItemId: 100029, minItemLv: 5, isCheck: false, description: '琉璃珠' },
-      { ItemId: 100044, minItemLv: 5, isCheck: false, description: '天衍令' },
-      { ItemId: 100047, minItemLv: 5, isCheck: false, description: '昆仑铁' },
-    ],
-  }
-
-  // 时间段3：18:00-21:55 偷取3桃
-  const timeRule3 = {
-    startTime: '18:00',
-    endTime: '21:55',
-    rules: [
-      { ItemId: 100004, minItemLv: 3, isCheck: true, description: '仙桃' },
-      { ItemId: 100025, minItemLv: 5, isCheck: false, description: '净瓶水' },
-      { ItemId: 100000, minItemLv: 5, isCheck: false, description: '仙玉' },
-      { ItemId: 100003, minItemLv: 5, isCheck: false, description: '灵石' },
-      { ItemId: 100029, minItemLv: 5, isCheck: false, description: '琉璃珠' },
-      { ItemId: 100044, minItemLv: 5, isCheck: false, description: '天衍令' },
-      { ItemId: 100047, minItemLv: 5, isCheck: false, description: '昆仑铁' },
-    ],
-  }
-
-  config.value.homeland.homelandRulesByTime = [timeRule1, timeRule2, timeRule3]
-
-  message.success('通用偷桃设置已加载')
-}
-
-// 灵脉相关方法
-const getTalentCondition = (index: number) => {
-  if (!config.value.talent.separation.condition[index]) {
-    config.value.talent.separation.condition[index] = {
-      attribute: [],
-      skillId: [],
-      priority: index,
-    }
-  }
-  return config.value.talent.separation.condition[index]
-}
-
-const toggleTalentAttribute = (conditionIndex: number, attrId: number) => {
-  const condition = getTalentCondition(conditionIndex)
-  const currentAttrs = condition.attribute
-  const newAttrs = currentAttrs.includes(attrId)
-    ? currentAttrs.filter((id) => id !== attrId)
-    : [...currentAttrs, attrId]
-
-  condition.attribute = newAttrs
-}
-
-const toggleTalentSkill = (conditionIndex: number, skillId: number) => {
-  const condition = getTalentCondition(conditionIndex)
-  const currentSkills = condition.skillId
-  const newSkills = currentSkills.includes(skillId)
-    ? currentSkills.filter((id) => id !== skillId)
-    : [...currentSkills, skillId]
-
-  condition.skillId = newSkills
-}
-
-// 挑战相关方法
-
-const handleTowerSkillsChange = (selectedSkills: number[]) => {
-  if (selectedSkills.length > 5) {
-    // 如果选择超过5个，只保留最后选择的5个
-    config.value.challenge.common.towerSkills = selectedSkills.slice(-5)
-    message.warning('最多只能选择5个技能')
-  }
-}
-
-const updateChallengeOption = (challengeType: string, field: string, eventOrValue: Event | any) => {
-  const value =
-    eventOrValue instanceof Event ? (eventOrValue.target as HTMLInputElement).checked : eventOrValue
-
-  if (!(config.value.challenge as any)[challengeType]) {
-    ;(config.value.challenge as any)[challengeType] = {}
-  }
-
-  ;(config.value.challenge as any)[challengeType][field] = value
-}
-
-// 同步bodyAttributes到config
-const syncBodyAttributesToConfig = () => {
-  // 同步到新版本格式：Conditions
-  config.value.chopTree.separation.Conditions = [
-    {
-      primaryAttribute: bodyAttributes.yuanti.main,
-      secondaryAttribute: bodyAttributes.yuanti.sub,
-    },
-    {
-      primaryAttribute: bodyAttributes.yangshen.main,
-      secondaryAttribute: bodyAttributes.yangshen.sub,
-    },
-    {
-      primaryAttribute: bodyAttributes.yinshen.main,
-      secondaryAttribute: bodyAttributes.yinshen.sub,
-    },
-  ]
-}
-
-// 同步config到bodyAttributes
-const syncConfigToBodyAttributes = () => {
-  // 读取新版本格式：Conditions
-  if (
-    config.value.chopTree?.separation?.Conditions &&
-    config.value.chopTree.separation.Conditions.length >= 3
-  ) {
-    const conditions = config.value.chopTree.separation.Conditions
-
-    bodyAttributes.yuanti.main = conditions[0]?.primaryAttribute || []
-    bodyAttributes.yuanti.sub = conditions[0]?.secondaryAttribute || []
-
-    bodyAttributes.yangshen.main = conditions[1]?.primaryAttribute || []
-    bodyAttributes.yangshen.sub = conditions[1]?.secondaryAttribute || []
-
-    bodyAttributes.yinshen.main = conditions[2]?.primaryAttribute || []
-    bodyAttributes.yinshen.sub = conditions[2]?.secondaryAttribute || []
-  }
-}
-
-// 监听bodyAttributes变化并同步到config
-watch(
-  bodyAttributes,
-  () => {
-    syncBodyAttributesToConfig()
-  },
-  { deep: true },
-)
-
 onMounted(() => {
   if (accountId.value) {
     fetchConfig()
@@ -2296,10 +1868,6 @@ onMounted(() => {
     centered: true,
     okText: '我知道了',
   })
-})
-
-onUnmounted(() => {
-  // 清理工作
 })
 </script>
 

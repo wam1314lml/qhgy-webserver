@@ -30,7 +30,9 @@ export const createDefaultGameConfig = (): GameConfig =>
       pearl: {
         freePearl: false,
         autoHire: false,
-        maxHireTicketUsage: 1,
+        maxHireLevel: 0,
+        maxHireTicketUsage: 0,
+        autoPearlDraw: false,
         protectEnabled: false,
         autoBuyHireTicket: false,
         maxSpendDmd: 25,
@@ -92,11 +94,13 @@ export const createDefaultGameConfig = (): GameConfig =>
         stealMode: 'quality',
         stealQualities: [1, 2, 3, 4, 5],
         stealFlowerIds: [],
+        excludeFlowerIds: [],
         buyStealEnabled: false,
         buyStealCount: 0,
       },
       elves: {
         enabled: false,
+        selectedElvesIds: [],
         requestAid: false,
         recvAid: false,
         helpFrd: false,
@@ -166,7 +170,11 @@ export const createDefaultGameConfig = (): GameConfig =>
     union: {
       land: {
         harvest: false,
+        autoPlant: false,
+        plantMode: 'quality',
         flowers: [1, 2, 3, 4, 5],
+        specificFlowerIds: [],
+        maxFlowerLevel: 0,
       },
       build: {
         free: false,
@@ -186,12 +194,33 @@ export const createDefaultGameConfig = (): GameConfig =>
       fmlRace: {
         enabled: false,
         autoEnableModules: false,
-        upgradeTask: false,
+        useSpeedUpTicketInTask: false,
         minTaskScore: 0,
+        onlyUpgradeTask: false,
+        excludeOthersUpgradeTask: true,
+        taskTypePriority: {
+          '2004': 0,
+          '3006': 0,
+          '3016': 0,
+          '3017': 0,
+          '3018': 0,
+          '3023': 0,
+          '3024': 0,
+          '3030': 0,
+          '3034': 0,
+          '3035': 0,
+          '3036': 0,
+          '3044': 0,
+          '3052': 0,
+        },
+        upgradeTask: false,
         deleteTask: false,
         deleteTaskMaxScore: 0,
       },
       redPacket: {
+        enabled: false,
+      },
+      fmlForest: {
         enabled: false,
       },
     },
@@ -222,6 +251,23 @@ export const createDefaultGameConfig = (): GameConfig =>
         speed: 1,
       },
       actElim: {
+        enabled: false,
+        autoClaimEnergy: false,
+        speed: 1,
+      },
+      zooGameElim: {
+        enabled: false,
+      },
+      lanternFestival: {
+        enabled: false,
+      },
+      actDessert: {
+        enabled: false,
+        autoClaimEnergy: false,
+        useItems: false,
+        speed: 1,
+      },
+      actMerge2: {
         enabled: false,
         autoClaimEnergy: false,
         speed: 1,
