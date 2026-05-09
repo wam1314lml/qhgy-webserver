@@ -617,7 +617,7 @@
                 tooltip="选择偷花过滤模式：指定品质或指定花朵或排除花朵"
               >
                 <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="specific">指定花朵 </Radio>
                     <Radio value="exclude">排除花朵 </Radio>
@@ -855,7 +855,7 @@
             <template v-if="config.plant.market.putEnabled">
               <CustomFormItem label="上架策略" name="plant.market.putMode">
                 <Radio.Group v-model:value="config.plant.market.putMode">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio value="inventory">库存最多</Radio>
                     <Radio value="specific">指定花朵</Radio>
                   </Space>
@@ -878,7 +878,7 @@
               </CustomFormItem>
               <CustomFormItem label="上架价格" name="plant.market.priceIndex">
                 <Radio.Group v-model:value="config.plant.market.priceIndex">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio :value="0">最低</Radio>
                     <Radio :value="1">中等</Radio>
                     <Radio :value="2">最高</Radio>
@@ -935,7 +935,7 @@
             <template v-if="config.plant.market.autoBuyFromFriend">
               <CustomFormItem label="扫货策略" name="plant.market.buyMode">
                 <Radio.Group v-model:value="config.plant.market.buyMode">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio value="all">全部</Radio>
                     <Radio value="specific">指定花朵</Radio>
                     <Radio value="quality">指定品质</Radio>
@@ -1240,7 +1240,7 @@
                 tooltip="选择分享模式：品质模式或指定花模式"
               >
                 <Radio.Group v-model:value="config.union.flower.shareMode">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="specific">指定花朵</Radio>
                   </Space>
@@ -1290,7 +1290,7 @@
                 tooltip="选择摸花模式：品质模式或指定花模式"
               >
                 <Radio.Group v-model:value="config.union.flower.takeMode">
-                  <Space direction="vertical">
+                  <Space >
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="specific">指定花朵</Radio>
                   </Space>
