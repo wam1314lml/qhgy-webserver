@@ -8,7 +8,27 @@
       <template v-else>
         <div v-for="account in accounts" :key="account.id" class="account-card">
           <div class="account-header">
-            <div class="account-name">{{ account.nickname }}</div>
+            <div class="account-name">
+              {{ account.nickname }}
+              <!-- 支付宝授权状态（platform===1） -->
+              <template v-if="account.platform === 1">
+                <span
+                  v-if="getAlipayTokenStatus(account)?.state === 'expired'"
+                  class="alipay-token-tag alipay-token-expired"
+                  >支付宝授权已过期</span
+                >
+                <span
+                  v-else-if="getAlipayTokenStatus(account)?.state === 'no_record'"
+                  class="alipay-token-tag alipay-token-warn"
+                  >未读取到最新支付宝授权请重扫</span
+                >
+                <span
+                  v-else-if="getAlipayTokenStatus(account)?.state === 'ok'"
+                  class="alipay-token-tag alipay-token-ok"
+                  >支付宝码有效期剩余 {{ getAlipayTokenStatus(account)?.timeLeft }}</span
+                >
+              </template>
+            </div>
             <div class="account-menu">
               <a-dropdown trigger="click">
                 <a-tooltip
@@ -28,8 +48,8 @@
                     shape="circle"
                     type="text"
                     :data-account-id="account.id"
+                    :icon="h(MoreOutlined)"
                   >
-                    <MoreOutlined />
                   </a-button>
                 </a-tooltip>
                 <a-button
@@ -38,8 +58,8 @@
                   shape="circle"
                   type="text"
                   :data-account-id="account.id"
+                  :icon="h(MoreOutlined)"
                 >
-                  <MoreOutlined />
                 </a-button>
                 <template #overlay>
                   <a-menu @click="(e: any) => handleMenuClick(e, account)">
@@ -59,6 +79,12 @@
                         <GiftOutlined />
                       </template>
                       开通试用
+                    </a-menu-item>
+                    <a-menu-item v-if="account.platform === 1" key="alipayRescan">
+                      <template #icon>
+                        <SyncOutlined />
+                      </template>
+                      三十天扫码保持（防掉线）
                     </a-menu-item>
                     <a-menu-item key="updatePassword">
                       <template #icon>
@@ -155,11 +181,7 @@
             <a-button
               class="action-button secondary"
               @click="handleToggleAccount(account.id, 'active')"
-              :disabled="
-                operatingAccounts.has(account.id) ||
-                !getAccountStartedStatus(account) ||
-                new Date(account.expire_time!) < new Date()
-              "
+              :disabled="operatingAccounts.has(account.id) || !getAccountStartedStatus(account)"
               type="primary"
               danger
             >
@@ -267,7 +289,12 @@
           "
         >
           <div class="option-header">
-            <span class="days">{{ option.label }}</span>
+            <span class="days"
+              >{{ option.label }}
+              <a-tag :bordered="false" color="red" v-if="isSuperValueQuotaOption(option)"
+                >超值
+              </a-tag></span
+            >
             <span class="cost">-{{ option.points }}配额</span>
           </div>
           <div class="option-desc">
@@ -355,7 +382,9 @@
         <p>
           您即将删除游戏账号：<strong>{{ deleteAccountName }}</strong>
         </p>
-        <p class="warning-text">此操作不可撤销，账号的所有数据、额度将被永久删除！不可恢复！</p>
+        <p class="warning-text">
+          此操作不可撤销，该角色卡的剩余时间和所有配置数据将被永久删除！不可恢复！
+        </p>
         <div v-if="deleteCountdown > 0" class="countdown-info">
           <p>
             请等待 <span class="countdown">{{ deleteCountdown }}</span> 秒后确认删除
@@ -418,7 +447,8 @@
     <a-float-button-group
       trigger="click"
       type="primary"
-      :style="{ right: '24px' }"
+      shape="square"
+      :style="{ right: '24px', borderRadius: '8px' }"
       :open="floatButtonOpen || (tourOpen && !isFirstAccountTour)"
       @openChange="handleFloatButtonOpenChange"
       description="菜单"
@@ -457,14 +487,18 @@
         </template>
       </a-float-button>
 
-      <a-float-button tooltip="帮助文档" @click="onShowLink">
-        <template #icon>
-          <QuestionCircleOutlined />
+      <a-tooltip placement="right" :open="groupChatTooltipOpen">
+        <template #title>
+          <span>点它获取设置图文教程，很详细哦</span>
         </template>
-      </a-float-button>
+        <a-float-button @click="onShowLink">
+          <template #icon>
+            <QuestionCircleOutlined />
+          </template>
+        </a-float-button>
+      </a-tooltip>
 
       <a-float-button
-        tooltip="加入群聊"
         @click="
           () => {
             showCustomerServiceModal = true
@@ -472,6 +506,7 @@
           }
         "
         class="tour-4"
+        :open="true"
       >
         <template #icon>
           <CustomerServiceOutlined />
@@ -508,6 +543,7 @@ import {
   DeleteOutlined,
   LockOutlined,
   GiftOutlined,
+  SyncOutlined,
 } from '@ant-design/icons-vue'
 import AddAccountModal from './AddAccountModal.vue'
 import LogViewModal from './LogViewModal.vue'
@@ -572,6 +608,12 @@ interface GameRecordDetails {
   }
   isOnline: boolean
   lastOnlineUpdate: string
+  // 支付宝七天授权相关字段（platform===1，ZFB_ 账号有效）
+  Is7dayTokenExpire?: boolean // true = 七天码已过期
+  '7dayTokenRescanTime'?: string | number | null // 上次扫码时间
+  '7daytokenExpireTime'?: string | null // 七天码过期时间
+  '7dayExpireReason'?: string | null // 过期原因
+  [key: string]: any // 允许脚本服扩展字段
 }
 
 // 玩家记录数据接口（对应 player_record API 返回格式）
@@ -683,6 +725,47 @@ const getExpiryDaysLeft = (account: GameAccount): number | null => {
   const diffMs = expiryTime - Date.now()
   if (diffMs <= 0) return 0
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * 获取支付宝授权状态（platform===1 专用）
+ * 数据在 account.record.record（GameRecordDetails）层：
+ *   Is7dayTokenExpire    - true = 七天码已过期
+ *   7dayTokenRescanTime  - 上次扫码时间（有效期30天）
+ * 返回：
+ *   { state: 'expired' }          - Is7dayTokenExpire===true
+ *   { state: 'no_record' }        - 没有 record 或没有 7dayTokenRescanTime
+ *   { state: 'ok', daysLeft: N }  - 正常，N = 距到期剩余天数（30天有效期）
+ */
+const getAlipayTokenStatus = (account: GameAccount) => {
+  if (account.platform !== 1) return null
+  if (!account.record) return { state: 'no_record' as const }
+
+  // 启动时：七天授权字段在 record.record（GameRecordDetails）层
+  // 未启动时：后端直接把授权字段挂在 record 顶层（record.record 为 undefined）
+  const gameRecord = (account.record.record as any) ?? (account.record as any)
+
+  if (gameRecord['Is7dayTokenExpire'] === true) return { state: 'expired' as const }
+
+  const rawTime = gameRecord['7dayTokenRescanTime']
+  if (!rawTime) return { state: 'no_record' as const }
+
+  const ts = typeof rawTime === 'number' ? rawTime : new Date(rawTime).getTime()
+  if (!ts || Number.isNaN(ts)) return { state: 'no_record' as const }
+
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+  const expireTs = ts + THIRTY_DAYS_MS
+  const diffMs = expireTs - Date.now()
+  if (diffMs <= 0) return { state: 'ok' as const, timeLeft: '0m' }
+  const totalMinutes = Math.floor(diffMs / (1000 * 60))
+  const days = Math.floor(totalMinutes / (60 * 24))
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+  const minutes = totalMinutes % 60
+  let timeLeft = ''
+  if (days > 0) timeLeft += `${days}d`
+  if (hours > 0) timeLeft += `${hours}h`
+  timeLeft += `${minutes}m`
+  return { state: 'ok' as const, timeLeft }
 }
 
 const isAccountExpired = (account: GameAccount): boolean => {
@@ -822,6 +905,9 @@ const fetchQuotaOptions = async () => {
     console.error('获取配额选项失败:', error)
   }
 }
+
+const isSuperValueQuotaOption = (option: { days: number; points: number }) =>
+  Number(option.days) > Number(option.points)
 
 // 获取群聊二维码图片
 const fetchGroupChatImage = async () => {
@@ -965,6 +1051,12 @@ const fetchGameAccounts = async () => {
 
           accounts.value = newAccounts.map((account: GameAccount) => {
             const record = recordsMap.get(account.id) as PlayerRecord | undefined
+
+            console.log(account, record)
+            if (isAccountExpired(account) && record?.status === 'online') {
+              console.warn(`⚠️ 账号 ${account.id} 已过期，expire_time: ${account.expire_time}`)
+              handleToggleAccount(account.id, 'active')
+            }
             // 如果有 record 且包含玩家昵称，更新账号昵称
             if (record?.record?.player?.nickName) {
               return { ...account, nickname: record.record.player.nickName, record }
@@ -1061,6 +1153,8 @@ const handleMenuClick = (e: any, account: GameAccount) => {
     handleActivateTrial(accountId)
   } else if (key === 'updatePassword') {
     handleUpdatePassword(accountId)
+  } else if (key === 'alipayRescan') {
+    handleAlipayRescan(account)
   } else if (key === 'delete') {
     if (getAccountStartedStatus(account)) {
       message.warning('请先停止账号后再删除！')
@@ -1283,11 +1377,16 @@ const floatButtonOpen = ref(false)
 
 // 支付宝重新认证相关状态
 const alipayReauthPolling = ref<number | null>(null)
+// 支付宝七天续期扫码是否已停止
+const alipayRescanStopped = ref(false)
 
 // Tour 漫游引导相关状态
 const tourOpen = ref(false)
 const tourCurrentStep = ref(0)
 const isFirstAccountTour = ref(false)
+const isFloatMenuExpanded = computed(
+  () => floatButtonOpen.value || (tourOpen.value && !isFirstAccountTour.value)
+)
 const expiredTooltipAccountId = ref<number | null>(null)
 const expiredTooltipOpen = ref(false)
 const expiredTooltipText = '如需试用、使用辅助，请点击三个点，开通试用/增加配额'
@@ -1301,6 +1400,12 @@ const EXPIRED_TOOLTIP_SHOW_MS = 5000
 const EXPIRED_TOOLTIP_HIDE_MS = 5000
 let expiredTooltipTimer: number | null = null
 let expiredTooltipPhase: 'show' | 'hide' = 'hide'
+const groupChatTooltipOpen = ref(false)
+const GROUP_CHAT_TOOLTIP_SHOW_MS = 5000
+const GROUP_CHAT_TOOLTIP_HIDE_MS = 5000
+const GROUP_CHAT_TOOLTIP_INITIAL_DELAY_MS = 400
+let groupChatTooltipTimer: number | null = null
+let groupChatTooltipPhase: 'show' | 'hide' = 'hide'
 
 const getTooltipContainer = (triggerNode: HTMLElement) => {
   const docBody = triggerNode?.ownerDocument?.body
@@ -1381,6 +1486,13 @@ const clearExpiredTooltipTimer = () => {
   }
 }
 
+const clearGroupChatTooltipTimer = () => {
+  if (groupChatTooltipTimer) {
+    clearTimeout(groupChatTooltipTimer)
+    groupChatTooltipTimer = null
+  }
+}
+
 const stopExpiredTooltipLoop = () => {
   clearExpiredTooltipTimer()
   expiredTooltipOpen.value = false
@@ -1388,10 +1500,23 @@ const stopExpiredTooltipLoop = () => {
   expiredTooltipPhase = 'hide'
 }
 
+const stopGroupChatTooltipLoop = () => {
+  clearGroupChatTooltipTimer()
+  groupChatTooltipOpen.value = false
+  groupChatTooltipPhase = 'hide'
+}
+
 const scheduleExpiredTooltipLoop = (delayMs: number) => {
   clearExpiredTooltipTimer()
   expiredTooltipTimer = window.setTimeout(() => {
     runExpiredTooltipLoop()
+  }, delayMs)
+}
+
+const scheduleGroupChatTooltipLoop = (delayMs: number) => {
+  clearGroupChatTooltipTimer()
+  groupChatTooltipTimer = window.setTimeout(() => {
+    runGroupChatTooltipLoop()
   }, delayMs)
 }
 
@@ -1433,6 +1558,24 @@ const runExpiredTooltipLoop = async () => {
   expiredTooltipOpen.value = true
   expiredTooltipPhase = 'show'
   scheduleExpiredTooltipLoop(EXPIRED_TOOLTIP_SHOW_MS)
+}
+
+const runGroupChatTooltipLoop = () => {
+  if (groupChatTooltipPhase === 'show') {
+    groupChatTooltipOpen.value = false
+    groupChatTooltipPhase = 'hide'
+    scheduleGroupChatTooltipLoop(GROUP_CHAT_TOOLTIP_HIDE_MS)
+    return
+  }
+
+  if (!isFloatMenuExpanded.value) {
+    stopGroupChatTooltipLoop()
+    return
+  }
+
+  groupChatTooltipOpen.value = true
+  groupChatTooltipPhase = 'show'
+  scheduleGroupChatTooltipLoop(GROUP_CHAT_TOOLTIP_SHOW_MS)
 }
 
 // 处理 Tour 步骤变化
@@ -1524,6 +1667,9 @@ const handleConfigAccount = (accountId: number) => {
   router.push({
     name: 'GameConfig',
     params: { accountId: accountId.toString() },
+    query: {
+      firstAccountId: accounts.value[0]?.id?.toString(),
+    },
   })
 }
 
@@ -1685,95 +1831,199 @@ const cancelDelete = () => {
   }
 }
 
-// 支付宝重新认证相关函数
-const handleAlipayReauth = async (accountId: number) => {
+// 支付宝三十天扫码保持（防掉线）
+const handleAlipayRescan = async (account: GameAccount) => {
+  const accountId = account.id
+
+  // 检查是否启动，如果启动则弹窗确认停止
+  if (getAccountStartedStatus(account)) {
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        title: '提示',
+        content: '扫码需停止辅助，是否停止？',
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false),
+      })
+    })
+    if (!confirmed) return
+
+    // 停止辅助
+    await handleToggleAccount(accountId, 'active')
+  }
+
   try {
-    // 调用后端生成支付宝二维码
-    const response = await axios.post('/api/game-accounts/alipay_bind', {
-      accountId: accountId,
+    // ① 获取二维码（accountId 传给后端用于会话绑定）
+    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', { accountId })
+    if (!resp.data.success) {
+      message.error(resp.data.message || '获取支付宝二维码失败')
+      return
+    }
+    const { qrcodeUrl } = resp.data.data
+
+    // ② 弹出二维码 Modal
+    const modalInstance = Modal.info({
+      title: '🔄 支付宝三十天续期（防掉线）',
+      content: h(AlipayReauthModal, { qrcodeUrl, mode: 'rescan' }),
+      width: 400,
+      okText: '取消',
+      okButtonProps: { danger: true },
+      onOk() {
+        alipayRescanStopped.value = true
+        message.info('已取消扫码续期')
+      },
     })
 
-    if (response.data.success) {
-      const { qrcodeUrl, sessionId } = response.data.data
+    // ③ 无状态短轮询，直接读 Redis（后台 Poller 在服务端跑）
+    alipayRescanStopped.value = false
+    const maxAttempts = 200
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (alipayRescanStopped.value) return
 
-      // 显示支付宝二维码模态框
-      showAlipayReauthModal(accountId, qrcodeUrl, sessionId)
-    } else {
-      message.error(response.data.message || '生成支付宝二维码失败')
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      if (alipayRescanStopped.value) return
+
+      try {
+        const pollResp = await axios.get('/api/game-accounts/alipay/rescan_poll')
+        const { code, message: msg } = pollResp.data
+
+        if (code === 'COMPLETED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          await fetchAndUpdateSingleAccountRecord(accountId)
+          message.success('支付宝续期成功！三十天防掉线已更新')
+          return
+        }
+
+        if (code === 'CANCELLED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          return
+        }
+
+        if (code === 'EXPIRED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(msg || '续期失败，请重试')
+          return
+        }
+        // PENDING：继续等待
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          // 会话不存在，稍等
+        } else if (err.response?.status === 400) {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(err.response?.data?.message || '续期失败，请重试')
+          return
+        } else if (err.response?.status === 408) {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(err.response?.data?.message || '续期超时，请重试')
+          return
+        } else {
+          console.error('[alipayRescan poll]', err.message)
+        }
+      }
     }
+
+    // 超时
+    alipayRescanStopped.value = true
+    modalInstance.destroy()
+    message.error('扫码超时，请重新操作')
   } catch (error: any) {
-    console.error('支付宝重新认证失败:', error)
-    message.error(error.response?.data?.message || '支付宝重新认证失败')
+    console.error('支付宝扫码续期失败:', error)
+    message.error(error.response?.data?.message || '支付宝扫码续期失败')
   }
 }
 
-const showAlipayReauthModal = (accountId: number, qrcodeUrl: string, sessionId: string) => {
-  console.log('🔍 显示支付宝重新认证模态框:', { accountId, qrcodeUrl, sessionId })
-
-  // 使用专门的Vue组件来显示二维码
-  Modal.info({
-    title: '🔐 支付宝重新认证',
-    content: h(AlipayReauthModal, {
-      qrcodeUrl: qrcodeUrl,
-    }),
-    width: 400,
-    okText: '取消认证',
-    okButtonProps: {
-      danger: true,
-    },
-    onOk() {
-      // 用户取消时停止轮询
-      if (alipayReauthPolling.value) {
-        clearInterval(alipayReauthPolling.value)
-        alipayReauthPolling.value = null
-      }
-      message.info('已取消支付宝重新认证')
-    },
-  })
-
-  // 开始轮询认证状态
-  startAlipayReauthPolling(accountId, sessionId)
-}
-
-const startAlipayReauthPolling = async (accountId: number, sessionId: string) => {
-  console.log('🔄 开始支付宝重新认证长轮询:', { accountId, sessionId })
-
+// 支付宝重新认证（异地重扫）- 改为走七天续期流程（alipay_get_qrcode + rescan_poll）
+const handleAlipayReauth = async (accountId: number) => {
+  // 直接复用七天续期流程：获取二维码 → 轮询 rescan_poll → 成功后启动账号
+  const account = accounts.value.find((a: GameAccount) => a.id === accountId)
+  if (!account) {
+    message.error('账号不存在')
+    return
+  }
   try {
-    message.loading('等待扫码中...', 2)
+    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', { accountId })
+    if (!resp.data.success) {
+      message.error(resp.data.message || '获取支付宝二维码失败')
+      return
+    }
+    const { qrcodeUrl } = resp.data.data
 
-    const response = await axios.get('/api/game-accounts/alipay/poll2', {
-      params: {
-        sessionId: sessionId,
-        accountId: accountId,
+    const modalInstance = Modal.info({
+      title: '🔐 支付宝重新认证（异地重扫）',
+      content: h(AlipayReauthModal, { qrcodeUrl }),
+      width: 400,
+      okText: '取消',
+      okButtonProps: { danger: true },
+      onOk() {
+        alipayRescanStopped.value = true
+        message.info('已取消重新认证')
       },
-      timeout: 130000, // 2分钟超时 + 10秒缓冲，与poll接口保持一致
     })
 
-    if (response.data.success && response.data.data.status === 'success') {
-      // 认证成功
-      // 关闭模态框
-      Modal.destroyAll()
+    alipayRescanStopped.value = false
+    const maxAttempts = 200
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (alipayRescanStopped.value) return
 
-      // 显示成功消息
-      message.success('🎉 支付宝重新认证成功！正在启动账号...')
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      if (alipayRescanStopped.value) return
 
-      // 重新尝试启动账号
-      setTimeout(async () => {
-        await handleToggleAccount(accountId, 'inactive')
-      }, 500)
-    } else {
-      // 认证失败或超时
-      message.error('支付宝认证失败，请重试')
-      Modal.destroyAll()
+      try {
+        const pollResp = await axios.get('/api/game-accounts/alipay/rescan_poll')
+        const { code, message: msg } = pollResp.data
+
+        if (code === 'COMPLETED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          await fetchAndUpdateSingleAccountRecord(accountId)
+          message.success('🎉 支付宝重新认证成功！正在启动账号...')
+          setTimeout(async () => {
+            await handleToggleAccount(accountId, 'inactive')
+          }, 500)
+          return
+        }
+
+        if (code === 'CANCELLED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          return
+        }
+
+        if (code === 'EXPIRED') {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(msg || '认证失败，请重试')
+          return
+        }
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          // 会话不存在
+        } else if (err.response?.status === 400) {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(err.response?.data?.message || '认证失败，请重试')
+          return
+        } else if (err.response?.status === 408) {
+          alipayRescanStopped.value = true
+          modalInstance.destroy()
+          message.error(err.response?.data?.message || '认证超时，请重试')
+          return
+        } else {
+          console.error('[alipayReauth poll]', err.message)
+        }
+      }
     }
+
+    alipayRescanStopped.value = true
+    modalInstance.destroy()
+    message.error('扫码超时，请重新操作')
   } catch (error: any) {
-    console.error('支付宝认证失败:', error)
-    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      message.error('支付宝认证超时，请重试')
-    } else {
-      message.error('支付宝认证失败，请重试')
-    }
-    Modal.destroyAll()
+    console.error('支付宝重新认证失败:', error)
+    message.error(error.response?.data?.message || '支付宝重新认证失败')
   }
 }
 
@@ -1795,7 +2045,10 @@ const handleHuaweiReauth = async (accountId: number) => {
     }
   } catch (error: any) {
     console.error('华为重新认证失败:', error)
-    message.error(error.response?.data?.message || '华为重新认证失败')
+    const errorMsg =
+      error.response?.data?.error || error.response?.data?.message || '华为重新认证失败'
+
+    message.error(errorMsg)
   }
 }
 
@@ -1828,44 +2081,48 @@ const showHuaweiReauthModal = (accountId: number, qrcodeUrl: string) => {
 }
 
 const startHuaweiReauthPolling = async (accountId: number) => {
-  try {
-    message.loading('等待扫码中...', 2)
+  const maxAttempts = 160
+  let attempt = 0
 
-    const response = await axios.get('/api/game-accounts/huawei/poll2', {
-      timeout: 130000, // 2分钟超时 + 10秒缓冲
-    })
+  while (attempt < maxAttempts) {
+    attempt++
+    try {
+      const response = await axios.get('/api/game-accounts/huawei/poll2', { timeout: 10000 })
 
-    if (response.data.success && response.data.code === 'COMPLETED') {
-      // 认证成功
-      // 关闭模态框
-      Modal.destroyAll()
+      if (response.data.code === 'COMPLETED') {
+        Modal.destroyAll()
+        message.success('🎉 华为重新认证成功！正在启动账号...')
+        setTimeout(async () => {
+          await handleToggleAccount(accountId, 'inactive')
+        }, 500)
+        return
+      }
 
-      // 显示成功消息
-      message.success('🎉 华为重新认证成功！正在启动账号...')
+      if (response.data.code === 'EXPIRED' || response.data.code === 'CANCELLED') {
+        message.error(response.data.message || '华为认证已过期，请重试')
+        Modal.destroyAll()
+        return
+      }
 
-      // 重新尝试启动账号
-      setTimeout(async () => {
-        await handleToggleAccount(accountId, 'inactive')
-      }, 500)
-    } else {
-      // 认证失败或超时
-      message.error('华为认证失败，请重试')
-      Modal.destroyAll()
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        message.error('会话不存在，请重新认证')
+        Modal.destroyAll()
+        return
+      }
+      if (error.response?.status === 408) {
+        message.error(error.response?.data?.message || '华为认证超时，请重试')
+        Modal.destroyAll()
+        return
+      }
+      console.error('华为认证轮询请求失败:', error.message)
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
-  } catch (error: any) {
-    console.error('华为认证失败:', error.message)
-
-    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      message.error('⏰ 华为认证超时，请重试', 5)
-    } else if (error.response?.status === 504) {
-      console.error('504 Gateway Timeout - Nginx超时错误')
-      message.error('⏰ 服务器网关超时(504)，请联系管理员检查Nginx配置', 8)
-    } else {
-      const errMsg = error.response?.data?.message || '华为认证失败，请重试'
-      message.error(errMsg, 5)
-    }
-    Modal.destroyAll()
   }
+
+  message.error('华为认证超时，请重试')
+  Modal.destroyAll()
 }
 
 // 更新密码相关函数
@@ -2033,8 +2290,24 @@ onUnmounted(() => {
     expiringBannerTimer = null
   }
   stopExpiredTooltipLoop()
+  stopGroupChatTooltipLoop()
   emit('expiry-banner-change', false)
 })
+
+watch(
+  isFloatMenuExpanded,
+  (isOpen) => {
+    if (!isOpen) {
+      stopGroupChatTooltipLoop()
+      return
+    }
+
+    if (!groupChatTooltipTimer) {
+      scheduleGroupChatTooltipLoop(GROUP_CHAT_TOOLTIP_INITIAL_DELAY_MS)
+    }
+  },
+  { immediate: true }
+)
 
 // 自动刷新定时器
 watch(
@@ -2122,8 +2395,41 @@ console.log('🔍 渲染状态:', {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 @import './ScriptConfig.css';
+.menu-button {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 支付宝授权状态 tag */
+.alipay-token-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: normal;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.alipay-token-expired {
+  background: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+}
+.alipay-token-warn {
+  background: #fffbe6;
+  color: #faad14;
+  border: 1px solid #ffe58f;
+}
+.alipay-token-ok {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
 </style>
 
 <style>

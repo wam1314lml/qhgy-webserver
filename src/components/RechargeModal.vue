@@ -5,6 +5,7 @@
     :footer="null"
     :width="600"
     class="recharge-modal"
+    zIndex="2000"
     centered
   >
     <template #title>
@@ -33,12 +34,85 @@
 
         <!-- 步骤1: 选择套餐和支付方式 -->
         <template v-if="currentStep === 0">
-          <!-- 充值套餐 -->
-          <div v-if="packages.length > 0" class="packages-section">
+           <!-- 赠点套餐（gift_card_enabled === 1） -->
+          <div v-if="giftCardPackages.length > 0" class="packages-section gift-card-section">
+            <h4 class="gift-card-title">
+              <span class="gift-card-icon">🎁</span>
+              <span class="gift-card-text">赠点套餐</span>
+              <span class="gift-card-sparkle">✨</span>
+            </h4>
+            <div class="packages-grid">
+              <a-card
+                v-for="pkg in giftCardPackages"
+                :key="pkg.id"
+                :class="[
+                  'package-card',
+                  'gift-card-package1',
+                  { selected: selectedPackage === pkg.id },
+                  { popular: pkg.popular },
+                ]"
+                class="relative"
+                @click="pkg.can_purchase ? handlePackageSelect(pkg) : null"
+                :hoverable="pkg.can_purchase"
+                size="small"
+              >
+                <div
+                  v-if="getDiscountBadge(pkg)"
+                  :class="['popular-badge', `badge-${getDiscountBadge(pkg)}`]"
+                >
+                  {{ getDiscountBadge(pkg) }}
+                </div>
+                <div v-if="selectedPackage === pkg.id" class="selected-badge">✓</div>
+                <div
+                  v-if="getLotteryTicketsText(pkg)"
+                  :class="['package-lottery-tip', { 'with-corner-badge': !!getDiscountBadge(pkg) }]"
+                >
+                  限时送{{ getLotteryTicketsText(pkg) }}连
+                </div>
+                <div class="package-quantity">
+                  ¥{{ parseFloat(pkg.price || 0).toFixed(2) }}
+                  <span v-if="getDiscountPercentage(pkg) < 100" class="discount-tag"
+                    >{{ getDiscountPercentage(pkg) / 10 }}折</span
+                  >
+                </div>
+                <div class="package-price font-bold">{{ pkg.points }} 点配额</div>
+                <div v-if="pkg.bonus_points > 0" class="package-bonus">
+                  <GiftOutlined /> +{{ pkg.bonus_points }} 赠送
+                </div>
+                <div v-if="pkg.gift_card_points > 0" class="package-bonus">
+                  <GiftOutlined /> 赠福利卡 {{ pkg.gift_card_points }} 点
+                </div>
+
+                <!-- 购买次数限制信息 -->
+                <div v-if="pkg.max_purchase_count" class="pt-1 border-t border-gray-100 text-xs">
+                  <div v-if="pkg.can_purchase" class="text-yellow-500 font-medium">
+                    限购{{ pkg.max_purchase_count }}次，已购买{{ pkg.user_purchased_count }}次
+                  </div>
+                  <div v-else class="text-red-500 font-semibold">
+                    已达购买上限 ({{ pkg.max_purchase_count }}/{{ pkg.max_purchase_count }})
+                  </div>
+                </div>
+                <div v-else class="pt-1 border-t border-gray-100 text-xs">
+                  <div class="text-green-500 font-medium">无限制</div>
+                </div>
+
+                <!-- 不可购买时的遮罩 -->
+                <div
+                  v-if="!pkg.can_purchase"
+                  class="ban absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-semibold text-red-500 rounded-lg"
+                >
+                  已达购买上限
+                </div>
+              </a-card>
+            </div>
+          </div>
+          
+          <!-- 推荐套餐（gift_card_enabled === 0） -->
+          <div v-if="recommendedPackages.length > 0" class="packages-section">
             <h4>推荐套餐</h4>
             <div class="packages-grid">
               <a-card
-                v-for="pkg in packages"
+                v-for="pkg in recommendedPackages"
                 :key="pkg.id"
                 :class="[
                   'package-card',
@@ -57,9 +131,15 @@
                   {{ getDiscountBadge(pkg) }}
                 </div>
                 <div v-if="selectedPackage === pkg.id" class="selected-badge">✓</div>
+                <div
+                  v-if="getLotteryTicketsText(pkg)"
+                  :class="['package-lottery-tip', { 'with-corner-badge': !!getDiscountBadge(pkg) }]"
+                >
+                  限时送{{ getLotteryTicketsText(pkg) }}连
+                </div>
                 <div class="package-quantity">
                   ¥{{ parseFloat(pkg.price || 0).toFixed(2) }}
-                  <span v-if="getDiscountPercentage(pkg) <= 80" class="discount-tag"
+                  <span v-if="getDiscountPercentage(pkg) < 100" class="discount-tag"
                     >{{ getDiscountPercentage(pkg) / 10 }}折</span
                   >
                 </div>
@@ -84,13 +164,15 @@
                 <!-- 不可购买时的遮罩 -->
                 <div
                   v-if="!pkg.can_purchase"
-                  class="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-semibold text-red-500 rounded-lg"
+                  class="ban absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-semibold text-red-500 rounded-lg"
                 >
                   已达购买上限
                 </div>
               </a-card>
             </div>
           </div>
+
+         
 
           <!-- 自定义数量（当未配置套餐时显示） -->
           <div v-if="packages.length === 0" class="custom-section">
@@ -128,24 +210,74 @@
               >
                 <WechatOutlined v-if="method.payment_method === 'wechat'" style="color: #07c160" />
                 <AlipayOutlined v-if="method.payment_method === 'alipay'" style="color: #1677ff" />
+                <template v-if="method.payment_method === 'shengpay'">
+                  <!-- 根据 display_name 判断显示哪个图标 -->
+                  <template
+                    v-if="
+                      method.display_name &&
+                      method.display_name.includes('支付宝') &&
+                      !method.display_name.includes('微信')
+                    "
+                  >
+                    <AlipayOutlined style="color: #ff6600" />
+                  </template>
+                  <template
+                    v-else-if="
+                      method.display_name &&
+                      method.display_name.includes('微信') &&
+                      !method.display_name.includes('支付宝')
+                    "
+                  >
+                    <WechatOutlined style="color: #ff6600" />
+                  </template>
+                  <template v-else>
+                    <WechatOutlined style="color: #ff6600" />
+                    <AlipayOutlined style="color: #ff6600; margin-left: 2px" />
+                  </template>
+                </template>
+                <template v-if="method.payment_method === 'lakalapay'">
+                  <!-- 拉卡拉：支持微信/支付宝/云闪付，统一显示双图标 -->
+                  <WechatOutlined style="color: #07c160" />
+                  <AlipayOutlined style="color: #1677ff; margin-left: 2px" />
+                </template>
                 <span class="ml-1">{{ method.display_name }}</span>
               </a-radio-button>
             </a-radio-group>
           </div>
 
           <!-- 支付方式说明 -->
-          <div v-if="paymentMethod && availablePaymentMethods.length > 0">
+          <!-- <div v-if="paymentMethod && availablePaymentMethods.length > 0">
             <div v-if="paymentMethod === 'wechat'" style="color: #666; font-size: 14px">
               <a-alert
-                message="电脑打开能直接扫码支付，手机打开需另外一部手机扫码支付"
-                type="info"
+                message="微信付款概率异常，若碰到异常，请试用支付宝付款"
+                type="warning"
                 show-icon
               />
             </div>
             <div v-if="paymentMethod === 'alipay'" style="color: #666; font-size: 14px">
               <a-alert message="可直接手机打开支付宝支付" type="info" show-icon />
             </div>
-          </div>
+            <div v-if="paymentMethod === 'shengpay'" style="color: #666; font-size: 14px">
+              <a-alert
+                :message="`电脑端使用${
+                  availablePaymentMethods.find((m) => m.payment_method === paymentMethod)
+                    ?.display_name || ''
+                }扫码付款，手机端可以保存二维码使用${
+                  availablePaymentMethods.find((m) => m.payment_method === paymentMethod)
+                    ?.display_name || ''
+                }扫码付款`"
+                type="info"
+                show-icon
+              />
+            </div>
+            <div v-if="paymentMethod === 'lakalapay'" style="color: #666; font-size: 14px">
+              <a-alert
+                message="点击付款后将跳转到拉卡拉收银台，支持微信、支付宝、云闪付扫码支付"
+                type="info"
+                show-icon
+              />
+            </div>
+          </div> -->
 
           <!-- 操作按钮 -->
           <div class="modal-actions">
@@ -173,8 +305,16 @@
         <div v-if="currentStep === 1" class="payment-step">
           <div class="payment-info">
             <h3 class="text-lg!">
-              {{ paymentMethod === 'wechat' ? '请使用微信扫码支付' : '支付宝支付' }}
+              {{
+                `请使用${
+                  availablePaymentMethods.find((m) => m.payment_method === paymentMethod)
+                    ?.display_name || ''
+                }扫码支付`
+              }}
             </h3>
+            <p v-if="paymentMethod === 'wechat'" style="font-weight: bold; color: red">
+              微信付款概率异常，若碰到异常，请试用支付宝付款
+            </p>
             <div class="order-info">
               <p>订单号: {{ orderId }}</p>
               <p>
@@ -223,17 +363,66 @@
 
         <!-- 步骤3: 支付完成 -->
         <div v-if="currentStep === 2" class="payment-success">
-          <div class="success-icon">
-            <CheckCircleOutlined style="font-size: 64px; color: #52c41a" />
+            <!-- 福利卡展示区 -->
+          <div v-if="welfareCard" class="welfare-card-section">
+            <a-divider style="margin:12px 0">🎁 恭喜获得福利卡</a-divider>
+            <a-alert type="error">
+              <template #description>
+                <div class="welfare-card-content">
+                  <div class="welfare-card-info">
+                    <div class="welfare-card-code">
+                      {{ welfareCard.code }}
+                      <CopyOutlined class="welfare-card-copy-icon" @click="copyWelfareCode" />
+                    </div>
+                    <div class="welfare-card-label">
+                      {{ welfareCard.label }} · {{ welfareCard.points }} 点
+                    </div>
+                    <div class="welfare-card-policy">
+                      <a-tag :color="policyColor(welfareCard.use_policy)">
+                        {{ policyDesc(welfareCard.use_policy, welfareCard.transfer_fee) }}
+                      </a-tag>
+                    </div>
+                    <div v-if="welfareCard.transfer_fee_reason" class="welfare-card-fee-reason">
+                      手续费原因：{{ welfareCard.transfer_fee_reason }}
+                    </div>
+                  </div>
+                  <div class="welfare-card-actions">
+                    <a-button size="small" @click="copyWelfareCode">复制卡密</a-button>
+                    <a-button
+                      v-if="canSelfRedeem(welfareCard.use_policy)"
+                      type="primary"
+                      size="small"
+                      :loading="redeemingWelfare"
+                      @click="redeemWelfareCard"
+                    >立即兑换</a-button>
+                  </div>
+                </div>
+                <div v-if="welfareCard.status === 'used'" class="welfare-card-redeemed">✅ 已兑换</div>
+              </template>
+            </a-alert>
           </div>
-          <h3>支付成功！</h3>
+          <a-alert type="success">
+            <template #message>
+              <b style="color: green">🎉 支付成功</b>
+            </template>
+            <template #description>
+              <p>
+                已成功购买配额，可在游戏卡片右上角点击「…」，选<b>「增加配额」</b>就可以分配时间了。
+              </p>
+            </template>
+          </a-alert>
           <div class="success-info">
             <p>订单号: {{ orderId }}</p>
             <p>支付金额: ¥{{ cost.toFixed(2) }}</p>
             <p>获得点数: {{ total }} 点配额</p>
             <p>当前余额: {{ user?.points || 0 }} 点</p>
           </div>
-          <p class="auto-close-tip">页面将在3秒后自动关闭</p>
+
+        
+
+          <div class="modal-actions" style="margin-top:16px">
+            <a-button type="primary" @click="handleSuccessClose">关闭</a-button>
+          </div>
         </div>
       </template>
     </div>
@@ -248,6 +437,7 @@ import {
   WechatOutlined,
   AlipayOutlined,
   CheckCircleOutlined,
+  CopyOutlined,
 } from '@ant-design/icons-vue'
 import axios from '../utils/axios'
 import { message, Modal } from 'ant-design-vue'
@@ -292,6 +482,10 @@ const paymentStatus = ref<'pending' | 'success' | 'failed'>('pending')
 const pollingTimer = ref<ReturnType<typeof setInterval> | null>(null)
 const timeoutTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
+// 福利卡相关
+const welfareCard = ref<any>(null)
+const redeemingWelfare = ref(false)
+
 // 合并的充值数据获取函数，避免竞态问题
 const fetchRechargeData = async (): Promise<boolean> => {
   try {
@@ -328,6 +522,10 @@ const fetchRechargeData = async (): Promise<boolean> => {
           max_purchase_count: p.max_purchase_count,
           user_purchased_count: Number(p.user_purchased_count || 0),
           can_purchase: Boolean(p.can_purchase !== false),
+          gift_card_enabled: Number(p.gift_card_enabled || 0),
+          gift_card_points: Number(p.gift_card_points || 0),
+          gift_card_use_policy: Number(p.gift_card_use_policy || 1),
+          gift_card_transfer_fee: Number(p.gift_card_transfer_fee || 0),
         }))
 
       // 按 sort_order 排序（无则置后）
@@ -382,6 +580,10 @@ const fetchRechargePackages = async () => {
           max_purchase_count: p.max_purchase_count,
           user_purchased_count: Number(p.user_purchased_count || 0),
           can_purchase: Boolean(p.can_purchase !== false),
+          gift_card_enabled: Number(p.gift_card_enabled || 0),
+          gift_card_points: Number(p.gift_card_points || 0),
+          gift_card_use_policy: Number(p.gift_card_use_policy || 1),
+          gift_card_transfer_fee: Number(p.gift_card_transfer_fee || 0),
         }))
 
       // 按 sort_order 排序（无则置后）
@@ -402,9 +604,10 @@ const fetchPaymentMethods = async (): Promise<boolean> => {
       const methods = response.data.data
       availablePaymentMethods.value = methods
 
-      // 如果没有选中的支付方式，默认选择第一个可用的
+      // 默认选中微信，没有微信则选第一个
       if (!paymentMethod.value && methods.length > 0) {
-        paymentMethod.value = methods[0].payment_method
+        const wechat = methods.find((m: any) => m.payment_method === 'wechat')
+        paymentMethod.value = wechat ? wechat.payment_method : methods[0].payment_method
       }
       return true
     }
@@ -447,7 +650,9 @@ const handleRecharge = async () => {
     quantity.value > config.value.max_quantity
   ) {
     message.error(
-      `充值数量必须在 ${config.value?.min_quantity || 1} - ${config.value?.max_quantity || 99999} 之间`,
+      `充值数量必须在 ${config.value?.min_quantity || 1} - ${
+        config.value?.max_quantity || 99999
+      } 之间`
     )
     return
   }
@@ -475,7 +680,7 @@ const handleRecharge = async () => {
         headers: {
           'Content-Type': 'application/json',
         },
-      },
+      }
     )
 
     if (response.data && response.data.success) {
@@ -491,6 +696,14 @@ const handleRecharge = async () => {
         // 中间页面会根据User-Agent自动提交相应的表单（移动端WAP支付，PC端网页支付）
         window.location.href = response.data.qr_code
         message.success('正在跳转到支付宝...')
+      } else if (paymentMethod.value === 'shengpay' && response.data.qr_code) {
+        // 盛付通支付：统一显示二维码，不跳转
+        message.success('支付订单创建成功，请扫码支付')
+      } else if (paymentMethod.value === 'lakalapay' && response.data.qr_code) {
+        // 拉卡拉支付：跳转到收银台 URL
+        // 使用 location.href 而非 window.open，避免 iOS Safari 弹窗拦截
+        message.success('正在跳转到拉卡拉收银台...')
+        window.location.href = response.data.qr_code
       } else {
         message.success('支付订单创建成功，请扫码支付')
       }
@@ -536,13 +749,18 @@ const startPaymentPolling = (orderIdToCheck: string) => {
           timeoutTimer.value = null
         }
 
+        // 保存福利卡信息
+        welfareCard.value = response.data.welfare_card || null
+
         message.success('支付成功！点数已到账')
 
-        // 3秒后关闭弹窗
-        setTimeout(() => {
-          emit('close')
-          resetModal()
-        }, 3000)
+        // 有福利卡：不自动关闭，让用户手动关闭
+        if (!welfareCard.value) {
+          setTimeout(() => {
+            emit('close')
+            resetModal()
+          }, 3000)
+        }
       } else if (response.data.status === 'failed') {
         // 支付失败
         paymentStatus.value = 'failed'
@@ -591,6 +809,7 @@ const handleManualCheckAlipay = async () => {
       // 支付成功
       paymentStatus.value = 'success'
       currentStep.value = 2
+      welfareCard.value = response.data.welfare_card || null
 
       // 停止轮询
       if (pollingTimer.value) {
@@ -605,11 +824,13 @@ const handleManualCheckAlipay = async () => {
 
       message.success('支付成功！点数已到账')
 
-      // 3秒后关闭弹窗
-      setTimeout(() => {
-        emit('close')
-        resetModal()
-      }, 3000)
+      // 有福利卡：不自动关闭
+      if (!welfareCard.value) {
+        setTimeout(() => {
+          emit('close')
+          resetModal()
+        }, 3000)
+      }
     } else {
       message.info(response.data.message || '订单尚未支付成功')
     }
@@ -631,6 +852,8 @@ const resetModal = () => {
   selectedPackage.value = null
   paymentMethod.value = ''
   availablePaymentMethods.value = []
+  welfareCard.value = null
+  redeemingWelfare.value = false
   if (pollingTimer.value) {
     clearInterval(pollingTimer.value)
     pollingTimer.value = null
@@ -638,6 +861,77 @@ const resetModal = () => {
   if (timeoutTimer.value) {
     clearTimeout(timeoutTimer.value)
     timeoutTimer.value = null
+  }
+}
+
+// 支付成功手动关闭
+const handleSuccessClose = () => {
+  emit('close')
+  resetModal()
+}
+
+// 福利卡策略描述
+const policyDesc = (policy: number, fee: number) => {
+  const map: Record<number, string> = {
+    1: '无绑定，任意用户可使用',
+    2: '仅限本人使用',
+    3: '仅限他人使用，建议赠送他人',
+    4: `本人使用扣 ${fee} 点手续费，他人使用不扣（建议赠送他人）`,
+  }
+  return map[policy] || '无绑定'
+}
+const policyColor = (policy: number) => {
+  return { 1: 'blue', 2: 'green', 3: 'orange', 4: 'gold' }[policy] || 'blue'
+}
+const canSelfRedeem = (policy: number) => policy !== 3 // 策略3（仅限他人）本人不能兑换
+
+// 复制卡密
+const copyWelfareCode = () => {
+  if (welfareCard.value?.code) {
+    navigator.clipboard.writeText(welfareCard.value.code)
+    message.success('卡密已复制')
+  }
+}
+
+// 立即兑换福利卡
+const redeemWelfareCard = async () => {
+  if (!welfareCard.value?.code) return
+  redeemingWelfare.value = true
+  try {
+    const resp = await axios.post('/api/card-key/user/preview', { code: welfareCard.value.code })
+    if (!resp.data.success) {
+      message.error(resp.data.message || '无法兑换')
+      return
+    }
+    const { fee, fee_reason, points, points_to_add } = resp.data.data
+    const doRedeem = async () => {
+      const r = await axios.post('/api/card-key/user/redeem', { code: welfareCard.value.code })
+      if (r.data.success) {
+        message.success(r.data.message)
+        welfareCard.value = { ...welfareCard.value, status: 'used' }
+        updateUserBalance()
+      } else {
+        message.error(r.data.message || '兑换失败')
+      }
+    }
+    // 统一弹确认弹窗
+    const reasonText = fee > 0 && fee_reason ? `\n原因：${fee_reason}` : ''
+    const feeDesc = fee > 0
+      ? `需扣除 ${fee} 点手续费${reasonText}，实际到账 ${points_to_add} 点`
+      : `将到账 ${points_to_add} 点`
+    const contentText = `该福利卡面值 ${points} 点，${feeDesc}。\n\n确认兑换？`
+    Modal.confirm({
+      title: '确认兑换',
+      content: h('div', { style: 'white-space: pre-wrap; word-break: break-word;' }, contentText),
+      okText: '确认兑换',
+      cancelText: '取消',
+      zIndex: 2000,
+      onOk: async () => { await doRedeem() },
+    })
+  } catch (e: any) {
+    message.error(e?.response?.data?.message || '兑换失败')
+  } finally {
+    redeemingWelfare.value = false
   }
 }
 
@@ -653,6 +947,7 @@ const handleClose = async () => {
       cancelText: '继续支付',
       okType: 'danger',
       centered: true,
+      zIndex: 2000,
       onOk: async () => {
         try {
           await axios.post(`/api/payment/cancel-order/${orderId.value}`, {})
@@ -703,7 +998,9 @@ const handlePackageSelect = (pkg: any) => {
 const reopenPaymentWindow = () => {
   if (paymentQRCode.value) {
     // 检测是否为移动设备
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
 
     if (isMobile) {
       // 移动设备：直接在当前标签页打开
@@ -717,6 +1014,16 @@ const reopenPaymentWindow = () => {
 
 // 计算显示的费用信息
 const selectedPkg = computed(() => packages.value.find((pkg) => pkg.id === selectedPackage.value))
+
+// 推荐套餐：gift_card_enabled === 0 或未设置
+const recommendedPackages = computed(() =>
+  packages.value.filter((pkg) => Number(pkg.gift_card_enabled || 0) !== 1)
+)
+
+// 赠点套餐：gift_card_enabled === 1
+const giftCardPackages = computed(() =>
+  packages.value.filter((pkg) => Number(pkg.gift_card_enabled || 0) === 1)
+)
 
 // 设备检测
 const isMobileDevice = computed(() => {
@@ -792,8 +1099,8 @@ const stepItems = computed(() => [
       paymentMethod.value === 'wechat'
         ? h(WechatOutlined)
         : paymentMethod.value === 'alipay'
-          ? h(AlipayOutlined)
-          : h(CreditCardOutlined),
+        ? h(AlipayOutlined)
+        : h(CreditCardOutlined),
   },
   {
     title: '支付完成',
@@ -851,24 +1158,47 @@ const getDiscountBadge = (pkg: any) => {
   return ''
 }
 
+const getLotteryTicketsText = (pkg: any): string => {
+  if (!pkg) return ''
+  const tickets = pkg.lottery_tickets
+  if (tickets === null || tickets === undefined) return ''
+  const text = String(tickets).trim()
+  if (!text) return ''
+  const count = Number(text)
+  if (!Number.isFinite(count) || count <= 0) return ''
+  return text
+}
+
 // 监听弹窗打开状态
-watch(() => props.visible, async (visible) => {
-  if (visible) {
-    // 如果没有配置，先设置默认配置确保界面可用
-    if (!config.value) {
-      setDefaultConfig()
+watch(
+  () => props.visible,
+  async (visible) => {
+    if (visible) {
+      // 如果没有配置，先设置默认配置确保界面可用
+      if (!config.value) {
+        setDefaultConfig()
+      }
+      // 同时加载充值数据和支付方式，两个都成功后才显示内容
+      configLoading.value = true
+      configLoadSuccess.value = false
+      const [rechargeSuccess, paymentSuccess] = await Promise.all([
+        fetchRechargeData(),
+        fetchPaymentMethods(),
+      ])
+      configLoadSuccess.value = rechargeSuccess && paymentSuccess
+
+      if (!configLoadSuccess.value) {
+        const [rechargeSuccess, paymentSuccess] = await Promise.all([
+          fetchRechargeData(),
+          fetchPaymentMethods(),
+        ])
+        configLoadSuccess.value = rechargeSuccess && paymentSuccess
+      }
+
+      configLoading.value = false
     }
-    // 同时加载充值数据和支付方式，两个都成功后才显示内容
-    configLoading.value = true
-    configLoadSuccess.value = false
-    const [rechargeSuccess, paymentSuccess] = await Promise.all([
-      fetchRechargeData(),
-      fetchPaymentMethods(),
-    ])
-    configLoadSuccess.value = rechargeSuccess && paymentSuccess
-    configLoading.value = false
   }
-})
+)
 
 // 组件初始化时确保有默认配置
 onMounted(() => {

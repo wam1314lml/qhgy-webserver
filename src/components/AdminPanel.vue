@@ -1,11 +1,11 @@
 <template>
   <div class="admin-panel">
     <!-- 权限检查 -->
-    <div v-if="user?.role !== 'admin'" class="admin-panel-unauthorized">
+    <div v-if="!hasAdminPanelAccess" class="admin-panel-unauthorized">
       <h2>访问被拒绝</h2>
       <p>您没有权限访问管理面板</p>
       <p>当前用户角色: {{ user?.role || '未定义' }}</p>
-      <p>需要角色: admin</p>
+      <p>需要: admin 角色或 admin_panel 权限</p>
     </div>
 
     <div v-else>
@@ -16,7 +16,7 @@
 
       <a-tabs default-active-key="users" @change="onTabChange">
         <!-- 用户管理 -->
-        <a-tab-pane key="users">
+        <a-tab-pane key="users" v-if="hasModuleAccess('user_management')">
           <template #tab>
             <span>
               <UserOutlined />
@@ -28,7 +28,7 @@
         </a-tab-pane>
 
         <!-- VIP邀请关系 -->
-        <a-tab-pane key="invites">
+        <a-tab-pane key="invites" v-if="hasModuleAccess('vip_invites')">
           <template #tab>
             <span>
               <TeamOutlined />
@@ -53,7 +53,7 @@
         </a-tab-pane>
 
         <!-- 配额设置 -->
-        <a-tab-pane key="quota">
+        <a-tab-pane key="quota" v-if="hasModuleAccess('quota_settings')">
           <template #tab>
             <span>
               <ClockCircleOutlined />
@@ -64,7 +64,7 @@
         </a-tab-pane>
 
         <!-- 权限设置 -->
-        <a-tab-pane key="permissions">
+        <a-tab-pane key="permissions" v-if="hasModuleAccess('permission_settings')">
           <template #tab>
             <span>
               <KeyOutlined />
@@ -75,7 +75,7 @@
         </a-tab-pane>
 
         <!-- 充值设置 -->
-        <a-tab-pane key="recharge">
+        <a-tab-pane key="recharge" v-if="hasModuleAccess('recharge_packages')">
           <template #tab>
             <span>
               <DollarOutlined />
@@ -126,7 +126,7 @@
         </a-tab-pane>
 
         <!-- 充值套餐 -->
-        <a-tab-pane key="packages">
+        <a-tab-pane key="packages" v-if="hasModuleAccess('recharge_packages')">
           <template #tab>
             <span>
               <GiftOutlined />
@@ -137,8 +137,31 @@
           <RechargePackageManagement :token="token" />
         </a-tab-pane>
 
+        <!-- 抽奖系统 -->
+        <a-tab-pane key="lottery" v-if="hasModuleAccess('lottery_system')">
+          <template #tab>
+            <span>
+              <TrophyOutlined />
+              抽奖系统
+            </span>
+          </template>
+
+          <LotteryManagement :token="token" />
+        </a-tab-pane>
+
+        <!-- 卡密系统 -->
+        <a-tab-pane key="card-key" v-if="hasModuleAccess('recharge_packages')">
+          <template #tab>
+            <span>
+              <KeyOutlined />
+              卡密系统
+            </span>
+          </template>
+          <CardKeyManagement :token="token" />
+        </a-tab-pane>
+
         <!-- 邀请设置 -->
-        <a-tab-pane key="invite-settings">
+        <a-tab-pane key="invite-settings" v-if="hasModuleAccess('invite_settings')">
           <template #tab>
             <span>
               <GiftOutlined />
@@ -198,7 +221,7 @@
         </a-tab-pane>
 
         <!-- 支付设置 -->
-        <a-tab-pane key="payment-settings">
+        <a-tab-pane key="payment-settings" v-if="hasModuleAccess('payment_settings')">
           <template #tab>
             <span>
               <DollarOutlined />
@@ -276,7 +299,7 @@
         </a-tab-pane>
 
         <!-- 批量筛选用户 -->
-        <a-tab-pane key="batch-filter">
+        <a-tab-pane key="batch-filter" v-if="hasModuleAccess('batch_filter_users')">
           <template #tab>
             <span>
               <TeamOutlined />
@@ -319,7 +342,7 @@
               </template>
 
               <custom-table
-                :columns="[]"
+                :columns="batchFilterUserColumns"
                 :data-source="filteredBatchUsers"
                 row-key="id"
                 :pagination="{
@@ -333,7 +356,7 @@
         </a-tab-pane>
 
         <!-- 公告管理 -->
-        <a-tab-pane key="announcements">
+        <a-tab-pane key="announcements" v-if="hasModuleAccess('announcements')">
           <template #tab>
             <span>
               <NotificationOutlined />
@@ -365,7 +388,7 @@
         </a-tab-pane>
 
         <!-- 客服配置 -->
-        <a-tab-pane key="customer-service">
+        <a-tab-pane key="customer-service" v-if="hasModuleAccess('customer_service')">
           <template #tab>
             <span>
               <SettingOutlined />
@@ -376,7 +399,7 @@
         </a-tab-pane>
 
         <!-- 充值统计 -->
-        <a-tab-pane key="recharge-statistics">
+        <a-tab-pane key="recharge-statistics" v-if="hasModuleAccess('recharge_records')">
           <template #tab>
             <span>
               <DollarOutlined />
@@ -386,8 +409,19 @@
           <RechargeStatistics />
         </a-tab-pane>
 
+        <!-- 订单查用户 -->
+        <a-tab-pane key="order-user-lookup" v-if="hasModuleAccess('order_user_search')">
+          <template #tab>
+            <span>
+              <SearchOutlined />
+              订单查用户
+            </span>
+          </template>
+          <OrderUserLookup :token="token" />
+        </a-tab-pane>
+
         <!-- 其他配置 -->
-        <a-tab-pane key="other-settings">
+        <a-tab-pane key="other-settings" v-if="hasModuleAccess('group_chat_qr')">
           <template #tab>
             <span>
               <SettingOutlined />
@@ -398,7 +432,7 @@
         </a-tab-pane>
 
         <!-- 过期账号管理 -->
-        <a-tab-pane key="expired-accounts">
+        <a-tab-pane key="expired-accounts" v-if="hasModuleAccess('expired_accounts')">
           <template #tab>
             <span>
               <DeleteOutlined />
@@ -587,7 +621,7 @@
         </a-tab-pane>
 
         <!-- 脚本服务器管理 -->
-        <a-tab-pane key="script-servers">
+        <a-tab-pane key="script-servers" v-if="isAdminRole">
           <template #tab>
             <span>
               <CloudServerOutlined />
@@ -678,7 +712,7 @@
         </a-tab-pane>
 
         <!-- 游戏账号迁移 -->
-        <a-tab-pane key="account-migration">
+        <a-tab-pane key="account-migration" v-if="hasModuleAccess('account_migration')">
           <template #tab>
             <span>
               <SwapOutlined />
@@ -747,6 +781,294 @@
                   </a-card>
                 </div>
               </div>
+            </div>
+          </a-card>
+        </a-tab-pane>
+
+        <!-- 管理员操作日志 -->
+        <a-tab-pane key="operation-logs" v-if="hasModuleAccess('operation_logs')">
+          <template #tab>
+            <span>
+              <ClockCircleOutlined />
+              管理员操作日志
+            </span>
+          </template>
+
+          <a-card>
+            <a-button 
+              type="primary" 
+              @click="() => fetchOperationLogs()"
+              :loading="operationLogsLoading"
+              style="margin-bottom: 16px"
+            >
+              刷新日志
+            </a-button>
+            <custom-table
+              :columns="operationLogColumns"
+              :data-source="operationLogs"
+              :loading="operationLogsLoading"
+              row-key="id"
+              :pagination="{
+                current: operationLogsPagination.page,
+                pageSize: operationLogsPagination.pageSize,
+                total: operationLogsPagination.total,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条记录`,
+                onChange: handleOperationLogsPageChange,
+              }"
+            />
+          </a-card>
+        </a-tab-pane>
+
+        <!-- 游戏账号统计 -->
+        <a-tab-pane key="game-accounts-stats" v-if="hasModuleAccess('game_accounts_stats')">
+          <template #tab>
+            <span>
+              <BarChartOutlined />
+              游戏账号统计
+            </span>
+          </template>
+
+          <a-card>
+            <a-button 
+              type="primary" 
+              @click="fetchGameAccountsStats"
+              :loading="gameAccountsStatsLoading"
+              style="margin-bottom: 16px"
+            >
+              刷新统计
+            </a-button>
+
+            <div v-if="gameAccountsStats" style="margin-top: 16px">
+              <h3>账号概览</h3>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px">
+                <a-card size="small">
+                  <div style="text-align: center">
+                    <div style="font-size: 24px; font-weight: bold; color: #1890ff">
+                      {{ gameAccountsStats.summary?.total || 0 }}
+                    </div>
+                    <div style="margin-top: 8px">总账号数</div>
+                  </div>
+                </a-card>
+                <a-card size="small">
+                  <div style="text-align: center">
+                    <div style="font-size: 24px; font-weight: bold; color: #52c41a">
+                      {{ gameAccountsStats.summary?.active || 0 }}
+                    </div>
+                    <div style="margin-top: 8px">未过期账号</div>
+                  </div>
+                </a-card>
+                <a-card size="small">
+                  <div style="text-align: center">
+                    <div style="font-size: 24px; font-weight: bold; color: #ff4d4f">
+                      {{ gameAccountsStats.summary?.expired || 0 }}
+                    </div>
+                    <div style="margin-top: 8px">已过期账号</div>
+                  </div>
+                </a-card>
+              </div>
+
+              <h3>用户账号Top 10</h3>
+              <custom-table
+                :columns="topUsersColumns"
+                :data-source="gameAccountsStats.topUsers || []"
+                row-key="user_id"
+                :pagination="false"
+              />
+            </div>
+
+            <!-- 游戏账号详细列表 -->
+            <div style="margin-top: 32px">
+              <h3>游戏账号列表</h3>
+              
+              <!-- 筛选条件 -->
+              <a-space style="margin-bottom: 16px" wrap>
+                <a-input
+                  v-model:value="gameAccountsFilter.username"
+                  placeholder="搜索用户名"
+                  style="width: 200px"
+                  allow-clear
+                />
+                <a-input
+                  v-model:value="gameAccountsFilter.script_account_id"
+                  placeholder="搜索游戏账号ID"
+                  style="width: 200px"
+                  allow-clear
+                />
+                <a-input
+                  v-model:value="gameAccountsFilter.server_name"
+                  placeholder="搜索服务器名"
+                  style="width: 200px"
+                  allow-clear
+                />
+                <a-select
+                  v-model:value="gameAccountsFilter.platform"
+                  placeholder="选择平台"
+                  style="width: 150px"
+                  allow-clear
+                >
+                  <a-select-option :value="0">微信</a-select-option>
+                  <a-select-option :value="1">支付宝</a-select-option>
+                  <a-select-option :value="2">QQ</a-select-option>
+                  <a-select-option :value="3">华为</a-select-option>
+                </a-select>
+                <a-select
+                  v-model:value="gameAccountsFilter.is_online"
+                  placeholder="在线状态"
+                  style="width: 120px"
+                  allow-clear
+                >
+                  <a-select-option :value="1">在线</a-select-option>
+                  <a-select-option :value="0">离线</a-select-option>
+                </a-select>
+                <a-button type="primary" @click="() => fetchGameAccountsList()" :loading="gameAccountsListLoading">
+                  <SearchOutlined />
+                  搜索
+                </a-button>
+                <a-button @click="resetGameAccountsFilter">
+                  重置
+                </a-button>
+              </a-space>
+
+              <custom-table
+                :columns="gameAccountsColumns"
+                :data-source="gameAccountsList"
+                :loading="gameAccountsListLoading"
+                row-key="id"
+                :pagination="{
+                  current: gameAccountsPagination.page,
+                  pageSize: gameAccountsPagination.pageSize,
+                  total: gameAccountsPagination.total,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total) => `共 ${total} 条记录`,
+                  onChange: handleGameAccountsPageChange,
+                }"
+              />
+            </div>
+          </a-card>
+        </a-tab-pane>
+
+        <!-- 管理面板权限分配 -->
+        <a-tab-pane key="admin-panel-permissions" v-if="hasModuleAccess('admin_panel_permissions')">
+          <template #tab>
+            <span>
+              <SafetyOutlined />
+              管理面板权限分配
+            </span>
+          </template>
+          
+          <AdminPanelPermissions :token="token" />
+        </a-tab-pane>
+
+        <!-- IP封锁管理 -->
+        <a-tab-pane key="ip-lock-manage" v-if="hasModuleAccess('user_management')">
+          <template #tab>
+            <span>
+              <StopOutlined />
+              IP封锁管理
+            </span>
+          </template>
+
+          <a-card>
+            <!-- 工具栏 -->
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+              <a-button type="primary" @click="fetchLockedIPList" :loading="ipLockLoading">
+                刷新列表
+              </a-button>
+              <a-space>
+                <a-input
+                  v-model:value="ipLookupInput"
+                  placeholder="输入 IP 查询状态"
+                  style="width: 220px"
+                  @pressEnter="lookupIPStatus"
+                />
+                <a-button @click="lookupIPStatus" :loading="ipLookupLoading">查询</a-button>
+              </a-space>
+            </div>
+
+            <!-- 单IP查询结果 -->
+            <a-card
+              v-if="ipLookupResult"
+              size="small"
+              :title="`IP 状态：${ipLookupResult.ip}`"
+              style="margin-bottom: 16px; background: #fafafa;"
+            >
+              <a-descriptions :column="3" bordered size="small">
+                <a-descriptions-item label="封锁状态">
+                  <a-tag :color="ipLookupResult.locked ? 'red' : 'green'">
+                    {{ ipLookupResult.locked ? '已封锁' : '正常' }}
+                  </a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="剩余封锁时间">
+                  {{ ipLookupResult.locked && ipLookupResult.lockTtlSec != null
+                    ? formatLockTime(ipLookupResult.lockTtlSec)
+                    : '-' }}
+                </a-descriptions-item>
+                <a-descriptions-item label="窗口失败次数">
+                  {{ ipLookupResult.windowCount }} / 5
+                </a-descriptions-item>
+                <a-descriptions-item label="累计总失败次数">
+                  {{ ipLookupResult.totalFails }}
+                </a-descriptions-item>
+                <a-descriptions-item label="下次封锁时长">
+                  {{ formatLockTime(ipLookupResult.nextLockSec) }}
+                </a-descriptions-item>
+                <a-descriptions-item label="操作">
+                  <a-popconfirm
+                    v-if="ipLookupResult.locked"
+                    title="确认解封此 IP？"
+                    @confirm="unlockIPAddress(ipLookupResult!.ip, 'lookup')"
+                  >
+                    <a-button type="primary" danger size="small" :loading="unlockingIP === ipLookupResult.ip">
+                      手动解封
+                    </a-button>
+                  </a-popconfirm>
+                  <span v-else style="color: #52c41a;">无需解封</span>
+                </a-descriptions-item>
+              </a-descriptions>
+            </a-card>
+
+            <!-- 当前封锁列表 -->
+            <div>
+              <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">
+                当前封锁中的 IP（共 {{ lockedIPList.length }} 个）
+              </div>
+              <custom-table
+                :columns="ipLockColumns"
+                :data-source="lockedIPList"
+                :loading="ipLockLoading"
+                row-key="ip"
+                :pagination="false"
+              >
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'locked'">
+                    <a-tag color="red">已封锁</a-tag>
+                  </template>
+                  <template v-if="column.key === 'lockTtlSec'">
+                    {{ record.lockTtlSec != null ? formatLockTime(record.lockTtlSec) : '-' }}
+                  </template>
+                  <template v-if="column.key === 'nextLockSec'">
+                    {{ formatLockTime(record.nextLockSec) }}
+                  </template>
+                  <template v-if="column.key === 'action'">
+                    <a-popconfirm
+                      title="确认解封此 IP？"
+                      @confirm="unlockIPAddress(record.ip, 'list')"
+                    >
+                      <a-button
+                        type="primary"
+                        danger
+                        size="small"
+                        :loading="unlockingIP === record.ip"
+                      >
+                        解封
+                      </a-button>
+                    </a-popconfirm>
+                  </template>
+                </template>
+              </custom-table>
             </div>
           </a-card>
         </a-tab-pane>
@@ -1366,6 +1688,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   GiftOutlined,
+  TrophyOutlined,
   ClockCircleOutlined,
   NotificationOutlined,
   SearchOutlined,
@@ -1373,6 +1696,9 @@ import {
   CloudServerOutlined,
   UploadOutlined,
   DownloadOutlined,
+  SafetyOutlined,
+  BarChartOutlined,
+  StopOutlined,
 } from '@ant-design/icons-vue'
 import { message, Button, Space, Popconfirm, Modal } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
@@ -1380,11 +1706,15 @@ import QuotaSettings from './QuotaSettings.vue'
 import PermissionSettings from './PermissionSettings.vue'
 import AdminPaymentSettings from './AdminPaymentSettings.vue'
 import RechargePackageManagement from './admin/RechargePackageManagement.vue'
+import LotteryManagement from './admin/LotteryManagement.vue'
+import CardKeyManagement from './admin/CardKeyManagement.vue'
 import CustomerServiceSettings from './CustomerServiceSettings.vue'
 import RechargeStatistics from './RechargeStatistics.vue'
 import OtherSettings from './OtherSettings.vue'
 import UserManagement from './UserManagement.vue'
+import AdminPanelPermissions from './AdminPanelPermissions.vue'
 import CustomTable from './CustomTable.vue'
+import OrderUserLookup from './OrderUserLookup.vue'
 import axios from '../utils/axios'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -1403,6 +1733,8 @@ interface InviteRelation {
   invited_by: any | null
   inviter_name?: string
   invite_count?: number
+  month_new_count?: number
+  month_new_recharge_count?: number
   created_at: string
   total_recharge_amount?: number | string
   available_commission?: number | string
@@ -1467,6 +1799,57 @@ const batchOperationType = ref<'add' | 'subtract'>('add')
 const batchFilterUsers = ref<string>('')
 const filteredBatchUsers = ref<any[]>([])
 
+// 批量筛选用户表格列定义
+const batchFilterUserColumns = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 80,
+  },
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+  },
+  {
+    title: '邮箱',
+    dataIndex: 'email',
+    key: 'email',
+  },
+  {
+    title: '角色',
+    dataIndex: 'role',
+    key: 'role',
+    width: 100,
+  },
+  {
+    title: '点数',
+    dataIndex: 'points',
+    key: 'points',
+    width: 120,
+    customRender: ({ text }: any) => parseFloat(text).toFixed(2),
+  },
+  {
+    title: '邀请码',
+    dataIndex: 'invite_code',
+    key: 'invite_code',
+    width: 120,
+  },
+  {
+    title: '总邀请数',
+    dataIndex: 'total_invites',
+    key: 'total_invites',
+    width: 100,
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 100,
+  },
+]
+
 // 各种loading状态
 const passwordLoading = ref(false)
 const inviteSettingsLoading = ref(false)
@@ -1482,6 +1865,20 @@ const deleteAllExpiredAccountsLoading = ref(false) // 全部删除的loading状�
 const selectedExpiredAccountIds = ref<number[]>([])
 const expiredAccountsPageSize = ref(20) // 过期账号表格每页显示数量
 const expiredAccountsCurrentPage = ref(1) // 过期账号表格当前页
+
+// 管理面板权限相关
+const adminPanelPermissions = ref<Record<string, boolean>>({})
+const isAdminRole = ref(false)
+
+// 检查是否有管理面板访问权限
+const hasAdminPanelAccess = computed(() => {
+  // admin 角色始终有权限
+  if (props.user?.role === 'admin') {
+    return true
+  }
+  // 检查其他角色是否有 admin_panel 权限
+  return props.user?.permissions?.admin_panel === true
+})
 
 // 未续费账号管理相关
 const neverRenewedDays = ref(30) // 默认查询创建超过30天未续费的账号
@@ -1527,6 +1924,279 @@ const serverForm = ref({
   currentAccounts: 0,
   status: 'active' as 'active' | 'inactive'
 })
+
+// 管理员操作日志相关
+const operationLogs = ref<any[]>([])
+const operationLogsLoading = ref(false)
+const operationLogsPagination = ref({ page: 1, pageSize: 20, total: 0 })
+
+// ─── IP 封锁管理 ───────────────────────────────────────────────────────────────
+interface IPLockStatus {
+  ip: string
+  locked: boolean
+  lockTtlSec: number | null
+  windowCount: number
+  totalFails: number
+  nextLockSec: number
+}
+const lockedIPList = ref<IPLockStatus[]>([])
+const ipLockLoading = ref(false)
+const ipLookupInput = ref('')
+const ipLookupLoading = ref(false)
+const ipLookupResult = ref<IPLockStatus | null>(null)
+const unlockingIP = ref('')
+
+const ipLockColumns = [
+  { title: 'IP 地址', dataIndex: 'ip', key: 'ip' },
+  { title: '封锁状态', dataIndex: 'locked', key: 'locked', width: 90 },
+  { title: '剩余封锁时间', dataIndex: 'lockTtlSec', key: 'lockTtlSec', width: 130 },
+  { title: '窗口失败次数', dataIndex: 'windowCount', key: 'windowCount', width: 120 },
+  { title: '累计总失败', dataIndex: 'totalFails', key: 'totalFails', width: 110 },
+  { title: '下次封锁时长', dataIndex: 'nextLockSec', key: 'nextLockSec', width: 120 },
+  { title: '操作', key: 'action', width: 90 },
+]
+
+function formatLockTime(sec: number): string {
+  if (sec < 60) return `${sec}秒`
+  if (sec < 3600) return `${Math.round(sec / 60)}分钟`
+  return `${(sec / 3600).toFixed(1)}小时`
+}
+
+const fetchLockedIPList = async () => {
+  ipLockLoading.value = true
+  try {
+    const response = await axios.get('/api/admin/login-lock/list', {
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (response.data.success) {
+      lockedIPList.value = response.data.data || []
+    } else {
+      message.error(response.data.message || '获取封锁IP列表失败')
+    }
+  } catch (error) {
+    console.error('获取封锁IP列表失败:', error)
+    message.error('获取封锁IP列表失败')
+  } finally {
+    ipLockLoading.value = false
+  }
+}
+
+const lookupIPStatus = async () => {
+  const ip = ipLookupInput.value.trim()
+  if (!ip) { message.warning('请输入 IP 地址'); return }
+  ipLookupLoading.value = true
+  try {
+    const response = await axios.get('/api/admin/login-lock/status', {
+      params: { ip },
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (response.data.success) {
+      ipLookupResult.value = response.data.data
+    } else {
+      message.error(response.data.message || '查询失败')
+    }
+  } catch (error) {
+    console.error('查询IP状态失败:', error)
+    message.error('查询失败')
+  } finally {
+    ipLookupLoading.value = false
+  }
+}
+
+const unlockIPAddress = async (ip: string, source: 'list' | 'lookup') => {
+  unlockingIP.value = ip
+  try {
+    const response = await axios.post('/api/admin/login-lock/unlock',
+      { ip },
+      { headers: { Authorization: `Bearer ${props.token}` } }
+    )
+    if (response.data.success) {
+      message.success(`IP ${ip} 已成功解封`)
+      // 刷新列表
+      await fetchLockedIPList()
+      // 如果是查询结果里解封，同步更新查询结果
+      if (source === 'lookup' && ipLookupResult.value?.ip === ip) {
+        await lookupIPStatus()
+      }
+    } else {
+      message.error(response.data.message || '解封失败')
+    }
+  } catch (error) {
+    console.error('解封IP失败:', error)
+    message.error('解封失败')
+  } finally {
+    unlockingIP.value = ''
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 游戏账号统计相关
+const gameAccountsStats = ref<any>(null)
+const gameAccountsStatsLoading = ref(false)
+
+// 游戏账号列表相关
+const gameAccountsList = ref<any[]>([])
+const gameAccountsListLoading = ref(false)
+const gameAccountsPagination = ref({ page: 1, pageSize: 20, total: 0 })
+const gameAccountsFilter = ref({
+  username: '',
+  script_account_id: '',
+  server_name: '',
+  platform: undefined as number | undefined,
+  is_online: undefined as number | undefined,
+})
+
+// 管理员操作日志表格列定义
+const operationLogColumns = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 80,
+  },
+  {
+    title: '管理员',
+    dataIndex: 'admin_username',
+    key: 'admin_username',
+  },
+  {
+    title: '操作类型',
+    dataIndex: 'operation_type',
+    key: 'operation_type',
+    customRender: ({ text }: any) => {
+      const typeMap: any = {
+        'add_points': { text: '加点', color: 'green' },
+        'deduct_points': { text: '扣点', color: 'red' },
+        'add_lottery_tickets': { text: '加抽奖', color: 'blue' },
+        'deduct_lottery_tickets': { text: '扣抽奖', color: 'orange' },
+        'batch_add_points': { text: '批量加点', color: 'purple' }
+      }
+      const info = typeMap[text] || { text: text, color: 'default' }
+      return h(resolveComponent('a-tag'), { color: info.color }, () => info.text)
+    },
+  },
+  {
+    title: '目标用户',
+    dataIndex: 'target_username',
+    key: 'target_username',
+    customRender: ({ text }: any) => text || '-',
+  },
+  {
+    title: '操作数值',
+    dataIndex: 'operation_value',
+    key: 'operation_value',
+  },
+  {
+    title: '原因',
+    dataIndex: 'reason',
+    key: 'reason',
+    ellipsis: true,
+  },
+  {
+    title: '操作时间',
+    dataIndex: 'created_at',
+    key: 'created_at',
+    customRender: ({ text }: any) => new Date(text).toLocaleString(),
+  },
+]
+
+// 游戏账号统计Top用户表格列定义
+const topUsersColumns = [
+  {
+    title: '用户ID',
+    dataIndex: 'user_id',
+    key: 'user_id',
+  },
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+  },
+  {
+    title: '总账号数',
+    dataIndex: 'total_accounts',
+    key: 'total_accounts',
+    sorter: (a: any, b: any) => a.total_accounts - b.total_accounts,
+  },
+  {
+    title: '未过期',
+    dataIndex: 'active_accounts',
+    key: 'active_accounts',
+    customRender: ({ text }: any) => h(resolveComponent('a-tag'), { color: 'green' }, () => text),
+  },
+  {
+    title: '已过期',
+    dataIndex: 'expired_accounts',
+    key: 'expired_accounts',
+    customRender: ({ text }: any) => h(resolveComponent('a-tag'), { color: 'red' }, () => text),
+  },
+]
+
+// 游戏账号列表表格列定义
+const gameAccountsColumns = [
+  {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 80,
+  },
+  {
+    title: '用户名',
+    dataIndex: 'username',
+    key: 'username',
+    width: 120,
+  },
+  {
+    title: '游戏账号ID',
+    dataIndex: 'script_account_id',
+    key: 'script_account_id',
+    width: 150,
+  },
+  {
+    title: '服务器名',
+    dataIndex: 'server_name',
+    key: 'server_name',
+    width: 120,
+  },
+  {
+    title: '平台',
+    dataIndex: 'platform',
+    key: 'platform',
+    width: 100,
+    customRender: ({ text }: any) => {
+      return h(resolveComponent('a-tag'), { color: getPlatformColor(text) }, () => getPlatformName(text))
+    },
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nickname',
+    key: 'nickname',
+    width: 120,
+  },
+  {
+    title: '脚本服务器IP',
+    dataIndex: 'script_server_ip',
+    key: 'script_server_ip',
+    width: 140,
+  },
+  {
+    title: '在线状态',
+    dataIndex: 'is_online',
+    key: 'is_online',
+    width: 100,
+    customRender: ({ text }: any) => {
+      const isOnline = text === 1
+      return h(resolveComponent('a-tag'), { color: isOnline ? 'green' : 'default' }, () => isOnline ? '在线' : '离线')
+    },
+  },
+  {
+    title: '到期时间',
+    dataIndex: 'expire_time',
+    key: 'expire_time',
+    width: 180,
+    customRender: ({ text }: any) => text ? formatDate(text) : '-',
+  },
+]
 
 // 服务器表格列定义
 const serverColumns = [
@@ -1688,6 +2358,18 @@ const inviteColumns = computed(() => [
     title: '已邀请人数',
     dataIndex: 'invite_count',
     key: 'invite_count',
+    customRender: ({ text }: { text: number }) => `${text || 0} 人`,
+  },
+  {
+    title: '当月拉新',
+    dataIndex: 'month_new_count',
+    key: 'month_new_count',
+    customRender: ({ text }: { text: number }) => `${text || 0} 人`,
+  },
+  {
+    title: '当月首充',
+    dataIndex: 'month_new_recharge_count',
+    key: 'month_new_recharge_count',
     customRender: ({ text }: { text: number }) => `${text || 0} 人`,
   },
   {
@@ -2006,6 +2688,25 @@ const onTabChange = (key: string) => {
       break
     case 'script-servers':
       loadScriptServers()
+      break
+    case 'announcements':
+      fetchAnnouncements()
+      break
+    case 'recharge':
+      fetchRechargeConfig()
+      break
+    case 'invite-settings':
+      fetchInviteSettings()
+      break
+    case 'operation-logs':
+      fetchOperationLogs()
+      break
+    case 'ip-lock-manage':
+      fetchLockedIPList()
+      break
+    case 'game-accounts-stats':
+      fetchGameAccountsStats()
+      fetchGameAccountsList()
       break
   }
 }
@@ -2423,7 +3124,7 @@ const getPlatformName = (platform: number): string => {
   const platformMap: Record<number, string> = {
     0: '微信',
     1: '支付宝',
-    2: '抖音',
+    2: 'QQ',
     3: '华为',
   }
   return platformMap[platform] || '未知'
@@ -2726,6 +3427,136 @@ const confirmMigration = async () => {
   })
 }
 
+// ==================== 管理员操作日志方法 ====================
+
+// 获取管理员操作日志
+const fetchOperationLogs = async (page = 1, pageSize = 20) => {
+  operationLogsLoading.value = true
+  try {
+    const response = await axios.get('/api/admin/operation-logs', {
+      params: { page, pageSize },
+      headers: {
+        Authorization: `Bearer ${props.token}`,
+      },
+    })
+
+    if (response.data.success) {
+      operationLogs.value = response.data.data.logs || []
+      operationLogsPagination.value = {
+        page: response.data.data.page,
+        pageSize: response.data.data.pageSize,
+        total: response.data.data.total,
+      }
+    } else {
+      message.error(response.data.message || '获取操作日志失败')
+    }
+  } catch (error) {
+    console.error('获取操作日志失败:', error)
+    message.error('获取操作日志失败')
+  } finally {
+    operationLogsLoading.value = false
+  }
+}
+
+// 处理分页变化
+const handleOperationLogsPageChange = (page: number, pageSize: number) => {
+  fetchOperationLogs(page, pageSize)
+}
+
+// ==================== 游戏账号统计方法 ====================
+
+// 获取游戏账号统计
+const fetchGameAccountsStats = async () => {
+  gameAccountsStatsLoading.value = true
+  try {
+    const response = await axios.get('/api/admin/game-accounts-stats', {
+      headers: {
+        Authorization: `Bearer ${props.token}`,
+      },
+    })
+
+    if (response.data.success) {
+      gameAccountsStats.value = response.data.data || null
+    } else {
+      message.error(response.data.message || '获取游戏账号统计失败')
+    }
+  } catch (error) {
+    console.error('获取游戏账号统计失败:', error)
+    message.error('获取游戏账号统计失败')
+  } finally {
+    gameAccountsStatsLoading.value = false
+  }
+}
+
+// 获取游戏账号列表
+const fetchGameAccountsList = async (page?: number, pageSize?: number) => {
+  gameAccountsListLoading.value = true
+  try {
+    const params: any = {
+      page: page || gameAccountsPagination.value.page,
+      pageSize: pageSize || gameAccountsPagination.value.pageSize,
+    }
+
+    // 添加筛选条件
+    if (gameAccountsFilter.value.username) {
+      params.username = gameAccountsFilter.value.username
+    }
+    if (gameAccountsFilter.value.script_account_id) {
+      params.script_account_id = gameAccountsFilter.value.script_account_id
+    }
+    if (gameAccountsFilter.value.server_name) {
+      params.server_name = gameAccountsFilter.value.server_name
+    }
+    if (gameAccountsFilter.value.platform !== undefined) {
+      params.platform = gameAccountsFilter.value.platform
+    }
+    if (gameAccountsFilter.value.is_online !== undefined) {
+      params.is_online = gameAccountsFilter.value.is_online
+    }
+
+    const response = await axios.get('/api/admin/game-accounts-list', {
+      params,
+      headers: {
+        Authorization: `Bearer ${props.token}`,
+      },
+    })
+
+    if (response.data.success) {
+      gameAccountsList.value = response.data.data || []
+      gameAccountsPagination.value.total = response.data.total || 0
+      gameAccountsPagination.value.page = response.data.page || 1
+      gameAccountsPagination.value.pageSize = response.data.pageSize || 20
+    } else {
+      message.error(response.data.message || '获取游戏账号列表失败')
+    }
+  } catch (error) {
+    console.error('获取游戏账号列表失败:', error)
+    message.error('获取游戏账号列表失败')
+  } finally {
+    gameAccountsListLoading.value = false
+  }
+}
+
+// 重置游戏账号筛选条件
+const resetGameAccountsFilter = () => {
+  gameAccountsFilter.value = {
+    username: '',
+    script_account_id: '',
+    server_name: '',
+    platform: undefined,
+    is_online: undefined,
+  }
+  gameAccountsPagination.value.page = 1
+  fetchGameAccountsList(1, gameAccountsPagination.value.pageSize)
+}
+
+// 处理游戏账号分页变化
+const handleGameAccountsPageChange = (page: number, pageSize: number) => {
+  gameAccountsPagination.value.page = page
+  gameAccountsPagination.value.pageSize = pageSize
+  fetchGameAccountsList(page, pageSize)
+}
+
 // ==================== 脚本服务器管理方法 ====================
 
 // 加载服务器列表
@@ -2866,6 +3697,7 @@ const loadCurrentJsonFile = async () => {
     if (currentServers && currentServers.length > 0) {
       // 移除数据库字段，保持与JSON格式一致
       const exportData = currentServers.map((server: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { created_at, updated_at, ...rest } = server
         return rest
       })
@@ -3173,13 +4005,47 @@ const handleSaveAnnouncement = async () => {
   }
 }
 
-onMounted(() => {
-  if (props.user?.role === 'admin') {
-    fetchInviteRelations()
-    fetchRechargeConfig()
-    fetchInviteSettings()
-    fetchAnnouncements()
+// ==================== 管理面板权限初始化 ====================
+
+/**
+ * 获取当前用户的管理面板权限
+ */
+const fetchAdminPanelPermissions = async () => {
+  try {
+    const response = await axios.get('/api/admin/my-admin-panel-permissions', {
+      headers: { Authorization: `Bearer ${props.token}` },
+    })
+
+    if (response.data.success) {
+      const { isAdmin, permissions } = response.data.data
+      isAdminRole.value = isAdmin
+      adminPanelPermissions.value = permissions
+    }
+  } catch (error) {
+    console.error('获取管理面板权限失败:', error)
   }
+}
+
+/**
+ * 检查是否有某个模块的访问权限
+ * @param moduleKey 模块key
+ * @returns boolean
+ */
+const hasModuleAccess = (moduleKey: string): boolean => {
+  // admin 角色默认拥有所有权限
+  if (isAdminRole.value) {
+    return true
+  }
+  // 检查权限配置
+  return adminPanelPermissions.value[moduleKey] === true
+}
+
+onMounted(() => {
+  // 初始化权限
+  fetchAdminPanelPermissions()
+  
+  // 不再预加载数据，改为在切换标签页时按需加载
+  // 这样可以避免非admin用户因为权限问题导致数据加载失败
 })
 </script>
 

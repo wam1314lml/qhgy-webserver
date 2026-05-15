@@ -20,24 +20,23 @@
               </a-switch>
             </a-form-item>
 
-            <!-- QQ群号 -->
-            <a-form-item label="QQ群号" name="qq_group_number">
+            <!-- 微信号 -->
+            <a-form-item label="微信号" name="qq_group_number">
               <a-input
                 v-model:value="formData.qq_group_number"
-                placeholder="请输入QQ群号（6-12位数字）"
+                placeholder="请输入微信号"
                 :maxlength="12"
                 @change="handleFormChange"
                 :disabled="!formData.enabled"
                 class="w-24! sm:w-36!"
               />
-              <div class="text-gray-500 text-sm mt-1">QQ群号必须是6-12位数字</div>
             </a-form-item>
 
             <!-- QQ群名称 -->
-            <a-form-item label="QQ群名称" name="qq_group_name">
+            <a-form-item label="显示名称" name="qq_group_name">
               <a-input
                 v-model:value="formData.qq_group_name"
-                placeholder="请输入QQ群名称"
+                placeholder="请输入显示名称"
                 :maxlength="100"
                 show-count
                 @change="handleFormChange"
@@ -116,10 +115,8 @@ const formRules: Record<string, Rule[]> = {
     {
       validator: (_, value) => {
         if (!formData.enabled) return Promise.resolve()
-        if (!value) return Promise.reject(new Error('QQ群号不能为空'))
-        if (!/^\d{6,12}$/.test(value)) {
-          return Promise.reject(new Error('QQ群号必须是6-12位数字'))
-        }
+        if (!value) return Promise.reject(new Error('微信号不能为空'))
+      
         return Promise.resolve()
       },
       trigger: 'change',
@@ -129,9 +126,9 @@ const formRules: Record<string, Rule[]> = {
     {
       validator: (_, value) => {
         if (!formData.enabled) return Promise.resolve()
-        if (!value) return Promise.reject(new Error('QQ群名称不能为空'))
+        if (!value) return Promise.reject(new Error('显示名称不能为空'))
         if (value.length > 100) {
-          return Promise.reject(new Error('QQ群名称不能超过100个字符'))
+          return Promise.reject(new Error('显示名称不能超过100个字符'))
         }
         return Promise.resolve()
       },

@@ -10,10 +10,12 @@
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.5;
     transform: scale(1.2);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -282,11 +284,23 @@
 }
 
 .quota-option {
+  position: relative;
+  /* overflow: hidden; */
   border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.quota-super-value-badge {
+  position: absolute;
+  top: -15px;
+  left: -14px;
+  /* color: #ff4d4f; */
+  /* font-size: 12px;
+  font-weight: 700;
+  line-height: 1; */
 }
 
 .quota-option:hover {
@@ -320,12 +334,17 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
+
 }
 
 .option-header .days {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px
 }
 
 .option-header .cost {
@@ -490,22 +509,28 @@
 /* 开通试用菜单项金色样式 */
 li.ant-dropdown-menu-item.trial-item,
 .ant-dropdown-menu-item.trial-item {
-  color: #d4af37 !important; /* 金色文字 */
-  font-weight: 700 !important; /* 加粗 */
+  color: #d4af37 !important;
+  /* 金色文字 */
+  font-weight: 700 !important;
+  /* 加粗 */
 }
 
 li.ant-dropdown-menu-item.trial-item span,
 .ant-dropdown-menu-item.trial-item span {
-  color: #d4af37 !important; /* 金色文字 */
-  font-weight: 700 !important; /* 加粗 */
+  color: #d4af37 !important;
+  /* 金色文字 */
+  font-weight: 700 !important;
+  /* 加粗 */
 }
 
 li.ant-dropdown-menu-item.trial-item:hover,
 .ant-dropdown-menu-item.trial-item:hover {
-  background: rgba(212, 175, 55, 0.1) !important; /* 金色半透明背景 */
+  background: rgba(212, 175, 55, 0.1) !important;
+  /* 金色半透明背景 */
 }
 
 li.ant-dropdown-menu-item.trial-item .anticon,
 .ant-dropdown-menu-item.trial-item .anticon {
-  color: #d4af37 !important; /* 金色图标 */
+  color: #d4af37 !important;
+  /* 金色图标 */
 }

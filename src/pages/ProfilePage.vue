@@ -2,12 +2,7 @@
   <div v-if="user" class="profile-wrapper">
     <!-- 顶部导航栏 -->
     <a-affix :offset-top="0">
-      <TopNavBar
-        title="个人中心"
-        :showBackButton="true"
-        @back="handleBackToDashboard"
-        @personal-center="() => {}"
-      />
+      <TopNavBar title="个人中心" :showBackButton="true" @back="handleBackToDashboard" @personal-center="() => { }" />
     </a-affix>
 
     <!-- 个人中心内容 -->
@@ -62,13 +57,8 @@
               <label>邀请链接：</label>
               <div class="invite-link-container">
                 <a-input-group compact>
-                  <a-input
-                    type="text"
-                    :value="`${baseUrl}/register?invite=${inviteInfo.invite_code}`"
-                    readonly
-                    class="invite-link-input"
-                    style="width: calc(100% - 64px)"
-                  />
+                  <a-input type="text" :value="`${baseUrl}/register?invite=${inviteInfo.invite_code}`" readonly
+                    class="invite-link-input" style="width: calc(100% - 64px)" />
                   <a-button class="copy-button" type="primary" @click="copyInviteLink">
                     复制
                   </a-button>
@@ -79,11 +69,8 @@
             <div v-if="inviteInfo.invited_users?.length > 0" class="invited-users">
               <h4>邀请的用户</h4>
               <div class="invited-list">
-                <div
-                  v-for="invitedUser in inviteInfo.invited_users.slice(0, 5)"
-                  :key="invitedUser.id"
-                  class="invited-user"
-                >
+                <div v-for="invitedUser in inviteInfo.invited_users.slice(0, 5)" :key="invitedUser.id"
+                  class="invited-user">
                   <span class="invited-username">{{ invitedUser.username }}</span>
                   <span class="invited-date">
                     {{ formatDate(invitedUser.created_at) }}
@@ -106,26 +93,7 @@
             <div class="service-grid">
               <div class="service-item" @click="showCustomerService">
                 <div class="service-icon">
-                  <svg
-                    t="1757828927592"
-                    class="icon"
-                    viewBox="0 0 1025 1024"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    p-id="4853"
-                    width="28"
-                    height="28"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M342.492501 832.853333c-13.653333 0-34.133333-6.826667-47.786666-44.373333-17.066667-44.373333-10.24-109.226667 17.066666-180.906667 10.24-27.306667 27.306667-58.026667 47.786667-85.333333-3.413333-10.24-3.413333-20.48-3.413333-30.72 0-23.893333 6.826667-58.026667 44.373333-92.16 10.24-71.68 40.96-136.533333 92.16-184.32 13.653333-20.48 34.133333-34.133333 54.613333-44.373333-47.786667-51.2-109.226667-81.92-180.906666-81.92-133.12 0-242.346667 109.226667-256 249.173333-23.893333 20.48-40.96 47.786667-40.96 75.093333 0 13.653333 3.413333 23.893333 10.24 37.546667-17.066667 20.48-40.96 54.613333-58.026667 92.16-23.893333 61.44-27.306667 119.466667-13.653333 157.013333 10.24 34.133333 30.72 30.72 47.786666 0 3.413333-6.826667 10.24-17.066667 17.066667-30.72 13.653333 40.96 34.133333 75.093333 61.44 105.813334-17.066667 3.413333-30.72 10.24-37.546667 17.066666-30.72 27.306667-30.72 58.026667-6.826666 81.92 34.133333 30.72 170.666667 47.786667 249.173333 0h27.306667c6.826667-10.24 13.653333-23.893333 27.306666-34.133333 3.413333-3.413333 6.826667-3.413333 6.826667-6.826667-3.413333-6.826667-10.24-13.653333-13.653333-23.893333-10.24 17.066667-23.893333 23.893333-44.373334 23.893333z"
-                      p-id="4854"
-                    ></path>
-                    <path
-                      d="M1004.679168 617.813333c-13.653333-37.546667-37.546667-68.266667-54.613333-88.746666 6.826667-10.24 10.24-23.893333 10.24-34.133334 0-23.893333-13.653333-47.786667-37.546667-68.266666-13.653333-129.706667-116.053333-235.52-238.933333-235.52s-225.28 102.4-238.933334 235.52c-23.893333 20.48-37.546667 44.373333-37.546666 68.266666 0 13.653333 3.413333 23.893333 10.24 34.133334-17.066667 20.48-40.96 51.2-54.613334 88.746666-20.48 58.026667-27.306667 112.64-13.653333 146.773334 10.24 30.72 30.72 27.306667 44.373333 0 3.413333-6.826667 10.24-17.066667 17.066667-27.306667 10.24 37.546667 30.72 71.68 54.613333 98.986667-17.066667 3.413333-30.72 10.24-37.546666 17.066666-27.306667 23.893333-30.72 54.613333-6.826667 78.506667 30.72 30.72 160.426667 44.373333 235.52 0h54.613333c75.093333 44.373333 201.386667 27.306667 235.52 0 23.893333-23.893333 23.893333-51.2-6.826666-78.506667-6.826667-6.826667-20.48-13.653333-37.546667-17.066666 23.893333-27.306667 44.373333-61.44 54.613333-98.986667 6.826667 10.24 13.653333 20.48 17.066667 27.306667 17.066667 27.306667 34.133333 30.72 44.373333 0 13.653333-37.546667 6.826667-88.746667-13.653333-146.773334z"
-                      p-id="4855"
-                    ></path>
-                  </svg>
+                  <WechatOutlined />
                 </div>
                 <div class="service-text">售后群</div>
               </div>
@@ -139,6 +107,45 @@
           </div>
         </div>
 
+        <!-- 卡密兑换 -->
+        <div class="transactions-card">
+          <div class="transactions-header">
+            <h3>卡密兑换</h3>
+          </div>
+          <div style="padding: 12px 0;">
+            <a-input-search v-model:value="redeemCode" placeholder="请输入16位卡密（区分大小写）" enter-button="立即兑换"
+              :loading="redeeming" size="large" @search="handleRedeem" />
+            <p class="text-gray-400 text-xs mt-2">兑换成功后点数将立即到账，每张卡密只能兑换一次。</p>
+          </div>
+        </div>
+
+        <!-- 福利卡 -->
+        <div class="transactions-card">
+          <div class="transactions-header">
+            <h3>福利卡</h3>
+            <a-button class="refresh-button" type="primary" @click="fetchWelfareCards">刷新</a-button>
+          </div>
+          <div class="transactions-list">
+            <template v-if="welfareCards.length > 0">
+              <div v-for="card in welfareCards" :key="card.id" class="transaction-item">
+                <div class="transaction-info">
+                  <div class="transaction-type font-mono font-bold text-sm">{{ card.code }}</div>
+                  <div class="transaction-description text-gray-500">{{ card.label }} · {{ card.points }} 点</div>
+                  <div class="transaction-meta">获得于 {{ formatDate(card.created_at) }}</div>
+                </div>
+                <div class="transaction-amount">
+                  <a-tag :color="card.status === 'used' ? 'default' : 'green'">
+                    {{ card.status === 'used' ? '已兑换' : '未兑换' }}
+                  </a-tag>
+                </div>
+              </div>
+            </template>
+            <div v-else class="no-transactions">暂无福利卡</div>
+          </div>
+        </div>
+
+
+
         <!-- 交易历史 -->
         <div class="transactions-card">
           <div class="transactions-header">
@@ -149,11 +156,7 @@
           </div>
           <div class="transactions-list">
             <template v-if="transactions.length > 0">
-              <div
-                v-for="transaction in transactions"
-                :key="transaction.id"
-                class="transaction-item"
-              >
+              <div v-for="transaction in transactions" :key="transaction.id" class="transaction-item">
                 <div class="transaction-info">
                   <div class="transaction-type">
                     {{ getTransactionTypeName(transaction.transaction_type) }}
@@ -167,15 +170,12 @@
                   </div>
                 </div>
                 <div class="transaction-amount">
-                  <span
-                    class="amount"
-                    :class="{
-                      positive: ['recharge', 'bonus', 'refund'].includes(
-                        transaction.transaction_type,
-                      ),
-                      negative: transaction.transaction_type === 'consume',
-                    }"
-                  >
+                  <span class="amount" :class="{
+                    positive: ['recharge', 'bonus', 'refund'].includes(
+                      transaction.transaction_type,
+                    ),
+                    negative: transaction.transaction_type === 'consume',
+                  }">
                     {{ transaction.transaction_type === 'consume' ? '-' : '+' }}
                     {{ formatAmount(transaction.amount) }}
                   </span>
@@ -192,13 +192,8 @@
     </div>
 
     <!-- 修改密码模态框 -->
-    <ForgotPasswordModal
-      v-model:open="changePasswordModalVisible"
-      :username="user?.username"
-      title="修改密码"
-      :hideUsername="true"
-      @success="handleChangePasswordSuccess"
-    />
+    <ForgotPasswordModal v-model:open="changePasswordModalVisible" :username="user?.username" title="修改密码"
+      :hideUsername="true" @success="handleChangePasswordSuccess" />
   </div>
 </template>
 
@@ -206,8 +201,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClipboard } from '@vueuse/core'
-import { message } from 'ant-design-vue'
-import { QuestionCircleOutlined, CopyOutlined, LockFilled } from '@ant-design/icons-vue'
+import { message, Modal } from 'ant-design-vue'
+import { QuestionCircleOutlined, CopyOutlined, LockFilled, WechatOutlined } from '@ant-design/icons-vue'
 import UserAvatar from '../components/UserAvatar.vue'
 import TopNavBar from '../components/TopNavBar.vue'
 import ForgotPasswordModal from '../components/ForgotPasswordModal.vue'
@@ -258,6 +253,11 @@ const token = ref<string>('')
 const currentPoints = ref(0)
 const transactions = ref<Transaction[]>([])
 const inviteInfo = ref<InviteInfo | null>(null)
+
+// 福利卡 & 卡密兑换
+const welfareCards = ref<any[]>([])
+const redeemCode = ref('')
+const redeeming = ref(false)
 
 // 客服信息
 const customerServiceInfo = ref<{
@@ -377,6 +377,8 @@ const getPaymentMethodName = (method?: string) => {
       return '支付宝'
     case 'wechat':
       return '微信支付'
+    case 'shengpay':
+      return '盛付通'
     case 'bank':
       return '银行卡'
     case 'admin':
@@ -430,24 +432,24 @@ const showCustomerService = async () => {
     !customerServiceInfo.value.enabled ||
     !customerServiceInfo.value.qq_group_number
   ) {
-    message.warning('暂未设置售后群，请联系客服获取帮助')
+    message.warning('暂未设置，请联系客服获取帮助')
     return
   }
 
   const groupNumber = customerServiceInfo.value.qq_group_number
-  const groupName = customerServiceInfo.value.qq_group_name || '售后群'
+  const groupName = customerServiceInfo.value.qq_group_name// || '售后群'
 
   if (!isSupported) {
-    message.error(`您的浏览器不支持复制功能，请手动复制群号：${groupNumber}`)
+    message.error(`您的浏览器不支持复制功能，请手动复制：${groupNumber}`)
     return
   }
 
   try {
     await copy(groupNumber)
-    message.success(`"${groupName}" 群号已复制到剪贴板：${groupNumber}`)
+    message.success(`"${groupName}" 已复制到剪贴板：${groupNumber}`)
   } catch (error) {
     console.error('复制失败:', error)
-    message.error(`复制失败，请手动复制群号：${groupNumber}`)
+    message.error(`复制失败，请手动复制：${groupNumber}`)
   }
 }
 
@@ -461,6 +463,97 @@ const handleChangePasswordSuccess = () => {
   message.success('密码修改成功！')
 }
 
+// 获取福利卡列表
+const fetchWelfareCards = async () => {
+  try {
+    const resp = await axios.get('/api/card-key/user/welfare-cards')
+    if (resp.data.success) welfareCards.value = resp.data.data
+  } catch (err) {
+    console.error('获取福利卡失败:', err)
+  }
+}
+
+// 实际执行兑换
+const doRedeem = async (code: string) => {
+  try {
+    const resp = await axios.post('/api/card-key/user/redeem', { code })
+    if (resp.data.success) {
+      message.success(resp.data.message)
+      redeemCode.value = ''
+      currentPoints.value = resp.data.data.balance_after
+      fetchTransactions()
+      fetchWelfareCards()
+    } else {
+      const errCode = resp.data.error_code
+      if (errCode === 'POLICY_OWNER_ONLY' || errCode === 'POLICY_OTHERS_ONLY') {
+        Modal.warning({ title: '该卡密您无法使用', content: resp.data.message, okText: '我知道了' })
+      } else {
+        message.error(resp.data.message || '兑换失败')
+      }
+    }
+  } catch (err: any) {
+    const errCode = err?.response?.data?.error_code
+    const errMsg = err?.response?.data?.message || '兑换失败，请稍后重试'
+    if (errCode === 'POLICY_OWNER_ONLY' || errCode === 'POLICY_OTHERS_ONLY') {
+      Modal.warning({ title: '该卡密您无法使用', content: errMsg, okText: '我知道了' })
+    } else {
+      message.error(errMsg)
+    }
+  }
+}
+
+// 兑换卡密（先预览，统一弹确认弹窗）
+const handleRedeem = async (code: string) => {
+  const trimmed = code.trim().toUpperCase()
+  if (!trimmed) { message.warning('请输入卡密'); return }
+  redeeming.value = true
+  try {
+    // 第一步：预览卡密信息
+    const preview = await axios.post('/api/card-key/user/preview', { code: trimmed })
+    if (!preview.data.success) {
+      const errCode = preview.data.error_code
+      if (errCode === 'POLICY_OWNER_ONLY' || errCode === 'POLICY_OTHERS_ONLY') {
+        Modal.warning({ title: '该卡密您无法使用', content: preview.data.message, okText: '我知道了' })
+      } else {
+        message.error(preview.data.message || '卡密无效')
+      }
+      return
+    }
+
+    const { fee, fee_reason, points, points_to_add } = preview.data.data
+
+    // 统一弹确认弹窗
+    const reasonText = fee > 0 && fee_reason ? `\n原因：${fee_reason}` : ''
+    const feeDesc = fee > 0
+      ? `需扣除 ${fee} 点手续费${reasonText}，实际到账 ${points_to_add} 点`
+      : `将到账 ${points_to_add} 点`
+    Modal.confirm({
+      title: '确认兑换',
+      content: `该卡密面值 ${points} 点，${feeDesc}。\n\n确认兑换？`,
+      okText: '确认兑换',
+      cancelText: '取消',
+      onOk: async () => {
+        redeeming.value = true
+        try {
+          await doRedeem(trimmed)
+        } finally {
+          redeeming.value = false
+        }
+      },
+    })
+  } catch (err: any) {
+    const errCode = err?.response?.data?.error_code
+    const errMsg = err?.response?.data?.message || '兑换失败，请稍后重试'
+    if (errCode === 'POLICY_OWNER_ONLY' || errCode === 'POLICY_OTHERS_ONLY') {
+      Modal.warning({ title: '该卡密您无法使用', content: errMsg, okText: '我知道了' })
+    } else {
+      message.error(errMsg)
+    }
+  } finally {
+    redeeming.value = false
+  }
+}
+
 // 组件挂载时初始化
 onMounted(() => {
   if (!initUserState()) {
@@ -472,6 +565,7 @@ onMounted(() => {
   fetchTransactions()
   fetchInviteInfo()
   fetchCustomerServiceInfo()
+  fetchWelfareCards()
 })
 </script>
 

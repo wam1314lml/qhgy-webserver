@@ -9,7 +9,7 @@ export default {
    * true: 启用混淆（推荐生产环境）
    * false: 关闭混淆（方便调试问题）
    */
-  ENABLE_OBFUSCATION: true,
+  ENABLE_OBFUSCATION: false,
 
   /**
    * 混淆强度配置
@@ -17,7 +17,7 @@ export default {
    * 'medium': 中等混淆（推荐，平衡性能和安全）
    * 'low': 低强度混淆（性能影响小，混淆效果一般）
    */
-  OBFUSCATION_LEVEL: 'high',
+  OBFUSCATION_LEVEL: 'low',
 
   /**
    * 移除 console 日志
@@ -25,5 +25,5 @@ export default {
    * false: 保留 console（方便排查问题）
    * 注意：设置为 true 需要安装 terser 依赖
    */
-  REMOVE_CONSOLE: true,
+  REMOVE_CONSOLE: false,
 }

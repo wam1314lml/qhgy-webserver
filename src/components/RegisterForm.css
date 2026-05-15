@@ -66,6 +66,13 @@
   border-radius: 8px;
 }
 
+.invite-help-text {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .invite-valid {
   color: #16a34a;
   font-size: 12px;

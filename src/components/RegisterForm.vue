@@ -1,5 +1,22 @@
 <template>
   <div class="register-container">
+
+    <!-- 微信浏览器拦截蒙层 -->
+    <div v-if="isWechat" class="wechat-block-mask">
+      <div class="wechat-block-content">
+        <div class="wechat-arrow-tip">
+          <span class="arrow-icon">↗</span>
+        </div>
+        <div class="wechat-tip-box">
+          <p>点击右上角选择</p>
+          <p>在浏览器打开~~</p>
+        </div>
+        <div class="wechat-open-btn">
+          <span class="globe-icon">🌐</span> 在浏览器中打开
+        </div>
+      </div>
+    </div>
+
     <div class="register-card">
       <div class="register-header">
         <h1>用户注册</h1>
@@ -69,8 +86,15 @@
           />
         </a-form-item>
 
-        <a-form-item v-if="formData.inviteCode" label="邀请码" name="inviteCode">
-          <a-input v-model:value="formData.inviteCode" placeholder="邀请码" disabled size="large" />
+        <a-form-item v-if="formData.inviteCode" name="inviteCode">
+          <template #label>邀请码</template>
+          <a-input
+            v-model:value="formData.inviteCode"
+            placeholder="邀请码"
+            disabled
+            size="large"
+          />
+          <div class="invite-help-text">填写邀请码，邀请人将获得配额奖励</div>
         </a-form-item>
 
         <a-form-item>
@@ -127,6 +151,7 @@ const isLoading = ref(false)
 const emailCodeSent = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(0)
+const isWechat = ref(false)
 
 // 倒计时定时器
 let countdownTimer: number | null = null
@@ -151,6 +176,15 @@ const rules: Record<string, Rule[]> = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6个字符', trigger: 'blur' },
+    {
+      validator: (_rule: Rule, value: string) => {
+        if (value && formData.username && value === formData.username) {
+          return Promise.reject(new Error('密码不能与用户名相同'))
+        }
+        return Promise.resolve()
+      },
+      trigger: 'blur',
+    },
   ],
   confirmPassword: [
     { required: true, message: '请确认密码', trigger: 'blur' },
@@ -286,10 +320,13 @@ const onSubmit = async () => {
 }
 
 onMounted(() => {
+  // 检测微信浏览器
+  isWechat.value = /MicroMessenger/i.test(navigator.userAgent)
+
   // 从路由查询参数中获取邀请码
   const inviteCodeFromRoute = route.query.invite
 
-  if (typeof inviteCodeFromRoute === 'string' && /^\d+$/.test(inviteCodeFromRoute)) {
+  if (typeof inviteCodeFromRoute === 'string' && /^[0-9A-Z]+$/.test(inviteCodeFromRoute)) {
     formData.inviteCode = inviteCodeFromRoute
   }
 })
@@ -305,4 +342,75 @@ onUnmounted(() => {
 
 <style scoped>
 @import './RegisterForm.css';
+
+/* 微信浏览器拦截蒙层 */
+.wechat-block-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wechat-block-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  padding: 0 32px;
+}
+
+/* 右上角箭头提示 */
+.wechat-arrow-tip {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.arrow-icon {
+  font-size: 48px;
+  color: #fff;
+  font-weight: bold;
+  transform: rotate(-20deg);
+  display: inline-block;
+}
+
+/* 虚线文字框 */
+.wechat-tip-box {
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  border-radius: 50px;
+  padding: 20px 36px;
+  text-align: center;
+}
+
+.wechat-tip-box p {
+  color: #fff;
+  font-size: 22px;
+  margin: 4px 0;
+  letter-spacing: 2px;
+}
+
+/* 在浏览器中打开按钮 */
+.wechat-open-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 17px;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 1px;
+}
+
+.globe-icon {
+  font-size: 20px;
+}
 </style>

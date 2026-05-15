@@ -7,9 +7,26 @@
           <div>
             <p class="text-gray-600 text-sm mb-1">今日充值</p>
             <h3 class="text-2xl font-bold text-blue-600 mb-1">
-              ¥{{ formatNumber(overview.today.amount) }}
+              ¥{{ formatNumber(overview.today.amount + overview.today.cardkey.amount) }}
             </h3>
-            <p class="text-gray-500 text-xs">{{ overview.today.count }} 笔</p>
+            <p class="text-gray-500 text-xs mb-2">{{ overview.today.count + overview.today.cardkey.count }} 笔（含卡密 {{ overview.today.cardkey.count }} 张）</p>
+            <div class="flex flex-wrap gap-2">
+              <a-tag color="green" style="margin:0">
+                微信 ¥{{ formatNumber(overview.today.channels.wechat.amount) }}（{{ overview.today.channels.wechat.count }}笔）
+              </a-tag>
+              <a-tag color="blue" style="margin:0">
+                支付宝 ¥{{ formatNumber(overview.today.channels.alipay.amount) }}（{{ overview.today.channels.alipay.count }}笔）
+              </a-tag>
+              <a-tag color="orange" style="margin:0">
+                盛付通 ¥{{ formatNumber(overview.today.channels.shengpay.amount) }}（{{ overview.today.channels.shengpay.count }}笔）
+              </a-tag>
+              <a-tag color="purple" style="margin:0">
+                拉卡拉 ¥{{ formatNumber(overview.today.channels.lakalapay.amount) }}（{{ overview.today.channels.lakalapay.count }}笔）
+              </a-tag>
+              <a-tag color="cyan" style="margin:0" v-if="overview.today.cardkey.count > 0">
+                卡密 ¥{{ formatNumber(overview.today.cardkey.amount) }}（{{ overview.today.cardkey.count }}张）
+              </a-tag>
+            </div>
           </div>
           <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
             <CalendarOutlined class="text-2xl text-blue-600" />
@@ -22,9 +39,12 @@
           <div>
             <p class="text-gray-600 text-sm mb-1">本月充值</p>
             <h3 class="text-2xl font-bold text-green-600 mb-1">
-              ¥{{ formatNumber(overview.month.amount) }}
+              ¥{{ formatNumber(overview.month.amount + overview.month.cardkey.amount) }}
             </h3>
-            <p class="text-gray-500 text-xs">{{ overview.month.count }} 笔</p>
+            <p class="text-gray-500 text-xs">{{ overview.month.count + overview.month.cardkey.count }} 笔（含卡密 {{ overview.month.cardkey.count }} 张）</p>
+            <a-tag v-if="overview.month.cardkey.count > 0" color="cyan" style="margin-top:4px;margin:4px 0 0">
+              卡密 ¥{{ formatNumber(overview.month.cardkey.amount) }}（{{ overview.month.cardkey.count }}张）
+            </a-tag>
           </div>
           <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
             <FileTextOutlined class="text-2xl text-green-600" />
@@ -37,9 +57,12 @@
           <div>
             <p class="text-gray-600 text-sm mb-1">历史总计</p>
             <h3 class="text-2xl font-bold text-purple-600 mb-1">
-              ¥{{ formatNumber(overview.total.amount) }}
+              ¥{{ formatNumber(overview.total.amount + overview.total.cardkey.amount) }}
             </h3>
-            <p class="text-gray-500 text-xs">{{ overview.total.count }} 笔</p>
+            <p class="text-gray-500 text-xs">{{ overview.total.count + overview.total.cardkey.count }} 笔（含卡密 {{ overview.total.cardkey.count }} 张）</p>
+            <a-tag v-if="overview.total.cardkey.count > 0" color="cyan" style="margin-top:4px;margin:4px 0 0">
+              卡密 ¥{{ formatNumber(overview.total.cardkey.amount) }}（{{ overview.total.cardkey.count }}张）
+            </a-tag>
           </div>
           <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
             <DollarCircleOutlined class="text-2xl text-purple-600" />
@@ -180,10 +203,11 @@ import type { TableColumnType } from 'ant-design-vue'
 import CustomTable from './CustomTable.vue'
 
 // 数据接口定义
+interface ChannelData { amount: number; count: number }
 interface OverviewData {
-  today: { amount: number; count: number }
-  month: { amount: number; count: number }
-  total: { amount: number; count: number }
+  today: { amount: number; count: number; channels: { wechat: ChannelData; alipay: ChannelData; shengpay: ChannelData; lakalapay: ChannelData }; cardkey: ChannelData }
+  month: { amount: number; count: number; cardkey: ChannelData }
+  total: { amount: number; count: number; cardkey: ChannelData }
 }
 
 interface MonthlyStatistic {
@@ -212,9 +236,9 @@ interface RechargeRecord {
 
 // 响应式数据
 const overview = reactive<OverviewData>({
-  today: { amount: 0, count: 0 },
-  month: { amount: 0, count: 0 },
-  total: { amount: 0, count: 0 },
+  today: { amount: 0, count: 0, channels: { wechat: { amount: 0, count: 0 }, alipay: { amount: 0, count: 0 }, shengpay: { amount: 0, count: 0 }, lakalapay: { amount: 0, count: 0 } }, cardkey: { amount: 0, count: 0 } },
+  month: { amount: 0, count: 0, cardkey: { amount: 0, count: 0 } },
+  total: { amount: 0, count: 0, cardkey: { amount: 0, count: 0 } },
 })
 
 const monthlyStatistics = ref<MonthlyStatistic[]>([])
@@ -421,7 +445,10 @@ const getPaymentMethodColor = (method: string): string => {
   const colorMap: Record<string, string> = {
     wechat: 'green',
     alipay: 'blue',
+    shengpay: 'orange',
+    lakalapay: 'purple',
     bank: 'orange',
+    cardkey: 'cyan',
   }
   return colorMap[method] || 'default'
 }
@@ -430,7 +457,10 @@ const getPaymentMethodText = (method: string): string => {
   const textMap: Record<string, string> = {
     wechat: '微信支付',
     alipay: '支付宝',
+    shengpay: '盛付通',
+    lakalapay: '拉卡拉',
     bank: '银行转账',
+    cardkey: '卡密兑换',
   }
   return textMap[method] || method
 }

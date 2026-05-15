@@ -119,6 +119,71 @@
           />
         </a-form-item>
 
+        <a-form-item 
+          name="lottery_tickets" 
+          label="赠送抽奖次数" 
+          :rules="[{ required: false }]"
+          tooltip="购买此套餐赠送的抽奖次数，0表示不赠送"
+        >
+          <a-input-number
+            :min="0"
+            style="width: 100%"
+            placeholder="例如：3"
+            v-model:value="packageForm.lottery_tickets"
+          />
+        </a-form-item>
+
+        <a-form-item name="gift_card_enabled" label="赠福利卡" tooltip="充值成功后自动生成一张福利卡发放给用户">
+          <a-switch v-model:checked="packageForm.gift_card_enabled" :checkedValue="1" :unCheckedValue="0" />
+        </a-form-item>
+
+        <a-form-item
+          v-if="packageForm.gift_card_enabled"
+          name="gift_card_points"
+          label="赠点数卡"
+          :rules="[{ required: true, message: '请输入福利卡点数' }]"
+          tooltip="福利卡包含的点数"
+        >
+          <a-input-number
+            :min="1"
+            style="width: 100%"
+            placeholder="例如：100"
+            v-model:value="packageForm.gift_card_points"
+          />
+        </a-form-item>
+
+        <a-form-item
+          v-if="packageForm.gift_card_enabled"
+          name="gift_card_use_policy"
+          label="兑卡策略"
+          tooltip="控制用户收到福利卡后谁可以兑换"
+        >
+          <a-select v-model:value="packageForm.gift_card_use_policy" style="width:100%">
+            <a-select-option :value="1">无绑定（任何人均可使用）</a-select-option>
+            <a-select-option :value="2">仅限本人使用（收卡人）</a-select-option>
+            <a-select-option :value="3">除本人外的人使用</a-select-option>
+            <a-select-option :value="4">本人使用扣手续费，他人免费</a-select-option>
+          </a-select>
+        </a-form-item>
+
+        <a-form-item
+          v-if="packageForm.gift_card_enabled && packageForm.gift_card_use_policy === 4"
+          name="gift_card_transfer_fee"
+          label="手续费（点数）"
+          :rules="[{ required: true, message: '请输入手续费点数' }]"
+        >
+          <a-input-number :min="0" style="width:100%" placeholder="他人兑换时扣除的手续费点数" v-model:value="packageForm.gift_card_transfer_fee" />
+          <div style="color:#999;font-size:12px;margin-top:4px">实际获得点数 = 福利卡点数 - 手续费</div>
+        </a-form-item>
+
+        <a-form-item
+          v-if="packageForm.gift_card_enabled && packageForm.gift_card_use_policy === 4"
+          name="gift_card_transfer_fee_reason"
+          label="手续费原因（展示给兑换方）"
+        >
+          <a-input placeholder="例：分销佣金、代购服务费等" v-model:value="packageForm.gift_card_transfer_fee_reason" />
+        </a-form-item>
+
         <a-form-item name="popular" label="推荐套餐">
           <a-switch v-model:checked="packageForm.popular" :checkedValue="1" :unCheckedValue="0" />
         </a-form-item>
@@ -180,6 +245,12 @@ const packageForm = ref({
   enabled: 1,
   max_purchase_count: 0,
   user_invite_rebate: '',
+  lottery_tickets: 0,
+  gift_card_enabled: 0,
+  gift_card_points: 0,
+  gift_card_use_policy: 1,
+  gift_card_transfer_fee: 0,
+  gift_card_transfer_fee_reason: '',
 })
 
 // 充值套餐表格列
@@ -243,6 +314,25 @@ const packageColumns = computed(() => [
     key: 'user_invite_rebate',
     customRender: ({ text }: { text: string }) => {
       return text || '-'
+    },
+  },
+  {
+    title: '抽奖次数',
+    dataIndex: 'lottery_tickets',
+    key: 'lottery_tickets',
+    customRender: ({ text }: { text: any }) => {
+      const tickets = parseInt(text || 0)
+      return tickets > 0 ? `${tickets}次` : '-'
+    },
+  },
+  {
+    title: '赠福利卡',
+    key: 'gift_card',
+    customRender: ({ record }: { record: any }) => {
+      const enabled = record.gift_card_enabled
+      const pts = parseInt(record.gift_card_points || 0)
+      if (!enabled || enabled === 0) return h(resolveComponent('a-tag'), { color: 'default' }, '无')
+      return h(resolveComponent('a-tag'), { color: 'blue' }, `+${pts}点`)
     },
   },
   {
@@ -330,6 +420,12 @@ const handleCreatePackage = () => {
     enabled: 1,
     max_purchase_count: 0,
     user_invite_rebate: '',
+    lottery_tickets: 0,
+    gift_card_enabled: 0,
+    gift_card_points: 0,
+    gift_card_use_policy: 1,
+    gift_card_transfer_fee: 0,
+    gift_card_transfer_fee_reason: '',
   }
   packageModalOpen.value = true
 }
@@ -347,6 +443,12 @@ const handleEditPackage = (pkg: RechargePackage) => {
     enabled: pkg.enabled,
     max_purchase_count: pkg.max_purchase_count || 0,
     user_invite_rebate: pkg.user_invite_rebate || '',
+    lottery_tickets: (pkg as any).lottery_tickets || 0,
+    gift_card_enabled: (pkg as any).gift_card_enabled || 0,
+    gift_card_points: (pkg as any).gift_card_points || 0,
+    gift_card_use_policy: (pkg as any).gift_card_use_policy || 1,
+    gift_card_transfer_fee: (pkg as any).gift_card_transfer_fee || 0,
+    gift_card_transfer_fee_reason: (pkg as any).gift_card_transfer_fee_reason || '',
   }
   packageModalOpen.value = true
 }
@@ -412,6 +514,12 @@ const handleSavePackage = async () => {
         enabled: 1,
         max_purchase_count: 0,
         user_invite_rebate: '',
+        lottery_tickets: 0,
+        gift_card_enabled: 0,
+        gift_card_points: 0,
+        gift_card_use_policy: 1,
+        gift_card_transfer_fee: 0,
+        gift_card_transfer_fee_reason: '',
       }
     } else {
       message.error('保存失败')
