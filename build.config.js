@@ -9,7 +9,7 @@ export default {
    * true: 启用混淆（推荐生产环境）
    * false: 关闭混淆（方便调试问题）
    */
-  ENABLE_OBFUSCATION: false,
+  ENABLE_OBFUSCATION: true,
 
   /**
    * 混淆强度配置
