@@ -49,86 +49,111 @@
             </template>
           </a-alert>
 
-          <a-form
-            :model="formData"
-            class="login-form"
-            layout="vertical"
-            :rules="formRules"
-            ref="loginFormRef"
-            autocomplete="off"
-          >
-            <a-form-item
-              name="username"
-              :validate-status="errors.username ? 'error' : ''"
-              :help="errors.username"
+          <div class="auth-tabs" role="tablist" aria-label="账号操作">
+            <button
+              type="button"
+              class="auth-tab"
+              :class="{ active: activeAuthTab === 'login' }"
+              @click="activeAuthTab = 'login'"
             >
-              <a-auto-complete
-                v-model:value="formData.username"
-                :options="accountOptions"
-                placeholder="请输入账号"
-                @blur="validateUsername"
-                @select="onAccountSelect"
-                @focus="showAccountDropdown = true"
-                autocomplete="off"
-                size="large"
-                :dropdown-match-select-width="true"
-                :allow-clear="true"
+              登录
+            </button>
+            <button
+              type="button"
+              class="auth-tab"
+              :class="{ active: activeAuthTab === 'register' }"
+              @click="activeAuthTab = 'register'"
+            >
+              注册
+            </button>
+          </div>
+
+          <div v-if="activeAuthTab === 'login'" class="auth-panel">
+            <a-form
+              :model="formData"
+              class="login-form"
+              layout="vertical"
+              :rules="formRules"
+              ref="loginFormRef"
+              autocomplete="off"
+            >
+              <a-form-item
+                name="username"
+                :validate-status="errors.username ? 'error' : ''"
+                :help="errors.username"
               >
-              </a-auto-complete>
-            </a-form-item>
+                <a-auto-complete
+                  v-model:value="formData.username"
+                  :options="accountOptions"
+                  placeholder="请输入账号"
+                  @blur="validateUsername"
+                  @select="onAccountSelect"
+                  @focus="showAccountDropdown = true"
+                  autocomplete="off"
+                  size="large"
+                  :dropdown-match-select-width="true"
+                  :allow-clear="true"
+                >
+                </a-auto-complete>
+              </a-form-item>
 
-            <a-form-item
-              name="password"
-              :validate-status="errors.password ? 'error' : ''"
-              :help="errors.password"
-            >
-              <a-input-password
-                v-model:value="formData.password"
-                placeholder="请输入密码"
-                @blur="validatePassword"
-                autocomplete="new-password"
-                size="large"
-              />
-            </a-form-item>
+              <a-form-item
+                name="password"
+                :validate-status="errors.password ? 'error' : ''"
+                :help="errors.password"
+              >
+                <a-input-password
+                  v-model:value="formData.password"
+                  placeholder="请输入密码"
+                  @blur="validatePassword"
+                  autocomplete="new-password"
+                  size="large"
+                />
+              </a-form-item>
 
-            <a-form-item class="mb-1!">
-              <a-checkbox v-model:checked="rememberPassword" class="remember-password">
-                记住密码
-              </a-checkbox>
-            </a-form-item>
+              <a-form-item class="mb-1!">
+                <a-checkbox v-model:checked="rememberPassword" class="remember-password">
+                  记住密码
+                </a-checkbox>
+              </a-form-item>
 
-            <a-form-item>
+              <a-form-item>
+                <a-button
+                  type="primary"
+                  class="login-button"
+                  size="large"
+                  block
+                  :loading="isLoading"
+                  :disabled="shouldDisableFeatures"
+                  @click="onSubmit"
+                >
+                  {{ isLoading ? '登录中...' : '登 录' }}
+                </a-button>
+              </a-form-item>
+            </a-form>
+
+            <div class="login-footer">
               <a-button
-                type="primary"
-                class="login-button"
-                size="large"
-                block
-                :loading="isLoading"
+                type="button"
+                class="forgot-password"
                 :disabled="shouldDisableFeatures"
-                @click="onSubmit"
+                @click="showForgotPasswordModal"
               >
-                {{ isLoading ? '登录中...' : '登 录' }}
+                忘记密码？
               </a-button>
-            </a-form-item>
-          </a-form>
+              <!-- <a-button
+                type="button"
+                class="register-link"
+                :disabled="shouldDisableFeatures"
+                @click="handleSwitchToRegister"
+              >
+                注册新账号
+              </a-button> -->
+            </div>
+          </div>
 
-          <div class="login-footer">
-            <a-button
-              type="button"
-              class="forgot-password"
-              :disabled="shouldDisableFeatures"
-              @click="showForgotPasswordModal"
-            >
-              忘记密码？
-            </a-button>
-            <a-button
-              type="button"
-              class="register-link"
-              :disabled="shouldDisableFeatures"
-              @click="handleSwitchToRegister"
-            >
-              注册新账号
-            </a-button>
+          <div v-else class="auth-panel login-register-panel">
+            <RegisterForm @switch-to-login="handleRegisterSwitchToLogin" />
           </div>
         </div>
       </div>
@@ -277,6 +302,7 @@ import axios from '../utils/axios'
 import ForgotPasswordModal from './ForgotPasswordModal.vue'
 import { sanitizeHtml } from '../utils/sanitize'
 import { useTheme } from '../composables/useTheme'
+import RegisterForm from './RegisterForm.vue'
 
 const { currentTheme, setTheme } = useTheme()
 
@@ -404,6 +430,7 @@ const rememberPassword = ref(false)
 const savedAccounts = ref<Array<{ username: string; password: string }>>([])
 const showAccountDropdown = ref(false)
 const isHandlingLogout = ref(false) // 防止重复处理退出登录
+const activeAuthTab = ref<'login' | 'register'>('login')
 
 // 表单数据
 const formData = reactive<LoginFormData>({
@@ -738,14 +765,11 @@ const closeAnnouncementModal = () => {
 
 // 切换到注册页面
 const handleSwitchToRegister = () => {
-  // 保留 invite 参数
-  const route = router.currentRoute.value
-  const inviteCode = route.query.invite
-  if (inviteCode) {
-    router.push({ path: '/register', query: { invite: inviteCode } })
-  } else {
-    router.push('/register')
-  }
+  activeAuthTab.value = 'register'
+}
+
+const handleRegisterSwitchToLogin = () => {
+  activeAuthTab.value = 'login'
 }
 
 // 显示忘记密码模态框
@@ -774,6 +798,11 @@ onMounted(() => {
   checkDomain()
   checkExistingLogin()
   loadSavedCredentials()
+
+  const route = router.currentRoute.value
+  if (route.query.tab === 'register' || route.query.invite) {
+    activeAuthTab.value = 'register'
+  }
 
   window.addEventListener('logout', handleGlobalLogout)
   console.log('🔔 已注册全局退出登录事件监听器')
@@ -837,5 +866,38 @@ onUnmounted(() => {
 .login-form .ant-checkbox-checked .ant-checkbox-inner {
   background-color: var(--theme-primary, #22c55e) !important;
   border-color: var(--theme-primary, #22c55e) !important;
+}
+
+.login-register-panel .register-form .ant-input,
+.login-register-panel .register-form .ant-input-affix-wrapper,
+.login-register-panel .register-form .ant-input-outlined {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+}
+
+.login-register-panel .register-form .ant-input::placeholder,
+.login-register-panel .register-form .ant-input-affix-wrapper input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.login-register-panel .register-form .ant-input-affix-wrapper .ant-input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.login-register-panel .register-form .ant-input-suffix svg {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-register-panel .register-form .ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.login-register-panel .register-form .ant-form-item-explain-error {
+  color: #fb7185 !important;
 }
 </style>
