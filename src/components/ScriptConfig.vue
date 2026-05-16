@@ -2456,6 +2456,28 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   color: #d4af37 !important;
 }
 
+/* 右下角悬浮按钮组 - 主题色覆盖 */
+.ant-float-btn-primary .ant-float-btn-body,
+.ant-float-btn-group .ant-float-btn-primary .ant-float-btn-body {
+  background: var(--theme-primary, #22c55e) !important;
+  box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb, 34,197,94), 0.45) !important;
+}
+.ant-float-btn-primary .ant-float-btn-body:hover,
+.ant-float-btn-group .ant-float-btn-primary .ant-float-btn-body:hover {
+  background: var(--theme-primary-dark, #16a34a) !important;
+  box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
+}
+/* 悬浮按钮组主触发按钮（菜单按钮） */
+.ant-float-btn-group-wrap .ant-float-btn-primary .ant-float-btn-body,
+.ant-float-btn-group > .ant-float-btn-primary .ant-float-btn-body {
+  background: var(--theme-primary, #22c55e) !important;
+}
+/* 图标和文字颜色 */
+.ant-float-btn-primary .ant-float-btn-body .ant-float-btn-icon,
+.ant-float-btn-primary .ant-float-btn-body .ant-float-btn-description {
+  color: #fff !important;
+}
+
 /* 账号卡片操作按钮 - 用实色确保覆盖 Ant Design */
 /* 启动 / 查看日志：浅灰实色 */
 .account-actions .ant-btn {
