@@ -2515,7 +2515,7 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 
 /* 账号卡片操作按钮 - 用实色确保覆盖 Ant Design */
 /* 启动 / 查看日志：浅灰实色 */
-.account-actions .ant-btn {
+/* .account-actions .ant-btn {
   background: #f0f0f0 !important;
   border: 1px solid #d0d0d0 !important;
   color: #444 !important;
@@ -2534,9 +2534,9 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 .account-actions .ant-btn:disabled {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
-}
+} */
 /* 修改配置（ant-btn-primary 非危险）：主题色实色 */
-.account-actions .ant-btn-primary:not(.ant-btn-dangerous) {
+/* .account-actions .ant-btn-primary:not(.ant-btn-dangerous) {
   background: var(--theme-primary, #22c55e) !important;
   border-color: var(--theme-primary, #22c55e) !important;
   color: #fff !important;
@@ -2546,9 +2546,9 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   filter: brightness(1.1) !important;
   box-shadow: 0 4px 14px rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
   transform: translateY(-1px) !important;
-}
+} */
 /* 停止按钮：红色实色 */
-.account-actions .ant-btn-primary.ant-btn-dangerous {
+/* .account-actions .ant-btn-primary.ant-btn-dangerous {
   background: #fff0f0 !important;
   border-color: #ffb3b3 !important;
   color: #e53935 !important;
@@ -2559,5 +2559,5 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   border-color: #e53935 !important;
   color: #e53935 !important;
   box-shadow: 0 3px 10px rgba(229,57,53,0.25) !important;
-}
+} */
 </style>

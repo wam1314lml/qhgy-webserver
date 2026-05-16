@@ -61,8 +61,8 @@
   transition: all 0.3s ease;
   animation: cardIn 0.4s ease-out;
   position: relative;
-  overflow: hidden;
-  width: auto;
+  /* overflow: hidden; */
+  width: 360px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -233,10 +233,9 @@
   border: 1px solid #d0d0d0 !important;
   color: #444 !important;
   border-radius: 8px !important;
-  font-size: 13px !important;
-  height: 30px !important;
   transition: all 0.2s ease !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  padding: 4px 12px;
 }
 
 .account-actions .ant-btn:hover:not(:disabled),
@@ -321,7 +320,7 @@
   transition: all 0.3s ease;
   min-height: 200px;
   color: rgba(0, 0, 0, 0.45);
-  width: auto;
+  width: 360px;
 }
 
 .add-account-card:hover {
@@ -664,7 +663,7 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 
 @media (max-width: 480px) {
   .script-config-container {
-    padding: 12px 8px;
+    padding: 12px 0;
   }
 
   .qrcode-image {
