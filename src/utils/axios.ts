@@ -54,24 +54,28 @@ axiosInstance.interceptors.request.use(
 
     // HMAC 签名验证
     try {
-      // 生成浏览器指纹（首次请求时）
-      if (!sessionStorage.getItem('browser-fingerprint-verified')) {
-        const fingerprint = await generateBrowserFingerprint()
-
-        // 可选：验证指纹（增强模式）
-        try {
-          const fpRes = await axios.post('/api/challenge/verify-fingerprint', fingerprint)
+      // 指纹验证：异步执行，不阻塞 challenge 获取
+      if (!sessionStorage.getItem('browser-fingerprint-verified') && !sessionStorage.getItem('browser-fingerprint-pending')) {
+        sessionStorage.setItem('browser-fingerprint-pending', 'true')
+        generateBrowserFingerprint().then(fingerprint => {
+          return axios.post('/api/challenge/verify-fingerprint', fingerprint)
+        }).then(fpRes => {
           if (fpRes.data.success) {
             sessionStorage.setItem('browser-fingerprint-verified', 'true')
-            // console.log('✅ 浏览器指纹验证通过')
           }
-        } catch (fpError) {
+        }).catch(() => {
           console.warn('⚠️ 指纹验证失败，使用快速模式')
-        }
+        }).finally(() => {
+          sessionStorage.removeItem('browser-fingerprint-pending')
+        })
       }
 
-      // 获取挑战码
-      const challengeRes = await axios.get('/api/challenge')
+      // 每次请求都获取新的挑战码（不缓存）
+      let challengeRes = await axios.get('/api/challenge')
+      if (!challengeRes.data?.data?.challenge) {
+        await new Promise(resolve => setTimeout(resolve, 200))
+        challengeRes = await axios.get('/api/challenge')
+      }
       const { challenge } = challengeRes.data.data
 
       // 生成时间戳

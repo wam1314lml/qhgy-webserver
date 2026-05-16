@@ -25,5 +25,5 @@ export default {
    * false: 保留 console（方便排查问题）
    * 注意：设置为 true 需要安装 terser 依赖
    */
-  REMOVE_CONSOLE: false,
+  REMOVE_CONSOLE: true,
 }

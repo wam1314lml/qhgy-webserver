@@ -11,6 +11,8 @@ import buildConfig from './build.config.js'
  * 根据混淆强度获取混淆配置
  */
 function getObfuscationOptions(level: string) {
+  const removeConsole = buildConfig.REMOVE_CONSOLE
+
   const baseOptions = {
     compact: true, // 是否压缩代码，移除换行和空格
     log: false, // 是否在控制台输出混淆器日志
@@ -28,9 +30,9 @@ function getObfuscationOptions(level: string) {
         deadCodeInjectionThreshold: 0.4, // 死代码注入的比例（0-1）
         debugProtection: false, // 是否启用调试保护，阻止开发者工具调试
         debugProtectionInterval: 0, // 调试保护的检测间隔时间（毫秒），0表示仅检测一次
-        disableConsoleOutput: true, // 是否禁用所有console方法的输出
+        disableConsoleOutput: removeConsole, // 是否禁用所有console方法的输出
         numbersToExpressions: true, // 是否将数字字面量转换为表达式
-        selfDefending: true, // 是否启用自我防御，防止代码被格式化和美化
+        selfDefending: removeConsole, // 是否启用自我防御，防止代码被格式化和美化
         simplify: true, // 是否简化代码结构
         splitStrings: true, // 是否拆分字符串字面量
         splitStringsChunkLength: 10, // 字符串拆分时每个块的长度
@@ -56,9 +58,9 @@ function getObfuscationOptions(level: string) {
         controlFlowFlatteningThreshold: 0.5, // 控制流扁平化应用的代码比例（0-1）
         deadCodeInjection: false, // 是否注入无用的死代码块
         debugProtection: false, // 是否启用调试保护
-        disableConsoleOutput: true, // 是否禁用所有console方法的输出
+        disableConsoleOutput: removeConsole, // 是否禁用所有console方法的输出
         numbersToExpressions: false, // 是否将数字字面量转换为表达式
-        selfDefending: true, // 是否启用自我防御
+        selfDefending: removeConsole, // 是否启用自我防御
         simplify: true, // 是否简化代码结构
         splitStrings: true, // 是否拆分字符串字面量
         splitStringsChunkLength: 10, // 字符串拆分时每个块的长度
@@ -79,9 +81,9 @@ function getObfuscationOptions(level: string) {
         controlFlowFlattening: true, // 是否启用控制流扁平化
         deadCodeInjection: true, // 是否注入无用的死代码块
         debugProtection: false, // 是否启用调试保护
-        disableConsoleOutput: true, // 是否禁用所有console方法的输出
+        disableConsoleOutput: removeConsole, // 是否禁用所有console方法的输出
         numbersToExpressions: true, // 是否将数字字面量转换为表达式
-        selfDefending: true, // 是否启用自我防御
+        selfDefending: removeConsole, // 是否启用自我防御
         simplify: true, // 是否简化代码结构
         splitStrings: true, // 是否拆分字符串字面量
         stringArray: true, // 是否将字符串字面量提取到一个特殊数组中
@@ -100,7 +102,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   // 从环境变量获取代理目标地址，默认为 localhost:5000
-  const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:5000'
+  const proxyTarget = env.VITE_PROXY_TARGET || 'http://10.0.2.234:5000'
 
   console.log('========================================')
   console.log('📦 前端构建配置:')
@@ -110,6 +112,9 @@ export default defineConfig(({ mode }) => {
   console.log('========================================')
 
   return {
+    define: {
+      __ENABLE_SECURITY__: JSON.stringify(buildConfig.REMOVE_CONSOLE),
+    },
     plugins: [
       vue(),
       UnoCSS(),

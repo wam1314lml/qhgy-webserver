@@ -89,7 +89,7 @@ if (window.__SHOULD_REDIRECT__) {
   // 需要跳转，不创建Vue应用
 } else {
   // 正常初始化Vue应用
-  if (import.meta.env.PROD) {
+  if (import.meta.env.PROD && __ENABLE_SECURITY__) {
     initDevToolsProtection()
   }
 
