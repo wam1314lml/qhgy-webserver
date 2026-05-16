@@ -2456,27 +2456,62 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   color: #d4af37 !important;
 }
 
-/* 右下角悬浮按钮组 - 主题色覆盖 */
-.ant-float-btn-primary .ant-float-btn-body,
-.ant-float-btn-group .ant-float-btn-primary .ant-float-btn-body {
-  background: var(--theme-primary, #22c55e) !important;
+/* 右下角悬浮按钮组 - 全量主题色覆盖，消除蓝色残留 */
+
+/* 按钮组容器背景 */
+.ant-float-btn-group,
+.ant-float-btn-group-wrap {
+  background: transparent !important;
+}
+
+/* 所有 primary 浮动按钮的 body */
+.ant-float-btn-primary .ant-float-btn-body {
+  background-color: var(--theme-primary, #22c55e) !important;
   box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb, 34,197,94), 0.45) !important;
 }
-.ant-float-btn-primary .ant-float-btn-body:hover,
-.ant-float-btn-group .ant-float-btn-primary .ant-float-btn-body:hover {
-  background: var(--theme-primary-dark, #16a34a) !important;
+.ant-float-btn-primary .ant-float-btn-body:hover {
+  background-color: var(--theme-primary-dark, #16a34a) !important;
   box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
 }
-/* 悬浮按钮组主触发按钮（菜单按钮） */
-.ant-float-btn-group-wrap .ant-float-btn-primary .ant-float-btn-body,
-.ant-float-btn-group > .ant-float-btn-primary .ant-float-btn-body {
-  background: var(--theme-primary, #22c55e) !important;
+
+/* 按钮组触发主按钮（shape=square 时也要覆盖） */
+.ant-float-btn-group > .ant-float-btn-primary .ant-float-btn-body,
+.ant-float-btn-group-square > .ant-float-btn-primary .ant-float-btn-body {
+  background-color: var(--theme-primary, #22c55e) !important;
 }
-/* 图标和文字颜色 */
+
+/* 按钮本身的背景（有时 Ant Design 会给 .ant-float-btn 加背景） */
+.ant-float-btn-primary {
+  background-color: transparent !important;
+}
+
+/* shape=square 时四个角的圆角容器 */
+.ant-float-btn-group-square-shadow,
+.ant-float-btn-square .ant-float-btn-body {
+  background-color: var(--theme-primary, #22c55e) !important;
+}
+
+/* 图标和描述文字 */
+.ant-float-btn-primary .ant-float-btn-icon,
+.ant-float-btn-primary .ant-float-btn-description,
 .ant-float-btn-primary .ant-float-btn-body .ant-float-btn-icon,
 .ant-float-btn-primary .ant-float-btn-body .ant-float-btn-description {
   color: #fff !important;
 }
+
+/* 非 primary 的子浮动按钮（展开后的图标按钮）也跟主题走 */
+.ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-body {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(var(--theme-primary-rgb, 34,197,94), 0.25) !important;
+}
+.ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-body:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: var(--theme-primary, #22c55e) !important;
+}
+.ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-icon {
+  color: var(--theme-primary, #22c55e) !important;
+}
+
 
 /* 账号卡片操作按钮 - 用实色确保覆盖 Ant Design */
 /* 启动 / 查看日志：浅灰实色 */
