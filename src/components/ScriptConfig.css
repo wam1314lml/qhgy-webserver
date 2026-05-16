@@ -1,6 +1,6 @@
 /* ============================
-   ScriptConfig - 深色毛玻璃主题
-   与登录页保持一致，使用CSS变量
+   ScriptConfig - 白色毛玻璃卡片主题
+   卡片为白色半透明，文字深色，与任何主题背景均清晰可读
    ============================ */
 
 .script-config-container {
@@ -34,10 +34,10 @@
    账号卡片
    ============================ */
 .account-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   padding: 20px;
   transition: all 0.3s ease;
@@ -45,16 +45,17 @@
   position: relative;
   overflow: hidden;
   width: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .account-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px;
+  height: 3px;
   background: linear-gradient(90deg,
     transparent,
-    rgba(var(--theme-primary-rgb, 34,197,94), 0.6),
+    rgba(var(--theme-primary-rgb, 34,197,94), 0.8),
     transparent
   );
   opacity: 0;
@@ -63,19 +64,19 @@
 
 .account-card:hover {
   transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.35);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
-              0 0 0 1px rgba(var(--theme-primary-rgb, 34,197,94), 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(var(--theme-primary-rgb, 34,197,94), 0.15);
 }
 
 .account-card:hover::before { opacity: 1; }
 
 .account-card.expired {
-  opacity: 0.5;
-  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.6;
+  border-color: rgba(0, 0, 0, 0.06);
 }
-.account-card.expired .account-name { color: rgba(255,255,255,0.35); }
+.account-card.expired .account-name { color: rgba(0, 0, 0, 0.35); }
 
 /* ============================
    账号头部
@@ -90,7 +91,7 @@
 .account-name {
   font-size: 15px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1a1a1a;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -123,11 +124,11 @@
 }
 
 .menu-button {
-  color: rgba(255,255,255,0.45) !important;
+  color: rgba(0, 0, 0, 0.4) !important;
 }
 .menu-button:hover {
-  color: #ffffff !important;
-  background: rgba(255,255,255,0.1) !important;
+  color: #1a1a1a !important;
+  background: rgba(0, 0, 0, 0.06) !important;
 }
 
 /* ============================
@@ -136,7 +137,7 @@
 .account-info {
   margin-bottom: 14px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .info-line { padding: 3px 0; font-size: 13px; line-height: 1.5; }
@@ -144,26 +145,26 @@
 .server-line {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  color: #1a1a1a;
   margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.stats-line { color: rgba(255,255,255,0.5); font-size: 12px; margin-bottom: 4px; }
-.expire-line { color: rgba(255,255,255,0.45); font-size: 12px; }
+.stats-line { color: rgba(0, 0, 0, 0.55); font-size: 12px; margin-bottom: 4px; }
+.expire-line { color: rgba(0, 0, 0, 0.45); font-size: 12px; }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 5px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .info-row:last-child { border-bottom: none; }
-.info-label { color: rgba(255,255,255,0.4); font-size: 13px; }
-.info-value { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; }
+.info-label { color: rgba(0, 0, 0, 0.45); font-size: 13px; }
+.info-value { color: #1a1a1a; font-size: 13px; font-weight: 500; }
 
 /* ============================
    操作按钮区
@@ -190,7 +191,7 @@
 }
 
 .status-indicator.inactive,
-.status-indicator.offline { background: rgba(255,255,255,0.25); }
+.status-indicator.offline { background: rgba(0, 0, 0, 0.2); }
 .status-indicator.error { background: #ff6b6b; box-shadow: 0 0 6px rgba(255,107,107,0.7); }
 
 .account-actions .ant-btn-primary {
@@ -226,8 +227,8 @@
    添加账号卡片
    ============================ */
 .add-account-card {
-  background: rgba(255,255,255,0.04);
-  border: 2px dashed rgba(var(--theme-primary-rgb, 34,197,94), 0.3);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px dashed rgba(var(--theme-primary-rgb, 34,197,94), 0.4);
   border-radius: 16px;
   padding: 40px 20px;
   display: flex;
@@ -237,15 +238,16 @@
   cursor: pointer;
   transition: all 0.3s ease;
   min-height: 200px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(0, 0, 0, 0.45);
   width: auto;
 }
 
 .add-account-card:hover {
-  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.06);
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.6);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.7);
   transform: translateY(-3px);
   color: var(--theme-primary, #22c55e);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .add-icon { font-size: 44px; margin-bottom: 12px; line-height: 1; color: inherit; }
@@ -260,7 +262,7 @@
   background: none !important;
   border: none !important;
   font-size: 16px !important;
-  color: rgba(255,255,255,0.5) !important;
+  color: rgba(0, 0, 0, 0.4) !important;
   cursor: pointer;
   padding: 4px 8px !important;
   border-radius: 6px;
@@ -268,8 +270,8 @@
   min-width: auto !important;
 }
 .menu-trigger:hover {
-  background: rgba(255,255,255,0.1) !important;
-  color: #fff !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1a1a1a !important;
 }
 
 .menu-item {
