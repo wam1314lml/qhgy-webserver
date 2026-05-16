@@ -15,8 +15,8 @@
 
       <!-- Logo -->
       <div v-if="!props.title" class="logo" @click="$router.push('/')">
-        <span class="logo-icon">⚔️</span>
-        <span class="logo-text">寻道大千</span>
+        <span class="logo-icon">🌸</span>
+        <span class="logo-text">花园世界</span>
       </div>
 
       <!-- 标题 -->
@@ -221,8 +221,10 @@ watch(
   align-items: center;
   padding-right: 24px;
   height: 56px;
-  background: var(--theme-nav-bg, rgba(255, 255, 255, 0.97));
-  border-bottom: 1px solid var(--theme-nav-border, rgba(0, 0, 0, 0.06));
+  background: var(--theme-nav-bg, rgba(220, 252, 231, 0.88));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--theme-nav-border, rgba(34, 197, 94, 0.25));
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
   transition: background 0.5s ease, border-color 0.5s ease;
   position: relative;
@@ -235,7 +237,7 @@ watch(
   top: 0; left: 0; right: 0;
   height: 3px;
   background: var(--theme-btn-gradient, linear-gradient(135deg, #22c55e, #059669));
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .navbar-left {
@@ -340,14 +342,14 @@ watch(
 
 .balance-text {
   font-size: 14px;
-  color: #666;
+  color: #555;
   font-weight: 500;
 }
 
 .balance-amount {
   font-size: 16px;
   font-weight: bold;
-  color: #2c3e50;
+  color: var(--theme-primary-dark, #16a34a);
 }
 
 .user-avatar-container {
