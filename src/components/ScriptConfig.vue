@@ -2455,4 +2455,48 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 .ant-dropdown-menu-item.trial-item .anticon {
   color: #d4af37 !important;
 }
+
+/* 账号卡片操作按钮 - 全局穿透确保 Ant Design 样式被覆盖 */
+.account-actions .ant-btn {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  color: #333 !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  height: 30px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+.account-actions .ant-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
+  color: var(--theme-primary, #22c55e) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+}
+.account-actions .ant-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+/* 主操作按钮（修改配置）主题色高亮 */
+.account-actions .ant-btn-primary:not(.ant-btn-dangerous) {
+  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.12) !important;
+  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
+  color: var(--theme-primary, #22c55e) !important;
+}
+.account-actions .ant-btn-primary:not(.ant-btn-dangerous):hover:not(:disabled) {
+  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.22) !important;
+  border-color: var(--theme-primary, #22c55e) !important;
+  color: var(--theme-primary, #22c55e) !important;
+}
+/* 停止按钮红色 */
+.account-actions .ant-btn-primary.ant-btn-dangerous {
+  background: rgba(255, 77, 79, 0.1) !important;
+  border-color: rgba(255, 77, 79, 0.4) !important;
+  color: #ff4d4f !important;
+}
+.account-actions .ant-btn-primary.ant-btn-dangerous:hover:not(:disabled) {
+  background: rgba(255, 77, 79, 0.2) !important;
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}
 </style>
