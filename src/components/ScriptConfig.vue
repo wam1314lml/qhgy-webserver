@@ -2456,47 +2456,51 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   color: #d4af37 !important;
 }
 
-/* 账号卡片操作按钮 - 全局穿透确保 Ant Design 样式被覆盖 */
+/* 账号卡片操作按钮 - 用实色确保覆盖 Ant Design */
+/* 启动 / 查看日志：浅灰实色 */
 .account-actions .ant-btn {
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(0, 0, 0, 0.15) !important;
-  color: #333 !important;
+  background: #f0f0f0 !important;
+  border: 1px solid #d0d0d0 !important;
+  color: #444 !important;
   border-radius: 8px !important;
   font-size: 13px !important;
   height: 30px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 .account-actions .ant-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
+  background: #e6e6e6 !important;
+  border-color: var(--theme-primary, #22c55e) !important;
   color: var(--theme-primary, #22c55e) !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
 }
 .account-actions .ant-btn:disabled {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
 }
-/* 主操作按钮（修改配置）主题色高亮 */
+/* 修改配置（ant-btn-primary 非危险）：主题色实色 */
 .account-actions .ant-btn-primary:not(.ant-btn-dangerous) {
-  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.12) !important;
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
-  color: var(--theme-primary, #22c55e) !important;
+  background: var(--theme-primary, #22c55e) !important;
+  border-color: var(--theme-primary, #22c55e) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb, 34,197,94), 0.4) !important;
 }
 .account-actions .ant-btn-primary:not(.ant-btn-dangerous):hover:not(:disabled) {
-  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.22) !important;
-  border-color: var(--theme-primary, #22c55e) !important;
-  color: var(--theme-primary, #22c55e) !important;
+  filter: brightness(1.1) !important;
+  box-shadow: 0 4px 14px rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
+  transform: translateY(-1px) !important;
 }
-/* 停止按钮红色 */
+/* 停止按钮：红色实色 */
 .account-actions .ant-btn-primary.ant-btn-dangerous {
-  background: rgba(255, 77, 79, 0.1) !important;
-  border-color: rgba(255, 77, 79, 0.4) !important;
-  color: #ff4d4f !important;
+  background: #fff0f0 !important;
+  border-color: #ffb3b3 !important;
+  color: #e53935 !important;
+  box-shadow: 0 1px 3px rgba(229,57,53,0.15) !important;
 }
 .account-actions .ant-btn-primary.ant-btn-dangerous:hover:not(:disabled) {
-  background: rgba(255, 77, 79, 0.2) !important;
-  border-color: #ff4d4f !important;
-  color: #ff4d4f !important;
+  background: #ffe0e0 !important;
+  border-color: #e53935 !important;
+  color: #e53935 !important;
+  box-shadow: 0 3px 10px rgba(229,57,53,0.25) !important;
 }
 </style>

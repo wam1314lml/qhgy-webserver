@@ -176,25 +176,25 @@
   align-items: center;
 }
 
-/* 所有操作按钮统一风格：白色半透明边框，主题色文字 */
+/* 所有操作按钮基础：浅灰实色 */
 .account-actions .ant-btn,
 .account-actions .action-button {
-  background: rgba(255, 255, 255, 0.6) !important;
-  border: 1px solid rgba(0, 0, 0, 0.15) !important;
-  color: #333 !important;
+  background: #f0f0f0 !important;
+  border: 1px solid #d0d0d0 !important;
+  color: #444 !important;
   border-radius: 8px !important;
   font-size: 13px !important;
   height: 30px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
 }
 .account-actions .ant-btn:hover:not(:disabled),
 .account-actions .action-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
+  background: #e6e6e6 !important;
+  border-color: var(--theme-primary, #22c55e) !important;
   color: var(--theme-primary, #22c55e) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
 }
 .account-actions .ant-btn:disabled,
 .account-actions .action-button:disabled {
@@ -221,29 +221,28 @@
 .status-indicator.offline { background: rgba(0, 0, 0, 0.2); }
 .status-indicator.error { background: #ff6b6b; box-shadow: 0 0 6px rgba(255,107,107,0.7); }
 
-/* 修改配置按钮：主题色突出 */
+/* 修改配置按钮：主题色实色填充 */
 .account-actions .ant-btn-primary:not(.ant-btn-dangerous) {
-  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.12) !important;
-  border-color: rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
-  color: var(--theme-primary, #22c55e) !important;
+  background: var(--theme-primary, #22c55e) !important;
+  border-color: var(--theme-primary, #22c55e) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb, 34,197,94), 0.4) !important;
 }
 .account-actions .ant-btn-primary:not(.ant-btn-dangerous):hover:not(:disabled) {
-  background: rgba(var(--theme-primary-rgb, 34,197,94), 0.22) !important;
-  border-color: var(--theme-primary, #22c55e) !important;
-  color: var(--theme-primary, #22c55e) !important;
+  filter: brightness(1.1) !important;
+  box-shadow: 0 4px 14px rgba(var(--theme-primary-rgb, 34,197,94), 0.5) !important;
 }
 
-/* 停止按钮：红色风格 */
+/* 停止按钮：红色浅底实色边框 */
 .account-actions .ant-btn-primary.ant-btn-dangerous {
-  background: rgba(255, 77, 79, 0.1) !important;
-  border-color: rgba(255, 77, 79, 0.4) !important;
-  color: #ff4d4f !important;
+  background: #fff0f0 !important;
+  border-color: #ffb3b3 !important;
+  color: #e53935 !important;
 }
 .account-actions .ant-btn-primary.ant-btn-dangerous:hover:not(:disabled) {
-  background: rgba(255, 77, 79, 0.2) !important;
-  border-color: #ff4d4f !important;
-  color: #ff4d4f !important;
-  transform: translateY(-1px);
+  background: #ffe0e0 !important;
+  border-color: #e53935 !important;
+  color: #e53935 !important;
 }
 
 /* ============================

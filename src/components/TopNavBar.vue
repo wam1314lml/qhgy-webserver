@@ -223,8 +223,19 @@ watch(
   height: 56px;
   background: var(--theme-nav-bg, rgba(255, 255, 255, 0.97));
   border-bottom: 1px solid var(--theme-nav-border, rgba(0, 0, 0, 0.06));
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
   transition: background 0.5s ease, border-color 0.5s ease;
+  position: relative;
+}
+
+/* 导航栏顶部主题色彩条 */
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--theme-btn-gradient, linear-gradient(135deg, #22c55e, #059669));
+  opacity: 0.85;
 }
 
 .navbar-left {
@@ -278,6 +289,19 @@ watch(
   background: transparent !important;
   flex: 1;
   min-width: 0;
+}
+
+/* 菜单选中项/hover用主题色 */
+.nav-menu :deep(.ant-menu-item-selected),
+.nav-menu :deep(.ant-menu-item-selected a) {
+  color: var(--theme-primary, #22c55e) !important;
+}
+.nav-menu :deep(.ant-menu-item-selected::after) {
+  border-bottom-color: var(--theme-primary, #22c55e) !important;
+}
+.nav-menu :deep(.ant-menu-item:hover),
+.nav-menu :deep(.ant-menu-item:hover a) {
+  color: var(--theme-primary, #22c55e) !important;
 }
 
 .navbar-right {
