@@ -592,6 +592,7 @@ const scriptServers = ref<ScriptServer[]>([])
 const selectedScriptServer = ref<ScriptServer | null>(null)
 const uid = ref<string>('')
 const gameToken = ref<string>('')
+const nickname = ref<string>('')
 
 // 支付宝扫码相关状态
 const qrcodeUrl = ref<string>('')
@@ -748,6 +749,7 @@ const handleLogin = async () => {
 
       uid.value = uidFromResponse || ''
       gameToken.value = gameTokenFromResponse || ''
+      nickname.value = response.data.data.nickname || ''
       currentStep.value = 'server'
     } else {
       message.error(response.data.message || '登录失败')
@@ -1084,6 +1086,7 @@ const handleBind = async () => {
         uid: uid.value,
         token: gameToken.value,
         parent_id: parentId,
+        nickname: nickname.value,
       }
 
       const response = await axios.post('/api/game-accounts/bind', bindPayload)
@@ -1119,6 +1122,7 @@ const resetForm = () => {
   selectedScriptServer.value = null
   uid.value = ''
   gameToken.value = ''
+  nickname.value = ''
 
   // 清理支付宝相关状态
   qrcodeUrl.value = ''
