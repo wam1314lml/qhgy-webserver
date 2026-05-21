@@ -125,15 +125,21 @@
               {{ account.server_name || account.server_id }}
             </div>
             <div class="info-line stats-line">
-              福地体力：{{ getAccountGameData(account).level }} 福地老鼠：{{
-                getAccountGameData(account).mouseCurrent
-              }}/{{ getAccountGameData(account).mouseMax }} 仙玉：{{
-                getAccountGameData(account).fairyValue
-              }}
-              赐福：{{ getAccountGameData(account).blessingValue }}
+              等级:{{ getAccountGameData(account).level }}
+              水滴:{{ getAccountGameData(account).water }}
+              元宝:{{ getAccountGameData(account).diamond }}
+              花坊币:{{ getAccountGameData(account).floralCoin }}
+              加速卡:{{ getAccountGameData(account).speedCard }}
+              雇佣书:{{ getAccountGameData(account).hireBook }}
+              珍珠:{{ getAccountGameData(account).pearl }}
+            </div>
+            <div class="info-line stats-line">
+              居订:{{ getAccountGameData(account).flowerFinsh }}
+              建订:{{ getAccountGameData(account).decorateFinish }}
+              绸订:{{ getAccountGameData(account).satinFinish }}
             </div>
             <div class="flex justify-between info-line expire-line">
-              <div>桃子：{{ getAccountGameData(account).peach }}</div>
+              <div></div>
               <div>
                 到期时间：<span
                   :style="{
@@ -660,52 +666,47 @@ let expiringBannerKey: string | null = null
 
 // 计算属性：获取账号的游戏数据
 const getAccountGameData = (account: GameAccount) => {
-  if (!account.record) {
-    return {
-      level: 0,
-      mouseCurrent: 0,
-      mouseMax: 0,
-      blessingValue: 0,
-      fairyValue: 0,
-      peach: 0,
-      isStarted: false,
-      isOnline: false,
-    }
+  const empty = {
+    level: 0,
+    water: 0,
+    diamond: 0,
+    floralCoin: 0,
+    speedCard: 0,
+    hireBook: 0,
+    pearl: 0,
+    flowerFinsh: 0,
+    decorateFinish: 0,
+    satinFinish: 0,
+    isStarted: false,
+    isOnline: false,
   }
 
-  // 获取基础状态信息
+  if (!account.record) return empty
+
   const isStarted = account.record.isStarted || false
   const isOnline = account.record.isOnline || false
 
-  // 获取游戏详情数据
-  const gameRecordDetails = account.record.record
+  const gameRecordDetails = account.record.record as any
 
-  if (!gameRecordDetails) {
-    // 游戏详情为空 (离线状态)，使用基础信息
-    return {
-      level: 0,
-      mouseCurrent: 0,
-      mouseMax: 0,
-      blessingValue: 0,
-      fairyValue: 0,
-      peach: 0,
-      isStarted,
-      isOnline,
-    }
-  }
+  if (!gameRecordDetails) return { ...empty, isStarted, isOnline }
 
-  const gameData = {
-    level: gameRecordDetails.homeland?.worker?.energy || 0,
-    mouseCurrent: gameRecordDetails.homeland?.worker?.free || 0,
-    mouseMax: gameRecordDetails.homeland?.worker?.total || 0,
-    blessingValue: gameRecordDetails.palace?.totalCount || 0,
-    fairyValue: parseInt(gameRecordDetails.bag?.xianYu || '0'),
-    peach: parseInt(gameRecordDetails.bag?.peach || '0'),
+  const attrs = gameRecordDetails.playerAttrs || {}
+  const orders = gameRecordDetails.orderStats || {}
+
+  return {
+    level: attrs.level ?? 0,
+    water: attrs.water ?? 0,
+    diamond: attrs.diamond ?? 0,
+    floralCoin: attrs.floralCoin ?? 0,
+    speedCard: attrs.speedCard ?? 0,
+    hireBook: attrs.hireBook ?? 0,
+    pearl: attrs.pearl ?? 0,
+    flowerFinsh: orders.flowerFinsh ?? 0,
+    decorateFinish: orders.decorateFinish ?? 0,
+    satinFinish: orders.satinFinish ?? 0,
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }
-
-  return gameData
 }
 
 // 检查账号是否有record数据
