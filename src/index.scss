@@ -45,3 +45,12 @@ p {
 #app-loading {
   display: none;
 }
+
+/* 保证非登录表单的 input 文字颜色为深色，防止主题色污染 */
+.ant-modal .ant-input,
+.ant-modal .ant-input-affix-wrapper .ant-input,
+.ant-modal .ant-input-number-input,
+.ant-modal .ant-select-selection-item,
+.ant-modal .ant-select-selection-search-input {
+  color: #1f2937 !important;
+}

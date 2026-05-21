@@ -1,6 +1,23 @@
 /* 添加游戏账号模态框样式 */
 /* 保留自定义按钮样式 */
 
+/* 修复：防止登录页白色文字样式污染 Modal 内的输入框 */
+.add-account-modal-antd .ant-input,
+.add-account-modal-antd .ant-input-affix-wrapper,
+.add-account-modal-antd .ant-input-affix-wrapper .ant-input,
+.add-account-modal-antd .ant-input-password .ant-input {
+  color: #1f2937 !important;
+  background: #ffffff !important;
+}
+.add-account-modal-antd .ant-input::placeholder,
+.add-account-modal-antd .ant-input-affix-wrapper input::placeholder {
+  color: rgba(0, 0, 0, 0.35) !important;
+}
+.add-account-modal-antd .ant-input-suffix,
+.add-account-modal-antd .ant-input-suffix svg {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
 .custom-steps {
   flex-direction: row !important;
 }
