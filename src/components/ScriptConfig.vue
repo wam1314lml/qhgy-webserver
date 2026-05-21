@@ -134,6 +134,10 @@
               珍珠:{{ getAccountGameData(account).pearl }}
             </div>
             <div class="info-line stats-line">
+              培育数量:{{ getAccountGameData(account).cultivatedCount }}
+              公会竞赛:{{ getAccountGameData(account).usedTaskNum }}/{{ getAccountGameData(account).totalTaskNum }}
+            </div>
+            <div class="info-line stats-line">
               居订:{{ getAccountGameData(account).flowerFinsh }}
               建订:{{ getAccountGameData(account).decorateFinish }}
               绸订:{{ getAccountGameData(account).satinFinish }}
@@ -674,6 +678,9 @@ const getAccountGameData = (account: GameAccount) => {
     speedCard: 0,
     hireBook: 0,
     pearl: 0,
+    cultivatedCount: 0,
+    usedTaskNum: 0,
+    totalTaskNum: 0,
     flowerFinsh: 0,
     decorateFinish: 0,
     satinFinish: 0,
@@ -692,6 +699,8 @@ const getAccountGameData = (account: GameAccount) => {
 
   const attrs = gameRecordDetails.playerAttrs || {}
   const orders = gameRecordDetails.orderStats || {}
+  const flowerStats = gameRecordDetails.flowerStats || {}
+  const fmlRace = gameRecordDetails.fmlRace || {}
 
   return {
     level: attrs.level ?? 0,
@@ -701,7 +710,10 @@ const getAccountGameData = (account: GameAccount) => {
     speedCard: attrs.speedCard ?? 0,
     hireBook: attrs.hireBook ?? 0,
     pearl: attrs.pearl ?? 0,
-    flowerFinsh: orders.flowerFinsh ?? 0,
+    cultivatedCount: flowerStats.cultivatedCount ?? 0,
+    usedTaskNum: fmlRace.usedTaskNum ?? 0,
+    totalTaskNum: fmlRace.totalTaskNum ?? 0,
+    flowerFinsh: orders.flowerFinish ?? 0,
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
     isStarted,
