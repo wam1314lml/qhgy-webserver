@@ -64,6 +64,6 @@ const flowerArtNameMap: Record<string, string> = {
 }
 
 export const flowerArtOptions = Object.entries(flowerArtNameMap).map(([value, label]) => ({
-  value: Number(value),
+  value,
   label,
 }))
