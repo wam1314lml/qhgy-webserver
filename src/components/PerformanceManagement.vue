@@ -282,7 +282,7 @@ const inviteSearchQuery = ref('')
 // 计算属性
 const inviteLink = computed(() => {
   const inviteCode = inviteInfo.value?.invite_code
-  return inviteCode ? `${window.location.origin}/register?invite=${inviteCode}` : ''
+  return inviteCode ? `${window.location.origin}/login?invite=${inviteCode}` : ''
 })
 
 const filteredInvitedUsers = computed(() => {

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginForm from '../components/LoginForm.vue'
 import Dashboard from '../components/Dashboard.vue'
-import RegisterPage from '../components/RegisterPage.vue'
 import PaymentSuccess from '../components/PaymentSuccess.vue'
 import GameConfigPage from '../pages/GameConfigPage.vue'
 import Help from '../components/HelpPage.vue'
@@ -22,7 +21,13 @@ const routes = [
   {
     path: '/register',
     name: 'Register',
-    component: RegisterPage,
+    redirect: (to) => ({
+      path: '/login',
+      query: {
+        ...to.query,
+        tab: 'register',
+      },
+    }),
   },
   {
     path: '/payment/success',

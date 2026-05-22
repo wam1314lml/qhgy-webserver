@@ -57,7 +57,7 @@
               <label>邀请链接：</label>
               <div class="invite-link-container">
                 <a-input-group compact>
-                  <a-input type="text" :value="`${baseUrl}/register?invite=${inviteInfo.invite_code}`" readonly
+                  <a-input type="text" :value="`${baseUrl}/login?invite=${inviteInfo.invite_code}`" readonly
                     class="invite-link-input" style="width: calc(100% - 64px)" />
                   <a-button class="copy-button" type="primary" @click="copyInviteLink">
                     复制
@@ -408,7 +408,7 @@ const showHelpMessage = () => {
 const copyInviteLink = async () => {
   if (!inviteInfo.value) return
 
-  const inviteLink = `${baseUrl.value}/register?invite=${inviteInfo.value.invite_code}`
+  const inviteLink = `${baseUrl.value}/login?invite=${inviteInfo.value.invite_code}`
 
   if (!isSupported) {
     message.error('您的浏览器不支持复制功能，请手动复制')
