@@ -281,6 +281,10 @@ export const createDefaultGameConfig = (): GameConfig =>
       yzCall: {
         enabled: false,
       },
+      actJYCALL: {
+        enabled: false,
+        recvBoxes: false,
+      },
       moneyTree: {
         enabled: false,
       },

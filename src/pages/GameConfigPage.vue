@@ -1593,6 +1593,24 @@
               <Switch v-model:checked="config.activity.yzCall.enabled" />
             </CustomFormItem>
 
+            <Divider orientation="left">为家业助力</Divider>
+            <CustomFormItem
+              label="自动助力"
+              name="activity.actJYCALL.enabled"
+              tooltip="自动为家业助力"
+            >
+              <Switch v-model:checked="config.activity.actJYCALL.enabled" />
+            </CustomFormItem>
+            <template v-if="config.activity.actJYCALL.enabled">
+              <CustomFormItem
+                label="领取助力奖励"
+                name="activity.actJYCALL.recvBoxes"
+                tooltip="自动领取家业助力的奖励"
+              >
+                <Switch v-model:checked="config.activity.actJYCALL.recvBoxes" />
+              </CustomFormItem>
+            </template>
+
             <Divider orientation="left">摇钱树</Divider>
             <CustomFormItem label="自动摇钱" name="activity.moneyTree.enabled">
               <Switch v-model:checked="config.activity.moneyTree.enabled" />

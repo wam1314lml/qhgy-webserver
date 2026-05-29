@@ -265,6 +265,10 @@ export interface GameConfig {
     yzCall: {
       enabled: boolean
     }
+    actJYCALL: {
+      enabled: boolean
+      recvBoxes: boolean
+    }
     moneyTree: {
       enabled: boolean
     }
