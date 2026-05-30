@@ -2,30 +2,12 @@
   <a-select
     v-bind="$attrs"
     v-model:value="modelValue"
+    :options="selectOptions"
+    :filter-option="filterOption"
     :class="className"
     class="custom-select"
     showArrow
-  >
-    <!-- 全选选项 -->
-    <a-select-option
-      v-if="showSelectAll && isMultipleMode"
-      :value="SELECT_ALL_VALUE"
-      style="font-weight: 600; border-bottom: 1px solid #f0f0f0"
-    >
-      <span style="color: #1890ff">
-        {{ isAllSelected ? '取消全选' : '全选' }}
-      </span>
-    </a-select-option>
-    <!-- 渲染选项列表 -->
-    <a-select-option
-      v-for="option in options"
-      :key="option.value"
-      :value="option.value"
-      :disabled="option.disabled"
-    >
-      {{ option.label }}
-    </a-select-option>
-  </a-select>
+  />
 </template>
 
 <script setup lang="ts">
@@ -71,6 +53,29 @@ const getAllOptionValues = computed(() => {
   if (!props.options) return []
   return props.options.filter((opt) => !opt.disabled).map((opt) => opt.value)
 })
+
+const selectOptions = computed(() => {
+  const options = props.options ?? []
+
+  if (!props.showSelectAll || !isMultipleMode.value) {
+    return options
+  }
+
+  return [
+    {
+      label: isAllSelected.value ? '取消全选' : '全选',
+      value: SELECT_ALL_VALUE,
+    },
+    ...options,
+  ]
+})
+
+const filterOption = (input: string, option?: SelectOption) => {
+  const keyword = input.trim().toLowerCase()
+  if (!keyword) return true
+
+  return String(option?.label ?? '').toLowerCase().includes(keyword)
+}
 
 // 判断是否已全选
 const isAllSelected = computed(() => {

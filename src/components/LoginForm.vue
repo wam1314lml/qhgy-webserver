@@ -11,7 +11,6 @@
               <span class="brand-icon">🌸</span>
               花园助手
             </h1>
-            <p class="login-brand-sub">Garden Assistant · 智能挂机管理平台</p>
           </div>
 
           <!-- 主题选择器 -->
@@ -203,32 +202,7 @@
           <div class="game-ground"></div>
         </div>
 
-        <!-- 数据统计卡片 -->
-        <div class="showcase-stats">
-          <div class="stat-card">
-            <span class="stat-icon">🌸</span>
-            <span class="stat-value">99+</span>
-            <span class="stat-label">花卉品种</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-icon">⚡</span>
-            <span class="stat-value">24H</span>
-            <span class="stat-label">自动挂机</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-icon">🏆</span>
-            <span class="stat-value">全自动</span>
-            <span class="stat-label">订单处理</span>
-          </div>
-        </div>
 
-        <!-- 滚动公告 -->
-        <div class="showcase-marquee">
-          <div class="marquee-inner">
-            <span class="marquee-badge">公告</span>
-            <span class="marquee-text">欢迎使用花园助手 · 自动培育花卉 · 智能完成订单 · 轻松赚取金币 🌻</span>
-          </div>
-        </div>
       </div>
     </div>
 

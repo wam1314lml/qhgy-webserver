@@ -704,6 +704,8 @@
                 mode="multiple"
                 placeholder="请选择花灵"
                 :options="elfOptions"
+                show-search
+                option-filter-prop="label"
                 style="width: 100%"
               />
             </CustomFormItem>
@@ -872,7 +874,8 @@
                   mode="multiple"
                   placeholder="请选择花朵"
                   :options="flowerOptions"
-                  showSearch
+                  show-search
+                  option-filter-prop="label"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -953,7 +956,8 @@
                   mode="multiple"
                   placeholder="请选择花朵"
                   :options="flowerOptions"
-                  showSearch
+                  show-search
+                  option-filter-prop="label"
                   style="width: 100%"
                 />
               </CustomFormItem>
