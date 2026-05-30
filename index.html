@@ -1,179 +1,185 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>xddq</title>
-    <style>
-      body {
-        margin: 0;
-      }
-      #app-loading {
-        position: fixed;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-flow: column;
-        align-items: center;
-        color: #666;
-        z-index: 9999;
-      }
-      
-      #app-loading .text {
-        opacity: 0;
-        position: absolute;
-        width: 100vw;
-        text-align: center;
-        bottom: -50px;
-        line-height: 1.5;
-        font-size: 14px;
-        transition: opacity 0.5s ease-in-out;
-        color: #666;
-        padding: 0 20px;
-        box-sizing: border-box;
-      }
-      
-      #app-loading .text.show {
-        opacity: 1;
-      }
-      
-      #app-loading .text.hide {
-        opacity: 0;
-      }
-      
-      #app-loading span {
-        color: #1d74f5;
-        cursor: pointer;
-        text-decoration: underline;
-        transition: color 0.2s ease;
-      }
-      
-      #app-loading span:hover {
-        color: #0d5fd5;
-      }
-      
-      .loading-animate {
-        width: 100px;
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-      }
-      
-      .loading-animate::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border: 4px solid rgba(29, 116, 245, 0.1);
-        border-top-color: #1d74f5;
-        border-radius: 50%;
-        animation: spin 1.2s linear infinite;
-        box-shadow: 0 0 15px rgba(29, 116, 245, 0.2);
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>garden</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #app-loading {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      color: #666;
+      z-index: 9999;
+    }
+
+    #app-loading .text {
+      opacity: 0;
+      position: absolute;
+      width: 100vw;
+      text-align: center;
+      bottom: -50px;
+      line-height: 1.5;
+      font-size: 14px;
+      transition: opacity 0.5s ease-in-out;
+      color: #666;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    #app-loading .text.show {
+      opacity: 1;
+    }
+
+    #app-loading .text.hide {
+      opacity: 0;
+    }
+
+    #app-loading span {
+      color: #1d74f5;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+
+    #app-loading span:hover {
+      color: #0d5fd5;
+    }
+
+    .loading-animate {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .loading-animate::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid rgba(29, 116, 245, 0.1);
+      border-top-color: #1d74f5;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+      box-shadow: 0 0 15px rgba(29, 116, 245, 0.2);
+    }
+
+    .loading-animate .box {
+      width: 18px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      transform-origin: top center;
+      animation: loadingswing 1.8s infinite ease-in-out;
+      position: relative;
+      z-index: 10;
+    }
+
+    .loading-animate .box .line {
+      width: 2px;
+      height: 26px;
+      background: linear-gradient(180deg, #333 0%, #666 100%);
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .loading-animate .box .dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d74f5 0%, #1d9ff5 100%);
+      box-shadow: 0 3px 8px rgba(29, 116, 245, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      animation: dotPulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes loadingswing {
+      0% {
+        transform: rotate(40deg);
       }
 
-      .loading-animate .box {
-        width: 18px;
-        height: 45px;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        transform-origin: top center;
-        animation: loadingswing 1.8s infinite ease-in-out;
-        position: relative;
-        z-index: 10;
+      50% {
+        transform: rotate(-40deg);
       }
 
-      .loading-animate .box .line {
-        width: 2px;
-        height: 26px;
-        background: linear-gradient(180deg, #333 0%, #666 100%);
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      100% {
+        transform: rotate(40deg);
       }
+    }
 
-      .loading-animate .box .dot {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #1d74f5 0%, #1d9ff5 100%);
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
         box-shadow: 0 3px 8px rgba(29, 116, 245, 0.3),
-                    inset 0 -2px 4px rgba(0, 0, 0, 0.1),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.3);
-        animation: dotPulse 1.8s infinite ease-in-out;
+          inset 0 -2px 4px rgba(0, 0, 0, 0.1),
+          inset 0 2px 4px rgba(255, 255, 255, 0.3);
       }
 
-      @keyframes loadingswing {
-        0% {
-          transform: rotate(40deg);
-        }
-        50% {
-          transform: rotate(-40deg);
-        }
-        100% {
-          transform: rotate(40deg);
-        }
+      50% {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(29, 116, 245, 0.5),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.1),
+          inset 0 2px 4px rgba(255, 255, 255, 0.3);
       }
-      
-      @keyframes dotPulse {
-        0%, 100% {
-          transform: scale(1);
-          box-shadow: 0 3px 8px rgba(29, 116, 245, 0.3),
-                      inset 0 -2px 4px rgba(0, 0, 0, 0.1),
-                      inset 0 2px 4px rgba(255, 255, 255, 0.3);
-        }
-        50% {
-          transform: scale(1.1);
-          box-shadow: 0 4px 12px rgba(29, 116, 245, 0.5),
-                      inset 0 -2px 4px rgba(0, 0, 0, 0.1),
-                      inset 0 2px 4px rgba(255, 255, 255, 0.3);
-        }
-      }
-      
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
 
-    </style>
-    <script>
-      // 10秒后显示第一条提示
-      setTimeout(function () {
-        var loadingText = document.querySelector('#app-loading .text')
-        if (loadingText && document.getElementById('app-loading')) {
-          loadingText.textContent = '数据加载中，请耐心等候'
-          loadingText.classList.add('show')
-        }
-      }, 10000)
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+  <script>
+    // 10秒后显示第一条提示
+    setTimeout(function () {
+      var loadingText = document.querySelector('#app-loading .text')
+      if (loadingText && document.getElementById('app-loading')) {
+        loadingText.textContent = '数据加载中，请耐心等候'
+        loadingText.classList.add('show')
+      }
+    }, 10000)
 
-      // 30秒后显示第二条提示（带刷新链接）
-      setTimeout(function () {
-        var loadingText = document.querySelector('#app-loading .text')
-        if (loadingText && document.getElementById('app-loading')) {
-          loadingText.innerHTML = '数据还在路上，您可继续等候或尝试 <span onclick="location.reload()">刷新</span>'
-          loadingText.classList.add('show')
-        }
-      }, 30000)
-    </script>
-  </head>
-  <body>
-    <div id="app"></div>
-    <div id="app-loading">
-      <div class="loading-animate">
-        <div class="box">
-          <div class="line w2 h25"></div>
-          <div class="dot w16 h16 br10"></div>
-        </div>
+    // 30秒后显示第二条提示（带刷新链接）
+    setTimeout(function () {
+      var loadingText = document.querySelector('#app-loading .text')
+      if (loadingText && document.getElementById('app-loading')) {
+        loadingText.innerHTML = '数据还在路上，您可继续等候或尝试 <span onclick="location.reload()">刷新</span>'
+        loadingText.classList.add('show')
+      }
+    }, 30000)
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="app-loading">
+    <div class="loading-animate">
+      <div class="box">
+        <div class="line w2 h25"></div>
+        <div class="dot w16 h16 br10"></div>
       </div>
-      <div class="text"></div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <div class="text"></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>

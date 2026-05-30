@@ -29,21 +29,38 @@
                 >
               </template>
             </div>
-            <div class="account-menu">
-              <a-dropdown trigger="click">
-                <a-tooltip
-                  v-if="account.id === expiredTooltipAccountId"
-                  :open="expiredTooltipOpen"
-                  placement="bottomRight"
-                  :title="expiredTooltipText"
-                  :overlayStyle="expiredTooltipOuterStyle"
-                  :overlayInnerStyle="expiredTooltipInnerStyle"
-                  :getPopupContainer="getTooltipContainer"
-                  arrow-point-at-center
-                  destroy-tooltip-on-hide
-                  :auto-adjust-overflow="false"
-                >
+            <div class="account-header-right">
+              <div class="server-line">
+                <img v-if="account.platform === 1" src="/icons/alipay.svg" width="18" class="v-sub" />
+                <img v-if="account.platform === 2" src="/icons/qq.svg" width="18" class="v-sub" />
+                <img v-if="account.platform === 3" src="/icons/huawei.svg" width="18" class="v-sub" />
+                {{ account.server_name || account.server_id }}
+              </div>
+              <div class="account-menu">
+                <a-dropdown trigger="click">
+                  <a-tooltip
+                    v-if="account.id === expiredTooltipAccountId"
+                    :open="expiredTooltipOpen"
+                    placement="bottomRight"
+                    :title="expiredTooltipText"
+                    :overlayStyle="expiredTooltipOuterStyle"
+                    :overlayInnerStyle="expiredTooltipInnerStyle"
+                    :getPopupContainer="getTooltipContainer"
+                    arrow-point-at-center
+                    destroy-tooltip-on-hide
+                    :auto-adjust-overflow="false"
+                  >
+                    <a-button
+                      class="menu-button"
+                      shape="circle"
+                      type="text"
+                      :data-account-id="account.id"
+                      :icon="h(MoreOutlined)"
+                    >
+                    </a-button>
+                  </a-tooltip>
                   <a-button
+                    v-else
                     class="menu-button"
                     shape="circle"
                     type="text"
@@ -51,48 +68,38 @@
                     :icon="h(MoreOutlined)"
                   >
                   </a-button>
-                </a-tooltip>
-                <a-button
-                  v-else
-                  class="menu-button"
-                  shape="circle"
-                  type="text"
-                  :data-account-id="account.id"
-                  :icon="h(MoreOutlined)"
-                >
-                </a-button>
-                <template #overlay>
-                  <a-menu @click="(e: any) => handleMenuClick(e, account)">
-                    <a-menu-item key="extend">
-                      <template #icon>
-                        <PlusOutlined />
-                      </template>
-                      增加配额
-                    </a-menu-item>
-                    <!-- 开通试用选项：仅对2025-12-07之后创建且无配额的账号显示 -->
-                    <a-menu-item
-                      v-if="canActivateTrial(account)"
-                      key="activateTrial"
-                      class="trial-item"
-                    >
-                      <template #icon>
-                        <GiftOutlined />
-                      </template>
-                      开通试用
-                    </a-menu-item>
-                    <a-menu-item v-if="account.platform === 1" key="alipayRescan">
-                      <template #icon>
-                        <SyncOutlined />
-                      </template>
-                      三十天扫码保持（防掉线）
-                    </a-menu-item>
-                    <a-menu-item key="updatePassword">
-                      <template #icon>
-                        <LockOutlined />
-                      </template>
-                      更新游戏密码
-                    </a-menu-item>
-                    <!-- :disabled="
+                  <template #overlay>
+                    <a-menu @click="(e: any) => handleMenuClick(e, account)">
+                      <a-menu-item key="extend">
+                        <template #icon>
+                          <PlusOutlined />
+                        </template>
+                        增加配额
+                      </a-menu-item>
+                      <!-- 开通试用选项：仅对2025-12-07之后创建且无配额的账号显示 -->
+                      <a-menu-item
+                        v-if="canActivateTrial(account)"
+                        key="activateTrial"
+                        class="trial-item"
+                      >
+                        <template #icon>
+                          <GiftOutlined />
+                        </template>
+                        开通试用
+                      </a-menu-item>
+                      <a-menu-item v-if="account.platform === 1" key="alipayRescan">
+                        <template #icon>
+                          <SyncOutlined />
+                        </template>
+                        三十天扫码保持（防掉线）
+                      </a-menu-item>
+                      <a-menu-item key="updatePassword">
+                        <template #icon>
+                          <LockOutlined />
+                        </template>
+                        更新游戏密码
+                      </a-menu-item>
+                      <!-- :disabled="
                       !(
                         operatingAccounts.has(account.id) ||
                         getAccountStartedStatus(account) ||
@@ -101,46 +108,75 @@
                         new Date(account.expire_time) < new Date()
                       )
                     " -->
-                    <a-menu-item
-                      :disabled="operatingAccounts.has(account.id)"
-                      key="delete"
-                      class="delete-item"
-                    >
-                      <template #icon>
-                        <DeleteOutlined />
-                      </template>
-                      删除角色
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+                      <a-menu-item
+                        :disabled="operatingAccounts.has(account.id)"
+                        key="delete"
+                        class="delete-item"
+                      >
+                        <template #icon>
+                          <DeleteOutlined />
+                        </template>
+                        删除角色
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
             </div>
           </div>
 
           <div class="account-info">
-            <div class="info-line server-line">
-              <img v-if="account.platform === 1" src="/icons/alipay.svg" width="18" class="v-sub" />
-              <img v-if="account.platform === 2" src="/icons/qq.svg" width="18" class="v-sub" />
-              <img v-if="account.platform === 3" src="/icons/huawei.svg" width="18" class="v-sub" />
-              {{ account.server_name || account.server_id }}
+            <div class="stats-grid resource-stats">
+              <div class="stat-item">
+                <span class="stat-label">等级</span>
+                <span class="stat-value">{{ getAccountGameData(account).level }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">水滴</span>
+                <span class="stat-value">{{ getAccountGameData(account).water }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">元宝</span>
+                <span class="stat-value">{{ getAccountGameData(account).diamond }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">花坊币</span>
+                <span class="stat-value">{{ getAccountGameData(account).floralCoin }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">加速卡</span>
+                <span class="stat-value">{{ getAccountGameData(account).speedCard }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">雇佣书</span>
+                <span class="stat-value">{{ getAccountGameData(account).hireBook }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">珍珠</span>
+                <span class="stat-value">{{ getAccountGameData(account).pearl }}</span>
+              </div>
             </div>
-            <div class="info-line stats-line">
-              等级:{{ getAccountGameData(account).level }}
-              水滴:{{ getAccountGameData(account).water }}
-              元宝:{{ getAccountGameData(account).diamond }}
-              花坊币:{{ getAccountGameData(account).floralCoin }}
-              加速卡:{{ getAccountGameData(account).speedCard }}
-              雇佣书:{{ getAccountGameData(account).hireBook }}
-              珍珠:{{ getAccountGameData(account).pearl }}
-            </div>
-            <div class="info-line stats-line">
-              培育数量:{{ getAccountGameData(account).cultivatedCount }}
-              公会竞赛:{{ getAccountGameData(account).usedTaskNum }}/{{ getAccountGameData(account).totalTaskNum }}
-            </div>
-            <div class="info-line stats-line">
-              居订:{{ getAccountGameData(account).flowerFinsh }}
-              建订:{{ getAccountGameData(account).decorateFinish }}
-              绸订:{{ getAccountGameData(account).satinFinish }}
+            <div class="stats-grid task-stats">
+              <div class="stat-item compact">
+                <span class="stat-label">培育数量</span>
+                <span class="stat-value">{{ getAccountGameData(account).cultivatedCount }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">工会竞赛</span>
+                <span class="stat-value"
+                  >{{ getAccountGameData(account).usedTaskNum }}/{{
+                    getAccountGameData(account).totalTaskNum
+                  }}</span
+                >
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">居民订单</span>
+                <span class="stat-value">{{
+                  getAccountGameData(account).flowerFinsh +
+                  getAccountGameData(account).decorateFinish +
+                  getAccountGameData(account).satinFinish
+                }}</span>
+              </div>
             </div>
             <div class="flex justify-between info-line expire-line">
               <div></div>

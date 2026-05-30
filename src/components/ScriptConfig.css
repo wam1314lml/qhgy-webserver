@@ -110,6 +110,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
@@ -121,6 +122,16 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .alipay-token-tag {
@@ -173,19 +184,67 @@
 }
 
 .server-line {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.stats-line,
+.stat-label {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 12px;
 }
 
 .stats-line {
-  color: rgba(0, 0, 0, 0.55);
-  font-size: 12px;
   margin-bottom: 4px;
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+}
+
+.resource-stats {
+  margin-bottom: 8px;
+}
+
+.task-stats {
+  margin-bottom: 6px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: baseline;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.stat-label::after {
+  content: ':';
+  margin: 0 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.stat-value {
+  color: rgba(0, 0, 0, 0.72);
+  font-weight: 600;
+}
+
+.stat-item.compact {
+  letter-spacing: 0;
+}
+
+.order-total .stat-label::after {
+  font-size: 16px;
 }
 
 .expire-line {

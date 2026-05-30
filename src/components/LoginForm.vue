@@ -161,7 +161,7 @@
       <div class="login-showcase-panel">
         <div class="showcase-title">
           <h2>🌺 花园世界</h2>
-          <p>自动培育 · 智能挂机 · 轻松收获</p>
+          <p>自动培育 · 托管 · 轻松收获</p>
         </div>
 
         <!-- 游戏场景动画 -->
