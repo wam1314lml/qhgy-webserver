@@ -185,6 +185,11 @@ const handleExpiryBannerChange = (visible: boolean) => {
 
 // 处理菜单选择
 const handleMenuSelect = ({ key }: { key: string }) => {
+  if (key === 'agent') {
+    // 代理后台跳转到独立页面
+    router.push('/agent')
+    return
+  }
   currentView.value = key as 'script' | 'admin' | 'performance'
   selectedKeys.value = [key]
 }

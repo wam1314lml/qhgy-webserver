@@ -40,6 +40,13 @@
           <a-menu-item v-if="user?.permissions?.invite_system" key="performance" class="nav-tab">
             业绩管理
           </a-menu-item>
+          <a-menu-item
+            v-if="user?.role === 'vip1' || user?.role === 'vip2'"
+            key="agent"
+            class="nav-tab"
+          >
+            代理后台
+          </a-menu-item>
           <a-menu-item v-if="user?.role === 'admin'" key="admin" class="nav-tab">
             管理面板
           </a-menu-item>

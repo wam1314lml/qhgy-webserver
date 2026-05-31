@@ -423,11 +423,13 @@ const getRoleDisplayName = (role: string) => {
     case 'subadmin':
       return '总代'
     case 'vip2':
-      return 'VIP用户2'
+      return '二级代理'
     case 'vip1':
-      return 'VIP1用户'
+      return '二级代理'
     case 'vip':
       return 'VIP用户'
+    case 'agent3':
+      return '三级代理'
     case 'user':
       return '普通用户'
     default:

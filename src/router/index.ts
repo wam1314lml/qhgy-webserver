@@ -81,11 +81,12 @@ router.beforeEach((to, from, next) => {
   if (!['Login', 'Register'].includes(to.name as string) && localStorage.token) {
     updateUserBalance()
   }
-  // 二级代理专属页面权限守卫
+  // 二级代理专属页面权限守卫（vip1/vip2 可访问）
   if (to.meta?.requiresSubadmin) {
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-      if (userInfo.role !== 'subadmin') {
+      const SECOND_LEVEL_ROLES = ['vip1', 'vip2']
+      if (!SECOND_LEVEL_ROLES.includes(userInfo.role)) {
         return next({ name: 'Dashboard' })
       }
     } catch {

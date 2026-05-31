@@ -312,10 +312,20 @@ function statusLabel(s: string) {
   return map[s] || s
 }
 function getRoleClass(role: string) {
-  if (['vip2', 'vip1', 'vip'].includes(role)) return 'role-vip'
-  if (role === 'subadmin') return 'role-subadmin'
-  if (role === 'admin') return 'role-admin'
+  if (['vip2', 'vip1'].includes(role)) return 'role-subadmin'
+  if (role === 'agent3') return 'role-vip'
+  if (role === 'vip') return 'role-vip'
+  if (role === 'admin' || role === 'subadmin') return 'role-admin'
   return 'role-user'
+}
+
+function getRoleLabel(role: string) {
+  const map: Record<string, string> = {
+    admin: '管理员', subadmin: '总代',
+    vip1: '二级代理', vip2: '二级代理',
+    agent3: '三级代理', vip: 'VIP', user: '普通用户',
+  }
+  return map[role] || role
 }
 
 // ── 我的分成 ──

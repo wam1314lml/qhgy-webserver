@@ -29,6 +29,62 @@
       />
     </a-card>
 
+    <!-- 代理设置 Modal -->
+    <a-modal
+      :title="`代理设置 - ${agentConfigTarget?.username || ''}`"
+      v-model:open="agentConfigModalOpen"
+      @ok="handleAgentConfigSubmit"
+      @cancel="closeAgentConfigModal"
+      :confirm-loading="agentConfigLoading"
+      width="480px"
+      ok-text="确认"
+      cancel-text="取消"
+    >
+      <a-form :model="agentConfigForm" layout="vertical" style="margin-top:8px">
+        <a-form-item label="操作类型">
+          <a-radio-group v-model:value="agentConfigForm.action">
+            <a-radio value="appoint">任命为三级代理</a-radio>
+            <a-radio value="dismiss" :disabled="agentConfigTarget?.role !== 'agent3'">卸任三级代理</a-radio>
+          </a-radio-group>
+        </a-form-item>
+
+        <template v-if="agentConfigForm.action === 'appoint'">
+          <a-form-item label="上级代理（vip1/vip2）">
+            <a-select
+              v-model:value="agentConfigForm.parent_agent_id"
+              placeholder="请选择上级代理"
+              style="width:100%"
+              :options="vipAgentOptions"
+              :loading="vipAgentsLoading"
+              show-search
+              option-filter-prop="label"
+            />
+          </a-form-item>
+          <a-form-item label="分成比例（%）">
+            <a-input-number
+              v-model:value="agentConfigForm.commission_rate"
+              :min="1"
+              :max="selectedParentMaxRate"
+              :precision="0"
+              style="width:100%"
+              :placeholder="`1 ~ ${selectedParentMaxRate}（不超过上级比例）`"
+            />
+            <div v-if="agentConfigForm.parent_agent_id" style="color:#888;font-size:12px;margin-top:4px">
+              上级有效比例：{{ selectedParentMaxRate }}%，三级代理比例必须小于此值
+            </div>
+          </a-form-item>
+        </template>
+
+        <a-alert
+          v-if="agentConfigForm.action === 'dismiss'"
+          type="warning"
+          message="卸任后该用户降为普通用户，待提现分成记录将被作废"
+          show-icon
+          style="margin-top:8px"
+        />
+      </a-form>
+    </a-modal>
+
     <!-- 单个用户点数操作Modal -->
     <a-modal
       :title="`${singleOperationType === 'add' ? '加点数' : '扣点数'} - ${selectedUserForPoints?.username || ''}`"
@@ -161,6 +217,40 @@ const singlePointsForm = ref({
   reason: '',
 })
 
+// ── 代理设置 ──
+interface VipAgent {
+  id: number
+  username: string
+  email: string
+  role: string
+  effective_rate: number
+}
+
+const agentConfigModalOpen = ref(false)
+const agentConfigLoading = ref(false)
+const agentConfigTarget = ref<User | null>(null)
+const vipAgents = ref<VipAgent[]>([])
+const vipAgentsLoading = ref(false)
+
+const agentConfigForm = ref({
+  action: 'appoint' as 'appoint' | 'dismiss',
+  parent_agent_id: undefined as number | undefined,
+  commission_rate: undefined as number | undefined,
+})
+
+const vipAgentOptions = computed(() =>
+  vipAgents.value.map((v) => ({
+    value: v.id,
+    label: `${v.username}（${v.role}，${(v.effective_rate * 100).toFixed(0)}%）`,
+  }))
+)
+
+const selectedParentMaxRate = computed(() => {
+  if (!agentConfigForm.value.parent_agent_id) return 25
+  const found = vipAgents.value.find((v) => v.id === agentConfigForm.value.parent_agent_id)
+  return found ? Math.max(1, Math.floor(found.effective_rate * 100) - 1) : 25
+})
+
 // 用户表格列
 const userColumns = computed(() => [
   {
@@ -272,6 +362,15 @@ const userColumns = computed(() => [
           },
           '扣点',
         ),
+        h(
+          Button,
+          {
+            size: 'small',
+            style: { background: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
+            onClick: () => openAgentConfigModal(record),
+          },
+          '代理设置',
+        ),
       ])
     },
   },
@@ -377,6 +476,66 @@ const updateUserRole = async (userId: number, role: string) => {
   await axios.put(`/api/admin/users/${userId}/role`, { role })
   message.success('用户角色更新成功')
   fetchUsers()
+}
+
+// 打开代理设置弹窗
+const openAgentConfigModal = async (user: User) => {
+  agentConfigTarget.value = user
+  agentConfigForm.value = {
+    action: user.role === 'agent3' ? 'appoint' : 'appoint',
+    parent_agent_id: undefined,
+    commission_rate: undefined,
+  }
+  agentConfigModalOpen.value = true
+  // 加载 vip 代理列表
+  vipAgentsLoading.value = true
+  try {
+    const res = await axios.get('/api/admin/users/vip-agents')
+    if (res.data.success) vipAgents.value = res.data.data
+  } catch {
+    message.error('获取代理列表失败')
+  } finally {
+    vipAgentsLoading.value = false
+  }
+}
+
+const closeAgentConfigModal = () => {
+  agentConfigModalOpen.value = false
+  agentConfigTarget.value = null
+  vipAgents.value = []
+}
+
+const handleAgentConfigSubmit = async () => {
+  if (!agentConfigTarget.value) return
+  const { action, parent_agent_id, commission_rate } = agentConfigForm.value
+
+  if (action === 'appoint') {
+    if (!parent_agent_id) { message.warning('请选择上级代理'); return }
+    if (!commission_rate || commission_rate < 1) { message.warning('请填写有效的分成比例'); return }
+    if (commission_rate >= selectedParentMaxRate.value + 1) {
+      message.warning(`分成比例必须小于上级有效比例`); return
+    }
+  }
+
+  agentConfigLoading.value = true
+  try {
+    const res = await axios.put(`/api/admin/users/${agentConfigTarget.value.id}/agent-config`, {
+      action,
+      parent_agent_id,
+      commission_rate,
+    })
+    if (res.data.success) {
+      message.success(res.data.message || '操作成功')
+      closeAgentConfigModal()
+      fetchUsers()
+    } else {
+      message.error(res.data.message || '操作失败')
+    }
+  } catch (err: any) {
+    message.error(err?.response?.data?.message || '操作失败')
+  } finally {
+    agentConfigLoading.value = false
+  }
 }
 
 // 单个用户加点
