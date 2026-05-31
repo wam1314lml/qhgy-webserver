@@ -279,7 +279,7 @@
         <a-form-item label="中奖权重" required>
           <a-input-number
             v-model:value="prizeForm.probability"
-            :min="0"
+            :min="0.01"
             :step="0.1"
             :precision="2"
             style="width: 100%"
@@ -446,7 +446,8 @@ const handleEditPrize = (prize: any) => {
 const handleSavePrize = async () => {
   if (
     !prizeForm.value.prize_name ||
-    !prizeForm.value.reward_value
+    !prizeForm.value.reward_value ||
+    !prizeForm.value.probability
   ) {
     message.warning('请填写完整信息')
     return

@@ -283,21 +283,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axiosInstance from '../utils/axios'
+
 const router = useRouter()
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
-
-function authHeaders() {
-  const token = localStorage.getItem('token')
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
-
-async function apiFetch(path: string, opts: RequestInit = {}) {
-  const res = await fetch(`${API_BASE}/api/agent${path}`, {
-    ...opts,
-    headers: { ...authHeaders(), ...(opts.headers || {}) },
-  })
-  return res.json()
+// 使用项目 axios 实例（自动带 challenge 签名头 + token）
+async function apiFetch(path: string, opts: { method?: string; body?: string } = {}) {
+  const method = (opts.method || 'GET').toLowerCase()
+  const data = opts.body ? JSON.parse(opts.body) : undefined
+  let res: any
+  if (method === 'post') {
+    res = await axiosInstance.post(`/api/agent${path}`, data)
+  } else if (method === 'put') {
+    res = await axiosInstance.put(`/api/agent${path}`, data)
+  } else if (method === 'delete') {
+    res = await axiosInstance.delete(`/api/agent${path}`)
+  } else {
+    // path 可能含 query string，直接传完整路径
+    res = await axiosInstance.get(`/api/agent${path}`)
+  }
+  return res.data
 }
 
 // ── 格式化 ──
