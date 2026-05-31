@@ -36,6 +36,10 @@
       <PerformanceManagement :user="user" :token="token" />
     </div>
 
+    <div v-else-if="currentView === 'agent'" class="main-content">
+      <AgentManagement />
+    </div>
+
     <div v-else-if="currentView === 'admin'" class="main-content">
       <AdminLogin v-if="!adminToken" @login-success="handleAdminLoginSuccess" />
       <AdminPanel v-else :token="adminToken" :user="user" @logout="handleAdminLogout" />
@@ -50,6 +54,7 @@ import ScriptConfig from './ScriptConfig.vue'
 import AdminPanel from './AdminPanel.vue'
 import AdminLogin from './AdminLogin.vue'
 import PerformanceManagement from './PerformanceManagement.vue'
+import AgentManagement from './AgentManagement.vue'
 import TopNavBar from './TopNavBar.vue'
 
 interface User {
@@ -76,7 +81,7 @@ const token = ref<string>('')
 const isLoggedIn = ref(false)
 
 // 响应式数据
-const currentView = ref<'script' | 'admin' | 'performance'>('script')
+const currentView = ref<'script' | 'admin' | 'performance' | 'agent'>('script')
 const adminToken = ref<string | null>(localStorage.getItem('adminToken'))
 const adminInfo = ref<any>(null)
 const selectedKeys = ref<string[]>(['script'])
@@ -185,12 +190,7 @@ const handleExpiryBannerChange = (visible: boolean) => {
 
 // 处理菜单选择
 const handleMenuSelect = ({ key }: { key: string }) => {
-  if (key === 'agent') {
-    // 代理后台跳转到独立页面
-    router.push('/agent')
-    return
-  }
-  currentView.value = key as 'script' | 'admin' | 'performance'
+  currentView.value = key as 'script' | 'admin' | 'performance' | 'agent'
   selectedKeys.value = [key]
 }
 

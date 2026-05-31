@@ -2,8 +2,7 @@
   <div class="agent-mgmt">
     <!-- 头部 -->
     <div class="agent-header">
-      <button class="back-btn" @click="router.back()">← 返回</button>
-      <h1>二级代理后台</h1>
+      <h1>代理后台</h1>
       <p class="agent-subtitle">管理您的三级代理，查看实时业绩</p>
     </div>
 
@@ -282,10 +281,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import axiosInstance from '../utils/axios'
-
-const router = useRouter()
 
 // 使用项目 axios 实例（自动带 challenge 签名头 + token）
 async function apiFetch(path: string, opts: { method?: string; body?: string } = {}) {
