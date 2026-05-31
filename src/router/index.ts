@@ -84,7 +84,7 @@ router.beforeEach((to, from, next) => {
   // 二级代理专属页面权限守卫（vip1/vip2 可访问）
   if (to.meta?.requiresSubadmin) {
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+      const userInfo = JSON.parse(localStorage.getItem('user') || '{}')
       const SECOND_LEVEL_ROLES = ['vip1', 'vip2']
       if (!SECOND_LEVEL_ROLES.includes(userInfo.role)) {
         return next({ name: 'Dashboard' })
