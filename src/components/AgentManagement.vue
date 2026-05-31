@@ -9,7 +9,8 @@
     <!-- 我的分成卡片 -->
     <div class="agent-card my-commission-card">
       <h2>我的分成概览</h2>
-      <div v-if="myCommission" class="commission-grid">
+      <div v-if="myCommissionError" class="load-error">{{ myCommissionError }}</div>
+      <div v-else-if="myCommission" class="commission-grid">
         <div class="commission-item">
           <div class="commission-number">¥{{ fmt(myCommission.stats.total_commission) }}</div>
           <div class="commission-label">累计分成</div>
@@ -95,6 +96,7 @@
       </div>
 
       <div v-if="agentsLoading" class="loading-text">加载中...</div>
+      <div v-else-if="agentsError" class="load-error">{{ agentsError }}</div>
       <div v-else-if="myAgents.length === 0" class="empty-tip">暂无三级代理，去上方搜索并任命吧</div>
 
       <div v-else class="agents-table-wrap">
@@ -330,18 +332,37 @@ function getRoleLabel(role: string) {
 
 // ── 我的分成 ──
 const myCommission = ref<any>(null)
+const myCommissionError = ref('')
 async function loadMyCommission() {
-  const res = await apiFetch('/my-commission')
-  if (res.success) myCommission.value = res.data
+  try {
+    const res = await apiFetch('/my-commission')
+    if (res.success) {
+      myCommission.value = res.data
+    } else {
+      myCommissionError.value = res.message || '加载失败'
+    }
+  } catch (e: any) {
+    myCommissionError.value = '网络错误，请刷新重试'
+  }
 }
 
 // ── 旗下代理 ──
 const myAgents = ref<any[]>([])
 const agentsLoading = ref(false)
+const agentsError = ref('')
 async function loadMyAgents() {
   agentsLoading.value = true
-  const res = await apiFetch('/my-agents')
-  if (res.success) myAgents.value = res.data
+  agentsError.value = ''
+  try {
+    const res = await apiFetch('/my-agents')
+    if (res.success) {
+      myAgents.value = res.data
+    } else {
+      agentsError.value = res.message || '加载失败'
+    }
+  } catch (e: any) {
+    agentsError.value = '网络错误，请刷新重试'
+  }
   agentsLoading.value = false
 }
 
@@ -394,7 +415,7 @@ async function doAppoint() {
     method: 'POST',
     body: JSON.stringify({
       userId: selectedUser.value.id,
-      commissionRate: appointRate.value / 100,
+      commissionRate: appointRate.value,  // 后端期望整数百分比，如 10 表示 10%
     }),
   })
   appointSuccess.value = res.success
@@ -687,6 +708,7 @@ onMounted(() => {
 .msg-error   { color: #dc2626; font-size: 13px; margin-top: 6px; }
 .loading-text { color: #aaa; font-size: 14px; }
 .empty-tip    { color: #aaa; font-size: 14px; padding: 16px 0; }
+.load-error   { color: #dc2626; font-size: 14px; padding: 12px 0; }
 
 /* 代理列表 */
 .card-header-row {

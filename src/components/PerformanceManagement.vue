@@ -23,9 +23,29 @@
       </div>
 
       <div class="performance-content">
-        <!-- 代理身份卡片 -->
+        <!-- 二级代理身份卡片 -->
         <div
-          v-if="inviteStats?.agentInfo?.isThirdLevelAgent"
+          v-if="inviteStats?.agentInfo?.role === 'vip1' || inviteStats?.agentInfo?.role === 'vip2'"
+          class="performance-card agent-identity-card"
+        >
+          <div class="agent-identity-content">
+            <div>
+              <h2>代理身份</h2>
+              <p class="agent-identity-title">我是二级代理</p>
+              <p class="agent-identity-desc" v-if="inviteStats.agentInfo.commissionRate != null">
+                我的抽成比例：
+                <strong class="commission-rate-value">
+                  {{ (inviteStats.agentInfo.commissionRate * 100).toFixed(0) }}%
+                </strong>
+              </p>
+            </div>
+            <span class="agent-role-badge">二级代理</span>
+          </div>
+        </div>
+
+        <!-- 三级代理身份卡片 -->
+        <div
+          v-else-if="inviteStats?.agentInfo?.isThirdLevelAgent"
           class="performance-card agent-identity-card"
         >
           <div class="agent-identity-content">
@@ -43,9 +63,7 @@
                 </strong>
               </p>
             </div>
-            <span class="agent-role-badge">
-              {{ getRoleDisplayName(inviteStats.agentInfo.role) }}
-            </span>
+            <span class="agent-role-badge">三级代理</span>
           </div>
         </div>
 
