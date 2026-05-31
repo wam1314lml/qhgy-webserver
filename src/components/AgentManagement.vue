@@ -47,12 +47,17 @@
             v-for="user in searchResults"
             :key="user.id"
             class="search-result-item"
-            :class="{ selected: selectedUser?.id === user.id }"
-            @click="selectUser(user)"
+            :class="{
+              selected: selectedUser?.id === user.id,
+              disabled: isUserDisabled(user)
+            }"
+            @click="!isUserDisabled(user) && selectUser(user)"
           >
             <span class="result-name">{{ user.username }}</span>
             <span class="result-email">{{ user.email }}</span>
-            <span class="result-role" :class="getRoleClass(user.role)">{{ user.role }}</span>
+            <span class="result-role" :class="getRoleClass(user.role)">{{ getRoleLabel(user.role) }}</span>
+            <span v-if="user.role === 'agent3'" class="result-tag disabled-tag">已是三级代理</span>
+            <span v-else-if="isSecondLevel(user.role)" class="result-tag disabled-tag">无法任命</span>
           </div>
         </div>
         <div v-if="searchError" class="load-error">{{ searchError }}</div>
@@ -65,16 +70,17 @@
             <span class="current-role">当前角色：{{ selectedUser.role }}</span>
           </div>
           <div class="rate-input-row">
-            <label>抽成比例（1%~25%）：</label>
+            <label>抽成比例：</label>
             <input
               v-model.number="appointRate"
               type="number"
               min="1"
-              max="25"
+              :max="myMaxRate - 1"
               class="agent-input rate-input"
-              placeholder="如 10"
+              :placeholder="`1~${myMaxRate - 1}`"
             />
             <span class="rate-unit">%</span>
+            <span class="rate-hint">最大可设 {{ myMaxRate - 1 }}%（您的比例 {{ myMaxRate }}%）</span>
           </div>
           <div class="appoint-actions">
             <button class="agent-btn primary" :disabled="appointLoading" @click="doAppoint">
@@ -152,15 +158,17 @@
         <p>代理：<strong>{{ editRateAgent.username }}</strong></p>
         <p>当前比例：<strong>{{ editRateAgent.commission_rate_percent }}</strong></p>
         <div class="rate-input-row">
-          <label>新比例（1%~25%）：</label>
+          <label>新比例：</label>
           <input
             v-model.number="editRateValue"
             type="number"
             min="1"
-            max="25"
+            :max="myMaxRate - 1"
             class="agent-input rate-input"
+            :placeholder="`1~${myMaxRate - 1}`"
           />
           <span class="rate-unit">%</span>
+          <span class="rate-hint">最大 {{ myMaxRate - 1 }}%</span>
         </div>
         <p v-if="editRateMsg" :class="editRateSuccess ? 'msg-success' : 'msg-error'">
           {{ editRateMsg }}
@@ -280,7 +288,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axiosInstance from '../utils/axios'
 
 // 使用项目 axios 实例（自动带 challenge 签名头 + token）
@@ -333,6 +341,28 @@ function getRoleLabel(role: string) {
     agent3: '三级代理', vip: 'VIP', user: '普通用户',
   }
   return map[role] || role
+}
+
+// 判断用户是否是二级代理（不可被任命为三级代理）
+function isSecondLevel(role: string) {
+  return ['vip1', 'vip2', 'admin', 'subadmin'].includes(role)
+}
+
+// 判断搜索结果中的用户是否不可选
+function isUserDisabled(user: any) {
+  return user.role === 'agent3' || isSecondLevel(user.role)
+}
+
+// ── 我的有效比例（从 /info 接口获取）──
+const myMaxRate = ref(25) // 默认25，加载后更新
+async function loadMyInfo() {
+  try {
+    const res = await apiFetch('/info')
+    if (res.success && res.data) {
+      const rate = parseFloat(res.data.effective_commission_rate || 0)
+      myMaxRate.value = Math.round(rate * 100) // 转为整数百分比，如 0.25 → 25
+    }
+  } catch {}
 }
 
 // ── 我的分成 ──
@@ -427,8 +457,9 @@ function cancelAppoint() {
 }
 async function doAppoint() {
   if (!selectedUser.value) return
-  if (!appointRate.value || appointRate.value < 1 || appointRate.value > 25) {
-    appointMsg.value = '抽成比例必须在 1%~25% 之间'
+  const maxAllowed = myMaxRate.value - 1
+  if (!appointRate.value || appointRate.value < 1 || appointRate.value > maxAllowed) {
+    appointMsg.value = `抽成比例必须在 1%~${maxAllowed}% 之间`
     appointSuccess.value = false
     return
   }
@@ -523,6 +554,7 @@ async function viewDetail(agent: any) {
 
 // ── 初始化 ──
 onMounted(() => {
+  loadMyInfo()
   loadMyCommission()
   loadMyAgents()
 })
@@ -692,6 +724,34 @@ onMounted(() => {
 .role-user { background: #f0f0f0; color: #888; }
 
 .no-results { color: #aaa; font-size: 14px; padding: 8px 0; }
+
+/* 禁用状态的搜索结果项 */
+.search-result-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
+.search-result-item.disabled:hover {
+  background: #f9f9f9;
+}
+.result-tag {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.disabled-tag {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* 比例提示文字 */
+.rate-hint {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
 
 .selected-user-info {
   display: flex;
