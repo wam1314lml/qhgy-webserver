@@ -2,6 +2,7 @@
   <div class="agent-mgmt">
     <!-- 头部 -->
     <div class="agent-header">
+      <button class="back-btn" @click="router.back()">← 返回</button>
       <h1>二级代理后台</h1>
       <p class="agent-subtitle">管理您的三级代理，查看实时业绩</p>
     </div>
@@ -55,7 +56,8 @@
             <span class="result-role" :class="getRoleClass(user.role)">{{ user.role }}</span>
           </div>
         </div>
-        <div v-if="searchDone && searchResults.length === 0" class="no-results">未找到相关用户</div>
+        <div v-if="searchError" class="load-error">{{ searchError }}</div>
+        <div v-else-if="searchDone && searchResults.length === 0" class="no-results">未找到相关用户</div>
 
         <!-- 选中用户后显示任命表单 -->
         <div v-if="selectedUser" class="appoint-detail">
@@ -280,6 +282,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -380,11 +384,25 @@ function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(doSearch, 400)
 }
+const searchError = ref('')
 async function doSearch() {
   const q = searchKeyword.value.trim()
-  if (!q) { searchResults.value = []; searchDone.value = false; return }
-  const res = await apiFetch(`/search-user?q=${encodeURIComponent(q)}`)
-  searchResults.value = res.success ? res.data : []
+  if (!q) { searchResults.value = []; searchDone.value = false; searchError.value = ''; return }
+  searchError.value = ''
+  try {
+    const res = await apiFetch(`/search-user?q=${encodeURIComponent(q)}`)
+    if (res.success) {
+      // 过滤掉 username 为空的用户
+      searchResults.value = (res.data || []).filter((u: any) => u.username && u.username.trim())
+    } else {
+      searchResults.value = []
+      searchError.value = res.message || '搜索失败，请重试'
+    }
+  } catch (e: any) {
+    searchResults.value = []
+    searchError.value = '网络错误，请检查登录状态后重试'
+    console.error('[search-user error]', e)
+  }
   searchDone.value = true
 }
 
@@ -517,6 +535,23 @@ onMounted(() => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #1a1a2e;
 }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  margin-bottom: 12px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.back-btn:hover { background: rgba(255,255,255,0.25); }
 
 .agent-header {
   margin-bottom: 24px;
