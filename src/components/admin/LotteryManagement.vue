@@ -446,8 +446,7 @@ const handleEditPrize = (prize: any) => {
 const handleSavePrize = async () => {
   if (
     !prizeForm.value.prize_name ||
-    !prizeForm.value.reward_value ||
-    !prizeForm.value.probability
+    !prizeForm.value.reward_value
   ) {
     message.warning('请填写完整信息')
     return
