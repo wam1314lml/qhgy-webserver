@@ -5,6 +5,7 @@ import PaymentSuccess from '../components/PaymentSuccess.vue'
 import GameConfigPage from '../pages/GameConfigPage.vue'
 import Help from '../components/HelpPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
+import AgentManagement from '../components/AgentManagement.vue'
 import { updateUserBalance } from '@/utils/userUtils'
 
 const routes = [
@@ -50,6 +51,12 @@ const routes = [
     name: 'Profile',
     component: ProfilePage,
   },
+  {
+    path: '/agent',
+    name: 'AgentManagement',
+    component: AgentManagement,
+    meta: { requiresSubadmin: true },
+  },
 ]
 
 const router = createRouter({
@@ -73,6 +80,17 @@ router.beforeEach((to, from, next) => {
   }
   if (!['Login', 'Register'].includes(to.name as string) && localStorage.token) {
     updateUserBalance()
+  }
+  // 二级代理专属页面权限守卫
+  if (to.meta?.requiresSubadmin) {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+      if (userInfo.role !== 'subadmin') {
+        return next({ name: 'Dashboard' })
+      }
+    } catch {
+      return next({ name: 'Login' })
+    }
   }
   next()
 })

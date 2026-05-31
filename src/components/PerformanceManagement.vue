@@ -23,6 +23,32 @@
       </div>
 
       <div class="performance-content">
+        <!-- 代理身份卡片 -->
+        <div
+          v-if="inviteStats?.agentInfo?.isThirdLevelAgent"
+          class="performance-card agent-identity-card"
+        >
+          <div class="agent-identity-content">
+            <div>
+              <h2>代理身份</h2>
+              <p class="agent-identity-title">我是三级代理</p>
+              <p class="agent-identity-desc">
+                上级是
+                <strong>{{ inviteStats.agentInfo.parentAgentName || '未绑定上级' }}</strong>
+              </p>
+              <p class="agent-identity-desc" v-if="inviteStats.agentInfo.commissionRate != null">
+                我的抽成比例：
+                <strong class="commission-rate-value">
+                  {{ (inviteStats.agentInfo.commissionRate * 100).toFixed(0) }}%
+                </strong>
+              </p>
+            </div>
+            <span class="agent-role-badge">
+              {{ getRoleDisplayName(inviteStats.agentInfo.role) }}
+            </span>
+          </div>
+        </div>
+
         <!-- 邀请工具卡片 -->
         <div class="performance-card invite-tools-card">
           <h2>邀请工具</h2>
@@ -227,6 +253,14 @@ interface InviteStats {
   totalInvites: number
   todayInvites: number
   thisMonthInvites: number
+  agentInfo?: {
+    role: string
+    role_level: number
+    isThirdLevelAgent: boolean
+    parentAgentId: number | null
+    parentAgentName: string | null
+    commissionRate: number | null
+  }
   invitedUsers: Array<{
     id: number
     username: string
@@ -386,6 +420,12 @@ const getRoleDisplayName = (role: string) => {
   switch (role) {
     case 'admin':
       return '管理员'
+    case 'subadmin':
+      return '总代'
+    case 'vip2':
+      return 'VIP用户2'
+    case 'vip1':
+      return 'VIP1用户'
     case 'vip':
       return 'VIP用户'
     case 'user':

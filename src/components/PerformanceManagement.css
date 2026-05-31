@@ -44,6 +44,46 @@
   font-weight: 600;
 }
 
+/* 代理身份卡片 */
+.agent-identity-card {
+  border-color: #91caff;
+  background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+}
+
+.agent-identity-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.agent-identity-title {
+  margin: 0 0 8px;
+  color: #0958d9;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.agent-identity-desc {
+  margin: 0;
+  color: #4b5563;
+}
+
+.commission-rate-value {
+  color: #16a34a;
+  font-size: 1.05rem;
+}
+
+.agent-role-badge {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #0958d9;
+  background: #e6f4ff;
+  border: 1px solid #91caff;
+  font-weight: 600;
+}
+
 /* 邀请工具卡片 */
 .invite-tools {
   display: flex;
