@@ -279,7 +279,7 @@
         <a-form-item label="中奖权重" required>
           <a-input-number
             v-model:value="prizeForm.probability"
-            :min="0.01"
+            :min="0"
             :step="0.1"
             :precision="2"
             style="width: 100%"
