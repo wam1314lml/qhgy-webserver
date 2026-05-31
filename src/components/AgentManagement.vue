@@ -12,15 +12,15 @@
       <div v-if="myCommissionError" class="load-error">{{ myCommissionError }}</div>
       <div v-else-if="myCommission" class="commission-grid">
         <div class="commission-item">
-          <div class="commission-number">¥{{ fmt(myCommission.stats.total_commission) }}</div>
+          <div class="commission-number">¥{{ fmt(myCommission?.stats?.total_commission) }}</div>
           <div class="commission-label">累计分成</div>
         </div>
         <div class="commission-item highlight">
-          <div class="commission-number">¥{{ fmt(myCommission.stats.available_commission) }}</div>
+          <div class="commission-number">¥{{ fmt(myCommission?.stats?.available_commission) }}</div>
           <div class="commission-label">可提现</div>
         </div>
         <div class="commission-item">
-          <div class="commission-number">¥{{ fmt(myCommission.stats.withdrawn_commission) }}</div>
+          <div class="commission-number">¥{{ fmt(myCommission?.stats?.withdrawn_commission) }}</div>
           <div class="commission-label">已提现</div>
         </div>
       </div>
@@ -207,15 +207,15 @@
         <!-- 统计 -->
         <div class="detail-stats">
           <div class="detail-stat-item">
-            <span class="stat-val">¥{{ fmt(detailData.stats.total_commission) }}</span>
+            <span class="stat-val">¥{{ fmt(detailData?.stats?.total_commission) }}</span>
             <span class="stat-lbl">累计分成</span>
           </div>
           <div class="detail-stat-item highlight">
-            <span class="stat-val">¥{{ fmt(detailData.stats.available_commission) }}</span>
+            <span class="stat-val">¥{{ fmt(detailData?.stats?.available_commission) }}</span>
             <span class="stat-lbl">可提现</span>
           </div>
           <div class="detail-stat-item">
-            <span class="stat-val">¥{{ fmt(detailData.stats.withdrawn_commission) }}</span>
+            <span class="stat-val">¥{{ fmt(detailData?.stats?.withdrawn_commission) }}</span>
             <span class="stat-lbl">已提现</span>
           </div>
         </div>
@@ -337,7 +337,11 @@ async function loadMyCommission() {
   try {
     const res = await apiFetch('/my-commission')
     if (res.success) {
-      myCommission.value = res.data
+      // 确保 stats 字段存在，防止模板访问报错
+      myCommission.value = {
+        stats: res.data?.stats || { total_commission: 0, available_commission: 0, withdrawn_commission: 0 },
+        recentRecords: res.data?.recentRecords || [],
+      }
     } else {
       myCommissionError.value = res.message || '加载失败'
     }
