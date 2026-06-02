@@ -501,7 +501,7 @@ async function doEditRate() {
     method: 'PUT',
     body: JSON.stringify({
       userId: editRateAgent.value.id,
-      commissionRate: editRateValue.value / 100,
+      commissionRate: editRateValue.value,  // 整数百分比，如 8 表示 8%，后端自行 /100
     }),
   })
   editRateSuccess.value = res.success
