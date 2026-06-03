@@ -9,9 +9,23 @@
         @back="$router.push('/')"
       >
         <template #right-prefix>
-          <a-button @click="onSave" class="save-button" :disabled="loading" type="primary">
-            保存
-          </a-button>
+          <Space>
+            <a-button
+              :loading="importConfigLoading"
+              :disabled="loading"
+              @click="openImportConfigModal"
+            >
+              导入
+            </a-button>
+            <a-button
+              @click="onSave"
+              class="save-button"
+              :disabled="loading || importConfigLoading"
+              type="primary"
+            >
+              保存
+            </a-button>
+          </Space>
         </template>
       </TopNavBar>
     </a-affix>
@@ -1700,6 +1714,30 @@
       </div>
     </div>
 
+    <Modal
+      v-model:open="importConfigModalVisible"
+      title="导入配置"
+      :confirm-loading="importConfigLoading"
+      okText="确定"
+      cancelText="取消"
+      centered
+      @ok="importConfigFromSelectedAccount"
+    >
+      <div class="import-config-modal">
+        <p>从哪个账号复制配置过来？</p>
+        <p class="import-config-warning">当前配置将被覆盖，操作不可撤销。</p>
+        <Select
+          v-model:value="importSourceAccountId"
+          class="w-full"
+          placeholder="请选择账号"
+          :options="importAccountOptions"
+          :loading="importAccountListLoading"
+          show-search
+          :filter-option="filterImportAccountOption"
+        />
+      </div>
+    </Modal>
+
   </div>
 </template>
 
@@ -1743,6 +1781,11 @@ const router = useRouter()
 const accountId = computed(() => Number(route.params.accountId))
 
 const loading = ref(false)
+const importConfigLoading = ref(false)
+const importConfigModalVisible = ref(false)
+const importAccountListLoading = ref(false)
+const importSourceAccountId = ref<number | undefined>()
+const importAccountOptions = ref<Array<{ value: number; label: string }>>([])
 const activeTab = ref('基础')
 const formRef = ref()
 
@@ -1866,6 +1909,103 @@ const saveConfig = async () => {
   }
 }
 
+const formatImportAccountLabel = (account: {
+  id: number
+  nickname?: string
+  account_name?: string
+  username?: string
+  server_name?: string
+  server_id?: string
+}) => {
+  const name = account.nickname || account.account_name || account.username || `账号${account.id}`
+  const server = account.server_name || account.server_id
+  return server ? `${name}（${server}）` : name
+}
+
+const fetchImportAccountOptions = async () => {
+  importAccountListLoading.value = true
+  try {
+    const response = await axios.get('/api/game-accounts/list')
+
+    if (!response.data?.success || !Array.isArray(response.data.data)) {
+      message.error('获取账号列表失败')
+      return
+    }
+
+    importAccountOptions.value = response.data.data
+      .filter((account: { id?: number }) => account.id !== accountId.value)
+      .map(
+        (account: {
+          id: number
+          nickname?: string
+          account_name?: string
+          username?: string
+          server_name?: string
+          server_id?: string
+        }) => ({
+          value: account.id,
+          label: formatImportAccountLabel(account),
+        })
+      )
+  } catch (error) {
+    console.error('获取账号列表失败:', error)
+    message.error('获取账号列表失败')
+  } finally {
+    importAccountListLoading.value = false
+  }
+}
+
+const openImportConfigModal = () => {
+  importSourceAccountId.value = undefined
+  importConfigModalVisible.value = true
+  fetchImportAccountOptions()
+}
+
+const filterImportAccountOption = (input: string, option?: { label?: string }) => {
+  return (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+}
+
+const importConfigFromSelectedAccount = async () => {
+  if (!importSourceAccountId.value) {
+    message.warning('请选择要复制配置的账号')
+    return Promise.reject()
+  }
+
+  importConfigLoading.value = true
+  try {
+    const sourceResponse = await axios.get(
+      `/api/game-accounts/${importSourceAccountId.value}/setting`
+    )
+
+    if (
+      sourceResponse.status !== 200 ||
+      !sourceResponse.data ||
+      sourceResponse.data['未找到账号']
+    ) {
+      message.error('读取来源账号配置失败')
+      return
+    }
+
+    const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
+    const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
+
+    if (!saveResponse.data?.success) {
+      message.error(saveResponse.data?.message || '导入配置失败')
+      return
+    }
+
+    config.value = payload
+    importConfigModalVisible.value = false
+    message.success('配置导入成功')
+    message.warning('请注意：导入配置后，需要先停止再启动才能生效。')
+  } catch (error) {
+    console.error('导入配置失败:', error)
+    message.error('导入配置失败')
+  } finally {
+    importConfigLoading.value = false
+  }
+}
+
 // 保存按钮点击
 const onSave = async () => {
   try {
@@ -1899,6 +2039,20 @@ onMounted(() => {
     margin: 0 0 0 18px;
   }
 }
+.import-config-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-config-modal p {
+  margin: 0;
+}
+
+.import-config-warning {
+  color: #cf1322;
+}
+
 .game-config-page {
   display: flex;
   flex-direction: column;

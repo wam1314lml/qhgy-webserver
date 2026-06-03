@@ -2268,13 +2268,13 @@ const onShowLink = () => {
       h(
         'a',
         {
-          href: 'https://www.kdocs.cn/l/clOKhBFRgsjh',
+          href: 'https://www.kdocs.cn/l/ctNasBUS3vcG',
           target: '_blank',
           rel: 'noopener noreferrer',
           style:
             'font-size: 15px; color: #1890ff; text-decoration: underline; word-break: break-all;',
         },
-        'https://www.kdocs.cn/l/clOKhBFRgsjh'
+        'https://www.kdocs.cn/l/ctNasBUS3vcG'
       ),
     ]),
     okText: '关闭',
