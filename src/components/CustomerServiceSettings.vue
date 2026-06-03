@@ -10,7 +10,7 @@
             layout="horizontal"
             :label-col="{ span: 6 }"
             :wrapper-col="{ span: 18 }"
-            class="w-86"
+            class="w-full max-w-4xl"
           >
             <!-- 启用状态 -->
             <a-form-item label="启用客服" name="enabled">
@@ -25,11 +25,13 @@
               <a-input
                 v-model:value="formData.qq_group_number"
                 placeholder="请输入微信号"
-                :maxlength="12"
+                :maxlength="50"
+                show-count
                 @change="handleFormChange"
                 :disabled="!formData.enabled"
-                class="w-24! sm:w-36!"
+                class="w-full"
               />
+              <div class="text-gray-500 text-sm mt-1">最多50个字符</div>
             </a-form-item>
 
             <!-- QQ群名称 -->
@@ -41,7 +43,7 @@
                 show-count
                 @change="handleFormChange"
                 :disabled="!formData.enabled"
-                class="w-24! sm:w-36!"
+                class="w-full"
               />
               <div class="text-gray-500 text-sm mt-1">显示给用户的群名称，最多100个字符</div>
             </a-form-item>
@@ -116,7 +118,9 @@ const formRules: Record<string, Rule[]> = {
       validator: (_, value) => {
         if (!formData.enabled) return Promise.resolve()
         if (!value) return Promise.reject(new Error('微信号不能为空'))
-      
+        if (value.length > 50) {
+          return Promise.reject(new Error('微信号不能超过50个字符'))
+        }
         return Promise.resolve()
       },
       trigger: 'change',

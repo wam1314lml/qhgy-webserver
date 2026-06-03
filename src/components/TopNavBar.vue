@@ -16,7 +16,7 @@
       <!-- Logo -->
       <div v-if="!props.title" class="logo" @click="$router.push('/')">
         <span class="logo-icon">🌸</span>
-        <span class="logo-text">花园世界</span>
+        <span class="logo-text">garden</span>
       </div>
 
       <!-- 标题 -->
