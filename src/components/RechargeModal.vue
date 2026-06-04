@@ -788,7 +788,7 @@ const startPaymentPolling = (orderIdToCheck: string) => {
       message.warning('支付超时，请重新发起支付')
     }
     timeoutTimer.value = null
-  }, 300000)
+  }, 180000)
 
   timeoutTimer.value = timeout
 }
