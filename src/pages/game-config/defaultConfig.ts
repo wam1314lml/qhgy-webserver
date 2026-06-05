@@ -73,7 +73,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         useSpeedUpTicket: false,
         speedUpTicketMax: 20,
         waterThreshold: 0,
-        taskMode: false,
+        taskMode: true,
         taskLogEnabled: false,
         taskPriorityConfig: {
           顾客订单: 1,
@@ -81,6 +81,7 @@ export const createDefaultGameConfig = (): GameConfig =>
           花艺售卖: 1,
           莳花纪闻: 2,
           宫廷订单: 3,
+          公会竞赛: 4,
         },
         plantingMode: 'count',
         minFlowerLevel: 0,

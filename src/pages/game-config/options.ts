@@ -115,6 +115,7 @@ export const taskPriorityKeys: Array<{ key: string; defaultValue: number }> = [
   { key: '花艺售卖', defaultValue: 1 },
   { key: '莳花纪闻', defaultValue: 2 },
   { key: '宫廷订单', defaultValue: 3 },
+  { key: '公会竞赛', defaultValue: 4 },
 ]
 
 export const flowerQualityOptions = [

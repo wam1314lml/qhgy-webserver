@@ -472,11 +472,12 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-              <CustomFormItem label="任务优先" name="plant.flower.taskMode">
-                <Switch
-                  :checked="config.plant.flower.taskMode"
-                  @change="handleTaskModeChange"
-                />
+              <CustomFormItem
+                label="任务优先"
+                name="plant.flower.taskMode"
+                tooltip="开启后：如果订单里缺花，系统会先种订单需要的花；发现有空地时，会直接插队用来种这些花；花种完以后，会自动恢复到原来设置的模式（指定品质 / 指定种类 / 指定花朵）"
+              >
+                <Switch v-model:checked="config.plant.flower.taskMode" />
               </CustomFormItem>
               <CustomFormItem
                 label="任务日志"
@@ -533,6 +534,15 @@
                     <span class="text-sm">宫廷订单</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['宫廷订单']"
+                      :min="1"
+                      :max="10"
+                      class="w-24!"
+                    />
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm">公会竞赛</span>
+                    <CustomInputNumber
+                      v-model:value="config.plant.flower.taskPriorityConfig['公会竞赛']"
                       :min="1"
                       :max="10"
                       class="w-24!"
@@ -1443,7 +1453,7 @@
             <CustomFormItem
               label="自动领取"
               name="union.redPacket.enabled"
-              tooltip="自动领取公会红包"
+              tooltip="开启后会自动领取公会竞赛奖励，并且兑换材料，不想自动领取的勿开"
             >
               <Switch v-model:checked="config.union.redPacket.enabled" />
             </CustomFormItem>
@@ -1788,41 +1798,6 @@ const importSourceAccountId = ref<number | undefined>()
 const importAccountOptions = ref<Array<{ value: number; label: string }>>([])
 const activeTab = ref('基础')
 const formRef = ref()
-
-// 处理任务优先开关变化
-const handleTaskModeChange = (checked: boolean | string | number) => {
-  const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
-
-  if (isChecked) {
-    Modal.confirm({
-      title: '任务优先模式',
-      content: h('div', [
-        h('p', [h('strong', '开启后：')]),
-        h('ul', { style: 'padding-left:20px;margin-top:10px' }, [
-          h('li', ['如果订单里', h('strong', '缺花'), '，系统会', h('strong', '先种订单需要的花')]),
-          h('li', ['发现有', h('strong', '空地'), '时，会', h('strong', '直接插队'), '用来种这些花']),
-          h('li', [
-            '花',
-            h('strong', '种完以后'),
-            '，会',
-            h('strong', '自动恢复'),
-            '到你原来设置的模式（指定品质 / 指定种类 / 指定花朵）',
-          ]),
-        ]),
-      ]),
-      okText: '确认开启',
-      cancelText: '取消',
-      onOk() {
-        config.value.plant.flower.taskMode = true
-      },
-      onCancel() {
-        config.value.plant.flower.taskMode = false
-      },
-    })
-  } else {
-    config.value.plant.flower.taskMode = false
-  }
-}
 
 // 表单验证规则
 const formRules = {

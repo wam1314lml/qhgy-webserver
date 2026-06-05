@@ -1,6 +1,20 @@
 /* 添加游戏账号模态框样式 */
 /* 保留自定义按钮样式 */
 
+.login-progress-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0 4px;
+}
+
+.login-progress-message {
+  margin: 0;
+  text-align: center;
+  color: #595959;
+  font-size: 14px;
+}
+
 /* 修复：防止登录页白色文字样式污染 Modal 内的输入框 */
 .add-account-modal-antd .ant-input,
 .add-account-modal-antd .ant-input-affix-wrapper,

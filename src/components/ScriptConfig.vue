@@ -183,17 +183,10 @@
               <div>
                 到期时间：<span
                   :style="{
-                    color:
-                      account.expire_time && account.expire_time > new Date().toISOString()
-                        ? 'inherit'
-                        : '#ff4d4f',
+                    color: isAccountExpired(account) ? '#ff4d4f' : 'inherit',
                   }"
                 >
-                  {{
-                    account.expire_time && account.expire_time > new Date().toISOString()
-                      ? new Date(account.expire_time).toLocaleDateString()
-                      : '已过期'
-                  }}
+                  {{ formatExpireTime(account.expire_time) }}
                 </span>
               </div>
             </div>
@@ -837,6 +830,19 @@ const isAccountExpired = (account: GameAccount): boolean => {
   const expiryTime = new Date(account.expire_time).getTime()
   if (Number.isNaN(expiryTime)) return true
   return expiryTime <= Date.now()
+}
+
+const formatExpireTime = (expireTime: string | null | undefined): string => {
+  if (!expireTime) return '已过期'
+  const date = new Date(expireTime)
+  if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) return '已过期'
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 const isExpiringSoon = (account: GameAccount): boolean => {

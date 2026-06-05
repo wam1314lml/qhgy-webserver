@@ -270,6 +270,26 @@
       </div>
     </div>
   </a-modal>
+
+  <a-modal
+    v-model:open="loginProgressVisible"
+    title="正在登录"
+    :footer="null"
+    :closable="false"
+    :mask-closable="false"
+    centered
+    width="420px"
+    class="login-progress-modal-wrap"
+  >
+    <div class="login-progress-modal">
+      <p class="login-progress-message">{{ loginProgressMessage }}</p>
+      <a-progress
+        :percent="loginProgressPercent"
+        :status="loginProgressStatus"
+        :stroke-color="loginProgressStatus === 'success' ? '#52c41a' : undefined"
+      />
+    </div>
+  </a-modal>
 </template>
 
 <script setup lang="ts">
@@ -588,6 +608,11 @@ const selectedChannel = ref<number>(0)
 const selectedServer = ref<ServerInfo | null>(null)
 const serverList = ref<ServerInfo[]>([])
 const loading = ref(false)
+const loginProgressVisible = ref(false)
+const loginProgressPercent = ref(0)
+const loginProgressStatus = ref<'active' | 'success' | 'exception'>('active')
+const loginProgressMessage = ref('正在验证账号密码，请稍候...')
+let loginProgressTimer: ReturnType<typeof setInterval> | null = null
 const scriptServers = ref<ScriptServer[]>([])
 const selectedScriptServer = ref<ScriptServer | null>(null)
 const uid = ref<string>('')
@@ -708,6 +733,52 @@ const handleNextStep = async () => {
   }
 }
 
+const clearLoginProgressTimer = () => {
+  if (loginProgressTimer) {
+    clearInterval(loginProgressTimer)
+    loginProgressTimer = null
+  }
+}
+
+const resetLoginProgress = () => {
+  clearLoginProgressTimer()
+  loginProgressVisible.value = false
+  loginProgressPercent.value = 0
+  loginProgressStatus.value = 'active'
+  loginProgressMessage.value = '正在验证账号密码，请稍候...'
+}
+
+const startLoginProgress = () => {
+  loginProgressVisible.value = true
+  loginProgressPercent.value = 0
+  loginProgressStatus.value = 'active'
+  loginProgressMessage.value = '正在验证账号密码，请稍候...'
+  clearLoginProgressTimer()
+  loginProgressTimer = setInterval(() => {
+    if (loginProgressPercent.value < 90) {
+      const step = loginProgressPercent.value < 60 ? 8 : 3
+      loginProgressPercent.value = Math.min(90, loginProgressPercent.value + step)
+    }
+  }, 200)
+}
+
+const finishLoginProgressSuccess = async () => {
+  clearLoginProgressTimer()
+  loginProgressPercent.value = 100
+  loginProgressStatus.value = 'success'
+  loginProgressMessage.value = '登录成功'
+  await new Promise((resolve) => setTimeout(resolve, 600))
+  loginProgressVisible.value = false
+}
+
+const finishLoginProgressError = async (errorMessage: string) => {
+  clearLoginProgressTimer()
+  loginProgressStatus.value = 'exception'
+  loginProgressMessage.value = errorMessage
+  await new Promise((resolve) => setTimeout(resolve, 1200))
+  resetLoginProgress()
+}
+
 const handleLogin = async () => {
   // 如果是支付宝渠道，使用扫码登录
   if (selectedChannel.value === 1) {
@@ -723,6 +794,7 @@ const handleLogin = async () => {
 
   // 其他渠道使用账号密码登录
   loading.value = true
+  startLoginProgress()
   try {
     const response = await axios.post('/api/game-accounts/login', {
       username: username.value,
@@ -742,20 +814,27 @@ const handleLogin = async () => {
         serverList.value = server_list.servers
       } else {
         console.error('❌ server_list.servers 不是数组:', server_list)
-        message.error('服务器获取失败！', server_list)
+        const errorText = '服务器获取失败'
+        await finishLoginProgressError(errorText)
+        message.error(errorText)
         serverList.value = []
-        return // 不继续到下一步
+        return
       }
 
       uid.value = uidFromResponse || ''
       gameToken.value = gameTokenFromResponse || ''
       nickname.value = response.data.data.nickname || ''
+      await finishLoginProgressSuccess()
       currentStep.value = 'server'
     } else {
-      message.error(response.data.message || '登录失败')
+      const errorText = response.data.message || '登录失败'
+      await finishLoginProgressError(errorText)
+      message.error(errorText)
     }
   } catch {
-    message.error('服务器获取失败2！')
+    const errorText = '登录失败，请稍后重试'
+    await finishLoginProgressError(errorText)
+    message.error(errorText)
   } finally {
     loading.value = false
   }
@@ -1106,6 +1185,7 @@ const handleBind = async () => {
 }
 
 const resetForm = () => {
+  resetLoginProgress()
   currentStep.value = 'channel'
   loginForm.value = {
     username: '',
