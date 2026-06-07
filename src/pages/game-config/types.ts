@@ -193,6 +193,7 @@ export interface GameConfig {
       autoEnableModules: boolean
       useSpeedUpTicketInTask: boolean
       minTaskScore: number
+      giveuplowscoretask: boolean
       onlyUpgradeTask: boolean
       excludeOthersUpgradeTask: boolean
       taskTypePriority: Record<string, number>

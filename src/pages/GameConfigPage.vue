@@ -1388,6 +1388,13 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              label="放弃低分任务"
+              name="union.fmlRace.giveuplowscoretask"
+              tooltip="开启后，若设置了限制27分，任务列表里有小于27分的任务，则会放弃，不开启则不放弃直接做完"
+            >
+              <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
+            </CustomFormItem>
+            <CustomFormItem
               label="只接已升级任务"
               name="union.fmlRace.onlyUpgradeTask"
               tooltip="包括系统升级和用户升级的任务"

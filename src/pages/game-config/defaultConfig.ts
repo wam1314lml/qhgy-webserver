@@ -197,6 +197,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         autoEnableModules: false,
         useSpeedUpTicketInTask: false,
         minTaskScore: 0,
+        giveuplowscoretask: false,
         onlyUpgradeTask: false,
         excludeOthersUpgradeTask: true,
         taskTypePriority: {
