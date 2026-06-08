@@ -452,7 +452,7 @@
               <CustomFormItem
                 label="加速上限"
                 name="plant.flower.speedUpTicketMax"
-                tooltip="最多使用多少加速券，0则不限制"
+                tooltip="若设置100，则今日使用到100张就不使用了"
                 v-if="config.plant.flower.useSpeedUpTicket"
               >
                 <CustomInputNumber

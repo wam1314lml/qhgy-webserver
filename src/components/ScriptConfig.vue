@@ -169,13 +169,19 @@
                   }}</span
                 >
               </div>
+            </div>
+            <div class="stats-grid task-stats">
               <div class="stat-item compact">
                 <span class="stat-label">居民订单</span>
-                <span class="stat-value">{{
-                  getAccountGameData(account).flowerFinsh +
-                  getAccountGameData(account).decorateFinish +
-                  getAccountGameData(account).satinFinish
-                }}</span>
+                <span class="stat-value">{{ getAccountGameData(account).flowerFinsh }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">绸缎订单</span>
+                <span class="stat-value">{{ getAccountGameData(account).satinFinish }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">建材订单</span>
+                <span class="stat-value">{{ getAccountGameData(account).decorateFinish }}</span>
               </div>
             </div>
             <div class="flex justify-between info-line expire-line">
