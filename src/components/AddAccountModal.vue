@@ -1072,8 +1072,8 @@ const handleBind = async () => {
     message.error('服务器未加载完成')
     return
   }
-  // 华为扫码登录不需要检查uid和gameToken，其他渠道需要
-  if (selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+  // 支付宝(1)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
+  if (selectedChannel.value !== 1 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
     message.error('游戏账号信息不完整，请重新登录')
     return
   }
