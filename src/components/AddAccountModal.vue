@@ -298,15 +298,15 @@ import axios from '../utils/axios'
 import { message, type FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
 
-// 支付宝登录数据接口
+// 支付宝登录数据接口（新接口）
 interface AlipayLoginData {
   userId: string
   uid: string
-  sessionId: string
-  cookie: string
-  authCode?: string
+  authCode: string
+  ctoken?: string
+  pcwebToken?: string
   alipayRealUserId?: string // 支付宝真实ID，用于生成稳定的parent_id
-  quickAppData?: string // quickAppEnter返回的完整data字段，用于游戏登录
+  servers?: Array<{ serverId: string; serverName: string }>
 }
 
 // MD5哈希函数 (使用简单的MD5实现，返回24位哈希)
@@ -840,26 +840,23 @@ const handleLogin = async () => {
   }
 }
 
-// 支付宝扫码登录
+// 支付宝扫码登录（新接口：alipay_get_qrcode2）
 const handleAlipayLogin = async () => {
   loading.value = true
   try {
-    // 获取二维码
-    const qrcodeResponse = await axios.post('/api/game-accounts/alipay/qrcode', {})
+    const qrcodeResponse = await axios.post('/api/game-accounts/alipay_get_qrcode2', {})
 
     if (qrcodeResponse.data.success) {
-      const { qrcodeUrl: qrUrl, sessionId, token: alipayToken } = qrcodeResponse.data.data
+      const { qrcodeUrl: qrUrl } = qrcodeResponse.data.data
       qrcodeUrl.value = qrUrl
-
-      // 直接设置二维码URL，使用Ant Design的QRCode组件来渲染
       qrcodeImage.value = qrUrl
 
       message.success('二维码生成成功，请使用支付宝扫码')
 
-      // 开始轮询
-      await startAlipayPolling()
+      // 开始短轮询
+      startAlipayPolling()
     } else {
-      message.error('获取二维码失败')
+      message.error(qrcodeResponse.data.message || '获取二维码失败')
     }
   } catch (error: any) {
     console.error('获取二维码失败:', error)
@@ -869,84 +866,82 @@ const handleAlipayLogin = async () => {
   }
 }
 
-// 开始支付宝轮询
-const startAlipayPolling = async () => {
+// 开始支付宝短轮询（新接口：alipay/add2_poll，每2秒一次）
+const startAlipayPolling = () => {
   isPolling.value = true
   alipayLoginData.value = null
 
-  try {
-    message.loading('等待扫码中...', 2)
-
-    const response = await axios.get('/api/game-accounts/alipay/poll', {
-      timeout: 130000, // 2分钟超时 + 10秒缓冲
-    })
-
-    if (response.data.success && response.data.data.status === 'success') {
-      const loginInfo = response.data.data
-      alipayLoginData.value = loginInfo
-
-      // 设置支付宝登录信息到表单
-      uid.value = loginInfo.uid
-      gameToken.value = loginInfo.sessionId // 使用sessionId作为token
-
-      // 设置从后端获取的真实服务器列表
-      if (loginInfo.serverList && Array.isArray(loginInfo.serverList)) {
-        serverList.value = loginInfo.serverList.map((server: any) => ({
-          serverId: server.serverId.toString(),
-          serverName: server.serverName,
-          labelName: server.labelName,
-          address: server.address,
-          serverState: server.serverState,
-          openTime: server.openTime,
-          new: server.new,
-        }))
-        console.log(`✅ 已加载 ${serverList.value.length} 个服务器`)
-        message.success(`加载${serverList.value.length}个服务器！`)
-      } else {
-        console.error('❌ 未获取到服务器列表，但仍允许继续，将在下一步重新获取')
-        serverList.value = []
-        // 不再直接返回，允许用户继续到下一步，在下一步中处理服务器列表问题
-        message.success('未获取到服务器列表，请稍后再试...')
-      }
-
-      // 确保服务器也已加载
-      if (!selectedScriptServer.value) {
-        console.log('🔄 支付宝登录成功后重新加载服务器...')
-        await fetchScriptServers()
-      }
-
-      message.success('支付宝扫码登录成功！正在跳转到服务器选择...')
-      console.log('🎉 支付宝登录成功！完整信息如下:')
-      console.log('👤 支付宝用户ID:', loginInfo.userId)
-      console.log('🎮 游戏UID:', loginInfo.uid)
-      console.log('🔑 SessionID:', loginInfo.sessionId)
-      console.log('🍪 Cookie:', loginInfo.cookie ? '已获取' : '未获取')
-      console.log('🔐 AuthCode:', loginInfo.authCode ? '已获取' : '未获取')
-      console.log('📊 完整登录数据:', loginInfo)
-
-      // 添加延迟确保UI更新
-      setTimeout(() => {
-        console.log('🚀 正在跳转到服务器选择页面...')
-        currentStep.value = 'server'
-        // 如果服务器列表为空，尝试重新获取
-        if (serverList.value.length === 0) {
-          console.log('🔄 服务器列表为空，尝试重新获取...')
-          message.warning('服务器列表加载中，请稍候...')
-        }
-      }, 500)
-    } else {
-      message.error('扫码失败或超时')
-    }
-  } catch (error: any) {
-    console.error('轮询失败:', error)
-    if (error.code === 'ECONNABORTED') {
-      message.error('扫码超时，请重新获取二维码')
-    } else {
-      message.error(error.response?.data?.message || '扫码检查失败')
-    }
-  } finally {
-    isPolling.value = false
+  // 清理旧定时器
+  if ((window as any)._alipayPollTimer) {
+    clearInterval((window as any)._alipayPollTimer)
   }
+
+  let pollCount = 0
+  const MAX_POLLS = 60 // 最多轮询60次 = 2分钟
+
+  const doPoll = async () => {
+    try {
+      pollCount++
+      const response = await axios.get('/api/game-accounts/alipay/add2_poll', { timeout: 5000 })
+      const { code, data } = response.data
+
+      if (code === 'COMPLETED' && data) {
+        // 扫码成功
+        clearInterval((window as any)._alipayPollTimer)
+        isPolling.value = false
+
+        alipayLoginData.value = {
+          userId: data.alipayRealUserId || '',
+          uid: data.alipayRealUserId || '',
+          authCode: data.authCode || '',
+          ctoken: data.ctoken,
+          pcwebToken: data.pcwebToken,
+          alipayRealUserId: data.alipayRealUserId,
+          servers: data.servers || [],
+        }
+
+        // 设置服务器列表
+        if (data.servers && Array.isArray(data.servers) && data.servers.length > 0) {
+          serverList.value = data.servers.map((s: any) => ({
+            serverId: String(s.serverId),
+            serverName: s.serverName,
+          }))
+          console.log(`✅ 已加载 ${serverList.value.length} 个服务器`)
+          message.success(`扫码成功，加载了${serverList.value.length}个服务器！`)
+        } else {
+          serverList.value = []
+          message.success('支付宝扫码登录成功！')
+        }
+
+        if (!selectedScriptServer.value) {
+          await fetchScriptServers()
+        }
+
+        console.log('🎉 支付宝登录成功:', alipayLoginData.value)
+        setTimeout(() => {
+          currentStep.value = 'server'
+        }, 500)
+      } else if (code === 'EXPIRED') {
+        clearInterval((window as any)._alipayPollTimer)
+        isPolling.value = false
+        message.error('二维码已过期，请重新获取')
+        qrcodeUrl.value = ''
+        qrcodeImage.value = ''
+      } else if (pollCount >= MAX_POLLS) {
+        clearInterval((window as any)._alipayPollTimer)
+        isPolling.value = false
+        message.error('扫码超时，请重新获取二维码')
+        qrcodeUrl.value = ''
+        qrcodeImage.value = ''
+      }
+      // code === 'PENDING' 继续等待
+    } catch (error: any) {
+      console.error('轮询失败:', error)
+      // 网络错误不中断轮询，继续等待
+    }
+  }
+
+  ;(window as any)._alipayPollTimer = setInterval(doPoll, 2000)
 }
 
 // 华为扫码登录
@@ -1077,45 +1072,26 @@ const handleBind = async () => {
     if (selectedChannel.value === 1 && alipayLoginData.value) {
       console.log('🎮 使用支付宝扫码登录绑定流程')
 
-      // 生成 parent_id：支付宝真实ID+服务器ID 的MD5哈希（使用支付宝真实ID作为username）
+      // 生成 parent_id：支付宝真实ID+服务器ID 的MD5哈希
       const alipayRealId = alipayLoginData.value.alipayRealUserId || alipayLoginData.value.uid
       const parentIdInput = `${alipayRealId}${selectedServer.value.serverId}`
       const parentId = generateMD5Hash(parentIdInput)
 
-      console.log('🔑 支付宝绑定 parent_id:', parentId)
-      console.log('📝 输入字符串（使用支付宝真实ID）:', parentIdInput)
-      console.log('📋 支付宝数据详情:')
-      console.log('  - 支付宝真实ID (稳定):', alipayLoginData.value.alipayRealUserId)
-      console.log('  - 游戏UID:', alipayLoginData.value.uid)
-      console.log('  - 会话userId (变化):', alipayLoginData.value.userId)
-      console.log('  - 服务器ID:', selectedServer.value.serverId)
+      console.log('🔑 支付宝绑定 parent_id:', parentId, '  input:', parentIdInput)
 
-      const qrcodeBindPayload = {
-        alipay_data:
-          alipayLoginData.value.quickAppData ||
-          JSON.stringify({
-            uid: alipayLoginData.value.uid,
-            sessionId: alipayLoginData.value.sessionId,
-            authCode: alipayLoginData.value.authCode,
-          }),
-        cookie: alipayLoginData.value.cookie,
-        server_id: selectedServer.value.serverId,
-        server_name: selectedServer.value.serverName,
+      const bindPayload = {
+        authCode: alipayLoginData.value.authCode,
+        serverId: selectedServer.value.serverId,
+        serverName: selectedServer.value.serverName,
         parent_id: parentId,
         alipayRealUserId: alipayRealId,
-        uid: alipayLoginData.value.uid,
-        token: alipayLoginData.value.sessionId,
-        platform: 1, // 支付宝渠道固定为 1
+        ctoken: alipayLoginData.value.ctoken,
+        pcwebToken: alipayLoginData.value.pcwebToken,
       }
 
-      console.log('📦 支付宝绑定请求数据:')
-      console.log('  - alipay_data类型:', typeof qrcodeBindPayload.alipay_data)
-      console.log('  - alipay_data内容:', qrcodeBindPayload.alipay_data)
-      console.log('  - 是否使用quickAppData:', !!alipayLoginData.value.quickAppData)
+      console.log('📦 支付宝绑定请求数据(alipay_bind2):', bindPayload)
 
-      console.log('📦 支付宝绑定请求数据:', qrcodeBindPayload)
-
-      const response = await axios.post('/api/game-accounts/bind_qrcode', qrcodeBindPayload)
+      const response = await axios.post('/api/game-accounts/alipay_bind2', bindPayload)
 
       if (response.data.success) {
         message.success('支付宝账号绑定成功！')
@@ -1209,6 +1185,11 @@ const resetForm = () => {
   qrcodeImage.value = ''
   isPolling.value = false
   alipayLoginData.value = null
+  // 清理支付宝轮询定时器
+  if ((window as any)._alipayPollTimer) {
+    clearInterval((window as any)._alipayPollTimer)
+    ;(window as any)._alipayPollTimer = null
+  }
 
   // 清理华为相关状态
   huaweiQrcodeUrl.value = ''
