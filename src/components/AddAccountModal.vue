@@ -921,10 +921,11 @@ const startAlipayPolling = () => {
         setTimeout(() => {
           currentStep.value = 'server'
         }, 500)
-      } else if (code === 'EXPIRED') {
+      } else if (code === 'EXPIRED' || code === 'NOT_FOUND' || code === 'CANCELLED') {
         clearInterval((window as any)._alipayPollTimer)
         isPolling.value = false
-        message.error('二维码已过期，请重新获取')
+        const msg = response.data?.message || '二维码已过期，请重新获取'
+        message.error(msg)
         qrcodeUrl.value = ''
         qrcodeImage.value = ''
       } else if (pollCount >= MAX_POLLS) {
@@ -936,8 +937,19 @@ const startAlipayPolling = () => {
       }
       // code === 'PENDING' 继续等待
     } catch (error: any) {
-      console.error('轮询失败:', error)
-      // 网络错误不中断轮询，继续等待
+      const errCode = error.response?.data?.code
+      const errMsg  = error.response?.data?.message
+      if (errCode === 'EXPIRED' || errCode === 'NOT_FOUND') {
+        // 二维码过期或会话不存在，停止轮询
+        clearInterval((window as any)._alipayPollTimer)
+        isPolling.value = false
+        message.error(errMsg || '二维码已过期，请重新获取')
+        qrcodeUrl.value = ''
+        qrcodeImage.value = ''
+      } else {
+        // 其他网络错误不中断轮询，继续等待
+        console.error('轮询失败:', error)
+      }
     }
   }
 
