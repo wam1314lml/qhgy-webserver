@@ -39,7 +39,7 @@
             <a-radio :value="2" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper">
-                  <img src="/icons/qq.svg" alt="QQ" class="channel-icon" />
+                  <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
                 </div>
               </div>
             </a-radio>
@@ -57,15 +57,46 @@
         <div v-if="currentStep === 'login'" class="step-panel">
           <h4>登录游戏账号</h4>
 
-          <!-- QQ登录 -->
-          <p v-if="selectedChannel === 2">
-            QQ小程序转账号密码链接：
-            <a
-              href="https://activity.37.com/zt/publish/tplhd/1003/202504/index_29223033_m.html?game_id=918"
-              target="_blank"
-              >https://activity.37.com/zt/publish/tplhd/1003/202504/index_29223033_m.html?game_id=918</a
-            >
-          </p>
+          <!-- 抖音扫码登录界面 -->
+          <div v-if="selectedChannel === 2" class="alipay-login">
+            <div v-if="!douyinQrB64 && !isDouyinQrLoading" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始抖音扫码登录</p>
+            </div>
+            <div v-else-if="isDouyinQrLoading" class="qrcode-loading-box">
+              <p>正在获取抖音二维码...</p>
+            </div>
+            <div v-else class="qrcode-container">
+              <h5>请使用抖音扫描二维码</h5>
+              <div class="qrcode-display">
+                <div class="qrcode-wrapper">
+                  <div class="qrcode-content">
+                    <img :src="`data:image/png;base64,${douyinQrB64}`" alt="抖音二维码" style="width:200px;height:200px;border-radius:8px;" />
+                    <p class="qrcode-status-text">
+                      <span v-if="douyinScanStatus === 'waiting'">⏳ 等待扫码中...</span>
+                      <span v-else-if="douyinScanStatus === 'scanned'">✅ 已扫码，请在手机上确认</span>
+                      <span v-else-if="douyinScanStatus === 'finalizing'">⏳ 已确认，正在换取登录态...</span>
+                      <span v-else-if="douyinScanStatus === 'confirmed'">🎉 扫码成功！</span>
+                      <span v-else-if="douyinScanStatus === 'expired'" style="color:#ff4d4f">⚠️ 二维码已过期，请重新获取</span>
+                      <span v-else-if="douyinScanStatus === 'error'" style="color:#ff4d4f">❌ 扫码失败，请重试</span>
+                      <span v-else>📱 请使用抖音扫描二维码</span>
+                    </p>
+                    <!-- 短信验证码 -->
+                    <div v-if="douyinScanStatus === 'verify_sms'" class="sms-verify-box" style="margin-top:12px">
+                      <p style="color:#faad14">{{ douyinSmsMsg || '请输入短信验证码' }}</p>
+                      <div style="display:flex;gap:8px;margin-top:8px">
+                        <a-input v-model:value="douyinSmsCode" placeholder="短信验证码" maxlength="6" style="flex:1" />
+                        <a-button :loading="douyinSmsSubmitting" @click="handleDouyinSmsVerify">提交</a-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="qrcode-status">
+                <p v-if="isDouyinPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
+                <p v-else-if="douyinLoginDone" style="color: #52c41a">✅ 扫码登录成功！</p>
+              </div>
+            </div>
+          </div>
 
           <!-- 支付宝扫码登录界面 -->
           <div v-if="selectedChannel === 1" class="alipay-login">
@@ -154,16 +185,7 @@
 
         <!-- 选择区服 -->
         <div v-if="currentStep === 'server'" class="step-panel">
-          <!-- QQ认证提示 -->
-          <p v-if="selectedChannel === 2">
-            未实名请下载app登录游戏实名，下载链接：
-            <a
-              href="https://dlres.37wan.com/h5sdk/851735-qqxyx/xddq_qqxyx/xddqapp.apk"
-              target="_blank"
-            >
-              https://dlres.37wan.com/h5sdk/851735-qqxyx/xddq_qqxyx/xddqapp.apk
-            </a>
-          </p>
+  
 
           <a-form
             ref="serverFormRef"
@@ -239,7 +261,7 @@
 
         <a-button
           @click="handleMainButton"
-          :disabled="loading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData)"
+          :disabled="loading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData) || (isDouyinPolling && !douyinLoginDone)"
           type="primary"
           size="large"
         >
@@ -256,15 +278,23 @@
                         ? '等待扫码中...'
                         : '重新扫码'
                     : '获取二维码'
-                  : currentStep === 'login' && selectedChannel === 3
-                    ? huaweiQrcodeUrl
-                      ? huaweiLoginData
+                  : currentStep === 'login' && selectedChannel === 2
+                    ? douyinQrB64
+                      ? douyinLoginDone
                         ? '进入服务器选择'
-                        : isHuaweiPolling
+                        : isDouyinPolling
                           ? '等待扫码中...'
                           : '重新扫码'
                       : '获取二维码'
-                    : '下一步'
+                    : currentStep === 'login' && selectedChannel === 3
+                      ? huaweiQrcodeUrl
+                        ? huaweiLoginData
+                          ? '进入服务器选择'
+                          : isHuaweiPolling
+                            ? '等待扫码中...'
+                            : '重新扫码'
+                        : '获取二维码'
+                      : '下一步'
           }}
         </a-button>
       </div>
@@ -631,6 +661,21 @@ const huaweiQrcodeImage = ref<string>('')
 const isHuaweiPolling = ref(false)
 const huaweiLoginData = ref<any>(null)
 
+// 抖音扫码相关状态
+const douyinSid = ref<string>('')
+const douyinQrB64 = ref<string>('')
+const isDouyinQrLoading = ref(false)
+const douyinScanStatus = ref<string>('')
+const douyinSmsMsg = ref<string>('')
+const douyinSmsCode = ref<string>('')
+const douyinSmsSubmitting = ref(false)
+const isDouyinPolling = ref(false)
+const douyinLoginDone = ref(false)
+const douyinDyToken = ref<string>('')   // 续期后的 dyToken
+const douyinServers = ref<any[]>([])    // 扫码后拿到的服务器列表
+const douyinUid = ref<string>('')       // 抖音稳定 uid
+let douyinPollTimer: ReturnType<typeof setInterval> | null = null
+
 // 获取服务器列表
 const fetchScriptServers = async () => {
   try {
@@ -685,6 +730,13 @@ const handleNextStep = async () => {
           return
         }
         await handleLogin()
+      } else if (selectedChannel.value === 2) {
+        // 抖音渠道
+        if (douyinLoginDone.value) {
+          currentStep.value = 'server'
+          return
+        }
+        await handleLogin()
       } else if (selectedChannel.value === 3) {
         // 如果是华为渠道，使用扫码登录
         if (huaweiLoginData.value) {
@@ -714,8 +766,8 @@ const handleNextStep = async () => {
           message.error('请等待服务器加载完成')
           return
         }
-        // 支付宝(1)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-        if (selectedChannel.value !== 1 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+        // 支付宝(1)、抖音(2)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
+        if (selectedChannel.value !== 1 && selectedChannel.value !== 2 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
           message.error('游戏账号信息不完整，请重新登录')
           return
         }
@@ -783,6 +835,11 @@ const handleLogin = async () => {
   // 如果是支付宝渠道，使用扫码登录
   if (selectedChannel.value === 1) {
     await handleAlipayLogin()
+    return
+  }
+  // 抖音渠道
+  if (selectedChannel.value === 2) {
+    await handleDouyinLogin()
     return
   }
 
@@ -956,6 +1013,129 @@ const startAlipayPolling = () => {
   ;(window as any)._alipayPollTimer = setInterval(doPoll, 2000)
 }
 
+// ===================== 抖音扫码登录 =====================
+
+// 停止抖音轮询
+const stopDouyinPoll = () => {
+  if (douyinPollTimer) {
+    clearInterval(douyinPollTimer)
+    douyinPollTimer = null
+  }
+  isDouyinPolling.value = false
+}
+
+// 发起抖音登录（获取二维码）
+const handleDouyinLogin = async () => {
+  stopDouyinPoll()
+  douyinQrB64.value = ''
+  douyinScanStatus.value = 'waiting'
+  isDouyinQrLoading.value = true
+  loading.value = true
+  try {
+    const res = await axios.post('/api/douyin/scan/start', { force: true })
+    if (!res.data.ok) {
+      message.error(res.data.err || '获取抖音二维码失败')
+      return
+    }
+    douyinSid.value = res.data.sid || ''
+    if (res.data.qr_png_b64) {
+      douyinQrB64.value = res.data.qr_png_b64
+    }
+    isDouyinQrLoading.value = false
+    startDouyinPoll()
+  } catch (err: any) {
+    message.error(err.response?.data?.err || '连接抖音扫码服务失败')
+  } finally {
+    isDouyinQrLoading.value = false
+    loading.value = false
+  }
+}
+
+// 轮询抖音扫码状态
+const startDouyinPoll = () => {
+  isDouyinPolling.value = true
+  douyinPollTimer = setInterval(async () => {
+    if (!douyinSid.value) return
+    try {
+      const res = await axios.get('/api/douyin/scan/poll', { params: { sid: douyinSid.value } })
+      const d = res.data
+      if (d.qr_png_b64) douyinQrB64.value = d.qr_png_b64
+      douyinScanStatus.value = d.scan_status || ''
+
+      if (d.scan_status === 'verify_sms') {
+        douyinSmsMsg.value = d.msg || '请输入短信验证码'
+      } else if (d.scan_status === 'confirmed' && d.game_ok) {
+        // 扫码成功，调 /bind 取服务器列表
+        stopDouyinPoll()
+        await handleDouyinAfterScan(d)
+      } else if (d.scan_status === 'expired' || d.scan_status === 'error') {
+        stopDouyinPoll()
+        message.warning(d.scan_err || '二维码已过期，请重新获取')
+      }
+    } catch (err: any) {
+      console.error('[douyinPoll] 轮询失败:', err.message)
+    }
+  }, 2000)
+}
+
+// 扫码确认后：取服务器列表
+const handleDouyinAfterScan = async (scanResult: any) => {
+  loading.value = true
+  try {
+    const resp = await axios.post('/api/douyin/scan/bind', {
+      game_token:   scanResult.game_token   || '',
+      game_open_id: scanResult.game_open_id || scanResult.open_id || '',
+      game_content: scanResult.game_content || '',
+      douyin_uid:   scanResult.douyin_uid   || scanResult.game_open_id || '',
+    })
+    if (!resp.data.ok) {
+      message.error(resp.data.err || '获取服务器列表失败')
+      return
+    }
+    douyinDyToken.value  = resp.data.dyToken
+    douyinServers.value  = resp.data.servers || []
+    douyinUid.value      = resp.data.douyin_uid || scanResult.douyin_uid || ''
+    douyinLoginDone.value = true
+
+    // 把抖音服务器列表推进 serverList 供选择
+    serverList.value = douyinServers.value.map((s: any) => ({
+      serverId:   s.grpId || s.serverId,
+      serverName: s.serverName || `s${s.grpId || s.serverId}区`,
+    }))
+
+    message.success('抖音扫码成功，请选择区服')
+    setTimeout(() => {
+      currentStep.value = 'server'
+    }, 500)
+  } catch (err: any) {
+    message.error(err.response?.data?.err || '取服务器列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 提交短信验证码
+const handleDouyinSmsVerify = async () => {
+  if (!douyinSid.value || !douyinSmsCode.value.trim()) return
+  douyinSmsSubmitting.value = true
+  try {
+    const res = await axios.post('/api/douyin/scan/verify', {
+      sid:  douyinSid.value,
+      code: douyinSmsCode.value.trim(),
+    })
+    if (res.data.ok) {
+      douyinSmsCode.value = ''
+      message.success('验证码已提交，等待确认')
+    } else {
+      message.error(res.data.msg || '验证码提交失败')
+    }
+  } catch (err: any) {
+    message.error('提交验证码失败')
+  } finally {
+    douyinSmsSubmitting.value = false
+  }
+}
+
 // 华为扫码登录
 const handleHuaweiLogin = async () => {
   loading.value = true
@@ -1072,14 +1252,38 @@ const handleBind = async () => {
     message.error('服务器未加载完成')
     return
   }
-  // 支付宝(1)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-  if (selectedChannel.value !== 1 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+  // 支付宝(1)、抖音(2)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
+  if (selectedChannel.value !== 1 && selectedChannel.value !== 2 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
     message.error('游戏账号信息不完整，请重新登录')
     return
   }
 
   loading.value = true
   try {
+    // 抖音扫码登录绑定流程
+    if (selectedChannel.value === 2 && douyinLoginDone.value) {
+      console.log('🎮 使用抖音扫码登录绑定流程')
+      const bindPayload = {
+        dyToken:     douyinDyToken.value,
+        server_id:   selectedServer.value.serverId ?? selectedServer.value.grpId,
+        server_name: selectedServer.value.serverName || `s${selectedServer.value.serverId ?? selectedServer.value.grpId}区`,
+        douyin_uid:  douyinUid.value,
+        nickname:    douyinUid.value ? `DY_${douyinUid.value}` : '抖音用户',
+      }
+      console.log('📦 抖音绑定请求数据:', bindPayload)
+      const resp = await axios.post('/api/douyin/scan/bind_confirm', bindPayload)
+      if (resp.data.ok) {
+        message.success('抖音账号绑定成功！')
+        resetForm()
+        emit('success')
+        emit('close')
+      } else {
+        message.error(resp.data.err || '抖音绑定失败')
+      }
+      loading.value = false
+      return
+    }
+
     // 检查是否是支付宝扫码登录
     if (selectedChannel.value === 1 && alipayLoginData.value) {
       console.log('🎮 使用支付宝扫码登录绑定流程')
@@ -1208,6 +1412,20 @@ const resetForm = () => {
   huaweiQrcodeImage.value = ''
   isHuaweiPolling.value = false
   huaweiLoginData.value = null
+
+  // 清理抖音相关状态
+  stopDouyinPoll()
+  douyinSid.value = ''
+  douyinQrB64.value = ''
+  douyinScanStatus.value = ''
+  douyinSmsCode.value = ''
+  douyinSmsMsg.value = ''
+  isDouyinQrLoading.value = false
+  isDouyinPolling.value = false
+  douyinLoginDone.value = false
+  douyinDyToken.value = ''
+  douyinServers.value = []
+  douyinUid.value = ''
 }
 
 // 处理服务器选择变化
