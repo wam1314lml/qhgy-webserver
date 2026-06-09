@@ -32,7 +32,7 @@
             <div class="account-header-right">
               <div class="server-line">
                 <img v-if="account.platform === 1" src="/icons/alipay.svg" width="18" class="v-sub" />
-                <img v-if="account.platform === 2" src="/icons/qq.svg" width="18" class="v-sub" />
+                <img v-if="account.platform === 2" src="/icons/douyin.svg" width="18" class="v-sub" />
                 <img v-if="account.platform === 3" src="/icons/huawei.svg" width="18" class="v-sub" />
                 {{ account.server_name || account.server_id }}
               </div>
