@@ -127,39 +127,45 @@
 
           <div class="account-info">
             <div class="stats-grid resource-stats">
-              <div class="stat-item">
+              <div class="stat-item compact">
                 <span class="stat-label">等级</span>
                 <span class="stat-value">{{ getAccountGameData(account).level }}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item compact">
                 <span class="stat-label">水滴</span>
                 <span class="stat-value">{{ getAccountGameData(account).water }}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item compact">
                 <span class="stat-label">元宝</span>
                 <span class="stat-value">{{ getAccountGameData(account).diamond }}</span>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">花坊币</span>
-                <span class="stat-value">{{ getAccountGameData(account).floralCoin }}</span>
+              <div class="stat-item compact">
+                <span class="stat-label">金币</span>
+                <span class="stat-value">{{ getAccountGameData(account).gold }}</span>
               </div>
-              <div class="stat-item">
+            </div>
+            <div class="stats-grid task-stats">
+              <div class="stat-item compact">
                 <span class="stat-label">加速卡</span>
                 <span class="stat-value">{{ getAccountGameData(account).speedCard }}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item compact">
                 <span class="stat-label">雇佣书</span>
                 <span class="stat-value">{{ getAccountGameData(account).hireBook }}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item compact">
                 <span class="stat-label">珍珠</span>
                 <span class="stat-value">{{ getAccountGameData(account).pearl }}</span>
               </div>
             </div>
             <div class="stats-grid task-stats">
               <div class="stat-item compact">
-                <span class="stat-label">培育数量</span>
-                <span class="stat-value">{{ getAccountGameData(account).cultivatedCount }}</span>
+                <span class="stat-label">花坊币</span>
+                <span class="stat-value">{{ getAccountGameData(account).floralCoin }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">喵币</span>
+                <span class="stat-value">{{ getAccountGameData(account).meowCoin }}</span>
               </div>
               <div class="stat-item compact">
                 <span class="stat-label">公会竞赛</span>
@@ -173,7 +179,7 @@
             <div class="stats-grid task-stats">
               <div class="stat-item compact">
                 <span class="stat-label">居民订单</span>
-                <span class="stat-value">{{ getAccountGameData(account).flowerFinsh }}</span>
+                <span class="stat-value">{{ getAccountGameData(account).flowerFinish }}</span>
               </div>
               <div class="stat-item compact">
                 <span class="stat-label">绸缎订单</span>
@@ -184,8 +190,11 @@
                 <span class="stat-value">{{ getAccountGameData(account).decorateFinish }}</span>
               </div>
             </div>
-            <div class="flex justify-between info-line expire-line">
-              <div></div>
+            <div class="flex justify-between items-baseline info-line expire-line">
+              <div class="stat-item compact">
+                <span class="stat-label">顾客订单</span>
+                <span class="stat-value">{{ getAccountGameData(account).customerFinish }}</span>
+              </div>
               <div>
                 到期时间：<span
                   :style="{
@@ -744,16 +753,18 @@ const getAccountGameData = (account: GameAccount) => {
     level: 0,
     water: 0,
     diamond: 0,
+    gold: 0,
     floralCoin: 0,
+    meowCoin: 0,
     speedCard: 0,
     hireBook: 0,
     pearl: 0,
-    cultivatedCount: 0,
     usedTaskNum: 0,
     totalTaskNum: 0,
-    flowerFinsh: 0,
+    flowerFinish: 0,
     decorateFinish: 0,
     satinFinish: 0,
+    customerFinish: 0,
     isStarted: false,
     isOnline: false,
   }
@@ -769,23 +780,24 @@ const getAccountGameData = (account: GameAccount) => {
 
   const attrs = gameRecordDetails.playerAttrs || {}
   const orders = gameRecordDetails.orderStats || {}
-  const flowerStats = gameRecordDetails.flowerStats || {}
   const fmlRace = gameRecordDetails.fmlRace || {}
 
   return {
     level: attrs.level ?? 0,
     water: attrs.water ?? 0,
     diamond: attrs.diamond ?? 0,
+    gold: attrs.gold ?? 0,
     floralCoin: attrs.floralCoin ?? 0,
+    meowCoin: attrs.meowCoin ?? 0,
     speedCard: attrs.speedCard ?? 0,
     hireBook: attrs.hireBook ?? 0,
     pearl: attrs.pearl ?? 0,
-    cultivatedCount: flowerStats.cultivatedCount ?? 0,
     usedTaskNum: fmlRace.usedTaskNum ?? 0,
     totalTaskNum: fmlRace.totalTaskNum ?? 0,
-    flowerFinsh: orders.flowerFinish ?? 0,
+    flowerFinish: orders.flowerFinish ?? 0,
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
+    customerFinish: orders.customerFinish ?? 0,
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }

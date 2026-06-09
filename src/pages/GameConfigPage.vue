@@ -1397,13 +1397,14 @@
             <CustomFormItem
               label="只接已升级任务"
               name="union.fmlRace.onlyUpgradeTask"
-              tooltip="包括系统升级和用户升级的任务"
+              tooltip="比如设置了限制27分，开启后就只会接大于等于54分的任务，会使公会任务做的非常慢，慎重开启（系统/玩家升级好的双倍任务比较少，捡漏的可能是比较小的哦）"
             >
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
             <CustomFormItem
               label="排除他人升级任务"
               name="union.fmlRace.excludeOthersUpgradeTask"
+              tooltip="基于礼貌的开关，开启后，公会其他玩家用元宝升级的任务就不会去接了"
             >
               <Switch v-model:checked="config.union.fmlRace.excludeOthersUpgradeTask" />
             </CustomFormItem>
@@ -1456,7 +1457,7 @@
               />
             </CustomFormItem>
 
-            <Divider orientation="left">公会红包</Divider>
+            <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"
               name="union.redPacket.enabled"
