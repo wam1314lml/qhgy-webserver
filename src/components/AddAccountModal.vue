@@ -99,7 +99,7 @@
           </div>
 
           <!-- 支付宝扫码登录界面 -->
-          <div v-if="selectedChannel === 1" class="alipay-login">
+          <div v-else-if="selectedChannel === 1" class="alipay-login">
             <div v-if="!qrcodeUrl" class="qrcode-placeholder">
               <p>点击"获取二维码"开始支付宝扫码登录</p>
             </div>
@@ -1082,11 +1082,14 @@ const startDouyinPoll = () => {
 const handleDouyinAfterScan = async (scanResult: any) => {
   loading.value = true
   try {
+    // game_token/game_open_id/game_content 只有约5分钟有效期，不再传递
+    // 只传永久有效的 code/anonymousCode/sessionid
     const resp = await axios.post('/api/douyin/scan/bind', {
-      game_token:   scanResult.game_token   || '',
-      game_open_id: scanResult.game_open_id || scanResult.open_id || '',
-      game_content: scanResult.game_content || '',
-      douyin_uid:   scanResult.douyin_uid   || scanResult.game_open_id || '',
+      dy_code:          scanResult.dy_code          || scanResult.code          || '',
+      dy_anonymous_code: scanResult.dy_anonymous_code || scanResult.anonymousCode || '',
+      dy_is_login:      scanResult.dy_is_login ?? scanResult.isLogin ?? true,
+      sessionid:        scanResult.sessionid         || '',
+      douyin_uid:       scanResult.douyin_uid        || scanResult.game_open_id  || '',
     })
     if (!resp.data.ok) {
       message.error(resp.data.err || '获取服务器列表失败')
