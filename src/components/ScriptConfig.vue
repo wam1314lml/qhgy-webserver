@@ -471,6 +471,25 @@
       @success="handleUpdatePasswordSuccess"
     />
 
+    <!-- 抖音重认证弹窗 -->
+    <a-modal
+      v-model:open="douyinReauthVisible"
+      title="🎵 抖音重新认证"
+      :width="400"
+      ok-text="取消认证"
+      :ok-button-props="{ danger: true }"
+      :cancel-button-props="{ style: 'display:none' }"
+      @ok="handleDouyinReauthCancel"
+      @cancel="handleDouyinReauthCancel"
+    >
+      <DouyinReauthModal
+        :qr-b64="douyinReauthQrB64"
+        :scan-status="douyinReauthScanStatus"
+        :sid="douyinReauthSid"
+        :on-submit-sms="handleDouyinReauthSubmitSms"
+      />
+    </a-modal>
+
     <!-- 客服模态框 -->
     <a-modal
       v-model:open="showCustomerServiceModal"
@@ -611,6 +630,7 @@ import RechargeModal from './RechargeModal.vue'
 import UpdatePasswordModal from './UpdatePasswordModal.vue'
 import AlipayReauthModal from './AlipayReauthModal.vue'
 import HuaweiReauthModal from './HuaweiReauthModal.vue'
+import DouyinReauthModal from './DouyinReauthModal.vue'
 import { updateUserBalance } from '../utils/userUtils'
 
 // 基础账户信息接口
@@ -1456,6 +1476,14 @@ const alipayReauthPolling = ref<number | null>(null)
 // 支付宝七天续期扫码是否已停止
 const alipayRescanStopped = ref(false)
 
+// 抖音重认证相关状态
+const douyinReauthVisible = ref(false)
+const douyinReauthAccountId = ref<number>(0)
+const douyinReauthSid = ref('')
+const douyinReauthQrB64 = ref('')
+const douyinReauthScanStatus = ref('')
+let douyinReauthPollTimer: ReturnType<typeof setInterval> | null = null
+
 // Tour 漫游引导相关状态
 const tourOpen = ref(false)
 const tourCurrentStep = ref(0)
@@ -1810,12 +1838,12 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
         return // 提前返回，避免在finally中重复移除状态
       }
     } else {
-      // 检查是否需要支付宝重新认证
-      if (response.data.code === 'ALIPAY_REAUTH_REQUIRED') {
-        // 直接触发支付宝重新认证流程，不显示警告消息
+      // 检查是否需要重新认证
+      if (response.data.code === 'DOUYIN_REAUTH_REQUIRED') {
+        await handleDouyinReauth(accountId)
+      } else if (response.data.code === 'ALIPAY_REAUTH_REQUIRED') {
         await handleAlipayReauth(accountId)
       } else if (response.data.code === 'HUAWEI_REAUTH_REQUIRED') {
-        // 直接触发华为重新认证流程，不显示警告消息
         await handleHuaweiReauth(accountId)
       } else {
         let errorMsg = response.data.message || '操作失败'
@@ -1828,12 +1856,12 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
   } catch (error: any) {
     console.error('操作游戏账号失败:', error)
 
-    // 检查错误响应中是否包含支付宝重新认证要求
-    if (error.response?.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
-      // 直接触发支付宝重新认证流程，不显示警告消息
+    // 检查错误响应中是否包含重新认证要求
+    if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
+      await handleDouyinReauth(accountId)
+    } else if (error.response?.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
       await handleAlipayReauth(accountId)
     } else if (error.response?.data?.code === 'HUAWEI_REAUTH_REQUIRED') {
-      // 直接触发华为重新认证流程，不显示警告消息
       await handleHuaweiReauth(accountId)
     } else {
       let errorMsg = error.response?.data?.message || '操作失败'
@@ -2199,6 +2227,103 @@ const startHuaweiReauthPolling = async (accountId: number) => {
 
   message.error('华为认证超时，请重试')
   Modal.destroyAll()
+}
+
+// ── 抖音重认证 ────────────────────────────────────────────────────
+const handleDouyinReauth = async (accountId: number) => {
+  try {
+    const resp = await axios.post('/api/douyin/scan/reauth/start', { accountId })
+    if (!resp.data.ok) {
+      message.error(resp.data.err || '生成抖音二维码失败')
+      return
+    }
+    douyinReauthAccountId.value = accountId
+    douyinReauthSid.value       = resp.data.sid || ''
+    douyinReauthQrB64.value     = resp.data.qr_png_b64 || ''
+    douyinReauthScanStatus.value = 'waiting'
+    douyinReauthVisible.value   = true
+    startDouyinReauthPolling(accountId, resp.data.sid)
+  } catch (err: any) {
+    message.error(err.response?.data?.err || '抖音重认证失败')
+  }
+}
+
+const stopDouyinReauthPolling = () => {
+  if (douyinReauthPollTimer) {
+    clearInterval(douyinReauthPollTimer)
+    douyinReauthPollTimer = null
+  }
+}
+
+const handleDouyinReauthCancel = () => {
+  douyinReauthVisible.value    = false
+  douyinReauthScanStatus.value = ''
+  douyinReauthQrB64.value      = ''
+  stopDouyinReauthPolling()
+  message.info('已取消抖音重认证')
+}
+
+const handleDouyinReauthSubmitSms = async (sid: string, code: string): Promise<{ ok: boolean; msg?: string }> => {
+  try {
+    const res = await axios.post('/api/douyin/scan/verify', { sid, code })
+    if (res.data.ok) {
+      message.success('验证码已提交，等待确认...')
+      return { ok: true }
+    }
+    message.error(res.data.msg || '验证码提交失败')
+    return { ok: false, msg: res.data.msg }
+  } catch (err: any) {
+    const msg = err.response?.data?.err || '提交验证码失败'
+    message.error(msg)
+    return { ok: false, msg }
+  }
+}
+
+const startDouyinReauthPolling = (accountId: number, sid: string) => {
+  stopDouyinReauthPolling()
+  douyinReauthPollTimer = setInterval(async () => {
+    if (!douyinReauthVisible.value) {
+      stopDouyinReauthPolling()
+      return
+    }
+    try {
+      const resp = await axios.get('/api/douyin/scan/reauth/poll', {
+        params: { sid, accountId },
+        timeout: 10000,
+      })
+      const d = resp.data
+
+      // 补充二维码（start 时可能为空）
+      if (d.qr_png_b64 && !douyinReauthQrB64.value) {
+        douyinReauthQrB64.value = d.qr_png_b64
+      }
+
+      // 更新扫码状态（控制短信输入框显示）
+      if (d.scan_status) {
+        douyinReauthScanStatus.value = d.scan_status
+      }
+
+      // 成功完成
+      if (d.ok && d.scan_status === 'reauth_done') {
+        stopDouyinReauthPolling()
+        douyinReauthVisible.value = false
+        message.success('🎉 抖音重认证成功！正在启动账号...')
+        setTimeout(async () => {
+          await handleToggleAccount(accountId, 'inactive')
+        }, 500)
+        return
+      }
+
+      // 过期或出错
+      if (d.scan_status === 'expired' || d.scan_status === 'error') {
+        stopDouyinReauthPolling()
+        douyinReauthVisible.value = false
+        message.error(d.err || '扫码失败，请重试', 5)
+      }
+    } catch (pollErr: any) {
+      console.error('[douyinReauth] 轮询失败:', pollErr.message)
+    }
+  }, 2000)
 }
 
 // 更新密码相关函数
