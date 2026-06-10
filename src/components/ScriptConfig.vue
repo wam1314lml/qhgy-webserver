@@ -76,7 +76,7 @@
                         </template>
                         增加配额
                       </a-menu-item>
-                      <!-- 开通试用选项：仅对2025-12-07之后创建且无配额的账号显示 -->
+                      <!-- 开通试用选项：暂时关闭入口
                       <a-menu-item
                         v-if="canActivateTrial(account)"
                         key="activateTrial"
@@ -87,6 +87,7 @@
                         </template>
                         开通试用
                       </a-menu-item>
+                      -->
                       <a-menu-item v-if="account.platform === 1" key="alipayRescan">
                         <template #icon>
                           <SyncOutlined />
@@ -193,7 +194,7 @@
             <div class="flex justify-between items-baseline info-line expire-line">
               <div class="stat-item compact">
                 <span class="stat-label">顾客订单</span>
-                <span class="stat-value">{{ getAccountGameData(account).customerFinish }}</span>
+                <span class="stat-value">{{ getAccountGameData(account).orderCustomerFinishNum }}</span>
               </div>
               <div>
                 到期时间：<span
@@ -764,7 +765,7 @@ const getAccountGameData = (account: GameAccount) => {
     flowerFinish: 0,
     decorateFinish: 0,
     satinFinish: 0,
-    customerFinish: 0,
+    orderCustomerFinishNum: 0,
     isStarted: false,
     isOnline: false,
   }
@@ -797,7 +798,7 @@ const getAccountGameData = (account: GameAccount) => {
     flowerFinish: orders.flowerFinish ?? 0,
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
-    customerFinish: orders.customerFinish ?? 0,
+    orderCustomerFinishNum: gameRecordDetails.orderCustomerFinishNum ?? 0,
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }
