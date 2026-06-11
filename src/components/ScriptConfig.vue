@@ -887,12 +887,11 @@ const formatExpireTime = (expireTime: string | null | undefined): string => {
 const formatGoldAmount = (value: number | null | undefined): string => {
   const num = Number(value ?? 0)
   if (!Number.isFinite(num)) return '0'
+  if (num >= 100000000) {
+    return `${parseFloat((num / 100000000).toFixed(3))}亿`
+  }
   if (num >= 10000) {
-    const wan = num / 10000
-    if (Number.isInteger(wan)) {
-      return `${wan}万`
-    }
-    return `${parseFloat(wan.toFixed(4))}万`
+    return `${parseFloat((num / 10000).toFixed(1))}万`
   }
   return String(num)
 }
