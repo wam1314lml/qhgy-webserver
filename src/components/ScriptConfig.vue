@@ -142,7 +142,7 @@
               </div>
               <div class="stat-item compact">
                 <span class="stat-label">金币</span>
-                <span class="stat-value">{{ getAccountGameData(account).gold }}</span>
+                <span class="stat-value">{{ formatGoldAmount(getAccountGameData(account).gold) }}</span>
               </div>
             </div>
             <div class="stats-grid task-stats">
@@ -194,7 +194,7 @@
             <div class="flex justify-between items-baseline info-line expire-line">
               <div class="stat-item compact">
                 <span class="stat-label">顾客订单</span>
-                <span class="stat-value">{{ getAccountGameData(account).orderCustomerFinishNum }}</span>
+                <span class="stat-value">{{ getAccountGameData(account).customerFinish }}</span>
               </div>
               <div>
                 到期时间：<span
@@ -765,7 +765,7 @@ const getAccountGameData = (account: GameAccount) => {
     flowerFinish: 0,
     decorateFinish: 0,
     satinFinish: 0,
-    orderCustomerFinishNum: 0,
+    customerFinish: 0,
     isStarted: false,
     isOnline: false,
   }
@@ -798,7 +798,7 @@ const getAccountGameData = (account: GameAccount) => {
     flowerFinish: orders.flowerFinish ?? 0,
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
-    orderCustomerFinishNum: gameRecordDetails.orderCustomerFinishNum ?? 0,
+    customerFinish: orders.customerFinish ?? 0,
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }
@@ -882,6 +882,19 @@ const formatExpireTime = (expireTime: string | null | undefined): string => {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+const formatGoldAmount = (value: number | null | undefined): string => {
+  const num = Number(value ?? 0)
+  if (!Number.isFinite(num)) return '0'
+  if (num >= 10000) {
+    const wan = num / 10000
+    if (Number.isInteger(wan)) {
+      return `${wan}万`
+    }
+    return `${parseFloat(wan.toFixed(4))}万`
+  }
+  return String(num)
 }
 
 const isExpiringSoon = (account: GameAccount): boolean => {

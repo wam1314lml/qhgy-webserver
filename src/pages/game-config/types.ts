@@ -155,6 +155,7 @@ export interface GameConfig {
     palace: {
       enabled: boolean
       qualities: number[]
+      ignoreQuality: boolean
     }
     team: {
       enabled: boolean

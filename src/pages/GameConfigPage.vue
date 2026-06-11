@@ -403,7 +403,7 @@
             <CustomFormItem
               label="水滴阈值"
               name="plant.water.minWaterThreshold"
-              tooltip="水滴少于此值才开始领取，0则不限制"
+              tooltip="若设置100，你的水滴低于100点才会领取，0代表不限制，设置0才会及时领水哦，不理解的建议无脑设置0"
             >
               <CustomInputNumber
                 v-model:value="config.plant.water.minWaterThreshold"
@@ -490,7 +490,7 @@
               <CustomFormItem
                 label="任务优先级"
                 name="plant.flower.taskPriorityConfig"
-                tooltip="配置订单任务的优先级，数字越小优先级越高"
+                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务，可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
                 v-if="config.plant.flower.taskMode"
               >
                 <div class="w-full max-w-[420px] flex flex-col gap-2">
@@ -498,7 +498,7 @@
                     <span class="text-sm">顾客订单</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['顾客订单']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -507,7 +507,7 @@
                     <span class="text-sm">居民订单</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['居民订单']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -516,7 +516,7 @@
                     <span class="text-sm">花艺售卖</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['花艺售卖']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -525,7 +525,7 @@
                     <span class="text-sm">莳花纪闻</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['莳花纪闻']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -534,7 +534,7 @@
                     <span class="text-sm">宫廷订单</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['宫廷订单']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -543,7 +543,7 @@
                     <span class="text-sm">公会竞赛</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['公会竞赛']"
-                      :min="1"
+                      :min="0"
                       :max="10"
                       class="w-24!"
                     />
@@ -1133,6 +1133,14 @@
                 :options="flowerQualityOptions"
                 style="width: 100%"
               />
+            </CustomFormItem>
+            <CustomFormItem
+              label="不论品质"
+              name="order.palace.ignoreQuality"
+              tooltip="开启后，若没有用户设置的品质，且没有免费刷新了，则会无视品质做完这个宫廷订单"
+              v-if="config.order.palace.enabled"
+            >
+              <Switch v-model:checked="config.order.palace.ignoreQuality" />
             </CustomFormItem>
 
             <Divider orientation="left">组团订单</Divider>

@@ -77,11 +77,11 @@ export const createDefaultGameConfig = (): GameConfig =>
         taskLogEnabled: false,
         taskPriorityConfig: {
           顾客订单: 1,
-          居民订单: 1,
-          花艺售卖: 1,
-          莳花纪闻: 2,
-          宫廷订单: 3,
-          公会竞赛: 4,
+          居民订单: 2,
+          花艺售卖: 6,
+          莳花纪闻: 3,
+          宫廷订单: 4,
+          公会竞赛: 3,
         },
         plantingMode: 'count',
         minFlowerLevel: 0,
@@ -160,6 +160,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       palace: {
         enabled: false,
         qualities: [1, 2, 3, 4, 5],
+        ignoreQuality: false,
       },
       team: {
         enabled: false,

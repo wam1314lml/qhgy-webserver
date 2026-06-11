@@ -111,11 +111,11 @@ export const fmlRaceTaskTypes: Array<{ key: string; label: string }> = [
 // —— 种植任务优先级字段列表 ——
 export const taskPriorityKeys: Array<{ key: string; defaultValue: number }> = [
   { key: '顾客订单', defaultValue: 1 },
-  { key: '居民订单', defaultValue: 1 },
-  { key: '花艺售卖', defaultValue: 1 },
-  { key: '莳花纪闻', defaultValue: 2 },
-  { key: '宫廷订单', defaultValue: 3 },
-  { key: '公会竞赛', defaultValue: 4 },
+  { key: '居民订单', defaultValue: 2 },
+  { key: '花艺售卖', defaultValue: 6 },
+  { key: '莳花纪闻', defaultValue: 3 },
+  { key: '宫廷订单', defaultValue: 4 },
+  { key: '公会竞赛', defaultValue: 3 },
 ]
 
 export const flowerQualityOptions = [

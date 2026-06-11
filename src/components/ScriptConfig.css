@@ -223,7 +223,10 @@
   align-items: baseline;
   font-size: 12px;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+}
+
+.stat-item.compact .stat-value {
+  white-space: nowrap;
 }
 
 .stat-label::after {

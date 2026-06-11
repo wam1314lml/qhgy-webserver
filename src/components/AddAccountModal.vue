@@ -24,7 +24,8 @@
             <a-radio :value="0" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper channel-icon-app">
-                  <span class="app-text">APP</span>
+                  <span class="official-text">官服</span>
+                  <span class="app-badge">APP</span>
                   <img src="/icons/wechat.svg" alt="微信" class="wechat-badge" />
                 </div>
               </div>
