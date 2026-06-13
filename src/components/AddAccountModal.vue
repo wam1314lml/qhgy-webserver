@@ -39,8 +39,9 @@
             </a-radio>
             <a-radio :value="2" class="channel-option">
               <div class="channel-content">
-                <div class="channel-icon-wrapper">
+                <div class="channel-icon-wrapper channel-icon-douyin">
                   <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
+                  <span class="official-badge">官方</span>
                 </div>
               </div>
             </a-radio>

@@ -216,6 +216,34 @@
   z-index: 2;
 }
 
+.channel-icon-douyin {
+  position: relative;
+}
+
+.official-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  color: #1890ff;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  z-index: 2;
+  line-height: 1;
+}
+
+.channel-option :deep(.ant-radio-wrapper-checked) .channel-icon-douyin .channel-icon {
+  transform: scale(1.05);
+}
+
 /* 选中状态下的特殊样式 */
 .channel-option :deep(.ant-radio-wrapper-checked) .channel-icon-app {
   background: linear-gradient(135deg, #096dd9 0%, #1890ff 100%);
