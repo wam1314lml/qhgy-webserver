@@ -60,11 +60,23 @@
 
           <!-- 抖音扫码登录界面 -->
           <div v-if="selectedChannel === 2" class="alipay-login">
-            <div v-if="!douyinQrB64 && !isDouyinQrLoading" class="qrcode-placeholder">
-              <p>点击"获取二维码"开始抖音扫码登录</p>
+            <div v-if="isDouyinQrLoading" class="scan-qrcode-loading">
+              <p class="scan-qrcode-loading-text">正在获取二维码...</p>
+              <div
+                class="scan-qrcode-progress"
+                role="progressbar"
+                :aria-valuenow="douyinQrProgress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div
+                  class="scan-qrcode-progress-bar"
+                  :style="{ width: `${douyinQrProgress}%` }"
+                ></div>
+              </div>
             </div>
-            <div v-else-if="isDouyinQrLoading" class="qrcode-loading-box">
-              <p>正在获取抖音二维码...</p>
+            <div v-else-if="!douyinQrB64" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始抖音扫码登录</p>
             </div>
             <div v-else class="qrcode-container">
               <h5>请使用抖音扫描二维码</h5>
@@ -101,7 +113,22 @@
 
           <!-- 支付宝扫码登录界面 -->
           <div v-else-if="selectedChannel === 1" class="alipay-login">
-            <div v-if="!qrcodeUrl" class="qrcode-placeholder">
+            <div v-if="isAlipayQrLoading" class="scan-qrcode-loading">
+              <p class="scan-qrcode-loading-text">正在获取二维码...</p>
+              <div
+                class="scan-qrcode-progress"
+                role="progressbar"
+                :aria-valuenow="alipayQrProgress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div
+                  class="scan-qrcode-progress-bar"
+                  :style="{ width: `${alipayQrProgress}%` }"
+                ></div>
+              </div>
+            </div>
+            <div v-else-if="!qrcodeUrl" class="qrcode-placeholder">
               <p>点击"获取二维码"开始支付宝扫码登录</p>
             </div>
             <div v-else class="qrcode-container">
@@ -262,12 +289,16 @@
 
         <a-button
           @click="handleMainButton"
-          :disabled="loading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData) || (isDouyinPolling && !douyinLoginDone)"
+          :disabled="loading || isDouyinQrLoading || isAlipayQrLoading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData) || (isDouyinPolling && !douyinLoginDone)"
           type="primary"
           size="large"
         >
           {{
-            loading
+            currentStep === 'login' && selectedChannel === 2 && isDouyinQrLoading
+              ? '正在获取二维码...'
+              : currentStep === 'login' && selectedChannel === 1 && isAlipayQrLoading
+                ? '正在获取二维码...'
+                : loading
               ? '处理中...'
               : currentStep === 'server'
                 ? '确认绑定'
@@ -655,6 +686,12 @@ const qrcodeUrl = ref<string>('')
 const qrcodeImage = ref<string>('')
 const isPolling = ref(false)
 const alipayLoginData = ref<AlipayLoginData | null>(null)
+const isAlipayQrLoading = ref(false)
+const alipayQrProgress = ref(0)
+let alipayQrProgressTimer: ReturnType<typeof setInterval> | null = null
+let alipayQrRevealTimer: ReturnType<typeof setTimeout> | null = null
+let alipayQrLoadingStartedAt = 0
+const QR_MIN_LOADING_MS = 1400
 
 // 华为扫码相关状态
 const huaweiQrcodeUrl = ref<string>('')
@@ -666,6 +703,7 @@ const huaweiLoginData = ref<any>(null)
 const douyinSid = ref<string>('')
 const douyinQrB64 = ref<string>('')
 const isDouyinQrLoading = ref(false)
+const douyinQrProgress = ref(0)
 const douyinScanStatus = ref<string>('')
 const douyinSmsMsg = ref<string>('')
 const douyinSmsCode = ref<string>('')
@@ -676,6 +714,9 @@ const douyinDyToken = ref<string>('')   // 续期后的 dyToken
 const douyinServers = ref<any[]>([])    // 扫码后拿到的服务器列表
 const douyinUid = ref<string>('')       // 抖音稳定 uid
 let douyinPollTimer: ReturnType<typeof setInterval> | null = null
+let douyinQrProgressTimer: ReturnType<typeof setInterval> | null = null
+let douyinQrRevealTimer: ReturnType<typeof setTimeout> | null = null
+let douyinQrLoadingStartedAt = 0
 
 // 获取服务器列表
 const fetchScriptServers = async () => {
@@ -899,24 +940,78 @@ const handleLogin = async () => {
 }
 
 // 支付宝扫码登录（新接口：alipay_get_qrcode2）
+const clearAlipayQrLoadingTimers = () => {
+  if (alipayQrProgressTimer) {
+    clearInterval(alipayQrProgressTimer)
+    alipayQrProgressTimer = null
+  }
+  if (alipayQrRevealTimer) {
+    clearTimeout(alipayQrRevealTimer)
+    alipayQrRevealTimer = null
+  }
+}
+
+const startAlipayQrLoading = () => {
+  clearAlipayQrLoadingTimers()
+  isAlipayQrLoading.value = true
+  alipayQrProgress.value = 0
+  alipayQrLoadingStartedAt = Date.now()
+  alipayQrProgressTimer = setInterval(() => {
+    const step = alipayQrProgress.value < 70 ? 8 : 3
+    alipayQrProgress.value = Math.min(92, alipayQrProgress.value + step)
+  }, 140)
+}
+
+const finishAlipayQrLoading = (onReveal?: () => void) => {
+  const elapsed = Date.now() - alipayQrLoadingStartedAt
+  const waitTime = Math.max(0, QR_MIN_LOADING_MS - elapsed)
+
+  if (alipayQrRevealTimer) clearTimeout(alipayQrRevealTimer)
+  alipayQrRevealTimer = setTimeout(() => {
+    if (alipayQrProgressTimer) {
+      clearInterval(alipayQrProgressTimer)
+      alipayQrProgressTimer = null
+    }
+    alipayQrProgress.value = 100
+
+    alipayQrRevealTimer = setTimeout(() => {
+      onReveal?.()
+      isAlipayQrLoading.value = false
+      alipayQrProgress.value = 0
+      alipayQrRevealTimer = null
+    }, 280)
+  }, waitTime)
+}
+
+const resetAlipayQrLoading = () => {
+  clearAlipayQrLoadingTimers()
+  isAlipayQrLoading.value = false
+  alipayQrProgress.value = 0
+}
+
 const handleAlipayLogin = async () => {
+  startAlipayQrLoading()
   loading.value = true
   try {
     const qrcodeResponse = await axios.post('/api/game-accounts/alipay_get_qrcode2', {})
 
     if (qrcodeResponse.data.success) {
       const { qrcodeUrl: qrUrl } = qrcodeResponse.data.data
-      qrcodeUrl.value = qrUrl
-      qrcodeImage.value = qrUrl
+      finishAlipayQrLoading(() => {
+        qrcodeUrl.value = qrUrl
+        qrcodeImage.value = qrUrl
+      })
 
       message.success('二维码生成成功，请使用支付宝扫码')
 
       // 开始短轮询
       startAlipayPolling()
     } else {
+      resetAlipayQrLoading()
       message.error(qrcodeResponse.data.message || '获取二维码失败')
     }
   } catch (error: any) {
+    resetAlipayQrLoading()
     console.error('获取二维码失败:', error)
     message.error(error.response?.data?.message || '获取二维码失败')
   } finally {
@@ -1016,6 +1111,55 @@ const startAlipayPolling = () => {
 
 // ===================== 抖音扫码登录 =====================
 
+const clearDouyinQrLoadingTimers = () => {
+  if (douyinQrProgressTimer) {
+    clearInterval(douyinQrProgressTimer)
+    douyinQrProgressTimer = null
+  }
+  if (douyinQrRevealTimer) {
+    clearTimeout(douyinQrRevealTimer)
+    douyinQrRevealTimer = null
+  }
+}
+
+const startDouyinQrLoading = () => {
+  clearDouyinQrLoadingTimers()
+  isDouyinQrLoading.value = true
+  douyinQrProgress.value = 0
+  douyinQrLoadingStartedAt = Date.now()
+  douyinQrProgressTimer = setInterval(() => {
+    const step = douyinQrProgress.value < 70 ? 8 : 3
+    douyinQrProgress.value = Math.min(92, douyinQrProgress.value + step)
+  }, 140)
+}
+
+const finishDouyinQrLoading = (qrB64?: string) => {
+  const elapsed = Date.now() - douyinQrLoadingStartedAt
+  const waitTime = Math.max(0, QR_MIN_LOADING_MS - elapsed)
+
+  if (douyinQrRevealTimer) clearTimeout(douyinQrRevealTimer)
+  douyinQrRevealTimer = setTimeout(() => {
+    if (douyinQrProgressTimer) {
+      clearInterval(douyinQrProgressTimer)
+      douyinQrProgressTimer = null
+    }
+    douyinQrProgress.value = 100
+
+    douyinQrRevealTimer = setTimeout(() => {
+      if (qrB64) douyinQrB64.value = qrB64
+      isDouyinQrLoading.value = false
+      douyinQrProgress.value = 0
+      douyinQrRevealTimer = null
+    }, 280)
+  }, waitTime)
+}
+
+const resetDouyinQrLoading = () => {
+  clearDouyinQrLoadingTimers()
+  isDouyinQrLoading.value = false
+  douyinQrProgress.value = 0
+}
+
 // 停止抖音轮询
 const stopDouyinPoll = () => {
   if (douyinPollTimer) {
@@ -1030,24 +1174,24 @@ const handleDouyinLogin = async () => {
   stopDouyinPoll()
   douyinQrB64.value = ''
   douyinScanStatus.value = 'waiting'
-  isDouyinQrLoading.value = true
+  douyinLoginDone.value = false
+  douyinSmsCode.value = ''
+  douyinSmsMsg.value = ''
+  startDouyinQrLoading()
   loading.value = true
   try {
     const res = await axios.post('/api/douyin/scan/start', { force: true })
     if (!res.data.ok) {
+      resetDouyinQrLoading()
       message.error(res.data.err || '获取抖音二维码失败')
       return
     }
     douyinSid.value = res.data.sid || ''
-    if (res.data.qr_png_b64) {
-      douyinQrB64.value = res.data.qr_png_b64
-    }
-    isDouyinQrLoading.value = false
     startDouyinPoll()
   } catch (err: any) {
+    resetDouyinQrLoading()
     message.error(err.response?.data?.err || '连接抖音扫码服务失败')
   } finally {
-    isDouyinQrLoading.value = false
     loading.value = false
   }
 }
@@ -1060,7 +1204,13 @@ const startDouyinPoll = () => {
     try {
       const res = await axios.get('/api/douyin/scan/poll', { params: { sid: douyinSid.value } })
       const d = res.data
-      if (d.qr_png_b64) douyinQrB64.value = d.qr_png_b64
+      if (d.qr_png_b64) {
+        if (isDouyinQrLoading.value && !douyinQrB64.value) {
+          finishDouyinQrLoading(d.qr_png_b64)
+        } else {
+          douyinQrB64.value = d.qr_png_b64
+        }
+      }
       douyinScanStatus.value = d.scan_status || ''
 
       if (d.scan_status === 'verify_sms') {
@@ -1401,6 +1551,7 @@ const resetForm = () => {
   nickname.value = ''
 
   // 清理支付宝相关状态
+  resetAlipayQrLoading()
   qrcodeUrl.value = ''
   qrcodeImage.value = ''
   isPolling.value = false
@@ -1419,12 +1570,12 @@ const resetForm = () => {
 
   // 清理抖音相关状态
   stopDouyinPoll()
+  resetDouyinQrLoading()
   douyinSid.value = ''
   douyinQrB64.value = ''
   douyinScanStatus.value = ''
   douyinSmsCode.value = ''
   douyinSmsMsg.value = ''
-  isDouyinQrLoading.value = false
   isDouyinPolling.value = false
   douyinLoginDone.value = false
   douyinDyToken.value = ''
