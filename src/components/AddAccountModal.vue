@@ -715,6 +715,7 @@ const douyinDyToken = ref<string>('')   // 续期后的 dyToken
 const douyinServers = ref<any[]>([])    // 扫码后拿到的服务器列表
 const douyinUid = ref<string>('')       // 抖音稳定 uid
 let douyinPollTimer: ReturnType<typeof setInterval> | null = null
+let douyinBindingInProgress = false  // 防重：确保 handleDouyinAfterScan 只触发一次
 let douyinQrProgressTimer: ReturnType<typeof setInterval> | null = null
 let douyinQrRevealTimer: ReturnType<typeof setTimeout> | null = null
 let douyinQrLoadingStartedAt = 0
@@ -1168,6 +1169,7 @@ const stopDouyinPoll = () => {
     douyinPollTimer = null
   }
   isDouyinPolling.value = false
+  douyinBindingInProgress = false
 }
 
 // 发起抖音登录（获取二维码）
@@ -1217,7 +1219,9 @@ const startDouyinPoll = () => {
       if (d.scan_status === 'verify_sms') {
         douyinSmsMsg.value = d.msg || '请输入短信验证码'
       } else if (d.scan_status === 'confirmed' && d.game_ok) {
-        // 扫码成功，调 /bind 取服务器列表
+        // 扫码成功，调 /bind 取服务器列表（防重：确保只触发一次）
+        if (douyinBindingInProgress) return
+        douyinBindingInProgress = true
         stopDouyinPoll()
         await handleDouyinAfterScan(d)
       } else if (d.scan_status === 'expired' || d.scan_status === 'error') {
