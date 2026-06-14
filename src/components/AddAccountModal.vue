@@ -45,6 +45,7 @@
                 </div>
               </div>
             </a-radio>
+            <!-- 华为渠道：暂时关闭
             <a-radio :value="3" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper">
@@ -52,6 +53,7 @@
                 </div>
               </div>
             </a-radio>
+            -->
           </a-radio-group>
         </div>
 
@@ -155,7 +157,7 @@
             </div>
           </div>
 
-          <!-- 华为扫码登录界面 -->
+          <!-- 华为扫码登录界面：暂时关闭
           <div v-else-if="selectedChannel === 3" class="huawei-login">
             <div v-if="!huaweiQrcodeUrl" class="qrcode-placeholder">
               <p>点击"获取二维码"开始华为扫码登录</p>
@@ -165,7 +167,6 @@
               <div class="qrcode-display">
                 <div class="qrcode-wrapper">
                   <div v-if="huaweiQrcodeImage" class="qrcode-content">
-                    <!-- 使用Ant Design的QRCode组件 -->
                     <a-qrcode :value="huaweiQrcodeImage" :size="200" />
                     <p class="qrcode-status-text">
                       {{ isHuaweiPolling ? '⏳ 等待扫码中...' : '📱 请使用华为账号扫描二维码' }}
@@ -182,6 +183,7 @@
               </div>
             </div>
           </div>
+          -->
 
           <!-- 账号密码登录界面 -->
           <div v-else class="password-login">
@@ -757,7 +759,7 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if (selectedChannel.value === 0 || selectedChannel.value === 1 || selectedChannel.value === 2 || selectedChannel.value === 3) {
+      if (selectedChannel.value === 0 || selectedChannel.value === 1 || selectedChannel.value === 2) {
         currentStep.value = 'login'
       } else {
         alert('请选择游戏渠道')

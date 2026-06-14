@@ -1508,6 +1508,8 @@ const douyinReauthSid = ref('')
 const douyinReauthQrB64 = ref('')
 const douyinReauthScanStatus = ref('')
 let douyinReauthPollTimer: ReturnType<typeof setInterval> | null = null
+let douyinReauthPollInFlight = false
+const douyinReauthHandled = ref(false)
 
 // Tour 漫游引导相关状态
 const tourOpen = ref(false)
@@ -2255,8 +2257,88 @@ const startHuaweiReauthPolling = async (accountId: number) => {
 }
 
 // ── 抖音重认证 ────────────────────────────────────────────────────
+const isAccountAlreadyRunningError = (payload: any): boolean => {
+  const text = [payload?.message, payload?.data?.msg, payload?.data?.message]
+    .filter(Boolean)
+    .join(' ')
+  return /已在运行|already running/i.test(text)
+}
+
+const completeDouyinReauthAfterScan = async (accountId: number) => {
+  await fetchAndUpdateSingleAccountRecord(accountId)
+  const account = accounts.value.find((a: GameAccount) => a.id === accountId)
+  if (account && getAccountStartedStatus(account)) {
+    message.success('🎉 抖音重认证成功！')
+    return
+  }
+
+  if (operatingAccounts.value.has(accountId)) {
+    message.success('🎉 抖音重认证成功！')
+    return
+  }
+
+  message.success('🎉 抖音重认证成功！正在启动账号...')
+  operatingAccounts.value = new Set([...operatingAccounts.value, accountId])
+
+  try {
+    const response = await axios.post(`/api/game-accounts/${accountId}/start`, {})
+
+    if (response.data.success) {
+      message.success('游戏账号启动成功')
+      accounts.value = accounts.value.map((item: GameAccount) => {
+        if (item.id === accountId) {
+          const updatedRecord = item.record
+            ? { ...item.record, isStarted: true }
+            : undefined
+          return { ...item, record: updatedRecord }
+        }
+        return item
+      })
+      await fetchAndUpdateSingleAccountRecord(accountId)
+      return
+    }
+
+    if (isAccountAlreadyRunningError(response.data)) {
+      await fetchAndUpdateSingleAccountRecord(accountId)
+      return
+    }
+
+    if (response.data.code === 'DOUYIN_REAUTH_REQUIRED') {
+      await handleDouyinReauth(accountId)
+      return
+    }
+
+    let errorMsg = response.data.message || '操作失败'
+    if (response.data.data?.msg) {
+      errorMsg += `: ${response.data.data.msg}`
+    }
+    message.error(errorMsg)
+  } catch (error: any) {
+    if (isAccountAlreadyRunningError(error.response?.data)) {
+      await fetchAndUpdateSingleAccountRecord(accountId)
+      return
+    }
+
+    if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
+      await handleDouyinReauth(accountId)
+      return
+    }
+
+    let errorMsg = error.response?.data?.message || '操作失败'
+    if (error.response?.data?.data?.msg) {
+      errorMsg += `: ${error.response.data.data.msg}`
+    }
+    message.error(errorMsg)
+  } finally {
+    const newSet = new Set(operatingAccounts.value)
+    newSet.delete(accountId)
+    operatingAccounts.value = newSet
+  }
+}
+
 const handleDouyinReauth = async (accountId: number) => {
   try {
+    douyinReauthHandled.value = false
     const resp = await axios.post('/api/douyin/scan/reauth/start', { accountId })
     if (!resp.data.ok) {
       message.error(resp.data.err || '生成抖音二维码失败')
@@ -2284,6 +2366,7 @@ const handleDouyinReauthCancel = () => {
   douyinReauthVisible.value    = false
   douyinReauthScanStatus.value = ''
   douyinReauthQrB64.value      = ''
+  douyinReauthHandled.value    = false
   stopDouyinReauthPolling()
   message.info('已取消抖音重认证')
 }
@@ -2306,17 +2389,23 @@ const handleDouyinReauthSubmitSms = async (sid: string, code: string): Promise<{
 
 const startDouyinReauthPolling = (accountId: number, sid: string) => {
   stopDouyinReauthPolling()
+  douyinReauthPollInFlight = false
   douyinReauthPollTimer = setInterval(async () => {
-    if (!douyinReauthVisible.value) {
+    if (!douyinReauthVisible.value || douyinReauthHandled.value) {
       stopDouyinReauthPolling()
       return
     }
+    if (douyinReauthPollInFlight) return
+
+    douyinReauthPollInFlight = true
     try {
       const resp = await axios.get('/api/douyin/scan/reauth/poll', {
         params: { sid, accountId },
         timeout: 10000,
       })
       const d = resp.data
+
+      if (douyinReauthHandled.value) return
 
       // 补充二维码（start 时可能为空）
       if (d.qr_png_b64 && !douyinReauthQrB64.value) {
@@ -2330,12 +2419,10 @@ const startDouyinReauthPolling = (accountId: number, sid: string) => {
 
       // 成功完成
       if (d.ok && d.scan_status === 'reauth_done') {
+        douyinReauthHandled.value = true
         stopDouyinReauthPolling()
         douyinReauthVisible.value = false
-        message.success('🎉 抖音重认证成功！正在启动账号...')
-        setTimeout(async () => {
-          await handleToggleAccount(accountId, 'inactive')
-        }, 500)
+        await completeDouyinReauthAfterScan(accountId)
         return
       }
 
@@ -2347,6 +2434,8 @@ const startDouyinReauthPolling = (accountId: number, sid: string) => {
       }
     } catch (pollErr: any) {
       console.error('[douyinReauth] 轮询失败:', pollErr.message)
+    } finally {
+      douyinReauthPollInFlight = false
     }
   }, 2000)
 }

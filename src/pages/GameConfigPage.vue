@@ -608,7 +608,7 @@
               <CustomFormItem
                 label="限制花朵等级"
                 name="plant.flower.minFlowerLevel"
-                tooltip="限制种植的最低花朵等级，0则不限制"
+                tooltip="限制种植的最低花朵等级，0则不限制，此项的设置只针对补库存，做订单和公会竞赛之类的不受此设置影响"
               >
                 <CustomInputNumber
                   v-model:value="config.plant.flower.minFlowerLevel"
