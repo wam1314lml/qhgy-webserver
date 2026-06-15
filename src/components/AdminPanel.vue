@@ -1392,15 +1392,21 @@
           () => {
             withdrawModalOpen = false
             withdrawForm.amount = 0
+            withdrawForm.subAmount = 0
           }
         "
-        width="400px"
+        width="480px"
       >
         <div style="margin-bottom: 16px">
           <p><strong>用户：</strong>{{ selectedUser?.username }}</p>
           <p>
-            <strong>可提现金额：</strong>¥{{
+            <strong>本人可提现：</strong>¥{{
               (parseFloat(selectedUser?.available_commission?.toString() || '0') || 0).toFixed(2)
+            }}
+          </p>
+          <p v-if="selectedUserIsSecondLevel">
+            <strong>旗下三级代理可提现汇总：</strong>¥{{
+              (parseFloat(selectedUser?.sub_agents_available?.toString() || '0') || 0).toFixed(2)
             }}
           </p>
         </div>
@@ -1413,20 +1419,38 @@
         >
           <a-form-item
             name="amount"
-            label="提现金额"
+            label="本人提现金额（二级代理自身）"
             :rules="[
-              { required: true, message: '请输入提现金额' },
               { validator: validateWithdrawAmount },
             ]"
           >
             <a-input-number
-              :min="0.01"
+              :min="0"
               :max="parseFloat(selectedUser?.available_commission?.toString() || '0') || 0"
               :step="0.01"
               :precision="2"
               style="width: 100%"
-              placeholder="请输入提现金额"
+              placeholder="0 表示不提现本人部分"
               v-model:value="withdrawForm.amount"
+            />
+          </a-form-item>
+
+          <a-form-item
+            v-if="selectedUserIsSecondLevel"
+            name="subAmount"
+            label="三级代理汇总提现金额（结清后管理员与二级代理清账）"
+            :rules="[
+              { validator: validateSubWithdrawAmount },
+            ]"
+          >
+            <a-input-number
+              :min="0"
+              :max="parseFloat(selectedUser?.sub_agents_available?.toString() || '0') || 0"
+              :step="0.01"
+              :precision="2"
+              style="width: 100%"
+              placeholder="0 表示不结清三级代理部分"
+              v-model:value="withdrawForm.subAmount"
             />
           </a-form-item>
         </a-form>
@@ -1740,6 +1764,7 @@ interface InviteRelation {
   available_commission?: number | string
   withdrawn_commission?: number | string
   total_commission?: number | string
+  sub_agents_available?: number | null  // 旗下三级代理总可提现（仅二级代理行有值）
 }
 
 interface RechargeConfig {
@@ -2281,7 +2306,13 @@ const batchPointsForm = ref({
 // 提现表单数据
 const withdrawForm = ref({
   amount: 0,
+  subAmount: 0,
 })
+
+// 当前提现弹窗用户是否是二级代理
+const selectedUserIsSecondLevel = computed(() =>
+  ['vip1', 'vip2'].includes(selectedUser.value?.role || '')
+)
 
 // 表单对象
 const configForm = ref({
@@ -2409,6 +2440,17 @@ const inviteColumns = computed(() => [
       `¥${(parseFloat(text?.toString() || '0') || 0).toFixed(2)}`,
   },
   {
+    title: '三级代理可提现',
+    dataIndex: 'sub_agents_available',
+    key: 'sub_agents_available',
+    customRender: ({ text, record }: { text: number | null; record: InviteRelation }) => {
+      // agent3 行显示 -，二级代理行显示汇总金额
+      if (text === null || text === undefined) return h('span', { style: { color: '#ccc' } }, '-')
+      const num = parseFloat(text?.toString() || '0') || 0
+      return h('span', { style: { color: num > 0 ? '#52c41a' : '#999' } }, `¥${num.toFixed(2)}`)
+    },
+  },
+  {
     title: '注册时间',
     dataIndex: 'created_at',
     key: 'created_at',
@@ -2418,13 +2460,17 @@ const inviteColumns = computed(() => [
     title: '操作',
     key: 'action',
     customRender: ({ record }: { record: InviteRelation }) => {
+      const isSecondLevel = ['vip1', 'vip2'].includes(record.role)
+      const selfAvailable = parseFloat(record.available_commission?.toString() || '0') || 0
+      const subAvailable = parseFloat(record.sub_agents_available?.toString() || '0') || 0
+      const canWithdraw = selfAvailable > 0 || (isSecondLevel && subAvailable > 0)
       return h(
         Button,
         {
           size: 'small',
           type: 'primary',
           onClick: () => handleWithdraw(record),
-          disabled: Number(record.available_commission) <= 0,
+          disabled: !canWithdraw,
         },
         '提现',
       )
@@ -3867,15 +3913,28 @@ const executeBatchPointsOperation = async () => {
   }
 }
 
-// 提现金额验证
+// 提现金额验证（本人部分）
 const validateWithdrawAmount = (_: any, value: number) => {
   const availableAmount =
     parseFloat(selectedUser.value?.available_commission?.toString() || '0') || 0
   if (value && value > availableAmount) {
     return Promise.reject(new Error('提现金额不能超过可提现金额'))
   }
-  if (value && value <= 0) {
-    return Promise.reject(new Error('提现金额必须大于0'))
+  if (value && value < 0) {
+    return Promise.reject(new Error('提现金额不能为负数'))
+  }
+  return Promise.resolve()
+}
+
+// 三级代理汇总提现金额验证
+const validateSubWithdrawAmount = (_: any, value: number) => {
+  const subAvailable =
+    parseFloat(selectedUser.value?.sub_agents_available?.toString() || '0') || 0
+  if (value && value > subAvailable) {
+    return Promise.reject(new Error('金额不能超过旗下三级代理总可提现金额'))
+  }
+  if (value && value < 0) {
+    return Promise.reject(new Error('金额不能为负数'))
   }
   return Promise.resolve()
 }
@@ -3884,28 +3943,64 @@ const validateWithdrawAmount = (_: any, value: number) => {
 const confirmWithdraw = async () => {
   if (!selectedUser.value) return
 
-  try {
-    const response = await fetch('/api/commission/admin/withdraw', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${props.token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: selectedUser.value.id,
-        amount: withdrawForm.value.amount,
-      }),
-    })
+  const selfAmount = withdrawForm.value.amount || 0
+  const subAmount = withdrawForm.value.subAmount || 0
 
-    if (response.ok) {
-      message.success('提现处理成功')
-      withdrawModalOpen.value = false
-      withdrawForm.value.amount = 0
-      fetchInviteRelations() // 刷新数据
-    } else {
-      const errorData = await response.json()
-      message.error(errorData.message || '提现处理失败')
+  if (selfAmount <= 0 && subAmount <= 0) {
+    message.warning('请至少填写一项提现金额')
+    return
+  }
+
+  try {
+    let successCount = 0
+
+    // 1. 本人提现
+    if (selfAmount > 0) {
+      const response = await fetch('/api/commission/admin/withdraw', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${props.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: selectedUser.value.id,
+          amount: selfAmount,
+        }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        message.error(`本人提现失败：${errorData.message || '未知错误'}`)
+        return
+      }
+      successCount++
     }
+
+    // 2. 三级代理汇总结清（调用 agent 提现接口的管理员版：直接操作该二级代理旗下汇总）
+    if (subAmount > 0 && selectedUserIsSecondLevel.value) {
+      const response = await fetch('/api/admin/sub-agents-withdraw', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${props.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parentAgentId: selectedUser.value.id,
+          amount: subAmount,
+        }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        message.error(`三级代理结清失败：${errorData.message || '未知错误'}`)
+        return
+      }
+      successCount++
+    }
+
+    message.success('提现处理成功')
+    withdrawModalOpen.value = false
+    withdrawForm.value.amount = 0
+    withdrawForm.value.subAmount = 0
+    fetchInviteRelations()
   } catch {
     message.error('提现处理失败')
   }

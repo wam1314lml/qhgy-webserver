@@ -27,6 +27,27 @@
       <div v-else class="loading-text">加载中...</div>
     </div>
 
+    <!-- 三级代理总分成概览 -->
+    <div class="agent-card my-commission-card">
+      <h2>三级代理总分成概览</h2>
+      <div v-if="subSummaryError" class="load-error">{{ subSummaryError }}</div>
+      <div v-else-if="subSummary" class="commission-grid">
+        <div class="commission-item">
+          <div class="commission-number">¥{{ fmt(subSummary.total_commission) }}</div>
+          <div class="commission-label">累计分成</div>
+        </div>
+        <div class="commission-item highlight">
+          <div class="commission-number">¥{{ fmt(subSummary.available_commission) }}</div>
+          <div class="commission-label">可提现</div>
+        </div>
+        <div class="commission-item">
+          <div class="commission-number">¥{{ fmt(subSummary.withdrawn_commission) }}</div>
+          <div class="commission-label">已提现</div>
+        </div>
+      </div>
+      <div v-else class="loading-text">加载中...</div>
+    </div>
+
     <!-- 任命三级代理 -->
     <div class="agent-card appoint-card">
       <h2>任命三级代理</h2>
@@ -115,6 +136,7 @@
               <th>抽成比例</th>
               <th>今日充值</th>
               <th>可提现</th>
+              <th>已提现</th>
               <th>累计分成</th>
               <th>操作</th>
             </tr>
@@ -138,9 +160,11 @@
               </td>
               <td class="amount-cell">¥{{ fmt(agent.today_recharge_amount) }}</td>
               <td class="amount-cell available">¥{{ fmt(agent.available_commission) }}</td>
+              <td class="amount-cell">¥{{ fmt(agent.withdrawn_commission) }}</td>
               <td class="amount-cell">¥{{ fmt(agent.total_commission) }}</td>
               <td>
                 <div class="action-btns">
+                  <button class="agent-btn success small" @click="openWithdrawAgent(agent)" :disabled="agent.available_commission <= 0">提现</button>
                   <button class="agent-btn info small" @click="viewDetail(agent)">详情</button>
                   <button class="agent-btn danger small" @click="openDismiss(agent)">卸任</button>
                 </div>
@@ -148,6 +172,38 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- 给三级代理提现弹窗 -->
+    <div v-if="withdrawAgentTarget" class="modal-overlay" @click.self="withdrawAgentTarget = null">
+      <div class="modal-box">
+        <h3>给三级代理提现</h3>
+        <p>代理：<strong>{{ withdrawAgentTarget.username }}</strong></p>
+        <p>可提现金额：<strong class="amount-cell available">¥{{ fmt(withdrawAgentTarget.available_commission) }}</strong></p>
+        <div class="rate-input-row">
+          <label>提现金额：</label>
+          <input
+            v-model.number="withdrawAgentAmount"
+            type="number"
+            min="0.01"
+            :max="withdrawAgentTarget.available_commission"
+            step="0.01"
+            class="agent-input rate-input"
+            style="flex:1;width:auto"
+            placeholder="请输入金额"
+          />
+          <span class="rate-unit">元</span>
+        </div>
+        <p v-if="withdrawAgentMsg" :class="withdrawAgentSuccess ? 'msg-success' : 'msg-error'">
+          {{ withdrawAgentMsg }}
+        </p>
+        <div class="modal-actions">
+          <button class="agent-btn success" :disabled="withdrawAgentLoading" @click="doWithdrawAgent">
+            {{ withdrawAgentLoading ? '处理中...' : '确认提现' }}
+          </button>
+          <button class="agent-btn secondary" @click="withdrawAgentTarget = null">取消</button>
+        </div>
       </div>
     </div>
 
@@ -365,6 +421,22 @@ async function loadMyInfo() {
   } catch {}
 }
 
+// ── 三级代理总分成汇总 ──
+const subSummary = ref<any>(null)
+const subSummaryError = ref('')
+async function loadSubSummary() {
+  try {
+    const res = await apiFetch('/sub-agents-summary')
+    if (res.success) {
+      subSummary.value = res.data
+    } else {
+      subSummaryError.value = res.message || '加载失败'
+    }
+  } catch {
+    subSummaryError.value = '网络错误，请刷新重试'
+  }
+}
+
 // ── 我的分成 ──
 const myCommission = ref<any>(null)
 const myCommissionError = ref('')
@@ -545,6 +617,49 @@ async function doDismiss() {
   dismissLoading.value = false
 }
 
+// ── 给三级代理提现 ──
+const withdrawAgentTarget = ref<any>(null)
+const withdrawAgentAmount = ref<number>(0)
+const withdrawAgentLoading = ref(false)
+const withdrawAgentMsg = ref('')
+const withdrawAgentSuccess = ref(false)
+
+function openWithdrawAgent(agent: any) {
+  withdrawAgentTarget.value = agent
+  withdrawAgentAmount.value = 0
+  withdrawAgentMsg.value = ''
+}
+async function doWithdrawAgent() {
+  if (!withdrawAgentTarget.value) return
+  const max = parseFloat(withdrawAgentTarget.value.available_commission || 0)
+  if (!withdrawAgentAmount.value || withdrawAgentAmount.value <= 0) {
+    withdrawAgentMsg.value = '请输入有效的提现金额'
+    withdrawAgentSuccess.value = false
+    return
+  }
+  if (withdrawAgentAmount.value > max) {
+    withdrawAgentMsg.value = `提现金额不能超过可提现金额 ¥${max.toFixed(2)}`
+    withdrawAgentSuccess.value = false
+    return
+  }
+  withdrawAgentLoading.value = true
+  withdrawAgentMsg.value = ''
+  const res = await apiFetch('/withdraw-for-agent', {
+    method: 'POST',
+    body: JSON.stringify({
+      agentUserId: withdrawAgentTarget.value.id,
+      amount: withdrawAgentAmount.value,
+    }),
+  })
+  withdrawAgentSuccess.value = res.success
+  withdrawAgentMsg.value = res.message
+  if (res.success) {
+    withdrawAgentTarget.value = null
+    await Promise.all([loadMyAgents(), loadSubSummary()])
+  }
+  withdrawAgentLoading.value = false
+}
+
 // ── 详情 ──
 const detailData = ref<any>(null)
 async function viewDetail(agent: any) {
@@ -556,6 +671,7 @@ async function viewDetail(agent: any) {
 onMounted(() => {
   loadMyInfo()
   loadMyCommission()
+  loadSubSummary()
   loadMyAgents()
 })
 </script>
@@ -797,6 +913,10 @@ onMounted(() => {
 .agent-btn.info {
   background: #e0f2fe;
   color: #0369a1;
+}
+.agent-btn.success {
+  background: #dcfce7;
+  color: #16a34a;
 }
 .agent-btn.small {
   padding: 5px 12px;
