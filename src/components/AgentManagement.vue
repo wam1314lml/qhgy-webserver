@@ -164,7 +164,6 @@
               <td class="amount-cell">¥{{ fmt(agent.total_commission) }}</td>
               <td>
                 <div class="action-btns">
-                  <button class="agent-btn success small" @click="openWithdrawAgent(agent)" :disabled="agent.available_commission <= 0">提现</button>
                   <button class="agent-btn info small" @click="viewDetail(agent)">详情</button>
                   <button class="agent-btn danger small" @click="openDismiss(agent)">卸任</button>
                 </div>
@@ -172,38 +171,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- 给三级代理提现弹窗 -->
-    <div v-if="withdrawAgentTarget" class="modal-overlay" @click.self="withdrawAgentTarget = null">
-      <div class="modal-box">
-        <h3>给三级代理提现</h3>
-        <p>代理：<strong>{{ withdrawAgentTarget.username }}</strong></p>
-        <p>可提现金额：<strong class="amount-cell available">¥{{ fmt(withdrawAgentTarget.available_commission) }}</strong></p>
-        <div class="rate-input-row">
-          <label>提现金额：</label>
-          <input
-            v-model.number="withdrawAgentAmount"
-            type="number"
-            min="0.01"
-            :max="withdrawAgentTarget.available_commission"
-            step="0.01"
-            class="agent-input rate-input"
-            style="flex:1;width:auto"
-            placeholder="请输入金额"
-          />
-          <span class="rate-unit">元</span>
-        </div>
-        <p v-if="withdrawAgentMsg" :class="withdrawAgentSuccess ? 'msg-success' : 'msg-error'">
-          {{ withdrawAgentMsg }}
-        </p>
-        <div class="modal-actions">
-          <button class="agent-btn success" :disabled="withdrawAgentLoading" @click="doWithdrawAgent">
-            {{ withdrawAgentLoading ? '处理中...' : '确认提现' }}
-          </button>
-          <button class="agent-btn secondary" @click="withdrawAgentTarget = null">取消</button>
-        </div>
       </div>
     </div>
 
