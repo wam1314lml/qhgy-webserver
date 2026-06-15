@@ -1404,11 +1404,18 @@
               (parseFloat(selectedUser?.available_commission?.toString() || '0') || 0).toFixed(2)
             }}
           </p>
-          <p v-if="selectedUserIsSecondLevel">
-            <strong>旗下三级代理可提现汇总：</strong>¥{{
-              (parseFloat(selectedUser?.sub_agents_available?.toString() || '0') || 0).toFixed(2)
-            }}
-          </p>
+          <template v-if="selectedUserIsSecondLevel">
+            <p>
+              <strong>旗下三级代理可提现：</strong>¥{{
+                (parseFloat(selectedUser?.sub_agents_available?.toString() || '0') || 0).toFixed(2)
+              }}
+            </p>
+            <p>
+              <strong>旗下三级代理已提现：</strong>¥{{
+                (parseFloat(selectedUser?.sub_agents_withdrawn?.toString() || '0') || 0).toFixed(2)
+              }}
+            </p>
+          </template>
         </div>
 
         <a-form
@@ -1454,6 +1461,25 @@
             />
           </a-form-item>
         </a-form>
+      </a-modal>
+
+      <!-- 提现成功后导出报表 Modal -->
+      <a-modal
+        title="导出结算报表"
+        v-model:open="reportModalOpen"
+        @ok="doExportReport"
+        @cancel="() => { reportModalOpen = false }"
+        okText="导出 CSV"
+        cancelText="关闭"
+        width="420px"
+      >
+        <p>代理：<strong>{{ reportTarget?.username }}</strong></p>
+        <p style="margin-top:8px">
+          结算时间：<strong>{{ reportBatchTimeLabel }}</strong>
+        </p>
+        <p style="margin-top:10px;color:#888;font-size:13px">
+          报表包含本次结算的二级代理自身提现明细 + 旗下三级代理提现明细（二级代理应付三级代理金额汇总）
+        </p>
       </a-modal>
 
       <!-- 充值配置编辑Modal -->
@@ -1765,6 +1791,7 @@ interface InviteRelation {
   withdrawn_commission?: number | string
   total_commission?: number | string
   sub_agents_available?: number | null  // 旗下三级代理总可提现（仅二级代理行有值）
+  sub_agents_withdrawn?: number | null  // 旗下三级代理总已提现（仅二级代理行有值）
 }
 
 interface RechargeConfig {
@@ -2443,11 +2470,20 @@ const inviteColumns = computed(() => [
     title: '三级代理可提现',
     dataIndex: 'sub_agents_available',
     key: 'sub_agents_available',
-    customRender: ({ text, record }: { text: number | null; record: InviteRelation }) => {
-      // agent3 行显示 -，二级代理行显示汇总金额
+    customRender: ({ text }: { text: number | null }) => {
       if (text === null || text === undefined) return h('span', { style: { color: '#ccc' } }, '-')
       const num = parseFloat(text?.toString() || '0') || 0
       return h('span', { style: { color: num > 0 ? '#52c41a' : '#999' } }, `¥${num.toFixed(2)}`)
+    },
+  },
+  {
+    title: '三级代理已提现',
+    dataIndex: 'sub_agents_withdrawn',
+    key: 'sub_agents_withdrawn',
+    customRender: ({ text }: { text: number | null }) => {
+      if (text === null || text === undefined) return h('span', { style: { color: '#ccc' } }, '-')
+      const num = parseFloat(text?.toString() || '0') || 0
+      return h('span', { style: { color: num > 0 ? '#1677ff' : '#999' } }, `¥${num.toFixed(2)}`)
     },
   },
   {
@@ -2464,16 +2500,22 @@ const inviteColumns = computed(() => [
       const selfAvailable = parseFloat(record.available_commission?.toString() || '0') || 0
       const subAvailable = parseFloat(record.sub_agents_available?.toString() || '0') || 0
       const canWithdraw = selfAvailable > 0 || (isSecondLevel && subAvailable > 0)
-      return h(
-        Button,
-        {
+      const btns = [
+        h(Button, {
           size: 'small',
           type: 'primary',
+          style: { marginRight: '6px' },
           onClick: () => handleWithdraw(record),
           disabled: !canWithdraw,
-        },
-        '提现',
-      )
+        }, '提现'),
+      ]
+      if (isSecondLevel) {
+        btns.push(h(Button, {
+          size: 'small',
+          onClick: () => exportReport(record),
+        }, '报表'))
+      }
+      return h('span', {}, btns)
     },
   },
 ])
@@ -3953,6 +3995,9 @@ const confirmWithdraw = async () => {
 
   try {
     let successCount = 0
+    // 记录本次结算时间点（用于报表锚点）
+    const settlementTime = new Date().toISOString()
+    lastSettleBatchTime.value = settlementTime
 
     // 1. 本人提现
     if (selfAmount > 0) {
@@ -3993,17 +4038,67 @@ const confirmWithdraw = async () => {
         message.error(`三级代理结清失败：${errorData.message || '未知错误'}`)
         return
       }
+      // 用服务端返回的 batch_time 覆盖（更精确）
+      try {
+        const data = await response.json()
+        if (data?.data?.batch_time) {
+          lastSettleBatchTime.value = data.data.batch_time
+        }
+      } catch { /* 忽略解析错误 */ }
       successCount++
     }
 
     message.success('提现处理成功')
     withdrawModalOpen.value = false
+    const settled = { ...selectedUser.value! }
     withdrawForm.value.amount = 0
     withdrawForm.value.subAmount = 0
     fetchInviteRelations()
+    // 如果是二级代理，提现成功后自动打开报表导出弹窗（用本次批次时间）
+    if (selectedUserIsSecondLevel.value) {
+      exportReport(settled, lastSettleBatchTime.value ?? undefined)
+    }
   } catch {
     message.error('提现处理失败')
   }
+}
+
+// 本次结算批次时间（来自 sub-agents-withdraw 响应）
+const lastSettleBatchTime = ref<string | null>(null)
+
+// 报表 Modal 状态
+const reportModalOpen = ref(false)
+const reportTarget = ref<InviteRelation | null>(null)
+// batchTime 为 ISO 字符串；null = 查最新批次
+const reportBatchTime = ref<string | null>(null)
+const reportBatchTimeLabel = computed(() => {
+  if (!reportBatchTime.value) return '最近一次结算'
+  return new Date(reportBatchTime.value).toLocaleString('zh-CN')
+})
+
+// 打开报表 Modal（列表行「报表」按钮 or 提现成功后）
+// batchTime 传入时用精确批次，不传则下载最新批次
+const exportReport = (user: InviteRelation, batchTime?: string) => {
+  reportTarget.value = user
+  reportBatchTime.value = batchTime ?? null
+  reportModalOpen.value = true
+}
+
+// 执行导出
+const doExportReport = () => {
+  if (!reportTarget.value) return
+  let url = `/api/admin/commission-report?agentId=${reportTarget.value.id}`
+  if (reportBatchTime.value) {
+    url += `&batchTime=${encodeURIComponent(reportBatchTime.value)}`
+  }
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', '')
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  reportModalOpen.value = false
 }
 
 // 处理编辑充值配置
