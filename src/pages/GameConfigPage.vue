@@ -778,14 +778,14 @@
             <CustomFormItem
               label="等级奖励"
               name="plant.elves.recvPass"
-              tooltip="自动领取花灵密令等级奖励"
+              tooltip="自动领取花灵密令等级奖励，不会做针对性做花灵密令任务哦，日常做其他任务会有顺带做到花灵密令的部分任务，做完了就会顺便领取"
             >
               <Switch v-model:checked="config.plant.elves.recvPass" />
             </CustomFormItem>
             <CustomFormItem
               label="任务奖励"
               name="plant.elves.recvPassTask"
-              tooltip="自动领取花灵密令任务奖励"
+              tooltip="自动领取花灵密令任务奖励，不会做针对性做花灵密令任务哦，日常做其他任务会有顺带做到花灵密令的部分任务，做完了就会顺便领取"
             >
               <Switch v-model:checked="config.plant.elves.recvPassTask" />
             </CustomFormItem>
