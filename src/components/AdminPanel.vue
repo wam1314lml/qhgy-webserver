@@ -1463,23 +1463,54 @@
         </a-form>
       </a-modal>
 
-      <!-- 提现成功后导出报表 Modal -->
+      <!-- 结算报表 Modal -->
       <a-modal
         title="导出结算报表"
         v-model:open="reportModalOpen"
-        @ok="doExportReport"
         @cancel="() => { reportModalOpen = false }"
-        okText="导出 CSV"
-        cancelText="关闭"
-        width="420px"
+        :footer="null"
+        width="600px"
       >
-        <p>代理：<strong>{{ reportTarget?.username }}</strong></p>
-        <p style="margin-top:8px">
-          结算时间：<strong>{{ reportBatchTimeLabel }}</strong>
-        </p>
-        <p style="margin-top:10px;color:#888;font-size:13px">
-          报表包含本次结算的二级代理自身提现明细 + 旗下三级代理提现明细（二级代理应付三级代理金额汇总）
-        </p>
+        <div style="margin-bottom:8px">
+          代理：<strong>{{ reportTarget?.username }}</strong>
+        </div>
+
+        <!-- 加载中 -->
+        <div v-if="reportBatchesLoading" style="text-align:center;padding:24px">
+          <a-spin tip="加载批次列表..." />
+        </div>
+
+        <!-- 无记录 -->
+        <div v-else-if="reportBatches.length === 0" style="color:#888;padding:16px 0">
+          该代理暂无结算记录
+        </div>
+
+        <!-- 批次列表 -->
+        <template v-else>
+          <div style="margin-bottom:8px;color:#555;font-size:13px">
+            共 {{ reportBatches.length }} 次结算记录，选择要导出的批次：
+          </div>
+          <a-table
+            :dataSource="reportBatches"
+            :columns="reportBatchColumns"
+            :pagination="false"
+            :rowKey="(r: any) => r.batch_time"
+            size="small"
+            :rowSelection="{ selectedRowKeys: reportSelectedKeys, onChange: (keys: any[]) => reportSelectedKeys = keys }"
+            style="margin-bottom:12px"
+          />
+          <div style="margin-top:4px;color:#888;font-size:12px">
+            报表包含：二级代理自身提现 + 旗下三级代理提现明细（谁扣了多少钱）
+          </div>
+          <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+            <a-button @click="() => { reportModalOpen = false }">关闭</a-button>
+            <a-button
+              :disabled="reportSelectedKeys.length === 0"
+              @click="doExportReport(false)"
+            >导出选中（{{ reportSelectedKeys.length }}次）</a-button>
+            <a-button type="primary" @click="doExportReport(true)">导出全部历史</a-button>
+          </div>
+        </template>
       </a-modal>
 
       <!-- 充值配置编辑Modal -->
@@ -4069,36 +4100,98 @@ const lastSettleBatchTime = ref<string | null>(null)
 // 报表 Modal 状态
 const reportModalOpen = ref(false)
 const reportTarget = ref<InviteRelation | null>(null)
-// batchTime 为 ISO 字符串；null = 查最新批次
-const reportBatchTime = ref<string | null>(null)
-const reportBatchTimeLabel = computed(() => {
-  if (!reportBatchTime.value) return '最近一次结算'
-  return new Date(reportBatchTime.value).toLocaleString('zh-CN')
-})
+const reportBatches = ref<any[]>([])
+const reportBatchesLoading = ref(false)
+const reportSelectedKeys = ref<string[]>([])
 
-// 打开报表 Modal（列表行「报表」按钮 or 提现成功后）
-// batchTime 传入时用精确批次，不传则下载最新批次
-const exportReport = (user: InviteRelation, batchTime?: string) => {
+// 批次列表表格列定义
+const reportBatchColumns = [
+  {
+    title: '结算时间',
+    dataIndex: 'batch_time',
+    customRender: ({ text }: any) => new Date(text).toLocaleString('zh-CN'),
+  },
+  {
+    title: '二级自身提现',
+    dataIndex: 'self_amount',
+    customRender: ({ text }: any) => `¥${parseFloat(text).toFixed(2)}`,
+  },
+  {
+    title: '三级代理合计扣款',
+    dataIndex: 'sub_amount',
+    customRender: ({ text }: any) => `¥${parseFloat(text).toFixed(2)}`,
+  },
+  {
+    title: '本次合计',
+    dataIndex: 'total',
+    customRender: ({ text }: any) => `¥${parseFloat(text).toFixed(2)}`,
+  },
+]
+
+// 打开报表 Modal，加载批次列表
+const exportReport = async (user: InviteRelation, latestBatchTime?: string) => {
   reportTarget.value = user
-  reportBatchTime.value = batchTime ?? null
+  reportBatches.value = []
+  reportSelectedKeys.value = []
   reportModalOpen.value = true
+  reportBatchesLoading.value = true
+  try {
+    const resp = await fetch(`/api/admin/settlement-batches?agentId=${user.id}`, {
+      headers: { Authorization: `Bearer ${props.token}` },
+    })
+    const data = await resp.json()
+    if (data.success) {
+      reportBatches.value = data.data || []
+      // 提现后自动选中最新批次
+      if (latestBatchTime && reportBatches.value.length > 0) {
+        reportSelectedKeys.value = [reportBatches.value[0].batch_time]
+      }
+    }
+  } catch {
+    // 忽略，显示空列表
+  } finally {
+    reportBatchesLoading.value = false
+  }
 }
 
 // 执行导出
-const doExportReport = () => {
+// exportAll=true：导出全部历史（batchTime=all）
+// exportAll=false：导出选中的批次（逐个下载）
+const doExportReport = (exportAll: boolean) => {
   if (!reportTarget.value) return
-  let url = `/api/admin/commission-report?agentId=${reportTarget.value.id}`
-  if (reportBatchTime.value) {
-    url += `&batchTime=${encodeURIComponent(reportBatchTime.value)}`
+  const base = `/api/admin/commission-report?agentId=${reportTarget.value.id}&token=${encodeURIComponent(props.token)}`
+
+  const downloadUrl = (url: string, delay = 0) => {
+    setTimeout(() => {
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', '')
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }, delay)
   }
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', '')
-  link.style.display = 'none'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  reportModalOpen.value = false
+
+  if (exportAll) {
+    downloadUrl(`${base}&batchTime=all`)
+    reportModalOpen.value = false
+    return
+  }
+
+  // 逐个下载选中批次（间隔 400ms 避免浏览器阻止）
+  if (reportSelectedKeys.value.length === 0) return
+  if (reportSelectedKeys.value.length === 1) {
+    downloadUrl(`${base}&batchTime=${encodeURIComponent(reportSelectedKeys.value[0])}`)
+    reportModalOpen.value = false
+  } else {
+    // 多选时合并为 all 模式同样用 batchTime=all，但只导出选中的批次
+    // 此处逐个下载（多次）
+    reportSelectedKeys.value.forEach((bt, i) => {
+      downloadUrl(`${base}&batchTime=${encodeURIComponent(bt)}`, i * 500)
+    })
+    reportModalOpen.value = false
+  }
 }
 
 // 处理编辑充值配置
