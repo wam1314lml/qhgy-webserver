@@ -36,6 +36,10 @@
       <PerformanceManagement :user="user" :token="token" />
     </div>
 
+    <div v-else-if="currentView === 'welfare'" class="main-content">
+      <WelfarePage />
+    </div>
+
     <div v-else-if="currentView === 'agent'" class="main-content">
       <AgentManagement />
     </div>
@@ -55,6 +59,7 @@ import AdminPanel from './AdminPanel.vue'
 import AdminLogin from './AdminLogin.vue'
 import PerformanceManagement from './PerformanceManagement.vue'
 import AgentManagement from './AgentManagement.vue'
+import WelfarePage from '../pages/WelfarePage.vue'
 import TopNavBar from './TopNavBar.vue'
 
 interface User {
@@ -81,7 +86,7 @@ const token = ref<string>('')
 const isLoggedIn = ref(false)
 
 // 响应式数据
-const currentView = ref<'script' | 'admin' | 'performance' | 'agent'>('script')
+const currentView = ref<'script' | 'admin' | 'performance' | 'agent' | 'welfare'>('script')
 const adminToken = ref<string | null>(localStorage.getItem('adminToken'))
 const adminInfo = ref<any>(null)
 const selectedKeys = ref<string[]>(['script'])
@@ -190,7 +195,7 @@ const handleExpiryBannerChange = (visible: boolean) => {
 
 // 处理菜单选择
 const handleMenuSelect = ({ key }: { key: string }) => {
-  currentView.value = key as 'script' | 'admin' | 'performance' | 'agent'
+  currentView.value = key as 'script' | 'admin' | 'performance' | 'agent' | 'welfare'
   selectedKeys.value = [key]
 }
 

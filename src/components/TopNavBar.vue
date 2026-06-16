@@ -37,6 +37,9 @@
           @select="emit('menu-select', $event)"
         >
           <a-menu-item key="script" class="nav-tab"> 首页 </a-menu-item>
+          <a-menu-item v-if="user?.permissions?.welfare_panel" key="welfare" class="nav-tab">
+            福利
+          </a-menu-item>
           <a-menu-item v-if="user?.permissions?.invite_system" key="performance" class="nav-tab">
             业绩管理
           </a-menu-item>
