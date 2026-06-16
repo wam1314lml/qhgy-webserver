@@ -1223,6 +1223,55 @@
           </a-card>
         </a-tab-pane>
 
+        <!-- 域名跳转配置 -->
+        <a-tab-pane key="domain-redirect" v-if="isAdminRole">
+          <template #tab>
+            <span>
+              <SwapOutlined />
+              域名跳转
+            </span>
+          </template>
+          <a-card title="域名跳转配置" style="max-width: 600px; margin: 0 auto">
+            <a-spin :spinning="domainRedirectLoading">
+              <a-form layout="vertical" style="margin-top: 8px">
+                <a-form-item label="启用域名跳转">
+                  <a-switch
+                    v-model:checked="domainRedirectForm.enabled"
+                    checked-children="开启"
+                    un-checked-children="关闭"
+                  />
+                  <span style="margin-left: 12px; color: #888; font-size: 13px">
+                    开启后，访问源域名的用户将看到迁移提示
+                  </span>
+                </a-form-item>
+                <a-form-item label="源域名（旧域名）">
+                  <a-input
+                    v-model:value="domainRedirectForm.sourceDomain"
+                    placeholder="例：old.example.cn"
+                    style="max-width: 360px"
+                  />
+                </a-form-item>
+                <a-form-item label="目标域名（新域名）">
+                  <a-input
+                    v-model:value="domainRedirectForm.targetDomain"
+                    placeholder="例：new.example.com"
+                    style="max-width: 360px"
+                  />
+                </a-form-item>
+                <a-form-item>
+                  <a-button
+                    type="primary"
+                    :loading="domainRedirectSaving"
+                    @click="saveDomainRedirect"
+                  >
+                    保存配置
+                  </a-button>
+                </a-form-item>
+              </a-form>
+            </a-spin>
+          </a-card>
+        </a-tab-pane>
+
         <!-- 其他配置 -->
       </a-tabs>
 
@@ -2121,6 +2170,52 @@ const expiredAccountsCurrentPage = ref(1) // 过期账号表格当前页
 // 管理面板权限相关
 const adminPanelPermissions = ref<Record<string, boolean>>({})
 const isAdminRole = ref(false)
+
+// 域名跳转配置
+const domainRedirectLoading = ref(false)
+const domainRedirectSaving = ref(false)
+const domainRedirectForm = ref({
+  enabled: false,
+  sourceDomain: '',
+  targetDomain: '',
+})
+
+const fetchDomainRedirect = async () => {
+  domainRedirectLoading.value = true
+  try {
+    const res = await axios.get('/api/domain-redirect/status')
+    if (res.data.success) {
+      const { enabled, sourceDomain, targetDomain } = res.data.data
+      domainRedirectForm.value = { enabled, sourceDomain, targetDomain }
+    }
+  } catch (e) {
+    console.error('获取域名跳转配置失败:', e)
+  } finally {
+    domainRedirectLoading.value = false
+  }
+}
+
+const saveDomainRedirect = async () => {
+  domainRedirectSaving.value = true
+  try {
+    const res = await axios.post('/api/domain-redirect/set', {
+      enabled: domainRedirectForm.value.enabled,
+      sourceDomain: domainRedirectForm.value.sourceDomain.trim(),
+      targetDomain: domainRedirectForm.value.targetDomain.trim(),
+    })
+    if (res.data.success) {
+      message.success('域名跳转配置已保存')
+      const { enabled, sourceDomain, targetDomain } = res.data.data
+      domainRedirectForm.value = { enabled, sourceDomain, targetDomain }
+    } else {
+      message.error(res.data.message || '保存失败')
+    }
+  } catch (e: any) {
+    message.error(e.response?.data?.message || '保存失败')
+  } finally {
+    domainRedirectSaving.value = false
+  }
+}
 
 // 检查是否有管理面板访问权限
 const hasAdminPanelAccess = computed(() => {
@@ -3121,6 +3216,9 @@ const onTabChange = (key: string) => {
       break
     case 'account-migrate':
       loadMigrateServers()
+      break
+    case 'domain-redirect':
+      fetchDomainRedirect()
       break
   }
 }
