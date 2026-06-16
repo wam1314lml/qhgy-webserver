@@ -687,6 +687,14 @@
                     {{ record.currentAccounts }} / {{ record.maxAccounts }}
                   </div>
                 </template>
+                <template v-if="column.key === 'allowed_platforms'">
+                  <template v-if="record.allowed_platforms">
+                    <a-tag v-for="p in (() => { try { return JSON.parse(record.allowed_platforms) } catch { return [] } })()" :key="p" color="blue" style="margin:2px">
+                      {{ p === 0 ? '普通' : p === 1 ? '支付宝' : p === 2 ? '抖音' : p === 3 ? '华为' : p }}
+                    </a-tag>
+                  </template>
+                  <span v-else style="color:#999">不限制</span>
+                </template>
                 <template v-if="column.key === 'action'">
                   <a-space>
                     <a-button type="link" size="small" @click="showEditServerModal(record)">
@@ -1073,16 +1081,16 @@
           </a-card>
         </a-tab-pane>
 
-        <!-- 账号迁移 -->
+        <!-- 账号服务器迁移 -->
         <a-tab-pane key="account-migrate" v-if="isAdminRole">
           <template #tab>
             <span>
               <SwapOutlined />
-              账号迁移
+              账号服务器迁移
             </span>
           </template>
 
-          <a-card title="账号迁移工具">
+          <a-card title="账号服务器迁移工具">
             <!-- 筛选条件 -->
             <a-form layout="inline" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px">
               <a-form-item label="平台">
@@ -1403,6 +1411,25 @@
               <a-select-option value="active">活跃</a-select-option>
               <a-select-option value="inactive">停用</a-select-option>
             </a-select>
+          </a-form-item>
+
+          <a-form-item
+            name="allowed_platforms"
+            label="允许的平台"
+          >
+            <a-select
+              v-model:value="serverForm.allowed_platforms"
+              mode="multiple"
+              placeholder="不选则不限制，可多选"
+              :options="[
+                { label: '0 - 普通', value: 0 },
+                { label: '1 - 支付宝', value: 1 },
+                { label: '2 - 抖音', value: 2 },
+                { label: '3 - 华为', value: 3 },
+              ]"
+              allow-clear
+            />
+            <div style="color:#999;font-size:12px;margin-top:4px">不选或清空表示不限制，任何平台均可入驻</div>
           </a-form-item>
         </a-form>
       </a-modal>
@@ -2141,7 +2168,8 @@ const serverForm = ref({
   port: 3000,
   maxAccounts: 5000,
   currentAccounts: 0,
-  status: 'active' as 'active' | 'inactive'
+  status: 'active' as 'active' | 'inactive',
+  allowed_platforms: [] as number[]
 })
 
 // 管理员操作日志相关
@@ -2569,6 +2597,11 @@ const serverColumns = [
     title: '状态',
     key: 'status',
     width: 100,
+  },
+  {
+    title: '允许平台',
+    key: 'allowed_platforms',
+    width: 140,
   },
   {
     title: '创建时间',
@@ -3967,6 +4000,11 @@ const showAddServerModal = () => {
 // 显示编辑服务器弹窗
 const showEditServerModal = (server: any) => {
   serverModalMode.value = 'edit'
+  // allowed_platforms 从 JSON 字符串解析回数组
+  let ap: number[] = []
+  try {
+    if (server.allowed_platforms) ap = JSON.parse(server.allowed_platforms)
+  } catch { ap = [] }
   serverForm.value = {
     id: server.id,
     name: server.name,
@@ -3975,6 +4013,7 @@ const showEditServerModal = (server: any) => {
     maxAccounts: server.maxAccounts,
     currentAccounts: server.currentAccounts,
     status: server.status,
+    allowed_platforms: ap,
   }
   serverModalOpen.value = true
 }
@@ -3989,6 +4028,7 @@ const resetServerForm = () => {
     maxAccounts: 5000,
     currentAccounts: 0,
     status: 'active',
+    allowed_platforms: [],
   }
 }
 
