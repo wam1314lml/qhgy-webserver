@@ -1073,6 +1073,142 @@
           </a-card>
         </a-tab-pane>
 
+        <!-- 账号迁移 -->
+        <a-tab-pane key="account-migrate" v-if="isAdminRole">
+          <template #tab>
+            <span>
+              <SwapOutlined />
+              账号迁移
+            </span>
+          </template>
+
+          <a-card title="账号迁移工具">
+            <!-- 筛选条件 -->
+            <a-form layout="inline" style="margin-bottom: 16px; flex-wrap: wrap; gap: 8px">
+              <a-form-item label="平台">
+                <a-select
+                  v-model:value="migrateFilter.platforms"
+                  mode="multiple"
+                  placeholder="全部平台"
+                  style="min-width: 180px"
+                  allow-clear
+                >
+                  <a-select-option :value="0">普通(0)</a-select-option>
+                  <a-select-option :value="1">支付宝(1)</a-select-option>
+                  <a-select-option :value="2">抖音(2)</a-select-option>
+                  <a-select-option :value="3">华为(3)</a-select-option>
+                </a-select>
+              </a-form-item>
+              <a-form-item label="排除IP">
+                <a-input
+                  v-model:value="migrateFilter.exclude_ip"
+                  placeholder="如 172.17.100.17（已在此IP的不显示）"
+                  style="width: 240px"
+                  allow-clear
+                />
+              </a-form-item>
+              <a-form-item label="指定IP">
+                <a-input
+                  v-model:value="migrateFilter.include_ip"
+                  placeholder="只显示该IP的账号"
+                  style="width: 200px"
+                  allow-clear
+                />
+              </a-form-item>
+              <a-form-item label="关键字">
+                <a-input
+                  v-model:value="migrateFilter.keyword"
+                  placeholder="username / nickname / uid"
+                  style="width: 200px"
+                  allow-clear
+                />
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" :loading="migrateLoading" @click="fetchMigrateAccounts(1)">
+                  查询
+                </a-button>
+              </a-form-item>
+            </a-form>
+
+            <!-- 操作栏 -->
+            <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px">
+              <span style="color: #666">已选 {{ migrateSelectedIds.length }} 条</span>
+              <a-select
+                v-model:value="migrateTargetServerId"
+                placeholder="选择目标脚本服"
+                style="width: 220px"
+              >
+                <a-select-option
+                  v-for="s in migrateServerList"
+                  :key="s.id"
+                  :value="s.id"
+                >
+                  {{ s.name }} ({{ s.ip }}) {{ s.currentAccounts }}/{{ s.maxAccounts }}
+                </a-select-option>
+              </a-select>
+              <a-button
+                type="primary"
+                danger
+                :disabled="!migrateSelectedIds.length || !migrateTargetServerId"
+                :loading="migrateBatchLoading"
+                @click="handleBatchMigrate"
+              >
+                批量迁移选中账号
+              </a-button>
+            </div>
+
+            <!-- 账号列表 -->
+            <a-table
+              :columns="migrateColumns"
+              :data-source="migrateAccounts"
+              :loading="migrateLoading"
+              :row-selection="{ selectedRowKeys: migrateSelectedIds, onChange: (keys: any) => migrateSelectedIds = keys }"
+              row-key="id"
+              size="small"
+              :scroll="{ x: 1200 }"
+              :pagination="{
+                current: migratePage,
+                pageSize: 100,
+                total: migrateTotal,
+                showTotal: (t: number) => `共 ${t} 条`,
+                onChange: fetchMigrateAccounts,
+                showSizeChanger: false
+              }"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'platform'">
+                  <a-tag :color="['default','blue','purple','orange'][record.platform] || 'default'">
+                    {{ ['普通','支付宝','抖音','华为'][record.platform] || record.platform }}
+                  </a-tag>
+                </template>
+                <template v-if="column.key === 'expire_time'">
+                  <span :style="{ color: record.expire_time && new Date(record.expire_time) < new Date() ? 'red' : '' }">
+                    {{ record.expire_time ? new Date(record.expire_time).toLocaleDateString() : '未设置' }}
+                  </span>
+                </template>
+                <template v-if="column.key === 'action'">
+                  <a-space>
+                    <a-popconfirm
+                      :title="`确认迁移账号 ${record.nickname || record.username} 到目标脚本服？\n注意：将先停止原服进程再迁移。`"
+                      :disabled="!migrateTargetServerId"
+                      @confirm="handleSingleMigrate(record)"
+                    >
+                      <a-button
+                        size="small"
+                        type="primary"
+                        :disabled="!migrateTargetServerId"
+                        :loading="migratingSingleId === record.id"
+                      >
+                        迁移
+                      </a-button>
+                    </a-popconfirm>
+                  </a-space>
+                </template>
+              </template>
+            </a-table>
+          </a-card>
+        </a-tab-pane>
+
         <!-- 其他配置 -->
       </a-tabs>
 
@@ -2013,6 +2149,123 @@ const operationLogs = ref<any[]>([])
 const operationLogsLoading = ref(false)
 const operationLogsPagination = ref({ page: 1, pageSize: 20, total: 0 })
 
+// ─── 账号迁移 ────────────────────────────────────────────────────────────────
+const migrateFilter = ref({ platforms: [] as number[], exclude_ip: '', include_ip: '', keyword: '' })
+const migrateAccounts = ref<any[]>([])
+const migrateLoading = ref(false)
+const migrateTotal = ref(0)
+const migratePage = ref(1)
+const migrateSelectedIds = ref<number[]>([])
+const migrateTargetServerId = ref<string>('')
+const migrateServerList = ref<any[]>([])
+const migrateBatchLoading = ref(false)
+const migratingSingleId = ref<number | null>(null)
+
+const migrateColumns = [
+  { title: 'ID', dataIndex: 'id', key: 'id', width: 70 },
+  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120, ellipsis: true },
+  { title: '用户名', dataIndex: 'username', key: 'username', width: 160, ellipsis: true },
+  { title: '平台', dataIndex: 'platform', key: 'platform', width: 90 },
+  { title: '大区', dataIndex: 'server_name', key: 'server_name', width: 120, ellipsis: true },
+  { title: '当前脚本服IP', dataIndex: 'script_server_ip', key: 'script_server_ip', width: 140 },
+  { title: '到期时间', dataIndex: 'expire_time', key: 'expire_time', width: 110 },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 80 },
+  { title: '操作', key: 'action', width: 90, fixed: 'right' },
+]
+
+const loadMigrateServers = async () => {
+  try {
+    const resp = await axios.get('/api/admin/migrate/script-servers', {
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (resp.data.success) migrateServerList.value = resp.data.data || []
+  } catch (e: any) {
+    message.error('加载脚本服列表失败: ' + e.message)
+  }
+}
+
+const fetchMigrateAccounts = async (page = 1) => {
+  migrateLoading.value = true
+  migrateSelectedIds.value = []
+  try {
+    const params: any = { page, pageSize: 100 }
+    if (migrateFilter.value.platforms.length) params['platforms[]'] = migrateFilter.value.platforms
+    if (migrateFilter.value.exclude_ip) params.exclude_ip = migrateFilter.value.exclude_ip
+    if (migrateFilter.value.include_ip) params.include_ip = migrateFilter.value.include_ip
+    if (migrateFilter.value.keyword) params.keyword = migrateFilter.value.keyword
+    const resp = await axios.get('/api/admin/migrate/accounts', {
+      params,
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (resp.data.success) {
+      migrateAccounts.value = resp.data.data.accounts || []
+      migrateTotal.value = resp.data.data.total || 0
+      migratePage.value = page
+    }
+  } catch (e: any) {
+    message.error('查询失败: ' + e.message)
+  } finally {
+    migrateLoading.value = false
+  }
+}
+
+const doMigrateOne = async (accountId: number): Promise<boolean> => {
+  // ① 停止原服进程
+  try {
+    const stopResp = await axios.post('/api/admin/migrate/stop-account',
+      { accountId },
+      { headers: { Authorization: `Bearer ${props.token}` } }
+    )
+    if (!stopResp.data.success) {
+      message.error(`账号 ${accountId} 停止失败: ${stopResp.data.message}`)
+      return false
+    }
+  } catch (e: any) {
+    message.error(`账号 ${accountId} 停止请求失败: ${e.message}`)
+    return false
+  }
+  // ② 执行迁移
+  try {
+    const migrateResp = await axios.post('/api/admin/migrate/execute',
+      { accountId, targetServerId: migrateTargetServerId.value },
+      { headers: { Authorization: `Bearer ${props.token}` } }
+    )
+    if (!migrateResp.data.success) {
+      message.error(`账号 ${accountId} 迁移失败: ${migrateResp.data.message}`)
+      return false
+    }
+    return true
+  } catch (e: any) {
+    message.error(`账号 ${accountId} 迁移请求失败: ${e.message}`)
+    return false
+  }
+}
+
+const handleSingleMigrate = async (record: any) => {
+  if (!migrateTargetServerId.value) { message.warning('请先选择目标脚本服'); return }
+  migratingSingleId.value = record.id
+  const ok = await doMigrateOne(record.id)
+  migratingSingleId.value = null
+  if (ok) {
+    message.success(`账号 ${record.nickname || record.username} 迁移成功`)
+    fetchMigrateAccounts(migratePage.value)
+  }
+}
+
+const handleBatchMigrate = async () => {
+  if (!migrateTargetServerId.value) { message.warning('请先选择目标脚本服'); return }
+  if (!migrateSelectedIds.value.length) { message.warning('请先选择要迁移的账号'); return }
+  migrateBatchLoading.value = true
+  let success = 0, fail = 0
+  for (const id of migrateSelectedIds.value) {
+    const ok = await doMigrateOne(id)
+    ok ? success++ : fail++
+  }
+  migrateBatchLoading.value = false
+  message.info(`批量迁移完成：成功 ${success} 个，失败 ${fail} 个`)
+  fetchMigrateAccounts(migratePage.value)
+}
+
 // ─── IP 封锁管理 ───────────────────────────────────────────────────────────────
 interface IPLockStatus {
   ip: string
@@ -2826,6 +3079,9 @@ const onTabChange = (key: string) => {
     case 'game-accounts-stats':
       fetchGameAccountsStats()
       fetchGameAccountsList()
+      break
+    case 'account-migrate':
+      loadMigrateServers()
       break
   }
 }
