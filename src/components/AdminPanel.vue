@@ -1108,19 +1108,25 @@
                 </a-select>
               </a-form-item>
               <a-form-item label="排除IP">
-                <a-input
-                  v-model:value="migrateFilter.exclude_ip"
-                  placeholder="如 172.17.100.17（已在此IP的不显示）"
-                  style="width: 240px"
+                <a-select
+                  v-model:value="migrateFilter.exclude_ips"
+                  mode="multiple"
+                  placeholder="选择要排除的脚本服IP"
+                  style="min-width: 220px; max-width: 320px"
                   allow-clear
+                  :max-tag-count="2"
+                  :options="migrateServerList.map((s: any) => ({ label: s.ip, value: s.ip }))"
                 />
               </a-form-item>
               <a-form-item label="指定IP">
-                <a-input
-                  v-model:value="migrateFilter.include_ip"
-                  placeholder="只显示该IP的账号"
-                  style="width: 200px"
+                <a-select
+                  v-model:value="migrateFilter.include_ips"
+                  mode="multiple"
+                  placeholder="只显示选中IP的账号"
+                  style="min-width: 200px; max-width: 300px"
                   allow-clear
+                  :max-tag-count="2"
+                  :options="migrateServerList.map((s: any) => ({ label: s.ip, value: s.ip }))"
                 />
               </a-form-item>
               <a-form-item label="关键字">
@@ -2178,7 +2184,7 @@ const operationLogsLoading = ref(false)
 const operationLogsPagination = ref({ page: 1, pageSize: 20, total: 0 })
 
 // ─── 账号迁移 ────────────────────────────────────────────────────────────────
-const migrateFilter = ref({ platforms: [] as number[], exclude_ip: '', include_ip: '', keyword: '' })
+const migrateFilter = ref({ platforms: [] as number[], exclude_ips: [] as string[], include_ips: [] as string[], keyword: '' })
 const migrateAccounts = ref<any[]>([])
 const migrateLoading = ref(false)
 const migrateTotal = ref(0)
@@ -2218,8 +2224,8 @@ const fetchMigrateAccounts = async (page = 1) => {
   try {
     const params: any = { page, pageSize: 100 }
     if (migrateFilter.value.platforms.length) params['platforms[]'] = migrateFilter.value.platforms
-    if (migrateFilter.value.exclude_ip) params.exclude_ip = migrateFilter.value.exclude_ip
-    if (migrateFilter.value.include_ip) params.include_ip = migrateFilter.value.include_ip
+    if (migrateFilter.value.exclude_ips.length) params['exclude_ips[]'] = migrateFilter.value.exclude_ips
+    if (migrateFilter.value.include_ips.length) params['include_ips[]'] = migrateFilter.value.include_ips
     if (migrateFilter.value.keyword) params.keyword = migrateFilter.value.keyword
     const resp = await axios.get('/api/admin/migrate/accounts', {
       params,
