@@ -205,10 +205,27 @@ const checkDomain = async () => {
 
         // 尝试从 localStorage 获取保存的账号信息
         try {
-          const savedCredentials = localStorage.getItem('savedCredentials')
-          if (savedCredentials) {
-            const { username, password } = JSON.parse(savedCredentials)
-            migrationCredentials.value = { username, password }
+          // 优先尝试获取最新的保存账号 (saved_accounts 是个数组)
+          const savedAccountsJson = localStorage.getItem('saved_accounts')
+          if (savedAccountsJson) {
+            const accounts = JSON.parse(savedAccountsJson)
+            if (Array.isArray(accounts) && accounts.length > 0) {
+              const lastAccount = accounts[accounts.length - 1]
+              migrationCredentials.value = {
+                username: lastAccount.username || '',
+                password: lastAccount.password || '',
+              }
+            }
+          } else {
+            // 备选方案：尝试单个保存的凭据 (兼容旧格式)
+            const savedCredentials = localStorage.getItem('savedCredentials') || localStorage.getItem('remembered_credentials')
+            if (savedCredentials) {
+              const creds = JSON.parse(savedCredentials)
+              migrationCredentials.value = {
+                username: creds.username || '',
+                password: creds.password || '',
+              }
+            }
           }
         } catch (e) {
           console.warn('获取保存的账号信息失败:', e)
