@@ -31,23 +31,6 @@
             </div>
           </div>
 
-          <a-alert
-            v-if="shouldDisableFeatures"
-            type="warning"
-            class="mb-4"
-            style="padding-block: 8px; padding-inline: 8px"
-          >
-            <template #description>
-              <div style="line-height: 1.8">
-                <p style="margin-bottom: 8px; font-weight: 500">老网址域名已到期，请各位前往新网址</p>
-                <p style="margin-bottom: 8px">
-                  所有东西都不变，把 <strong>.cn</strong> 改成 <strong>.com</strong> 即可
-                </p>
-                <p style="margin-bottom: 0; color: #ff4d4f">请记住自己的网页登录账号和密码，就在下方</p>
-              </div>
-            </template>
-          </a-alert>
-
           <div class="auth-tabs" role="tablist" aria-label="账号操作">
             <button
               type="button"
@@ -123,7 +106,6 @@
                   size="large"
                   block
                   :loading="isLoading"
-                  :disabled="shouldDisableFeatures"
                   @click="onSubmit"
                 >
                   {{ isLoading ? '登录中...' : '登 录' }}
@@ -135,7 +117,6 @@
               <a-button
                 type="button"
                 class="forgot-password"
-                :disabled="shouldDisableFeatures"
                 @click="showForgotPasswordModal"
               >
                 忘记密码？
@@ -352,35 +333,6 @@ const butterflies = [
   { id: 1, emoji: '🦋', x: 15, y: 35, dur: 9, delay: 0 },
   { id: 2, emoji: '🦋', x: 60, y: 20, dur: 11, delay: 3 },
 ]
-
-// 域名检测 - 通过API检查是否需要禁用功能
-const shouldDisableFeatures = ref(false)
-const checkDomain = async () => {
-  try {
-    const response = await axios.get('/api/domain-redirect/status')
-    const result = response.data
-
-    if (result.success && result.data.enabled) {
-      const currentHostname = window.location.hostname
-      const sourceDomain = result.data.sourceDomain
-
-      // 如果当前域名是源域名，则禁用功能
-      if (currentHostname === sourceDomain) {
-        shouldDisableFeatures.value = true
-        console.log('检测到需要迁移的域名，已禁用登录功能')
-      } else {
-        shouldDisableFeatures.value = false
-      }
-    } else {
-      console.log('域名跳转未启用')
-      shouldDisableFeatures.value = false
-    }
-  } catch (error) {
-    console.error('获取域名跳转状态失败:', error)
-    // 如果接口调用失败，不影响正常使用
-    shouldDisableFeatures.value = false
-  }
-}
 
 // 计算属性 - 生成下拉选项
 const accountOptions = computed(() => {
@@ -769,7 +721,6 @@ const safeAnnouncementContent = computed(() => {
 
 // 生命周期钩子
 onMounted(() => {
-  checkDomain()
   checkExistingLogin()
   loadSavedCredentials()
 
