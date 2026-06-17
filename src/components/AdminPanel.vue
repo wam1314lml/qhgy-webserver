@@ -453,6 +453,12 @@
                     style="width: 120px"
                   />
                   <span>天</span>
+                  <a-select v-model:value="expiredPlatform" placeholder="选择平台" style="width: 130px" allow-clear>
+                    <a-select-option :value="0">普通(0)</a-select-option>
+                    <a-select-option :value="1">支付宝(1)</a-select-option>
+                    <a-select-option :value="2">抖音(2)</a-select-option>
+                    <a-select-option :value="3">华为(3)</a-select-option>
+                  </a-select>
                   <a-button type="primary" @click="loadExpiredAccounts" :loading="expiredAccountsLoading">
                     <SearchOutlined />
                     查询过期账号
@@ -545,6 +551,12 @@
                     style="width: 120px"
                   />
                   <span>天且从未续费</span>
+                  <a-select v-model:value="neverRenewedPlatform" placeholder="选择平台" style="width: 130px" allow-clear>
+                    <a-select-option :value="0">普通(0)</a-select-option>
+                    <a-select-option :value="1">支付宝(1)</a-select-option>
+                    <a-select-option :value="2">抖音(2)</a-select-option>
+                    <a-select-option :value="3">华为(3)</a-select-option>
+                  </a-select>
                   <a-button type="primary" @click="loadNeverRenewedAccounts" :loading="neverRenewedAccountsLoading">
                     <SearchOutlined />
                     查询未续费账号
@@ -2167,6 +2179,7 @@ const announcementLoading = ref(false)
 
 // 过期账号管理相关
 const expiredDays = ref(7) // 默认查询过期7天以上的账号
+const expiredPlatform = ref<number | undefined>(undefined) // 过期账号平台筛选
 const expiredAccounts = ref<any[]>([])
 const expiredAccountsLoading = ref(false)
 const deleteExpiredAccountsLoading = ref(false)
@@ -2237,6 +2250,7 @@ const hasAdminPanelAccess = computed(() => {
 
 // 未续费账号管理相关
 const neverRenewedDays = ref(30) // 默认查询创建超过30天未续费的账号
+const neverRenewedPlatform = ref<number | undefined>(undefined) // 未续费账号平台筛选
 const neverRenewedAccounts = ref<any[]>([])
 const neverRenewedAccountsLoading = ref(false)
 const deleteNeverRenewedAccountsLoading = ref(false)
@@ -3528,7 +3542,10 @@ const loadExpiredAccounts = async () => {
   expiredAccountsLoading.value = true
   try {
     const response = await axios.get('/api/admin/expired-accounts', {
-      params: { days: expiredDays.value },
+      params: { 
+        days: expiredDays.value,
+        platform: expiredPlatform.value
+      },
       headers: {
         Authorization: `Bearer ${props.token}`,
       },
@@ -3700,7 +3717,10 @@ const loadNeverRenewedAccounts = async () => {
   neverRenewedAccountsLoading.value = true
   try {
     const response = await axios.get('/api/admin/never-renewed-accounts', {
-      params: { days: neverRenewedDays.value },
+      params: { 
+        days: neverRenewedDays.value,
+        platform: neverRenewedPlatform.value
+      },
       headers: {
         Authorization: `Bearer ${props.token}`,
       },
