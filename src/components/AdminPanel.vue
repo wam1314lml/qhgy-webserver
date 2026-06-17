@@ -1169,6 +1169,14 @@
               >
                 批量迁移选中账号
               </a-button>
+
+              <a-button
+                :disabled="!migrateSelectedIds.length"
+                :loading="rewriteConfigLoading"
+                @click="handleBatchRewriteConfig"
+              >
+                批量重新写入配置
+              </a-button>
             </div>
 
             <!-- 账号列表 -->
@@ -2288,6 +2296,7 @@ const migrateSelectedIds = ref<number[]>([])
 const migrateTargetServerId = ref<string>('')
 const migrateServerList = ref<any[]>([])
 const migrateBatchLoading = ref(false)
+const rewriteConfigLoading = ref(false)
 const migratingSingleId = ref<number | null>(null)
 
 const migrateColumns = [
@@ -2393,6 +2402,37 @@ const handleBatchMigrate = async () => {
   migrateBatchLoading.value = false
   message.info(`批量迁移完成：成功 ${success} 个，失败 ${fail} 个`)
   fetchMigrateAccounts(migratePage.value)
+}
+
+const handleBatchRewriteConfig = async () => {
+  if (!migrateSelectedIds.value.length) {
+    message.warning('请先选择账号')
+    return
+  }
+
+  Modal.confirm({
+    title: '确认重新写入配置？',
+    content: `将从 Redis 读取 ${migrateSelectedIds.value.length} 个账号的最新配置并回写到对应的脚本服 .json 文件中，不执行停止进程操作。`,
+    onOk: async () => {
+      rewriteConfigLoading.value = true
+      try {
+        const resp = await axios.post('/api/admin/migrate/batch-rewrite-config', {
+          accountIds: migrateSelectedIds.value
+        }, { headers: { Authorization: `Bearer ${props.token}` } })
+
+        if (resp.data.success) {
+          message.success(resp.data.message)
+          migrateSelectedIds.value = [] // 清空选中
+        } else {
+          message.error(resp.data.message || '操作失败')
+        }
+      } catch (e: any) {
+        message.error('请求失败: ' + (e.response?.data?.message || e.message))
+      } finally {
+        rewriteConfigLoading.value = false
+      }
+    }
+  })
 }
 
 // ─── IP 封锁管理 ───────────────────────────────────────────────────────────────
