@@ -1150,6 +1150,9 @@
                 />
               </a-form-item>
               <a-form-item>
+                <a-checkbox v-model:checked="migrateFilter.never_renewed">从未续期</a-checkbox>
+              </a-form-item>
+              <a-form-item>
                 <a-button type="primary" :loading="migrateLoading" @click="fetchMigrateAccounts(1)">
                   查询
                 </a-button>
@@ -1188,6 +1191,14 @@
                 @click="handleBatchRewriteConfig"
               >
                 批量重新写入配置
+              </a-button>
+
+              <a-button
+                :disabled="!migrateSelectedIds.length || !migrateTargetServerId"
+                :loading="findAndWriteConfigLoading"
+                @click="handleFindAndWriteConfig"
+              >
+                从脚本服找配置写入
               </a-button>
             </div>
 
@@ -2301,7 +2312,7 @@ const operationLogsLoading = ref(false)
 const operationLogsPagination = ref({ page: 1, pageSize: 20, total: 0 })
 
 // ─── 账号迁移 ────────────────────────────────────────────────────────────────
-const migrateFilter = ref({ platforms: [] as number[], exclude_ips: [] as string[], include_ips: [] as string[], keyword: '' })
+const migrateFilter = ref({ platforms: [] as number[], exclude_ips: [] as string[], include_ips: [] as string[], keyword: '', never_renewed: false })
 const migrateAccounts = ref<any[]>([])
 const migrateLoading = ref(false)
 const migrateTotal = ref(0)
@@ -2311,6 +2322,7 @@ const migrateTargetServerId = ref<string>('')
 const migrateServerList = ref<any[]>([])
 const migrateBatchLoading = ref(false)
 const rewriteConfigLoading = ref(false)
+const findAndWriteConfigLoading = ref(false)
 const migratingSingleId = ref<number | null>(null)
 
 const migrateColumns = [
@@ -2345,6 +2357,7 @@ const fetchMigrateAccounts = async (page = 1) => {
     if (migrateFilter.value.exclude_ips.length) params['exclude_ips[]'] = migrateFilter.value.exclude_ips
     if (migrateFilter.value.include_ips.length) params['include_ips[]'] = migrateFilter.value.include_ips
     if (migrateFilter.value.keyword) params.keyword = migrateFilter.value.keyword
+    if (migrateFilter.value.never_renewed) params.never_renewed = '1'
     const resp = await axios.get('/api/admin/migrate/accounts', {
       params,
       headers: { Authorization: `Bearer ${props.token}` }
@@ -2444,6 +2457,41 @@ const handleBatchRewriteConfig = async () => {
         message.error('请求失败: ' + (e.response?.data?.message || e.message))
       } finally {
         rewriteConfigLoading.value = false
+      }
+    }
+  })
+}
+
+const handleFindAndWriteConfig = async () => {
+  if (!migrateSelectedIds.value.length) {
+    message.warning('请先选择账号')
+    return
+  }
+  if (!migrateTargetServerId.value) {
+    message.warning('请先选择目标脚本服')
+    return
+  }
+
+  Modal.confirm({
+    title: '确认从脚本服查找并写入配置？',
+    content: `将遍历所有脚本服（排除目标服），查找 ${migrateSelectedIds.value.length} 个账号的本地配置文件并写入目标服。`,
+    onOk: async () => {
+      findAndWriteConfigLoading.value = true
+      try {
+        const resp = await axios.post('/api/admin/migrate/find-and-write-config', {
+          accountIds: migrateSelectedIds.value,
+          targetServerId: migrateTargetServerId.value
+        }, { headers: { Authorization: `Bearer ${props.token}` } })
+        if (resp.data.success) {
+          message.success(resp.data.message)
+          migrateSelectedIds.value = []
+        } else {
+          message.error(resp.data.message || '操作失败')
+        }
+      } catch (e: any) {
+        message.error('请求失败: ' + (e.response?.data?.message || e.message))
+      } finally {
+        findAndWriteConfigLoading.value = false
       }
     }
   })
