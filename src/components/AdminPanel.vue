@@ -1150,7 +1150,7 @@
                 />
               </a-form-item>
               <a-form-item>
-                <a-checkbox v-model:checked="migrateFilter.never_renewed">从未续期</a-checkbox>
+                <a-checkbox v-model:checked="migrateFilter.never_renewed" @change="fetchMigrateAccounts(1)">从未续期</a-checkbox>
               </a-form-item>
               <a-form-item>
                 <a-button type="primary" :loading="migrateLoading" @click="fetchMigrateAccounts(1)">
