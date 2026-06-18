@@ -90,6 +90,15 @@ export const actMerge2SpeedOptions = [
   { value: 32, label: '32x 超速' },
 ]
 
+// —— 梳丝引线倍速 ——
+export const actSpoolSpeedOptions = [
+  { value: 1, label: '普通' },
+  { value: 2, label: '快速' },
+  { value: 3, label: '高速' },
+  { value: 4, label: '极速' },
+  { value: 5, label: '神速' },
+]
+
 // —— 公会竞赛任务类型 ——
 // key 为任务类型 ID（字符串），label 为显示名
 export const fmlRaceTaskTypes: Array<{ key: string; label: string }> = [

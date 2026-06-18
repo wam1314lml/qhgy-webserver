@@ -1735,6 +1735,40 @@
                 </Select>
               </CustomFormItem>
             </template>
+
+            <Divider orientation="left">梳丝引线</Divider>
+            <CustomFormItem label="自动玩" name="activity.actSpool.enabled">
+              <Switch v-model:checked="config.activity.actSpool.enabled" />
+            </CustomFormItem>
+            <template v-if="config.activity.actSpool.enabled">
+              <CustomFormItem
+                label="体力领取"
+                name="activity.actSpool.autoClaimReward"
+                tooltip="自动领取每日任务完成后的体力奖励"
+              >
+                <Switch v-model:checked="config.activity.actSpool.autoClaimReward" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="开启宝箱"
+                name="activity.actSpool.openBox"
+                tooltip="自动开启宝箱"
+              >
+                <Switch v-model:checked="config.activity.actSpool.openBox" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="游戏倍数"
+                name="activity.actSpool.speed"
+                tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要消耗足够体力才能使用高倍速"
+              >
+                <Select v-model:value="config.activity.actSpool.speed" class="w-42! sm:w-48!">
+                  <Select.Option :value="1">普通</Select.Option>
+                  <Select.Option :value="2">快速</Select.Option>
+                  <Select.Option :value="3">高速</Select.Option>
+                  <Select.Option :value="4">极速</Select.Option>
+                  <Select.Option :value="5">神速</Select.Option>
+                </Select>
+              </CustomFormItem>
+            </template>
           </div>
         </Form>
       </div>

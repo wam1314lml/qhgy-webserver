@@ -258,6 +258,12 @@ export interface GameConfig {
       autoClaimEnergy: boolean
       speed: number
     }
+    actSpool: {
+      enabled: boolean
+      autoClaimReward: boolean
+      openBox: boolean
+      speed: number
+    }
     redPacket: {
       enabled: boolean
     }

@@ -275,6 +275,12 @@ export const createDefaultGameConfig = (): GameConfig =>
         autoClaimEnergy: false,
         speed: 1,
       },
+      actSpool: {
+        enabled: false,
+        autoClaimReward: false,
+        openBox: false,
+        speed: 1,
+      },
       redPacket: {
         enabled: false,
       },
