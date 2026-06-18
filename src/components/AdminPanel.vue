@@ -453,6 +453,12 @@
                     style="width: 120px"
                   />
                   <span>天</span>
+                  <a-select v-model:value="expiredPlatform" placeholder="选择平台" style="width: 130px" allow-clear>
+                    <a-select-option :value="0">普通(0)</a-select-option>
+                    <a-select-option :value="1">支付宝(1)</a-select-option>
+                    <a-select-option :value="2">抖音(2)</a-select-option>
+                    <a-select-option :value="3">华为(3)</a-select-option>
+                  </a-select>
                   <a-button type="primary" @click="loadExpiredAccounts" :loading="expiredAccountsLoading">
                     <SearchOutlined />
                     查询过期账号
@@ -545,6 +551,12 @@
                     style="width: 120px"
                   />
                   <span>天且从未续费</span>
+                  <a-select v-model:value="neverRenewedPlatform" placeholder="选择平台" style="width: 130px" allow-clear>
+                    <a-select-option :value="0">普通(0)</a-select-option>
+                    <a-select-option :value="1">支付宝(1)</a-select-option>
+                    <a-select-option :value="2">抖音(2)</a-select-option>
+                    <a-select-option :value="3">华为(3)</a-select-option>
+                  </a-select>
                   <a-button type="primary" @click="loadNeverRenewedAccounts" :loading="neverRenewedAccountsLoading">
                     <SearchOutlined />
                     查询未续费账号
@@ -1138,6 +1150,9 @@
                 />
               </a-form-item>
               <a-form-item>
+                <a-checkbox v-model:checked="migrateFilter.never_renewed" @change="fetchMigrateAccounts(1)">从未续期</a-checkbox>
+              </a-form-item>
+              <a-form-item>
                 <a-button type="primary" :loading="migrateLoading" @click="fetchMigrateAccounts(1)">
                   查询
                 </a-button>
@@ -1168,6 +1183,22 @@
                 @click="handleBatchMigrate"
               >
                 批量迁移选中账号
+              </a-button>
+
+              <a-button
+                :disabled="!migrateSelectedIds.length"
+                :loading="rewriteConfigLoading"
+                @click="handleBatchRewriteConfig"
+              >
+                批量重新写入配置
+              </a-button>
+
+              <a-button
+                :disabled="!migrateSelectedIds.length || !migrateTargetServerId"
+                :loading="findAndWriteConfigLoading"
+                @click="handleFindAndWriteConfig"
+              >
+                从脚本服找配置写入
               </a-button>
             </div>
 
@@ -2159,6 +2190,7 @@ const announcementLoading = ref(false)
 
 // 过期账号管理相关
 const expiredDays = ref(7) // 默认查询过期7天以上的账号
+const expiredPlatform = ref<number | undefined>(undefined) // 过期账号平台筛选
 const expiredAccounts = ref<any[]>([])
 const expiredAccountsLoading = ref(false)
 const deleteExpiredAccountsLoading = ref(false)
@@ -2229,6 +2261,7 @@ const hasAdminPanelAccess = computed(() => {
 
 // 未续费账号管理相关
 const neverRenewedDays = ref(30) // 默认查询创建超过30天未续费的账号
+const neverRenewedPlatform = ref<number | undefined>(undefined) // 未续费账号平台筛选
 const neverRenewedAccounts = ref<any[]>([])
 const neverRenewedAccountsLoading = ref(false)
 const deleteNeverRenewedAccountsLoading = ref(false)
@@ -2279,7 +2312,7 @@ const operationLogsLoading = ref(false)
 const operationLogsPagination = ref({ page: 1, pageSize: 20, total: 0 })
 
 // ─── 账号迁移 ────────────────────────────────────────────────────────────────
-const migrateFilter = ref({ platforms: [] as number[], exclude_ips: [] as string[], include_ips: [] as string[], keyword: '' })
+const migrateFilter = ref({ platforms: [] as number[], exclude_ips: [] as string[], include_ips: [] as string[], keyword: '', never_renewed: false })
 const migrateAccounts = ref<any[]>([])
 const migrateLoading = ref(false)
 const migrateTotal = ref(0)
@@ -2288,6 +2321,8 @@ const migrateSelectedIds = ref<number[]>([])
 const migrateTargetServerId = ref<string>('')
 const migrateServerList = ref<any[]>([])
 const migrateBatchLoading = ref(false)
+const rewriteConfigLoading = ref(false)
+const findAndWriteConfigLoading = ref(false)
 const migratingSingleId = ref<number | null>(null)
 
 const migrateColumns = [
@@ -2322,6 +2357,7 @@ const fetchMigrateAccounts = async (page = 1) => {
     if (migrateFilter.value.exclude_ips.length) params['exclude_ips[]'] = migrateFilter.value.exclude_ips
     if (migrateFilter.value.include_ips.length) params['include_ips[]'] = migrateFilter.value.include_ips
     if (migrateFilter.value.keyword) params.keyword = migrateFilter.value.keyword
+    if (migrateFilter.value.never_renewed) params.never_renewed = '1'
     const resp = await axios.get('/api/admin/migrate/accounts', {
       params,
       headers: { Authorization: `Bearer ${props.token}` }
@@ -2393,6 +2429,72 @@ const handleBatchMigrate = async () => {
   migrateBatchLoading.value = false
   message.info(`批量迁移完成：成功 ${success} 个，失败 ${fail} 个`)
   fetchMigrateAccounts(migratePage.value)
+}
+
+const handleBatchRewriteConfig = async () => {
+  if (!migrateSelectedIds.value.length) {
+    message.warning('请先选择账号')
+    return
+  }
+
+  Modal.confirm({
+    title: '确认重新写入配置？',
+    content: `将从 Redis 读取 ${migrateSelectedIds.value.length} 个账号的最新配置并回写到对应的脚本服 .json 文件中，不执行停止进程操作。`,
+    onOk: async () => {
+      rewriteConfigLoading.value = true
+      try {
+        const resp = await axios.post('/api/admin/migrate/batch-rewrite-config', {
+          accountIds: migrateSelectedIds.value
+        }, { headers: { Authorization: `Bearer ${props.token}` } })
+
+        if (resp.data.success) {
+          message.success(resp.data.message)
+          migrateSelectedIds.value = [] // 清空选中
+        } else {
+          message.error(resp.data.message || '操作失败')
+        }
+      } catch (e: any) {
+        message.error('请求失败: ' + (e.response?.data?.message || e.message))
+      } finally {
+        rewriteConfigLoading.value = false
+      }
+    }
+  })
+}
+
+const handleFindAndWriteConfig = async () => {
+  if (!migrateSelectedIds.value.length) {
+    message.warning('请先选择账号')
+    return
+  }
+  if (!migrateTargetServerId.value) {
+    message.warning('请先选择目标脚本服')
+    return
+  }
+
+  Modal.confirm({
+    title: '确认从脚本服查找并写入配置？',
+    content: `将遍历所有脚本服（排除目标服），查找 ${migrateSelectedIds.value.length} 个账号的本地配置文件并写入目标服。`,
+    onOk: async () => {
+      findAndWriteConfigLoading.value = true
+      try {
+        const resp = await axios.post('/api/admin/migrate/find-and-write-config', {
+          accountIds: migrateSelectedIds.value,
+          targetServerId: migrateTargetServerId.value
+        }, { headers: { Authorization: `Bearer ${props.token}` } })
+        if (resp.data.success) {
+          message.success(resp.data.message)
+          migrateSelectedIds.value = []
+        } else {
+          message.error(resp.data.message || '操作失败')
+        }
+      } catch (e: any) {
+        message.error('请求失败: ' + (e.response?.data?.message || e.message))
+      } finally {
+        findAndWriteConfigLoading.value = false
+      }
+    }
+  })
 }
 
 // ─── IP 封锁管理 ───────────────────────────────────────────────────────────────
@@ -3488,7 +3590,10 @@ const loadExpiredAccounts = async () => {
   expiredAccountsLoading.value = true
   try {
     const response = await axios.get('/api/admin/expired-accounts', {
-      params: { days: expiredDays.value },
+      params: { 
+        days: expiredDays.value,
+        platform: expiredPlatform.value
+      },
       headers: {
         Authorization: `Bearer ${props.token}`,
       },
@@ -3660,7 +3765,10 @@ const loadNeverRenewedAccounts = async () => {
   neverRenewedAccountsLoading.value = true
   try {
     const response = await axios.get('/api/admin/never-renewed-accounts', {
-      params: { days: neverRenewedDays.value },
+      params: { 
+        days: neverRenewedDays.value,
+        platform: neverRenewedPlatform.value
+      },
       headers: {
         Authorization: `Bearer ${props.token}`,
       },
