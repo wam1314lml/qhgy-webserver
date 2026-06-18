@@ -249,7 +249,7 @@
           <!-- <div v-if="paymentMethod && availablePaymentMethods.length > 0">
             <div v-if="paymentMethod === 'wechat'" style="color: #666; font-size: 14px">
               <a-alert
-                message="微信付款概率异常，若碰到异常，请试用支付宝付款"
+                message="购买既认可服务，不支持退款"
                 type="warning"
                 show-icon
               />
@@ -312,8 +312,8 @@
                 }扫码支付`
               }}
             </h3>
-            <p v-if="paymentMethod === 'wechat'" style="font-weight: bold; color: red">
-              微信付款概率异常，若碰到异常，请试用支付宝付款
+            <p style="font-weight: bold; color: red">
+              购买既认可服务，不支持退款
             </p>
             <div class="order-info">
               <p>订单号: {{ orderId }}</p>
