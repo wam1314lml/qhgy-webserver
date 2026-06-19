@@ -18,11 +18,6 @@
                   >支付宝授权已过期</span
                 >
                 <span
-                  v-else-if="getAlipayTokenStatus(account)?.state === 'no_record'"
-                  class="alipay-token-tag alipay-token-warn"
-                  >未读取到最新支付宝授权请重扫</span
-                >
-                <span
                   v-else-if="getAlipayTokenStatus(account)?.state === 'ok'"
                   class="alipay-token-tag alipay-token-ok"
                   >支付宝码有效期剩余 {{ getAlipayTokenStatus(account)?.timeLeft }}</span

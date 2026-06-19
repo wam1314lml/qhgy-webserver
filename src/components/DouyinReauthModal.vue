@@ -1,6 +1,6 @@
 <template>
   <div class="douyin-reauth-content">
-    <p class="hint-text">检测到 token 已失效，请使用抖音 App 扫描下方二维码重新登录</p>
+    <p class="hint-text">检测到 token 已失效，请使用抖音 App 扫描下方二维码重新登录，无法通过相册截图扫码</p>
 
     <!-- 二维码 -->
     <div class="qrcode-section">

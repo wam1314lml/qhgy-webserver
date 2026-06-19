@@ -82,7 +82,7 @@
               <p>点击"获取二维码"开始抖音扫码登录</p>
             </div>
             <div v-else class="qrcode-container">
-              <h5>请使用抖音扫描二维码</h5>
+              <h5>请使用抖音扫描二维码，无法通过相册截图扫码</h5>
               <div class="qrcode-display">
                 <div class="qrcode-wrapper">
                   <div class="qrcode-content">
@@ -94,7 +94,7 @@
                       <span v-else-if="douyinScanStatus === 'confirmed'">🎉 扫码成功！</span>
                       <span v-else-if="douyinScanStatus === 'expired'" style="color:#ff4d4f">⚠️ 二维码已过期，请重新获取</span>
                       <span v-else-if="douyinScanStatus === 'error'" style="color:#ff4d4f">❌ 扫码失败，请重试</span>
-                      <span v-else>📱 请使用抖音扫描二维码</span>
+                      <span v-else>📱 请使用抖音扫描二维码，无法通过相册截图扫码</span>
                     </p>
                     <!-- 短信验证码 -->
                     <div v-if="douyinScanStatus === 'verify_sms'" class="sms-verify-box" style="margin-top:12px">

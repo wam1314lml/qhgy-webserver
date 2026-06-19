@@ -390,27 +390,63 @@
             </CustomFormItem>
 
             <Divider orientation="left">水滴配置</Divider>
-            <CustomFormItem label="水车水滴" name="plant.water.enabled" tooltip="自动领取水车水滴">
+            <CustomFormItem
+              label="水车水滴"
+              name="plant.water.enabled"
+              tooltip="3分钟领取一次水滴，这样才能最大化暴击，所以领取会略慢。"
+            >
               <Switch v-model:checked="config.plant.water.enabled" />
             </CustomFormItem>
-            <CustomFormItem
-              label="限时水滴"
-              name="plant.water.timedEnabled"
-              tooltip="自动领取限时水滴"
-            >
-              <Switch v-model:checked="config.plant.water.timedEnabled" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="水滴阈值"
-              name="plant.water.minWaterThreshold"
-              tooltip="若设置100，你的水滴低于100点才会领取，0代表不限制，设置0才会及时领水哦，不理解的建议无脑设置0"
-            >
-              <CustomInputNumber
-                v-model:value="config.plant.water.minWaterThreshold"
-                :min="0"
-                class="w-42! sm:w-48!"
-              />
-            </CustomFormItem>
+            <template v-if="config.plant.water.enabled">
+              <CustomFormItem
+                label="限时水滴"
+                name="plant.water.timedEnabled"
+                tooltip="自动领取限时水滴"
+              >
+                <Switch v-model:checked="config.plant.water.timedEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="水滴阈值"
+                name="plant.water.minWaterThreshold"
+                tooltip="若设置100，你的水滴低于100点才会领取，0代表不限制，设置0才会及时领水哦，不理解的建议无脑设置0"
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.water.minWaterThreshold"
+                  :min="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="无视阈值直接领"
+                name="plant.water.forceCollectEnabled"
+                tooltip="会根据设置好的时间段，到时间点后就无视水滴阈值且每次领水不等待3分钟直接领取"
+              >
+                <Switch v-model:checked="config.plant.water.forceCollectEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.water.forceCollectEnabled"
+                label="领取时间"
+                name="plant.water.forceCollectTime"
+                tooltip="到该时间点后将无视水滴阈值并直接领取，时只能设置 16-23"
+              >
+                <Space>
+                  <Select v-model:value="forceCollectHour" class="w-24!">
+                    <Select.Option v-for="h in forceCollectHourOptions" :key="h" :value="h">
+                      {{ h }}时
+                    </Select.Option>
+                  </Select>
+                  <Select v-model:value="forceCollectMinute" class="w-24!">
+                    <Select.Option
+                      v-for="m in forceCollectMinuteOptions"
+                      :key="m"
+                      :value="m"
+                    >
+                      {{ String(m).padStart(2, '0') }}分
+                    </Select.Option>
+                  </Select>
+                </Space>
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">种花配置</Divider>
             <CustomFormItem
@@ -1464,6 +1500,22 @@
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
+            <CustomFormItem
+              label="保留原金"
+              name="union.fmlRace.keepSystemUpgrade"
+              tooltip="开启后会保留系统自动出的原金任务，不判断分数"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.keepSystemUpgrade" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="保留已升级"
+              name="union.fmlRace.keepPlayerUpgrade"
+              tooltip="开启后会保留玩家用元宝升级过的任务，不判断分数"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
+            </CustomFormItem>
 
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
@@ -1756,6 +1808,13 @@
                 <Switch v-model:checked="config.activity.actSpool.openBox" />
               </CustomFormItem>
               <CustomFormItem
+                label="自动重开"
+                name="activity.actSpool.autoRestart"
+                tooltip="开启后，死了就会重新开始继续玩"
+              >
+                <Switch v-model:checked="config.activity.actSpool.autoRestart" />
+              </CustomFormItem>
+              <CustomFormItem
                 label="游戏倍数"
                 name="activity.actSpool.speed"
                 tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要消耗足够体力才能使用高倍速"
@@ -1856,6 +1915,36 @@ const formRules = {
 }
 
 const config = ref<GameConfig>(createDefaultGameConfig())
+
+const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
+const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
+
+const parseForceCollectTime = (time?: string) => {
+  const [hRaw, mRaw] = (time || '23:30').split(':')
+  let hour = Number(hRaw)
+  let minute = Number(mRaw)
+  if (!Number.isFinite(hour)) hour = 23
+  if (!Number.isFinite(minute)) minute = 30
+  hour = Math.min(23, Math.max(16, Math.floor(hour)))
+  minute = Math.min(59, Math.max(0, Math.floor(minute)))
+  return { hour, minute }
+}
+
+const forceCollectHour = computed({
+  get: () => parseForceCollectTime(config.value.plant.water.forceCollectTime).hour,
+  set: (hour: number) => {
+    const { minute } = parseForceCollectTime(config.value.plant.water.forceCollectTime)
+    config.value.plant.water.forceCollectTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
+
+const forceCollectMinute = computed({
+  get: () => parseForceCollectTime(config.value.plant.water.forceCollectTime).minute,
+  set: (minute: number) => {
+    const { hour } = parseForceCollectTime(config.value.plant.water.forceCollectTime)
+    config.value.plant.water.forceCollectTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
 
 // 获取配置
 const fetchConfig = async () => {

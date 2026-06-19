@@ -117,6 +117,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         timedEnabled: false,
         minWaterThreshold: 0,
+        forceCollectEnabled: false,
+        forceCollectTime: '23:30',
       },
       artSell: {
         autoSellArt: false,
@@ -219,6 +221,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         upgradeTask: false,
         deleteTask: false,
         deleteTaskMaxScore: 0,
+        keepSystemUpgrade: false,
+        keepPlayerUpgrade: false,
       },
       redPacket: {
         enabled: false,
@@ -279,6 +283,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         autoClaimReward: false,
         openBox: false,
+        autoRestart: false,
         speed: 1,
       },
       redPacket: {

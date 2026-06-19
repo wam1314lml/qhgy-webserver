@@ -111,6 +111,8 @@ export interface GameConfig {
       enabled: boolean
       timedEnabled: boolean
       minWaterThreshold: number
+      forceCollectEnabled: boolean
+      forceCollectTime: string
     }
     artSell: {
       autoSellArt: boolean
@@ -201,6 +203,8 @@ export interface GameConfig {
       upgradeTask: boolean
       deleteTask: boolean
       deleteTaskMaxScore: number
+      keepSystemUpgrade: boolean
+      keepPlayerUpgrade: boolean
     }
     redPacket: {
       enabled: boolean
@@ -262,6 +266,7 @@ export interface GameConfig {
       enabled: boolean
       autoClaimReward: boolean
       openBox: boolean
+      autoRestart: boolean
       speed: number
     }
     redPacket: {
