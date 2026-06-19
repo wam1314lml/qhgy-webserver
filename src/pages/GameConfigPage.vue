@@ -1828,6 +1828,31 @@
                 </Select>
               </CustomFormItem>
             </template>
+
+            <Divider orientation="left">端午活动</Divider>
+            <CustomFormItem
+              label="参赛"
+              name="activity.actDuanWu.enabled"
+              tooltip="开启后会玩龙舟"
+            >
+              <Switch v-model:checked="config.activity.actDuanWu.enabled" />
+            </CustomFormItem>
+            <template v-if="config.activity.actDuanWu.enabled">
+              <CustomFormItem
+                label="签到"
+                name="activity.actDuanWu.autoSign"
+                tooltip="开启后会签到"
+              >
+                <Switch v-model:checked="config.activity.actDuanWu.autoSign" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="开宝箱"
+                name="activity.actDuanWu.autoOpenBox"
+                tooltip="开启后会开宝箱"
+              >
+                <Switch v-model:checked="config.activity.actDuanWu.autoOpenBox" />
+              </CustomFormItem>
+            </template>
           </div>
         </Form>
       </div>

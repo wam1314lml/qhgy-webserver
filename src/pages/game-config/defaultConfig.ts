@@ -286,6 +286,11 @@ export const createDefaultGameConfig = (): GameConfig =>
         autoRestart: false,
         speed: 1,
       },
+      actDuanWu: {
+        enabled: false,
+        autoSign: false,
+        autoOpenBox: false,
+      },
       redPacket: {
         enabled: false,
       },

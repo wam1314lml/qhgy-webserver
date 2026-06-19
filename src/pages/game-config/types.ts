@@ -269,6 +269,11 @@ export interface GameConfig {
       autoRestart: boolean
       speed: number
     }
+    actDuanWu: {
+      enabled: boolean
+      autoSign: boolean
+      autoOpenBox: boolean
+    }
     redPacket: {
       enabled: boolean
     }
