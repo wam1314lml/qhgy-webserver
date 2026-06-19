@@ -1829,7 +1829,7 @@
               </CustomFormItem>
             </template>
 
-            <Divider orientation="left">端午活动</Divider>
+            <Divider orientation="left">龙舟竞渡</Divider>
             <CustomFormItem
               label="参赛"
               name="activity.actDuanWu.enabled"
