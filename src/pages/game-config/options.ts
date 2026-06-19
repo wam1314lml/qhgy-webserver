@@ -1,6 +1,7 @@
 export { flowerOptions } from './flowerOptions'
 export { flowerArtOptions } from './flowerArtOptions'
 export { elfOptions } from './elfOptions'
+export { getFlowerPickerOptions } from './optionPickerUtils'
 
 // 标签页配置
 export const tabs = ['基础', '种植', '订单', '公会', '活动']

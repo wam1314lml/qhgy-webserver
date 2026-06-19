@@ -637,7 +637,7 @@
                   v-model:value="config.plant.flower.specificFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.plant.flower.specificFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -707,7 +707,7 @@
                   v-model:value="config.plant.friendSteal.stealFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.plant.friendSteal.stealFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -721,7 +721,7 @@
                   v-model:value="config.plant.friendSteal.excludeFlowerIds"
                   mode="multiple"
                   placeholder="请选择要排除的花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.plant.friendSteal.excludeFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -933,7 +933,7 @@
                   v-model:value="config.plant.market.specificFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.plant.market.specificFlowerIds)"
                   show-search
                   option-filter-prop="label"
                   style="width: 100%"
@@ -1015,7 +1015,7 @@
                   v-model:value="config.plant.market.buySpecificFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.plant.market.buySpecificFlowerIds)"
                   show-search
                   option-filter-prop="label"
                   style="width: 100%"
@@ -1257,7 +1257,7 @@
                   v-model:value="config.union.land.specificFlowerIds"
                   mode="multiple"
                   placeholder="请选择花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.union.land.specificFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -1341,7 +1341,7 @@
                   v-model:value="config.union.flower.shareFlowerIds"
                   mode="multiple"
                   placeholder="选择要分享的花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.union.flower.shareFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -1391,7 +1391,7 @@
                   v-model:value="config.union.flower.takeFlowerIds"
                   mode="multiple"
                   placeholder="选择要摸取的花朵"
-                  :options="flowerOptions"
+                  :options="getFlowerPickerOptions(config.union.flower.takeFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -1885,7 +1885,7 @@ import {
   flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
-  flowerOptions,
+  getFlowerPickerOptions,
   fmlRaceTaskTypes,
   tabs,
 } from './game-config/options'
