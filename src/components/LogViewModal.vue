@@ -136,6 +136,7 @@ import { message } from 'ant-design-vue'
 import { useSwipeToClose } from '../hooks/useSwipeToClose'
 import AnsiToHtml from 'ansi-to-html'
 import { sanitizeLog } from '../utils/sanitize'
+import { filterLogLines, shouldHideLogLine } from '../utils/logFilter'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 
 // 创建 ansi-to-html 转换器实例
@@ -314,9 +315,11 @@ const computedLogData = computed(() => {
     return { categories: [], filteredLines: [], processedLines: [] }
   }
 
-  // 只取最近的2500条日志
-  const allLines = logData.value.content.split('\n').filter((line) => line.trim())
-  const lines = allLines.slice(-2500) // 取最后5000条
+  // 只取最近的2500条日志，并过滤 IP 封禁相关记录
+  const allLines = logData.value.content
+    .split('\n')
+    .filter((line) => line.trim() && !shouldHideLogLine(line))
+  const lines = allLines.slice(-2500)
   const categoryMap = new Map<string, number>()
   const colors = [
     '#3b82f6',
@@ -418,12 +421,13 @@ const fetchLogs = async (silent = false) => {
 
       // 处理日志数据
       if (streamData.count > 0) {
-        const newLogs = streamData.logs.join('\n')
+        const visibleLogs = filterLogLines(streamData.logs)
+        const newLogs = visibleLogs.join('\n')
 
         if (wasFirstLoad) {
           // 首次加载，直接设置日志内容
           logData.value = { content: newLogs }
-        } else {
+        } else if (newLogs) {
           // 增量更新，追加新日志
           const currentContent = logData.value?.content || ''
           logData.value = { content: currentContent + '\n' + newLogs }

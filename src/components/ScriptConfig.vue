@@ -89,7 +89,10 @@
                         </template>
                         三十天扫码保持（防掉线）
                       </a-menu-item>
-                      <a-menu-item key="updatePassword">
+                      <a-menu-item
+                        v-if="account.platform !== 1 && account.platform !== 2"
+                        key="updatePassword"
+                      >
                         <template #icon>
                           <LockOutlined />
                         </template>
