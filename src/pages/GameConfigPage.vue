@@ -1852,6 +1852,13 @@
               >
                 <Switch v-model:checked="config.activity.actDuanWu.autoOpenBox" />
               </CustomFormItem>
+              <CustomFormItem
+                label="购买元宝道具"
+                name="activity.actDuanWu.giftBuy"
+                tooltip="慎重开启，开启后会总共花费900元宝购买5次龙舟鼓"
+              >
+                <Switch v-model:checked="config.activity.actDuanWu.giftBuy" />
+              </CustomFormItem>
             </template>
           </div>
         </Form>

@@ -290,6 +290,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         autoSign: false,
         autoOpenBox: false,
+        giftBuy: false,
       },
       redPacket: {
         enabled: false,

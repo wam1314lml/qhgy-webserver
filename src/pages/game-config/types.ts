@@ -273,6 +273,7 @@ export interface GameConfig {
       enabled: boolean
       autoSign: boolean
       autoOpenBox: boolean
+      giftBuy: boolean
     }
     redPacket: {
       enabled: boolean
