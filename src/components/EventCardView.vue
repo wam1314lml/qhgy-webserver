@@ -391,32 +391,39 @@ const props = defineProps<{ rawLogs: string; accountId?: number }>()
 
 // ── localStorage 缓存 key ───────────────────────────────────────────────────
 
-const CACHE_VERSION = 1
-const cacheKey = computed(() =>
-  `evt_cache_v${CACHE_VERSION}_acc${props.accountId ?? 0}`
-)
+const CACHE_VERSION = 2
+const cacheKey = (accId?: number) =>
+  `evt_cache_v${CACHE_VERSION}_acc${accId ?? 0}`
 
-/** 从 localStorage 读取缓存的 events（按 module 分组） */
-function loadCache(): Map<string, EvtEvent[]> {
+/** 缓存结构：每个 module 独立存 events + layout（layout 单独持久化，不依赖 events） */
+interface ModuleCache {
+  events: EvtEvent[]
+  layout: Layout | null
+}
+
+/** 从 localStorage 读取缓存 */
+function loadCache(accId?: number): Map<string, ModuleCache> {
   try {
-    const raw = localStorage.getItem(cacheKey.value)
+    const raw = localStorage.getItem(cacheKey(accId))
     if (!raw) return new Map()
-    const obj: Record<string, EvtEvent[]> = JSON.parse(raw)
+    const obj: Record<string, ModuleCache> = JSON.parse(raw)
     return new Map(Object.entries(obj))
   } catch {
     return new Map()
   }
 }
 
-/** 把 moduleMap 写入 localStorage，每个 module 只保留最新 50 条 event */
-function saveCache(moduleMap: Map<string, EvtEvent[]>) {
+/** 写入 localStorage，每 module 保留最新 100 条 event */
+function saveCache(moduleMap: Map<string, ModuleCache>, accId?: number) {
   try {
-    const obj: Record<string, EvtEvent[]> = {}
-    moduleMap.forEach((evts, mod) => {
-      // 按时间排序后只保留最新 50 条
-      obj[mod] = [...evts].sort((a, b) => a.ts - b.ts).slice(-50)
+    const obj: Record<string, ModuleCache> = {}
+    moduleMap.forEach((mc, mod) => {
+      obj[mod] = {
+        layout: mc.layout,
+        events: [...mc.events].sort((a, b) => a.ts - b.ts).slice(-100),
+      }
     })
-    localStorage.setItem(cacheKey.value, JSON.stringify(obj))
+    localStorage.setItem(cacheKey(accId), JSON.stringify(obj))
   } catch {
     // localStorage 满了或不可用，忽略
   }
@@ -446,38 +453,34 @@ const parseEvtLines = (raw: string): EvtEvent[] => {
   return events
 }
 
-/** 把新 events 合并进 moduleMap（按 id 去重，已存在的不覆盖） */
-function mergeIntoMap(moduleMap: Map<string, EvtEvent[]>, newEvents: EvtEvent[]) {
+/** 把新 events 追加合并进 moduleMap（按 id 去重，已存在的不覆盖；有新 layout 则更新） */
+function mergeIntoMap(moduleMap: Map<string, ModuleCache>, newEvents: EvtEvent[]) {
   for (const evt of newEvents) {
-    if (!moduleMap.has(evt.module)) moduleMap.set(evt.module, [])
-    const arr = moduleMap.get(evt.module)!
-    if (!arr.find(e => e.id === evt.id)) arr.push(evt)
+    if (!moduleMap.has(evt.module)) moduleMap.set(evt.module, { events: [], layout: null })
+    const mc = moduleMap.get(evt.module)!
+    // 事件去重追加
+    if (!mc.events.find(e => e.id === evt.id)) mc.events.push(evt)
+    // 有新 layout 就更新（不因日志滚动而丢失）
+    if (evt.meta?.layout) mc.layout = evt.meta.layout
   }
 }
 
 /** 把 moduleMap 转成 EvtCard[] */
-function buildCards(moduleMap: Map<string, EvtEvent[]>): EvtCard[] {
+function buildCards(moduleMap: Map<string, ModuleCache>): EvtCard[] {
   const result: EvtCard[] = []
-  moduleMap.forEach((evts, module) => {
-    const sorted = [...evts].sort((a, b) => a.ts - b.ts)
+  moduleMap.forEach((mc, module) => {
+    const sorted = [...mc.events].sort((a, b) => a.ts - b.ts)
     const latest = sorted[sorted.length - 1] ?? null
-
-    // 取最新一条含 meta.layout 的事件作为当前版式
-    let layout: Layout | null = null
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      if (sorted[i].meta?.layout) { layout = sorted[i].meta!.layout!; break }
-    }
-
     result.push({
       module,
       events:       sorted,
       latest,
       latestStatus: latest?.status ?? 'info',
-      successCount: evts.filter(e => e.status === 'success').length,
-      failedCount:  evts.filter(e => e.status === 'failed').length,
-      warningCount: evts.filter(e => e.status === 'warning').length,
-      infoCount:    evts.filter(e => e.status === 'info').length,
-      layout,
+      successCount: mc.events.filter(e => e.status === 'success').length,
+      failedCount:  mc.events.filter(e => e.status === 'failed').length,
+      warningCount: mc.events.filter(e => e.status === 'warning').length,
+      infoCount:    mc.events.filter(e => e.status === 'info').length,
+      layout:       mc.layout,
     })
   })
   return result
@@ -485,21 +488,27 @@ function buildCards(moduleMap: Map<string, EvtEvent[]>): EvtCard[] {
 
 // ── 带缓存的响应式卡片列表 ───────────────────────────────────────────────────
 
-// 初始从缓存加载
-const cachedModuleMap = ref<Map<string, EvtEvent[]>>(loadCache())
+// 初始从缓存加载（按当前 accountId）
+const cachedModuleMap = ref<Map<string, ModuleCache>>(loadCache(props.accountId))
 
-// 当 rawLogs 或 accountId 变化时，把新解析到的 EVT 合并进缓存
+// accountId 变化时切换到对应账号的缓存
 watch(
-  () => [props.rawLogs, props.accountId] as const,
-  ([raw]) => {
-    // accountId 变化时重新加载对应缓存
-    cachedModuleMap.value = loadCache()
-    // 解析当前日志中的 EVT 并合并
+  () => props.accountId,
+  (accId) => {
+    cachedModuleMap.value = loadCache(accId)
+  }
+)
+
+// rawLogs 变化时，追加新 EVT 到内存 + 持久化
+watch(
+  () => props.rawLogs,
+  (raw) => {
     const newEvents = parseEvtLines(raw || '')
-    if (newEvents.length > 0) {
-      mergeIntoMap(cachedModuleMap.value, newEvents)
-      saveCache(cachedModuleMap.value)
-    }
+    if (newEvents.length === 0) return   // 没有新 EVT，不动缓存
+    mergeIntoMap(cachedModuleMap.value, newEvents)
+    // 触发 Vue 响应式更新
+    cachedModuleMap.value = new Map(cachedModuleMap.value)
+    saveCache(cachedModuleMap.value, props.accountId)
   },
   { immediate: true }
 )
@@ -508,7 +517,7 @@ const cards = computed<EvtCard[]>(() => buildCards(cachedModuleMap.value))
 
 /** 清除当前账号的 EVT 缓存 */
 function clearCache() {
-  try { localStorage.removeItem(cacheKey.value) } catch {}
+  try { localStorage.removeItem(cacheKey(props.accountId)) } catch {}
   cachedModuleMap.value = new Map()
 }
 
