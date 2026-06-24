@@ -86,7 +86,7 @@
 
           <!-- 事件卡片视图 -->
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
-            <EventCardView :raw-logs="logData?.content || ''" :account-id="props.accountId" />
+            <EventCardView :raw-logs="rawEvtContent" :account-id="props.accountId" />
           </div>
 
           <!-- 日志内容 -->
@@ -212,6 +212,7 @@ const swipeRef = useSwipeToClose({
 
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
+const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
 const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
 const searchTerm = ref('')
@@ -444,6 +445,14 @@ const fetchLogs = async (silent = false) => {
         const visibleLogs = filterLogLines(streamData.logs)
         const newLogs = visibleLogs.join('\n')
 
+        // 提取含 [[EVT]] 的行（不过滤），追加到 rawEvtContent
+        const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
+        if (evtLines.length > 0) {
+          rawEvtContent.value = rawEvtContent.value
+            ? rawEvtContent.value + '\n' + evtLines.join('\n')
+            : evtLines.join('\n')
+        }
+
         if (wasFirstLoad) {
           // 首次加载，直接设置日志内容
           logData.value = { content: newLogs }
@@ -514,20 +523,15 @@ const fetchLogs = async (silent = false) => {
 const formatLogLine = (lineInfo: any): string => {
   const parts: string[] = []
   let remainingText = lineInfo.clean
-  console.log('原始 remainingText:', remainingText)
 
   // 尝试解析 JSON 格式的 remainingText
   try {
     const jsonData = JSON.parse(remainingText)
     if (jsonData && typeof jsonData === 'object' && 'content' in jsonData) {
-      // 使用 ansi-to-html 转换 content 字段
-      const convertedContent = ansiToHtml.toHtml(jsonData.content || '')
-      remainingText = convertedContent
-      console.log('转换后的内容:', remainingText)
+      remainingText = ansiToHtml.toHtml(jsonData.content || '')
     }
-  } catch (error) {
-    // 如果不是有效的 JSON，保持原始内容不变
-    console.log('不是 JSON 格式，保持原始内容:', error)
+  } catch {
+    // 不是 JSON，保持原始内容
   }
 
   // 1. 提取并高亮日志级别
@@ -590,6 +594,7 @@ watch(
       selectedCategory.value = '全部'
       searchTerm.value = ''
       lastLine.value = 0 // 重置日志行数
+      rawEvtContent.value = ''  // 切换账号时清空 EVT 内容
 
       // 立即获取一次日志
       fetchLogs()
