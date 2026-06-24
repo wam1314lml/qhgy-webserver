@@ -212,6 +212,25 @@ const swipeRef = useSwipeToClose({
 
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
+
+// ── EVT 行持久化缓存（按账号存 localStorage，弹窗关了再开仍然有数据） ────────
+const EVT_LINES_CACHE_KEY = (accId?: number) => `evt_raw_lines_acc${accId ?? 0}`
+const MAX_EVT_LINES = 2000  // 最多保留 2000 条 EVT 行
+
+function loadEvtLines(accId?: number): string {
+  try { return localStorage.getItem(EVT_LINES_CACHE_KEY(accId)) ?? '' } catch { return '' }
+}
+function saveEvtLines(lines: string, accId?: number) {
+  try {
+    // 只保留最新的 MAX_EVT_LINES 行
+    const trimmed = lines.split('\n').filter(Boolean).slice(-MAX_EVT_LINES).join('\n')
+    localStorage.setItem(EVT_LINES_CACHE_KEY(accId), trimmed)
+  } catch {}
+}
+function clearEvtLines(accId?: number) {
+  try { localStorage.removeItem(EVT_LINES_CACHE_KEY(accId)) } catch {}
+}
+
 const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
 const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
@@ -445,12 +464,13 @@ const fetchLogs = async (silent = false) => {
         const visibleLogs = filterLogLines(streamData.logs)
         const newLogs = visibleLogs.join('\n')
 
-        // 提取含 [[EVT]] 的行（不过滤），追加到 rawEvtContent
+        // 提取含 [[EVT]] 的行（不过滤），追加到 rawEvtContent 并持久化
         const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
         if (evtLines.length > 0) {
           rawEvtContent.value = rawEvtContent.value
             ? rawEvtContent.value + '\n' + evtLines.join('\n')
             : evtLines.join('\n')
+          saveEvtLines(rawEvtContent.value, props.accountId)
         }
 
         if (wasFirstLoad) {
@@ -580,6 +600,7 @@ const formatLogLine = (lineInfo: any): string => {
 }
 
 // 统一管理日志获取和自动刷新逻辑
+let _lastWatchedAccountId: number | undefined = undefined
 watch(
   [() => props.isOpen, () => props.accountId, autoRefresh],
   ([isOpen, accountId, autoRefreshEnabled]) => {
@@ -594,7 +615,15 @@ watch(
       selectedCategory.value = '全部'
       searchTerm.value = ''
       lastLine.value = 0 // 重置日志行数
-      rawEvtContent.value = ''  // 切换账号时清空 EVT 内容
+      // accountId 切换时才清空旧账号缓存
+      if (accountId !== _lastWatchedAccountId) {
+        if (_lastWatchedAccountId !== undefined) {
+          // 不删除旧账号缓存，只是切换
+        }
+        _lastWatchedAccountId = accountId
+      }
+      // 从 localStorage 恢复该账号的 EVT 行（弹窗关了再开立即有数据）
+      rawEvtContent.value = loadEvtLines(accountId)
 
       // 立即获取一次日志
       fetchLogs()
