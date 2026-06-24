@@ -370,6 +370,7 @@ interface EvtEvent {
   status:  'success' | 'failed' | 'info' | 'warning'
   desc?:   string
   gains?:  EvtGain[]
+  silent?: boolean
   meta?:   { layout?: Layout; [k: string]: any }
 }
 
@@ -453,15 +454,43 @@ const parseEvtLines = (raw: string): EvtEvent[] => {
   return events
 }
 
-/** 把新 events 追加合并进 moduleMap（按 id 去重，已存在的不覆盖；有新 layout 则更新） */
+/**
+ * 把新 events 追加合并进 moduleMap。
+ * - silent 事件：只做 layout 分区合并，不加入 events（不出现在时间线/摘要）
+ * - 普通事件：去重追加到 events，同时 layout 分区合并
+ * layout 分区合并：新 layout 各字段只覆盖自身非 undefined 的部分，
+ * 保留旧 layout 中其他字段（地块详情/任务缺口等不会被收获完成事件清掉）
+ */
+function mergeLayout(existing: Layout | null, incoming: Layout): Layout {
+  const base: Layout = existing ? { ...existing } : {}
+  // 逐字段合并，只覆盖 incoming 中明确提供的字段
+  if (incoming.subtitle        !== undefined) base.subtitle        = incoming.subtitle
+  if (incoming.headerStats     !== undefined) base.headerStats     = incoming.headerStats
+  if (incoming.tags            !== undefined) base.tags            = incoming.tags
+  if (incoming.progress        !== undefined) base.progress        = incoming.progress
+  if (incoming.multiProgress   !== undefined) base.multiProgress   = incoming.multiProgress
+  if (incoming.kvList          !== undefined) base.kvList          = incoming.kvList
+  if (incoming.alert           !== undefined) base.alert           = incoming.alert
+  if (incoming.grid            !== undefined) base.grid            = incoming.grid
+  if (incoming.table           !== undefined) base.table           = incoming.table
+  if (incoming.rankList        !== undefined) base.rankList        = incoming.rankList
+  if (incoming.rankListLabel   !== undefined) base.rankListLabel   = incoming.rankListLabel
+  if (incoming.statGrid        !== undefined) base.statGrid        = incoming.statGrid
+  if (incoming.statGridLabel   !== undefined) base.statGridLabel   = incoming.statGridLabel
+  if (incoming.timeline        !== undefined) base.timeline        = incoming.timeline
+  return base
+}
+
 function mergeIntoMap(moduleMap: Map<string, ModuleCache>, newEvents: EvtEvent[]) {
   for (const evt of newEvents) {
     if (!moduleMap.has(evt.module)) moduleMap.set(evt.module, { events: [], layout: null })
     const mc = moduleMap.get(evt.module)!
-    // 事件去重追加
+    // layout 分区合并（不整体替换，保留旧字段）
+    if (evt.meta?.layout) mc.layout = mergeLayout(mc.layout, evt.meta.layout)
+    // silent 事件只更新 layout，不入时间线
+    if (evt.silent) continue
+    // 普通事件去重追加
     if (!mc.events.find(e => e.id === evt.id)) mc.events.push(evt)
-    // 有新 layout 就更新（不因日志滚动而丢失）
-    if (evt.meta?.layout) mc.layout = evt.meta.layout
   }
 }
 
