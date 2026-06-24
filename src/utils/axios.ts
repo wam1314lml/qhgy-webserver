@@ -227,7 +227,7 @@ axiosInstance.interceptors.response.use(
       }
 
       // 优先尝试使用通用错误信息，如果没有再根据状态码处理
-      const generalErrorMessage = data?.message || data?.error
+      const generalErrorMessage = data?.message || data?.error || data?.err
 
       if (generalErrorMessage) {
         // 如果服务器返回了错误信息，直接使用
