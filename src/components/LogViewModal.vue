@@ -49,16 +49,29 @@
 
         <!-- 右侧面板 -->
         <div class="log-right-panel max-h-[70vh]">
-          <!-- 搜索栏 -->
+          <!-- 搜索栏 + 模式切换 -->
           <div class="log-search">
-            <a-input
-              v-model:value="searchTerm"
-              type="text"
-              placeholder="搜索日志内容..."
-              size="large"
-              class="mb-2"
-            />
-            <div class="search-controls">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+              <a-input
+                v-if="viewMode === 'log'"
+                v-model:value="searchTerm"
+                type="text"
+                placeholder="搜索日志内容..."
+                size="large"
+                style="flex:1"
+              />
+              <span v-else style="flex:1;font-size:13px;color:#6b7280;line-height:32px;">
+                仅显示 [[EVT]] 事件数据
+              </span>
+              <a-button
+                :type="viewMode === 'evt' ? 'primary' : 'default'"
+                size="small"
+                @click="viewMode = viewMode === 'log' ? 'evt' : 'log'"
+              >
+                {{ viewMode === 'evt' ? '📋 普通日志' : '🗂 事件卡片' }}
+              </a-button>
+            </div>
+            <div v-if="viewMode === 'log'" class="search-controls">
               <div wrap :size="16">
                 <a-checkbox v-model:checked="autoRefresh">🔄10秒自动刷新</a-checkbox>
                 <a-checkbox v-model:checked="autoScrollToBottom">
@@ -71,8 +84,13 @@
             </div>
           </div>
 
+          <!-- 事件卡片视图 -->
+          <div v-if="viewMode === 'evt'" class="log-content-wrapper">
+            <EventCardView :raw-logs="logData?.content || ''" />
+          </div>
+
           <!-- 日志内容 -->
-          <div class="log-content-wrapper" ref="logContentRef">
+          <div v-else class="log-content-wrapper" ref="logContentRef">
             <DynamicScroller
               v-if="computedLogData.filteredLines.length > 0"
               class="log-content scroller"
@@ -138,6 +156,7 @@ import AnsiToHtml from 'ansi-to-html'
 import { sanitizeLog } from '../utils/sanitize'
 import { filterLogLines, shouldHideLogLine } from '../utils/logFilter'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
+import EventCardView from './EventCardView.vue'
 
 // 创建 ansi-to-html 转换器实例
 const ansiToHtml = new AnsiToHtml({
@@ -197,6 +216,7 @@ const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
 const searchTerm = ref('')
 const autoRefresh = ref(true)
+const viewMode = ref<'log' | 'evt'>('log')  // 当前视图模式
 const autoScrollToBottom = ref(true)
 const showScrollToBottomButton = ref(false)
 const logContentRef = ref<HTMLDivElement>()
