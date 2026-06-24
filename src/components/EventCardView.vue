@@ -7,6 +7,11 @@
     </div>
 
     <div v-else class="evt-cards">
+      <!-- 顶部工具栏：清除缓存 -->
+      <div class="evt-toolbar">
+        <span class="evt-toolbar-info">已缓存 {{ cards.length }} 个模块事件（历史保留，即使日志刷新也不丢失）</span>
+        <button class="evt-clear-btn" @click="clearCache" title="清除所有已缓存的 EVT 事件记录">🗑 清除历史</button>
+      </div>
       <div
         v-for="card in cards"
         :key="card.module"
@@ -268,7 +273,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
 
@@ -382,7 +387,40 @@ interface EvtCard {
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
-const props = defineProps<{ rawLogs: string }>()
+const props = defineProps<{ rawLogs: string; accountId?: number }>()
+
+// ── localStorage 缓存 key ───────────────────────────────────────────────────
+
+const CACHE_VERSION = 1
+const cacheKey = computed(() =>
+  `evt_cache_v${CACHE_VERSION}_acc${props.accountId ?? 0}`
+)
+
+/** 从 localStorage 读取缓存的 events（按 module 分组） */
+function loadCache(): Map<string, EvtEvent[]> {
+  try {
+    const raw = localStorage.getItem(cacheKey.value)
+    if (!raw) return new Map()
+    const obj: Record<string, EvtEvent[]> = JSON.parse(raw)
+    return new Map(Object.entries(obj))
+  } catch {
+    return new Map()
+  }
+}
+
+/** 把 moduleMap 写入 localStorage，每个 module 只保留最新 50 条 event */
+function saveCache(moduleMap: Map<string, EvtEvent[]>) {
+  try {
+    const obj: Record<string, EvtEvent[]> = {}
+    moduleMap.forEach((evts, mod) => {
+      // 按时间排序后只保留最新 50 条
+      obj[mod] = [...evts].sort((a, b) => a.ts - b.ts).slice(-50)
+    })
+    localStorage.setItem(cacheKey.value, JSON.stringify(obj))
+  } catch {
+    // localStorage 满了或不可用，忽略
+  }
+}
 
 // ── 折叠状态 ────────────────────────────────────────────────────────────────
 
@@ -390,7 +428,7 @@ const expandedSet = ref<Set<string>>(new Set())
 const expanded    = (module: string, section: string) => expandedSet.value.has(`${module}:${section}`)
 const toggleSection = (module: string, section: string) => {
   const key = `${module}:${section}`
-  expandedSet.value.has(key) ? expandedSet.value.delete(key) : expandedSet.value.add(key)
+  if (expandedSet.value.has(key)) { expandedSet.value.delete(key) } else { expandedSet.value.add(key) }
 }
 
 // ── 解析 & 聚合 ─────────────────────────────────────────────────────────────
@@ -403,19 +441,22 @@ const parseEvtLines = (raw: string): EvtEvent[] => {
     try {
       const evt = JSON.parse(line.slice(idx + 7))
       if (evt?.id && evt?.module) events.push(evt as EvtEvent)
-    } catch (_) {}
+    } catch { /* ignore parse error */ }
   }
   return events
 }
 
-const cards = computed<EvtCard[]>(() => {
-  const events = parseEvtLines(props.rawLogs || '')
-  const moduleMap = new Map<string, EvtEvent[]>()
-  for (const evt of events) {
+/** 把新 events 合并进 moduleMap（按 id 去重，已存在的不覆盖） */
+function mergeIntoMap(moduleMap: Map<string, EvtEvent[]>, newEvents: EvtEvent[]) {
+  for (const evt of newEvents) {
     if (!moduleMap.has(evt.module)) moduleMap.set(evt.module, [])
-    moduleMap.get(evt.module)!.push(evt)
+    const arr = moduleMap.get(evt.module)!
+    if (!arr.find(e => e.id === evt.id)) arr.push(evt)
   }
+}
 
+/** 把 moduleMap 转成 EvtCard[] */
+function buildCards(moduleMap: Map<string, EvtEvent[]>): EvtCard[] {
   const result: EvtCard[] = []
   moduleMap.forEach((evts, module) => {
     const sorted = [...evts].sort((a, b) => a.ts - b.ts)
@@ -440,7 +481,36 @@ const cards = computed<EvtCard[]>(() => {
     })
   })
   return result
-})
+}
+
+// ── 带缓存的响应式卡片列表 ───────────────────────────────────────────────────
+
+// 初始从缓存加载
+const cachedModuleMap = ref<Map<string, EvtEvent[]>>(loadCache())
+
+// 当 rawLogs 或 accountId 变化时，把新解析到的 EVT 合并进缓存
+watch(
+  () => [props.rawLogs, props.accountId] as const,
+  ([raw]) => {
+    // accountId 变化时重新加载对应缓存
+    cachedModuleMap.value = loadCache()
+    // 解析当前日志中的 EVT 并合并
+    const newEvents = parseEvtLines(raw || '')
+    if (newEvents.length > 0) {
+      mergeIntoMap(cachedModuleMap.value, newEvents)
+      saveCache(cachedModuleMap.value)
+    }
+  },
+  { immediate: true }
+)
+
+const cards = computed<EvtCard[]>(() => buildCards(cachedModuleMap.value))
+
+/** 清除当前账号的 EVT 缓存 */
+function clearCache() {
+  try { localStorage.removeItem(cacheKey.value) } catch {}
+  cachedModuleMap.value = new Map()
+}
 
 // ── 工具函数 ────────────────────────────────────────────────────────────────
 
@@ -505,6 +575,12 @@ const formatTime = (ts: number) => {
 .evt-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:#9ca3af; gap:8px; }
 .evt-empty-icon { font-size:48px; }
 .evt-empty-hint { font-size:12px; color:#d1d5db; }
+
+/* ── 工具栏 ── */
+.evt-toolbar { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; font-size:12px; color:#0369a1; }
+.evt-toolbar-info { flex:1; }
+.evt-clear-btn { background:none; border:1px solid #93c5fd; border-radius:4px; padding:2px 10px; font-size:11px; color:#1d4ed8; cursor:pointer; transition:background .15s; }
+.evt-clear-btn:hover { background:#dbeafe; }
 
 /* ── 卡片容器 ── */
 .evt-cards { display:flex; flex-direction:column; gap:12px; }

@@ -86,7 +86,7 @@
 
           <!-- 事件卡片视图 -->
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
-            <EventCardView :raw-logs="logData?.content || ''" />
+            <EventCardView :raw-logs="logData?.content || ''" :account-id="props.accountId" />
           </div>
 
           <!-- 日志内容 -->
