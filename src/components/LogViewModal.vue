@@ -27,7 +27,7 @@
         <!-- 左侧分类标签栏 -->
         <div class="log-categories">
           <a-button
-            v-for="category in computedLogData.categories"
+            v-for="category in sidebarCategories"
             :key="category.name"
             :class="['category-tab', { active: selectedCategory === category.name }]"
             :style="{
@@ -44,7 +44,7 @@
             </span>
           </a-button>
           <!-- 移动端滑动提示 -->
-          <div v-if="computedLogData.categories.length > 3" class="scroll-hint">→</div>
+          <div v-if="sidebarCategories.length > 3" class="scroll-hint">→</div>
         </div>
 
         <!-- 右侧面板 -->
@@ -86,7 +86,13 @@
 
           <!-- 事件卡片视图 -->
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
-            <EventCardView :raw-logs="rawEvtContent" :account-id="props.accountId" @clear="onEvtClear" />
+            <EventCardView
+              :raw-logs="rawEvtContent"
+              :account-id="props.accountId"
+              :filter-category="selectedCategory"
+              @clear="onEvtClear"
+              @categories-change="evtCategories = $event"
+            />
           </div>
 
           <!-- 日志内容 -->
@@ -240,9 +246,10 @@ function onEvtClear() {
 const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
 const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
+const evtCategories = ref<LogCategory[]>([{ name: '全部', count: 0, color: '#6b7280' }])
 const searchTerm = ref('')
 const autoRefresh = ref(true)
-const viewMode = ref<'log' | 'evt'>('log')  // 当前视图模式
+const viewMode = ref<'log' | 'evt'>('evt')  // 默认事件卡片
 const autoScrollToBottom = ref(true)
 const showScrollToBottomButton = ref(false)
 const logContentRef = ref<HTMLDivElement>()
@@ -446,6 +453,10 @@ const computedLogData = computed(() => {
   return { categories, filteredLines, processedLines }
 })
 
+const sidebarCategories = computed(() =>
+  viewMode.value === 'evt' ? evtCategories.value : computedLogData.value.categories,
+)
+
 const fetchLogs = async (silent = false) => {
   if (!props.accountId || !props.token) return
 
@@ -620,6 +631,7 @@ watch(
     if (isOpen && accountId) {
       selectedCategory.value = '全部'
       searchTerm.value = ''
+      viewMode.value = 'evt'
       lastLine.value = 0 // 重置日志行数
       // accountId 切换时才清空旧账号缓存
       if (accountId !== _lastWatchedAccountId) {

@@ -388,8 +388,17 @@ interface EvtCard {
 
 // ── Props ───────────────────────────────────────────────────────────────────
 
-const props = defineProps<{ rawLogs: string; accountId?: number }>()
-const emit = defineEmits<{ (e: 'clear'): void }>()
+interface ModuleCategory {
+  name: string
+  count: number
+  color: string
+}
+
+const props = defineProps<{ rawLogs: string; accountId?: number; filterCategory?: string }>()
+const emit = defineEmits<{
+  (e: 'clear'): void
+  (e: 'categories-change', categories: ModuleCategory[]): void
+}>()
 
 // ── localStorage 缓存 key ───────────────────────────────────────────────────
 
@@ -543,7 +552,35 @@ watch(
   { immediate: true }
 )
 
-const cards = computed<EvtCard[]>(() => buildCards(cachedModuleMap.value))
+const MODULE_CATEGORY_COLORS = [
+  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16',
+]
+
+function buildModuleCategories(moduleMap: Map<string, ModuleCache>): ModuleCategory[] {
+  const allCards = buildCards(moduleMap)
+  const total = allCards.reduce((sum, card) => sum + card.events.length, 0)
+  return [
+    { name: '全部', count: total, color: '#6b7280' },
+    ...allCards.map((card, index) => ({
+      name: card.module,
+      count: card.events.length,
+      color: MODULE_CATEGORY_COLORS[index % MODULE_CATEGORY_COLORS.length],
+    })),
+  ]
+}
+
+function syncModuleCategories() {
+  emit('categories-change', buildModuleCategories(cachedModuleMap.value))
+}
+
+watch(cachedModuleMap, syncModuleCategories, { deep: true, immediate: true })
+
+const cards = computed<EvtCard[]>(() => {
+  const all = buildCards(cachedModuleMap.value)
+  const filter = props.filterCategory
+  if (!filter || filter === '全部') return all
+  return all.filter((card) => card.module === filter)
+})
 
 /** 清除当前账号的 EVT 缓存，同时通知父组件清掉原始行缓存 */
 function clearCache() {

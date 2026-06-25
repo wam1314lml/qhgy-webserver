@@ -155,7 +155,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0', // 允许外部访问
       port: 8089,
-      allowedHosts: ['localhost', '127.0.0.1', 'tera.game-re.cn'],
+      allowedHosts: ['localhost', '127.0.0.1', 'tera.game-re.cn', 'garden.game-re.cn'],
       proxy: {
         '/api': {
           target: proxyTarget,

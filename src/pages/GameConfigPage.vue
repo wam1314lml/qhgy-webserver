@@ -2030,6 +2030,16 @@ const fetchConfig = async () => {
   }
 }
 
+// 配置提示弹窗（需点击确定后才能继续）
+function showConfigNoticeModal(title: string, contentHtml: string, okText = '确定') {
+  Modal.info({
+    title,
+    content: h('div', { innerHTML: contentHtml }),
+    centered: true,
+    okText,
+  })
+}
+
 // 保存配置
 const saveConfig = async () => {
   loading.value = true
@@ -2044,8 +2054,10 @@ const saveConfig = async () => {
     console.log('📨 服务器响应:', response.data)
 
     if (response.data.success) {
-      message.success('配置保存成功！')
-      message.warning('请注意：保存配置后，需要先停止再启动才能生效。')
+      showConfigNoticeModal(
+        '配置保存成功',
+        '请注意：保存配置后，需要先停止再启动才能生效。',
+      )
     } else {
       console.error('❌ 保存失败 - 服务器返回:', response.data)
       message.error(response.data.message || '保存失败')
@@ -2142,8 +2154,10 @@ const importConfigFromSelectedAccount = async () => {
 
     config.value = payload
     importConfigModalVisible.value = false
-    message.success('配置导入成功')
-    message.warning('请注意：导入配置后，需要先停止再启动才能生效。')
+    showConfigNoticeModal(
+      '配置导入成功',
+      '请注意：导入配置后，需要先停止再启动才能生效。',
+    )
   } catch (error) {
     console.error('导入配置失败:', error)
     message.error('导入配置失败')
@@ -2168,14 +2182,11 @@ onMounted(() => {
   } else {
     message.error('缺少必要参数')
   }
-  Modal.info({
-    title: '配置修改流程',
-    content: h('div', {
-      innerHTML: `操作步骤： 停止程序 → 修改配置 → 保存配置 → 启动程序<br/><br/>修改后务必点击"保存"按钮`,
-    }),
-    centered: true,
-    okText: '我知道了',
-  })
+  showConfigNoticeModal(
+    '配置修改流程',
+    `操作步骤： 停止程序 → 修改配置 → 保存配置 → 启动程序<br/><br/>修改后务必点击"保存"按钮`,
+    '我知道了',
+  )
 })
 </script>
 

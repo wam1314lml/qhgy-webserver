@@ -1518,7 +1518,7 @@ const isFloatMenuExpanded = computed(
 )
 const expiredTooltipAccountId = ref<number | null>(null)
 const expiredTooltipOpen = ref(false)
-const expiredTooltipText = '如需试用、使用辅助，请点击三个点，开通试用/增加配额'
+const expiredTooltipText = '如需使用辅助，请点击三个点，开通试用/增加配额'
 const expiredTooltipOuterStyle = {
   width: 'min(360px, calc(100vw - 50px))',
 }
