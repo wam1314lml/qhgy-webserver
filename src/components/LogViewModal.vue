@@ -86,7 +86,7 @@
 
           <!-- 事件卡片视图 -->
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
-            <EventCardView :raw-logs="rawEvtContent" :account-id="props.accountId" />
+            <EventCardView :raw-logs="rawEvtContent" :account-id="props.accountId" @clear="onEvtClear" />
           </div>
 
           <!-- 日志内容 -->
@@ -229,6 +229,12 @@ function saveEvtLines(lines: string, accId?: number) {
 }
 function clearEvtLines(accId?: number) {
   try { localStorage.removeItem(EVT_LINES_CACHE_KEY(accId)) } catch {}
+}
+
+/** EventCardView 点击"清除历史"时同步清掉原始 EVT 行缓存，防止旧模块名卡片重新出现 */
+function onEvtClear() {
+  clearEvtLines(props.accountId)
+  rawEvtContent.value = ''
 }
 
 const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析

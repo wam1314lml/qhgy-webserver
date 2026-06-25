@@ -389,6 +389,7 @@ interface EvtCard {
 // ── Props ───────────────────────────────────────────────────────────────────
 
 const props = defineProps<{ rawLogs: string; accountId?: number }>()
+const emit = defineEmits<{ (e: 'clear'): void }>()
 
 // ── localStorage 缓存 key ───────────────────────────────────────────────────
 
@@ -544,10 +545,11 @@ watch(
 
 const cards = computed<EvtCard[]>(() => buildCards(cachedModuleMap.value))
 
-/** 清除当前账号的 EVT 缓存 */
+/** 清除当前账号的 EVT 缓存，同时通知父组件清掉原始行缓存 */
 function clearCache() {
   try { localStorage.removeItem(cacheKey(props.accountId)) } catch {}
   cachedModuleMap.value = new Map()
+  emit('clear')
 }
 
 // ── 工具函数 ────────────────────────────────────────────────────────────────
