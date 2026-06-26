@@ -56,7 +56,7 @@
           <input
             v-model="searchKeyword"
             class="agent-input"
-            placeholder="输入用户名或邮箱搜索用户"
+            placeholder="输入邮箱搜索用户（需全名邮箱）"
             @input="onSearchInput"
           />
           <button class="agent-btn primary" @click="doSearch">搜索</button>
