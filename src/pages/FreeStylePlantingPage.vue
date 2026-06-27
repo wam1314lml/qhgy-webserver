@@ -175,6 +175,7 @@ function getFlowerColor(flowerId: string | number) {
 function splitFlowerName(name: string) {
   if (!name) return []
   if (name.length === 5) return [name.slice(0, 3), name.slice(3)]
+  if (name.length === 6) return [name.slice(0, 3), name.slice(3)]
   if (name.length > 5) return [name.slice(0, 3), name.slice(3, 5)]
   return [name]
 }
@@ -481,19 +482,27 @@ onMounted(fetchConfig)
   }
 
   .lands-layout {
-    align-items: center;
-    flex-direction: column;
-    gap: 18px;
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
   }
 
   .land-panel {
-    grid-template-columns: repeat(4, 1fr);
-    width: min(100%, 220px);
+    grid-template-columns: repeat(4, 34px);
+    gap: 4px;
+    padding: 5px;
+    width: auto;
   }
 
   .land-cell {
-    width: 100%;
-    height: 46px;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    font-size: 10px;
+  }
+
+  .land-flower {
+    font-size: 9px;
   }
 }
 </style>
