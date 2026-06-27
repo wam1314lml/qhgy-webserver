@@ -4,17 +4,23 @@
       <h2 class="free-style-title">🌲 种花设置</h2>
 
       <div class="free-style-plan-row">
-        <CustomSelect
-          v-model:value="config.plant.flower.freeStyleTemplate"
-          :options="freeStyleTemplateOptions"
-          class="plan-select"
-        />
-        <Input
-          :value="activeFreeStylePlan?.name"
-          class="plan-name-input"
-          placeholder="方案名称"
-          @update:value="renameFreeStyleTemplate"
-        />
+        <label class="plan-field">
+          <span class="plan-label">选择方案</span>
+          <CustomSelect
+            v-model:value="config.plant.flower.freeStyleTemplate"
+            :options="freeStyleTemplateOptions"
+            class="plan-select"
+          />
+        </label>
+        <label class="plan-field">
+          <span class="plan-label">方案名称</span>
+          <Input
+            :value="activeFreeStylePlan?.name"
+            class="plan-name-input"
+            placeholder="方案名称"
+            @update:value="renameFreeStyleTemplate"
+          />
+        </label>
       </div>
 
       <CustomSelect
@@ -42,9 +48,12 @@
             type="button"
             class="land-cell"
             :class="{ active: land.flowerId }"
+            :style="land.style"
             @click="setLandFlower(land.id)"
           >
-            <span v-if="land.flowerName" class="land-flower">{{ land.flowerName }}</span>
+            <span v-if="land.flowerLines.length" class="land-flower">
+              <span v-for="line in land.flowerLines" :key="line">{{ line }}</span>
+            </span>
             <span v-else class="land-index">{{ land.displayIndex }}</span>
           </button>
         </div>
@@ -56,9 +65,12 @@
             type="button"
             class="land-cell"
             :class="{ active: land.flowerId }"
+            :style="land.style"
             @click="setLandFlower(land.id)"
           >
-            <span v-if="land.flowerName" class="land-flower">{{ land.flowerName }}</span>
+            <span v-if="land.flowerLines.length" class="land-flower">
+              <span v-for="line in land.flowerLines" :key="line">{{ line }}</span>
+            </span>
             <span v-else class="land-index">{{ land.displayIndex }}</span>
           </button>
         </div>
@@ -74,7 +86,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Input, message } from 'ant-design-vue'
+import { Input, Modal, message } from 'ant-design-vue'
 import axios from '../utils/axios'
 import CustomSelect from '../components/CustomSelect.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
@@ -89,6 +101,7 @@ const accountId = computed(() => Number(route.params.accountId))
 const config = ref<GameConfig>(createDefaultGameConfig())
 const loading = ref(false)
 const selectedFlowerId = ref<string | number>('23001')
+const savedSnapshot = ref('')
 
 type FreeStylePlan = GameConfig['plant']['flower']['freeStyleList'][number]
 type LandView = {
@@ -96,6 +109,8 @@ type LandView = {
   displayIndex: string
   flowerId?: string | number
   flowerName: string
+  flowerLines: string[]
+  style: Record<string, string>
 }
 
 const selectedFlowerOptions = computed(() =>
@@ -135,6 +150,34 @@ const makeLandIds = (start: number, end: number) => {
 // 视觉顺序按图：左边显示 33-64，右边显示 01-32；每组从上到下按 4 个一行倒序。
 const leftLandIds = makeLandIds(33, 64)
 const rightLandIds = makeLandIds(1, 32)
+const flowerColorPalette = [
+  '#a8d463',
+  '#f472d0',
+  '#a998ad',
+  '#c084fc',
+  '#60a5fa',
+  '#34d399',
+  '#fbbf24',
+  '#fb7185',
+  '#2dd4bf',
+  '#f97316',
+]
+
+function getFlowerColor(flowerId: string | number) {
+  const text = String(flowerId)
+  let hash = 0
+  for (let index = 0; index < text.length; index++) {
+    hash = (hash * 31 + text.charCodeAt(index)) % flowerColorPalette.length
+  }
+  return flowerColorPalette[hash]
+}
+
+function splitFlowerName(name: string) {
+  if (!name) return []
+  if (name.length === 5) return [name.slice(0, 3), name.slice(3)]
+  if (name.length > 5) return [name.slice(0, 3), name.slice(3, 5)]
+  return [name]
+}
 
 function buildLandViews(ids: string[]): LandView[] {
   const lands = activeFreeStylePlan.value?.lands ?? {}
@@ -142,17 +185,27 @@ function buildLandViews(ids: string[]): LandView[] {
   return ids.map((id) => {
     const displayNumber = Number(id) - 1000
     const flowerId = lands[id]
+    const flowerName = flowerId ? nameMap.get(String(flowerId)) || String(flowerId) : ''
     return {
       id,
       displayIndex: String(displayNumber).padStart(2, '0'),
       flowerId,
-      flowerName: flowerId ? nameMap.get(String(flowerId)) || String(flowerId) : '',
+      flowerName,
+      flowerLines: splitFlowerName(flowerName),
+      style: flowerId
+        ? { '--land-color': getFlowerColor(flowerId) }
+        : {},
     }
   })
 }
 
 const leftLandViews = computed(() => buildLandViews(leftLandIds))
 const rightLandViews = computed(() => buildLandViews(rightLandIds))
+const currentSnapshot = computed(() => JSON.stringify({
+  freeStyleTemplate: config.value.plant.flower.freeStyleTemplate,
+  freeStyleList: config.value.plant.flower.freeStyleList,
+}))
+const hasUnsavedChanges = computed(() => savedSnapshot.value !== currentSnapshot.value)
 
 function renameFreeStyleTemplate(value: string) {
   const plan = activeFreeStylePlan.value
@@ -197,17 +250,21 @@ async function fetchConfig() {
       const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
       normalizeGameConfigSelects(mergedConfig)
       config.value = mergedConfig
+      savedSnapshot.value = currentSnapshot.value
     }
   } catch (error) {
     console.error('获取配置失败:', error)
     message.error('获取配置失败')
   } finally {
+    if (!savedSnapshot.value) {
+      savedSnapshot.value = currentSnapshot.value
+    }
     loading.value = false
   }
 }
 
 async function saveConfig() {
-  if (!accountId.value) return
+  if (!accountId.value) return false
 
   loading.value = true
   try {
@@ -215,19 +272,44 @@ async function saveConfig() {
     normalizeGameConfigSelects(config.value)
     const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
     if (response.data?.success) {
+      savedSnapshot.value = currentSnapshot.value
       message.success('保存成功')
+      return true
     } else {
       message.error(response.data?.message || '保存失败')
+      return false
     }
   } catch (error) {
     console.error('保存配置失败:', error)
     message.error('保存失败')
+    return false
   } finally {
     loading.value = false
   }
 }
 
 function goBack() {
+  if (hasUnsavedChanges.value) {
+    Modal.confirm({
+      title: '是否保存当前设置？',
+      content: '你还有未保存的土地设置，保存后再返回主页吗？',
+      okText: '保存并返回',
+      cancelText: '不保存返回',
+      centered: true,
+      async onOk() {
+        const success = await saveConfig()
+        if (success) {
+          router.push(`/game-config/${accountId.value}`)
+        }
+        return success ? undefined : Promise.reject()
+      },
+      onCancel() {
+        router.push(`/game-config/${accountId.value}`)
+      },
+    })
+    return
+  }
+
   router.push(`/game-config/${accountId.value}`)
 }
 
@@ -264,6 +346,18 @@ onMounted(fetchConfig)
   grid-template-columns: 160px minmax(150px, 1fr);
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.plan-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plan-label {
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .plan-select,
@@ -345,7 +439,7 @@ onMounted(fetchConfig)
 
 .land-cell.active {
   border-color: transparent;
-  background: #a8d463;
+  background: var(--land-color, #a8d463);
   color: #17375e;
 }
 
@@ -355,6 +449,17 @@ onMounted(fetchConfig)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.land-flower {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1px;
+  height: 100%;
+  font-size: 11px;
+  line-height: 1.05;
 }
 
 .home-btn {
