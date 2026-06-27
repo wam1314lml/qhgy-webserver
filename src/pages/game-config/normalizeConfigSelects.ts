@@ -22,6 +22,13 @@ import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/sel
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
 const DEFAULT_FREE_STYLE_TEMPLATE = '我的方案A'
 const MAX_FREE_STYLE_TEMPLATES = 5
+const FIXED_FREE_STYLE_TEMPLATE_NAMES = [
+  '我的方案A',
+  '我的方案B',
+  '我的方案C',
+  '我的方案D',
+  '我的方案E',
+]
 
 function normalizeThreshold(value: unknown): number {
   const numberValue = Number(value)
@@ -46,9 +53,16 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   flower.freeStyleList = flower.freeStyleList
     .slice(0, MAX_FREE_STYLE_TEMPLATES)
     .map((item, index) => ({
-      name: String(item?.name || `${DEFAULT_FREE_STYLE_TEMPLATE}${index ? index + 1 : ''}`),
+      name: String(item?.name || FIXED_FREE_STYLE_TEMPLATE_NAMES[index]),
       lands: item?.lands && typeof item.lands === 'object' ? item.lands : {},
     }))
+  while (flower.freeStyleList.length < MAX_FREE_STYLE_TEMPLATES) {
+    const index = flower.freeStyleList.length
+    flower.freeStyleList.push({
+      name: FIXED_FREE_STYLE_TEMPLATE_NAMES[index],
+      lands: {},
+    })
+  }
   const currentTemplate = flower.freeStyleTemplate || flower.freeStyleList[0]?.name
   const matchedTemplate = flower.freeStyleList.find((item) => item.name === currentTemplate)
   flower.freeStyleTemplate = matchedTemplate?.name || flower.freeStyleList[0].name

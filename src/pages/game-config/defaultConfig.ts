@@ -91,6 +91,22 @@ export const createDefaultGameConfig = (): GameConfig =>
             name: '我的方案A',
             lands: {},
           },
+          {
+            name: '我的方案B',
+            lands: {},
+          },
+          {
+            name: '我的方案C',
+            lands: {},
+          },
+          {
+            name: '我的方案D',
+            lands: {},
+          },
+          {
+            name: '我的方案E',
+            lands: {},
+          },
         ],
         minFlowerLevel: 0,
         qualities: [1, 2, 3, 4, 5],

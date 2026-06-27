@@ -3,6 +3,7 @@ import LoginForm from '../components/LoginForm.vue'
 import Dashboard from '../components/Dashboard.vue'
 import PaymentSuccess from '../components/PaymentSuccess.vue'
 import GameConfigPage from '../pages/GameConfigPage.vue'
+import FreeStylePlantingPage from '../pages/FreeStylePlantingPage.vue'
 import Help from '../components/HelpPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
 import AgentManagement from '../components/AgentManagement.vue'
@@ -39,6 +40,12 @@ const routes = [
     path: '/game-config/:accountId',
     name: 'GameConfig',
     component: GameConfigPage,
+    props: true,
+  },
+  {
+    path: '/game-config/:accountId/free-style',
+    name: 'FreeStylePlanting',
+    component: FreeStylePlantingPage,
     props: true,
   },
   {
