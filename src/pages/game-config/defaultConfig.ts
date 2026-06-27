@@ -332,5 +332,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       moneyTree: {
         enabled: false,
       },
+      actHoney: {
+        enabled: false,
+      },
     },
   }) as GameConfig

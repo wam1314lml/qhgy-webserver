@@ -129,7 +129,12 @@
             <span>{{ card.layout.grid.label || '格子列表' }}（{{ card.layout.grid.items.length }} 个）</span>
             <span class="evt-toggle-arrow">{{ expanded(card.module, 'grid') ? '▲ 收起' : '▼ 展开' }}</span>
           </div>
-          <div v-if="expanded(card.module, 'grid')" class="evt-grid" :style="gridStyle(card.layout.grid.columns)">
+          <div
+            v-if="expanded(card.module, 'grid')"
+            class="evt-grid"
+            :class="{ 'evt-grid--guild-tasks': isGuildTaskModule(card.module) }"
+            :style="gridStyle(card.layout.grid.columns)"
+          >
             <div
               v-for="item in card.layout.grid.items"
               :key="item.id"
@@ -622,6 +627,9 @@ const progressColor = (p: LayoutProgress) => {
 const gridStyle = (columns?: number) =>
   ({ gridTemplateColumns: `repeat(${columns ?? 3}, 1fr)` })
 
+const isGuildTaskModule = (module: string) =>
+  module.includes('公会') || /fml/i.test(module)
+
 const gridItemClass = (item: LayoutGridItem) => ({
   'evt-grid-item--available': item.status === 'available',
   'evt-grid-item--taken':     item.status === 'taken',
@@ -822,10 +830,21 @@ const formatTime = (ts: number) => {
     overflow-x: hidden;
   }
 
+  .evt-grid.evt-grid--guild-tasks {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px;
+    padding: 8px 6px 10px;
+  }
+
   .evt-grid-item {
     min-width: 0;
     padding: 6px;
     font-size: 10px;
+  }
+
+  .evt-grid--guild-tasks .evt-grid-item {
+    padding: 4px 3px;
+    font-size: 9px;
   }
 
   .evt-grid-title {
@@ -835,11 +854,21 @@ const formatTime = (ts: number) => {
     word-break: break-word;
   }
 
+  .evt-grid--guild-tasks .evt-grid-title {
+    padding-right: 12px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
   .evt-grid-score {
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 2px;
     font-size: 10px;
+  }
+
+  .evt-grid--guild-tasks .evt-grid-score {
+    font-size: 9px;
   }
 
   .evt-grid-badge {

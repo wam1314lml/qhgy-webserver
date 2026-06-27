@@ -297,5 +297,8 @@ export interface GameConfig {
     moneyTree: {
       enabled: boolean
     }
+    actHoney: {
+      enabled: boolean
+    }
   }
 }

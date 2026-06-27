@@ -1292,7 +1292,7 @@
               <CustomFormItem
                 label="最高等级限制"
                 name="union.land.maxFlowerLevel"
-                tooltip="花朵等级高于该值的不种，0表示不限制"
+                tooltip="花朵等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
               >
                 <CustomInputNumber
                   v-model:value="config.union.land.maxFlowerLevel"
@@ -1878,6 +1878,15 @@
                 <Switch v-model:checked="config.activity.actDuanWu.giftBuy" />
               </CustomFormItem>
             </template>
+
+            <Divider orientation="left">百花成蜜</Divider>
+            <CustomFormItem
+              label="领奖励"
+              name="activity.actHoney.enabled"
+              tooltip="只会领奖励，不会做指定任务"
+            >
+              <Switch v-model:checked="config.activity.actHoney.enabled" />
+            </CustomFormItem>
           </div>
         </Form>
       </div>

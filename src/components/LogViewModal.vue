@@ -5,6 +5,7 @@
     :title="`📋 查看日志${accountInfo ? ` - ${accountInfo.nickname} - ${accountInfo.server_name}` : ''}`"
     width="90%"
     :style="{ maxWidth: '1200px' }"
+    wrap-class-name="log-view-modal-wrap"
     centered
     :body-style="{ maxHeight: '80vh', padding: 0, overflow: 'hidden' }"
   >
@@ -48,7 +49,7 @@
         </div>
 
         <!-- 右侧面板 -->
-        <div class="log-right-panel max-h-[70vh]">
+        <div class="log-right-panel">
           <!-- 搜索栏 + 模式切换 -->
           <div class="log-search">
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
@@ -837,6 +838,8 @@ onUnmounted(() => {
   flex-direction: column;
   background: white;
   min-width: 0;
+  min-height: 0;
+  max-height: 70vh;
 }
 
 /* 搜索栏 */
@@ -1057,8 +1060,22 @@ onUnmounted(() => {
 
 /* 移动端适配 - 768px以下统一使用紧凑样式 */
 @media (max-width: 768px) {
+  .log-modal-content {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+  }
+
   .log-main-content {
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .log-right-panel {
+    max-height: none;
+    flex: 1;
+    min-height: 0;
   }
 
   .log-categories {
@@ -1156,6 +1173,46 @@ onUnmounted(() => {
     min-width: auto;
     height: 44px;
     font-size: 1rem;
+  }
+}
+</style>
+
+<style>
+@media (max-width: 768px) {
+  .log-view-modal-wrap .ant-modal-wrap {
+    overflow: hidden !important;
+  }
+
+  .log-view-modal-wrap .ant-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .log-view-modal-wrap .ant-modal-content {
+    height: 100dvh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+  }
+
+  .log-view-modal-wrap .ant-modal-header,
+  .log-view-modal-wrap .ant-modal-footer {
+    flex-shrink: 0;
+    border-radius: 0;
+  }
+
+  .log-view-modal-wrap .ant-modal-body {
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 </style>
