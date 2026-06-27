@@ -646,7 +646,7 @@ const formatTime = (ts: number) => {
 </script>
 
 <style scoped>
-.evt-view { padding: 12px; overflow-y: auto; height: 100%; box-sizing: border-box; }
+.evt-view { padding: 12px; overflow-y: auto; overflow-x:hidden; height: 100%; box-sizing: border-box; }
 
 /* ── 空状态 ── */
 .evt-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:200px; color:#9ca3af; gap:8px; }
@@ -730,7 +730,7 @@ const formatTime = (ts: number) => {
 .evt-toggle-arrow { font-size:11px; color:#9ca3af; }
 
 /* ── 格子网格 ── */
-.evt-grid { display:grid; gap:6px; padding:10px 12px; background:#fafafa; }
+.evt-grid { display:grid; gap:6px; padding:10px 12px; background:#fafafa; max-width:100%; overflow-x:auto; box-sizing:border-box; -webkit-overflow-scrolling:touch; }
 .evt-grid-item { position:relative; border:1px solid #e5e7eb; border-radius:6px; padding:6px 8px; font-size:11px; background:#fff; display:flex; flex-direction:column; gap:2px; }
 .evt-grid-item--available { border-color:#10b981; background:#f0fdf4; }
 .evt-grid-item--taken     { border-color:#f59e0b; background:#fffbeb; }
@@ -791,4 +791,62 @@ const formatTime = (ts: number) => {
 .evt-tl-title { font-size:12px; font-weight:600; color:#374151; }
 .evt-tl-desc  { font-size:11px; color:#6b7280; }
 .evt-tl-gains { display:flex; gap:3px; flex-wrap:wrap; width:100%; margin-top:2px; }
+
+@media (max-width: 640px) {
+  .evt-view {
+    padding: 8px 6px;
+  }
+
+  .evt-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .evt-card {
+    max-width: 100%;
+  }
+
+  .evt-card-header {
+    padding: 9px 10px 8px;
+  }
+
+  .evt-section-toggle {
+    padding: 7px 10px;
+  }
+
+  .evt-grid {
+    grid-template-columns: repeat(2, minmax(118px, 1fr)) !important;
+    gap: 6px;
+    padding: 8px 8px 10px;
+    overflow-x: hidden;
+  }
+
+  .evt-grid-item {
+    min-width: 0;
+    padding: 6px;
+    font-size: 10px;
+  }
+
+  .evt-grid-title {
+    padding-right: 18px;
+    font-size: 10px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .evt-grid-score {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .evt-grid-badge {
+    max-width: 46px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 </style>
