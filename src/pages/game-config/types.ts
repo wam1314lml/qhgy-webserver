@@ -77,7 +77,13 @@ export interface GameConfig {
       taskMode: boolean
       taskLogEnabled: boolean
       taskPriorityConfig: Record<string, number>
-      plantingMode: 'quality' | 'count' | 'specific' | string
+      plantingMode: 'quality' | 'count' | 'specific' | 'lowStock' | 'freeStyle' | string
+      lowStockThreshold: number
+      freeStyleTemplate: string
+      freeStyleList: Array<{
+        name: string
+        lands: Record<string, number | string>
+      }>
       minFlowerLevel: number
       qualities: number[]
       flowerCount: number

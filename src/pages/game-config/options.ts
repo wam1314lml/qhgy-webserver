@@ -20,6 +20,8 @@ export const plantingModeOptions = [
   { value: 'quality', label: '指定品质' },
   { value: 'count', label: '指定种类' },
   { value: 'specific', label: '指定花朵' },
+  { value: 'lowStock', label: '库存模式' },
+  { value: 'freeStyle', label: '64块地模式' },
 ]
 
 // —— 偷花模式 ——

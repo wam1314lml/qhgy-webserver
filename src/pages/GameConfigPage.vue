@@ -596,6 +596,8 @@
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="count">指定种类 </Radio>
                     <Radio value="specific">指定花朵 </Radio>
+                    <Radio value="lowStock">库存模式 </Radio>
+                    <Radio value="freeStyle">64块地模式 </Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -620,7 +622,7 @@
                 tooltip="选择要种植几种花，库存少的优先种植。"
                 v-if="config.plant.flower.plantingMode === 'count'"
               >
-                <Select
+                <CustomSelect
                   v-model:value="config.plant.flower.flowerCount"
                   :options="flowerCountOptions"
                   class="w-42! sm:w-48!"
@@ -641,10 +643,86 @@
                   style="width: 100%"
                 />
               </CustomFormItem>
+              <!-- 库存模式 -->
+              <CustomFormItem
+                label="最低库存"
+                name="plant.flower.lowStockThreshold"
+                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，适合小号存水。"
+                v-if="config.plant.flower.plantingMode === 'lowStock'"
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.lowStockThreshold"
+                  :min="1"
+                  :max="999999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <!-- 64块地模式 -->
+              <CustomFormItem
+                label="设置每块土地"
+                name="plant.flower.freeStyleList"
+                tooltip="这个模式可以设置每块土地种什么花，无视限制花朵等级，所有任务做完才会进入这个种植模式。"
+                v-if="config.plant.flower.plantingMode === 'freeStyle'"
+              >
+                <div class="free-style-editor">
+                  <div class="free-style-toolbar">
+                    <CustomSelect
+                      v-model:value="config.plant.flower.freeStyleTemplate"
+                      :options="freeStyleTemplateOptions"
+                      class="w-42! sm:w-48!"
+                    />
+                    <Input
+                      :value="activeFreeStylePlan?.name"
+                      class="free-style-name-input"
+                      placeholder="方案名称"
+                      @update:value="renameFreeStyleTemplate"
+                    />
+                    <a-button
+                      size="small"
+                      :disabled="config.plant.flower.freeStyleList.length >= MAX_FREE_STYLE_TEMPLATES"
+                      @click="addFreeStyleTemplate"
+                    >
+                      新增方案
+                    </a-button>
+                    <a-button
+                      size="small"
+                      danger
+                      :disabled="config.plant.flower.freeStyleList.length <= 1"
+                      @click="removeFreeStyleTemplate"
+                    >
+                      删除方案
+                    </a-button>
+                  </div>
+                  <div class="free-style-toolbar">
+                    <CustomSelect
+                      v-model:value="selectedFreeStyleFlowerId"
+                      show-search
+                      placeholder="搜索并选择花朵"
+                      :options="selectedFreeStyleFlowerOptions"
+                      class="free-style-flower-select"
+                    />
+                    <span class="free-style-hint">选中花朵后，点击下方地块即可设置。</span>
+                  </div>
+                  <div class="free-style-grid">
+                    <button
+                      v-for="land in freeStyleLandViews"
+                      :key="land.id"
+                      type="button"
+                      class="free-style-land"
+                      :class="{ active: land.flowerId }"
+                      @click="setFreeStyleLand(land.id)"
+                    >
+                      <span class="land-index">{{ land.displayIndex }}</span>
+                      <span class="land-flower">{{ land.flowerName }}</span>
+                    </button>
+                  </div>
+                </div>
+              </CustomFormItem>
               <CustomFormItem
                 label="限制花朵等级"
                 name="plant.flower.minFlowerLevel"
                 tooltip="限制种植的最低花朵等级，0则不限制，此项的设置只针对补库存，做订单和公会竞赛之类的不受此设置影响"
+                v-if="!['lowStock', 'freeStyle'].includes(config.plant.flower.plantingMode)"
               >
                 <CustomInputNumber
                   v-model:value="config.plant.flower.minFlowerLevel"
@@ -659,7 +737,7 @@
             <CustomFormItem
               label="自动偷花"
               name="plant.friendSteal.enabled"
-              tooltip="默认不会偷取花灵"
+              tooltip="默认不会偷取花灵，但在好友种植花灵时会偷取花朵，需要在偷花模式里设置排除花朵，排除花灵主花"
             >
               <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
@@ -714,7 +792,7 @@
               <CustomFormItem
                 label="排除花朵"
                 name="plant.friendSteal.excludeFlowerIds"
-                tooltip="不偷取指定的花朵"
+                tooltip="不偷取指定的花朵，不想影响好友种植花灵的话，建议把所有花灵主花设置上，排除掉"
                 v-if="config.plant.friendSteal.stealMode === 'exclude'"
               >
                 <CustomSelect
@@ -1624,12 +1702,11 @@
                 name="activity.fishFun.speed"
                 tooltip="选择游戏倍速，倍速越高单次移动消耗体力越多"
               >
-                <Select v-model:value="config.activity.fishFun.speed" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">1倍速</Select.Option>
-                  <Select.Option :value="4">4倍速</Select.Option>
-                  <Select.Option :value="8">8倍速</Select.Option>
-                  <Select.Option :value="16">16倍速</Select.Option>
-                </Select>
+                <CustomSelect
+                  v-model:value="config.activity.fishFun.speed"
+                  :options="fishFunSpeedOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
               <CustomFormItem label="显示结果" name="activity.fishFun.showResult">
                 <Switch v-model:checked="config.activity.fishFun.showResult" />
@@ -1656,13 +1733,11 @@
                 name="activity.actElim.speed"
                 tooltip="选择游戏倍速，倍速越高单次移动消耗体力越多"
               >
-                <Select v-model:value="config.activity.actElim.speed" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">1倍速</Select.Option>
-                  <Select.Option :value="5">5倍速</Select.Option>
-                  <Select.Option :value="10">10倍速</Select.Option>
-                  <Select.Option :value="25">25倍速</Select.Option>
-                  <Select.Option :value="100">100倍速</Select.Option>
-                </Select>
+                <CustomSelect
+                  v-model:value="config.activity.actElim.speed"
+                  :options="actElimSpeedOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
             </template>
 
@@ -1750,13 +1825,11 @@
                 name="activity.actDessert.speed"
                 tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要解锁足够积分才能使用高倍速"
               >
-                <Select v-model:value="config.activity.actDessert.speed" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">普通</Select.Option>
-                  <Select.Option :value="2">快速</Select.Option>
-                  <Select.Option :value="3">高速</Select.Option>
-                  <Select.Option :value="4">极速</Select.Option>
-                  <Select.Option :value="5">神速</Select.Option>
-                </Select>
+                <CustomSelect
+                  v-model:value="config.activity.actDessert.speed"
+                  :options="actDessertSpeedOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
             </template>
 
@@ -1777,14 +1850,11 @@
                 name="activity.actMerge2.speed"
                 tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要消耗足够体力才能使用高倍速"
               >
-                <Select v-model:value="config.activity.actMerge2.speed" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">1x 普通</Select.Option>
-                  <Select.Option :value="2">2x 快速</Select.Option>
-                  <Select.Option :value="4">4x 高速</Select.Option>
-                  <Select.Option :value="8">8x 极速</Select.Option>
-                  <Select.Option :value="16">16x 神速</Select.Option>
-                  <Select.Option :value="32">32x 超速</Select.Option>
-                </Select>
+                <CustomSelect
+                  v-model:value="config.activity.actMerge2.speed"
+                  :options="actMerge2SpeedOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
             </template>
 
@@ -1819,13 +1889,11 @@
                 name="activity.actSpool.speed"
                 tooltip="选择游戏倍速，倍速越高单次消耗体力越多；需要消耗足够体力才能使用高倍速"
               >
-                <Select v-model:value="config.activity.actSpool.speed" class="w-42! sm:w-48!">
-                  <Select.Option :value="1">普通</Select.Option>
-                  <Select.Option :value="2">快速</Select.Option>
-                  <Select.Option :value="3">高速</Select.Option>
-                  <Select.Option :value="4">极速</Select.Option>
-                  <Select.Option :value="5">神速</Select.Option>
-                </Select>
+                <CustomSelect
+                  v-model:value="config.activity.actSpool.speed"
+                  :options="actSpoolSpeedOptions"
+                  class="w-42! sm:w-48!"
+                />
               </CustomFormItem>
             </template>
 
@@ -1913,7 +1981,12 @@ import CustomSelect from '../components/CustomSelect.vue'
 import CustomInputNumber from '../components/CustomInputNumber.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
 import {
+  actDessertSpeedOptions,
+  actElimSpeedOptions,
+  actMerge2SpeedOptions,
+  actSpoolSpeedOptions,
   elfOptions,
+  fishFunSpeedOptions,
   flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
@@ -1922,6 +1995,7 @@ import {
   tabs,
 } from './game-config/options'
 import { deepMerge } from './game-config/utils'
+import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
 import type { GameConfig } from './game-config/types'
 
 // 路由相关
@@ -1947,6 +2021,110 @@ const formRules = {
 }
 
 const config = ref<GameConfig>(createDefaultGameConfig())
+normalizeGameConfigSelects(config.value)
+
+const MAX_FREE_STYLE_TEMPLATES = 5
+const freeStyleLandIds = Array.from({ length: 64 }, (_, index) => String(1001 + index))
+const selectedFreeStyleFlowerId = ref<string | number>('23001')
+const selectedFreeStyleFlowerOptions = computed(() =>
+  getFlowerPickerOptions(selectedFreeStyleFlowerId.value ? [selectedFreeStyleFlowerId.value] : []),
+)
+const flowerNameMap = computed(() => {
+  const map = new Map<string, string>()
+  getFlowerPickerOptions().forEach((item) => {
+    map.set(String(item.value), item.label)
+  })
+  return map
+})
+
+type FreeStylePlan = GameConfig['plant']['flower']['freeStyleList'][number]
+
+const freeStyleTemplateOptions = computed(() => {
+  return config.value.plant.flower.freeStyleList.map((item) => ({
+    value: item.name,
+    label: item.name,
+  }))
+})
+
+const activeFreeStylePlan = computed<FreeStylePlan | undefined>(() => {
+  const flower = config.value.plant.flower
+  return flower.freeStyleList.find((item) => item.name === flower.freeStyleTemplate)
+})
+
+const freeStyleLandViews = computed(() => {
+  const lands = activeFreeStylePlan.value?.lands ?? {}
+  const nameMap = flowerNameMap.value
+  return freeStyleLandIds.map((id, index) => {
+    const flowerId = lands[id]
+    return {
+      id,
+      displayIndex: String(index + 1).padStart(2, '0'),
+      flowerId,
+      flowerName: flowerId ? nameMap.get(String(flowerId)) || String(flowerId) : '未设置',
+    }
+  })
+})
+
+function getUniqueFreeStyleName(baseName: string) {
+  const usedNames = new Set(config.value.plant.flower.freeStyleList.map((item) => item.name))
+  if (!usedNames.has(baseName)) return baseName
+
+  for (let index = 2; index <= MAX_FREE_STYLE_TEMPLATES + 1; index++) {
+    const name = `${baseName}${index}`
+    if (!usedNames.has(name)) return name
+  }
+
+  return `${baseName}${Date.now()}`
+}
+
+function addFreeStyleTemplate() {
+  const flower = config.value.plant.flower
+  normalizeGameConfigSelects(config.value)
+  if (flower.freeStyleList.length >= MAX_FREE_STYLE_TEMPLATES) {
+    message.warning(`最多只能保存${MAX_FREE_STYLE_TEMPLATES}套方案`)
+    return
+  }
+
+  const name = getUniqueFreeStyleName('我的方案')
+  flower.freeStyleList.push({ name, lands: {} })
+  flower.freeStyleTemplate = name
+}
+
+function removeFreeStyleTemplate() {
+  const flower = config.value.plant.flower
+  if (flower.freeStyleList.length <= 1) return
+
+  const removeIndex = flower.freeStyleList.findIndex((item) => item.name === flower.freeStyleTemplate)
+  const nextIndex = removeIndex > 0 ? removeIndex - 1 : 0
+  flower.freeStyleList.splice(Math.max(0, removeIndex), 1)
+  flower.freeStyleTemplate = flower.freeStyleList[nextIndex]?.name || flower.freeStyleList[0].name
+}
+
+function renameFreeStyleTemplate(value: string) {
+  const plan = activeFreeStylePlan.value
+  if (!plan) return
+
+  const nextName = value.trim()
+  if (!nextName) return
+
+  const duplicate = config.value.plant.flower.freeStyleList.some(
+    (item) => item !== plan && item.name === nextName,
+  )
+  if (duplicate) {
+    message.warning('方案名称不能重复')
+    return
+  }
+
+  plan.name = nextName
+  config.value.plant.flower.freeStyleTemplate = nextName
+}
+
+function setFreeStyleLand(landId: string) {
+  const plan = activeFreeStylePlan.value
+  if (!plan || !selectedFreeStyleFlowerId.value) return
+  const flowerId = Number(selectedFreeStyleFlowerId.value)
+  plan.lands[landId] = Number.isFinite(flowerId) ? flowerId : selectedFreeStyleFlowerId.value
+}
 
 const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
 const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
@@ -1995,6 +2173,7 @@ const fetchConfig = async () => {
       if (response.data && !response.data['未找到账号']) {
         // 使用深度合并确保所有默认字段都存在
         const mergedConfig = deepMerge(config.value, response.data.data)
+        normalizeGameConfigSelects(mergedConfig)
         config.value = mergedConfig
         console.log('✅ 配置加载成功')
       } else {
@@ -2048,6 +2227,8 @@ const saveConfig = async () => {
       accountId: accountId.value,
       configSize: JSON.stringify(config.value).length,
     })
+
+    normalizeGameConfigSelects(config.value)
 
     const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
 
@@ -2153,6 +2334,7 @@ const importConfigFromSelectedAccount = async () => {
     }
 
     config.value = payload
+    normalizeGameConfigSelects(config.value)
     importConfigModalVisible.value = false
     showConfigNoticeModal(
       '配置导入成功',
@@ -2208,6 +2390,78 @@ onMounted(() => {
 
 .import-config-warning {
   color: #cf1322;
+}
+
+.free-style-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.free-style-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.free-style-name-input {
+  width: 180px;
+}
+
+.free-style-flower-select {
+  width: min(100%, 360px);
+}
+
+.free-style-hint {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.free-style-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(72px, 1fr));
+  gap: 8px;
+  max-width: 760px;
+}
+
+.free-style-land {
+  min-height: 58px;
+  padding: 6px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #595959;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.free-style-land:hover {
+  border-color: #6b8f7b;
+  color: #6b8f7b;
+}
+
+.free-style-land.active {
+  border-color: #6b8f7b;
+  background: #f0f7f3;
+  color: #254636;
+}
+
+.land-index {
+  display: block;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.land-flower {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .game-config-page {
@@ -2480,6 +2734,26 @@ onMounted(() => {
 
   :deep(.ant-form-item) {
     margin-bottom: 12px;
+  }
+
+  .free-style-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .free-style-name-input,
+  .free-style-flower-select {
+    width: 100%;
+  }
+
+  .free-style-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .free-style-land {
+    min-height: 56px;
   }
 }
 </style>

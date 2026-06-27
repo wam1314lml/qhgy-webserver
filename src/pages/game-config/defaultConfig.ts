@@ -84,6 +84,14 @@ export const createDefaultGameConfig = (): GameConfig =>
           公会竞赛: 3,
         },
         plantingMode: 'count',
+        lowStockThreshold: 500,
+        freeStyleTemplate: '我的方案A',
+        freeStyleList: [
+          {
+            name: '我的方案A',
+            lands: {},
+          },
+        ],
         minFlowerLevel: 0,
         qualities: [1, 2, 3, 4, 5],
         flowerCount: 4,

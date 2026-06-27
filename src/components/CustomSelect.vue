@@ -11,7 +11,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed, useAttrs, watch } from 'vue'
+import {
+  isSameSelectValue,
+  normalizeSelectValue,
+} from '../utils/selectDefaults'
 
 // 选项类型定义
 interface SelectOption {
@@ -96,16 +100,30 @@ const modelValue = computed({
 
       // 如果已经全选，则取消全选
       if (isAllSelected.value) {
-        emit('update:value', [])
+        const next = normalizeSelectValue([], props.options, true)
+        emit('update:value', next)
       } else {
         // 否则选择全部
         emit('update:value', [...allValues])
       }
-    } else {
-      emit('update:value', val)
+      return
     }
+
+    const next = normalizeSelectValue(val, props.options, isMultipleMode.value)
+    emit('update:value', next)
   },
 })
+
+watch(
+  [() => props.value, () => props.options, isMultipleMode],
+  () => {
+    const next = normalizeSelectValue(props.value, props.options, isMultipleMode.value)
+    if (!isSameSelectValue(props.value, next)) {
+      emit('update:value', next)
+    }
+  },
+  { immediate: true, deep: true },
+)
 </script>
 
 <style lang="scss">

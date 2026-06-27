@@ -50,16 +50,25 @@
 
     <!-- 任命三级代理 -->
     <div class="agent-card appoint-card">
-      <h2>任命三级代理</h2>
+      <div class="card-header-row">
+        <h2>任命三级代理</h2>
+        <span class="agent-quota" :class="{ 'is-full': isTertiaryAgentLimitReached }">
+          {{ tertiaryAgentQuotaLabel }}
+        </span>
+      </div>
+      <div v-if="isTertiaryAgentLimitReached" class="agent-limit-tip">
+        三级代理名额已满（{{ MAX_TERTIARY_AGENTS }} 个），无法继续任命。如需调整，请先卸任现有三级代理。
+      </div>
       <div class="appoint-form">
         <div class="form-row">
           <input
             v-model="searchKeyword"
             class="agent-input"
             placeholder="输入邮箱搜索用户（需全名邮箱）"
+            :disabled="isTertiaryAgentLimitReached"
             @input="onSearchInput"
           />
-          <button class="agent-btn primary" @click="doSearch">搜索</button>
+          <button class="agent-btn primary" :disabled="isTertiaryAgentLimitReached" @click="doSearch">搜索</button>
         </div>
 
         <!-- 搜索结果 -->
@@ -104,7 +113,11 @@
             <span class="rate-hint">最大可设 {{ myMaxRate - 1 }}%（您的比例 {{ myMaxRate }}%）</span>
           </div>
           <div class="appoint-actions">
-            <button class="agent-btn primary" :disabled="appointLoading" @click="doAppoint">
+            <button
+              class="agent-btn primary"
+              :disabled="appointLoading || isTertiaryAgentLimitReached"
+              @click="doAppoint"
+            >
               {{ appointLoading ? '任命中...' : '确认任命' }}
             </button>
             <button class="agent-btn secondary" @click="cancelAppoint">取消</button>
@@ -119,7 +132,7 @@
     <!-- 旗下三级代理列表 -->
     <div class="agent-card agents-list-card">
       <div class="card-header-row">
-        <h2>旗下三级代理（{{ myAgents.length }}）</h2>
+        <h2>旗下三级代理（{{ tertiaryAgentQuotaLabel }}）</h2>
         <button class="agent-btn secondary small" @click="loadMyAgents">刷新</button>
       </div>
 
@@ -425,7 +438,15 @@ async function loadMyCommission() {
 }
 
 // ── 旗下代理 ──
+const MAX_TERTIARY_AGENTS = 40
 const myAgents = ref<any[]>([])
+const tertiaryAgentCount = computed(() => myAgents.value.length)
+const tertiaryAgentQuotaLabel = computed(
+  () => `${tertiaryAgentCount.value}/${MAX_TERTIARY_AGENTS}`,
+)
+const isTertiaryAgentLimitReached = computed(
+  () => tertiaryAgentCount.value >= MAX_TERTIARY_AGENTS,
+)
 const agentsLoading = ref(false)
 const agentsError = ref('')
 async function loadMyAgents() {
@@ -484,6 +505,7 @@ const appointMsg = ref('')
 const appointSuccess = ref(false)
 
 function selectUser(user: any) {
+  if (isTertiaryAgentLimitReached.value) return
   selectedUser.value = user
   appointMsg.value = ''
 }
@@ -496,6 +518,11 @@ function cancelAppoint() {
 }
 async function doAppoint() {
   if (!selectedUser.value) return
+  if (isTertiaryAgentLimitReached.value) {
+    appointMsg.value = `三级代理名额已满（${MAX_TERTIARY_AGENTS} 个），无法继续任命`
+    appointSuccess.value = false
+    return
+  }
   const maxAllowed = myMaxRate.value - 1
   if (!appointRate.value || appointRate.value < 1 || appointRate.value > maxAllowed) {
     appointMsg.value = `抽成比例必须在 1%~${maxAllowed}% 之间`
@@ -849,6 +876,26 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   margin-top: 4px;
+}
+
+.agent-quota {
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+  white-space: nowrap;
+}
+.agent-quota.is-full {
+  color: #dc2626;
+}
+
+.agent-limit-tip {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 13px;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
 /* 按钮 */
