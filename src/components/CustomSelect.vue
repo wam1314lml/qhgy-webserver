@@ -4,7 +4,9 @@
     v-model:value="modelValue"
     :options="selectOptions"
     :filter-option="filterOption"
-    :class="className"
+    :class="resolvedClassName"
+    :dropdown-match-select-width="!wide"
+    :popup-class-name="wide ? 'custom-select-dropdown--wide' : undefined"
     class="custom-select"
     showArrow
   />
@@ -34,11 +36,18 @@ const props = withDefaults(
     options?: SelectOption[] // 选项列表
     showSelectAll?: boolean // 是否启用全选功能
     className?: string
+    wide?: boolean // 宽选项：占满容器并完整展示长文本
   }>(),
   {
     className: 'w-42! sm:w-48!',
+    wide: false,
   },
 )
+
+const resolvedClassName = computed(() => {
+  if (props.wide) return 'custom-select--wide w-full!'
+  return props.className
+})
 
 // 定义 emits
 const emit = defineEmits<{
@@ -127,11 +136,62 @@ watch(
 </script>
 
 <style lang="scss">
-/* 可以在这里添加自定义样式 */
 .custom-select {
   .ant-select-arrow {
     color: black;
     text-shadow: 0 0 10px #333;
+  }
+}
+
+.custom-select--wide {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  .ant-select-selector {
+    height: auto !important;
+    min-height: 32px;
+  }
+
+  &.ant-select-multiple .ant-select-selection-overflow {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  &.ant-select-multiple .ant-select-selection-overflow-item {
+    flex: none;
+    max-width: 100%;
+  }
+
+  .ant-select-selection-item {
+    max-width: 100%;
+    height: auto;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  .ant-select-selection-item-content {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  .ant-select-selection-search {
+    max-width: 100%;
+    margin-inline-start: 0;
+  }
+}
+</style>
+
+<style lang="scss">
+.custom-select-dropdown--wide {
+  min-width: min(100vw - 32px, 480px) !important;
+
+  .ant-select-item-option-content {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    word-break: break-all;
   }
 }
 </style>

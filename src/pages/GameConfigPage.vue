@@ -912,6 +912,7 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                class="form-item--stack-mobile"
                 label="指定花艺"
                 name="plant.artSell.specifiedArtsFull"
                 tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
@@ -920,9 +921,9 @@
                 <CustomSelect
                   v-model:value="config.plant.artSell.specifiedArtsFull"
                   mode="multiple"
+                  wide
                   placeholder="请选择花艺"
                   :options="getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)"
-                  style="width: 100%"
                 />
               </CustomFormItem>
               <CustomFormItem
@@ -2592,6 +2593,27 @@ onMounted(() => {
 
   :deep(.ant-form-item) {
     margin-bottom: 12px;
+  }
+
+  :deep(.ant-form-item-control),
+  :deep(.ant-form-item-control-input),
+  :deep(.ant-form-item-control-input-content) {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .form-item--stack-mobile :deep(.ant-form-item-row) {
+    flex-direction: column;
+  }
+
+  .form-item--stack-mobile :deep(.ant-form-item-label),
+  .form-item--stack-mobile :deep(.ant-form-item-control) {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .form-item--stack-mobile :deep(.ant-form-item-label) {
+    padding-bottom: 4px;
   }
 }
 </style>
