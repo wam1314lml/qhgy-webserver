@@ -146,7 +146,9 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       artSell: {
         autoSellArt: false,
+        artSellMode: 'vase',
         specifiedArts: [],
+        specifiedArtsFull: [],
         flowerArtPerRack: 12,
         autoUnlockStand: false,
         recvArtCreateRwd: false,
@@ -203,6 +205,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         flowers: [1, 2, 3, 4, 5],
         specificFlowerIds: [],
         maxFlowerLevel: 0,
+        lowStockThreshold: 1000,
       },
       build: {
         free: false,
@@ -224,6 +227,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         autoEnableModules: false,
         useSpeedUpTicketInTask: false,
         minTaskScore: 0,
+        minUpgradeTaskScore: 50,
         giveuplowscoretask: false,
         onlyUpgradeTask: false,
         excludeOthersUpgradeTask: true,
@@ -334,6 +338,10 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       actHoney: {
         enabled: false,
+      },
+      actCardCollect: {
+        enabledCardCollect: false,
+        enabledSmoke: false,
       },
     },
   }) as GameConfig

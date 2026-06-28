@@ -4,6 +4,7 @@ import {
   actElimSpeedOptions,
   actMerge2SpeedOptions,
   actSpoolSpeedOptions,
+  artSellModeOptions,
   buyModeOptions,
   elfOptions,
   fishFunSpeedOptions,
@@ -11,15 +12,18 @@ import {
   flowerCountOptions,
   flowerQualityOptions,
   getFlowerPickerOptions,
+  getSpecifiedArtsFullPickerOptions,
   plantingModeOptions,
   priceIndexOptions,
   putModeOptions,
   qualitySpecificModeOptions,
   stealModeOptions,
+  unionLandPlantModeOptions,
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
+const DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD = 1000
 const DEFAULT_FREE_STYLE_TEMPLATE = '我的方案A'
 const MAX_FREE_STYLE_TEMPLATES = 5
 const FIXED_FREE_STYLE_TEMPLATE_NAMES = [
@@ -34,6 +38,12 @@ function normalizeThreshold(value: unknown): number {
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return DEFAULT_LOW_STOCK_THRESHOLD
   return Math.min(999999, Math.max(1, Math.floor(numberValue)))
+}
+
+function normalizeUnionLandLowStockThreshold(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD
+  return Math.min(9999999, Math.max(1, Math.floor(numberValue)))
 }
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
@@ -84,9 +94,18 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     elfOptions,
   )
 
+  config.plant.artSell.artSellMode = ensureSingleSelectValue(
+    config.plant.artSell.artSellMode ||
+      (config.plant.artSell.specifiedArtsFull?.length ? 'full' : 'vase'),
+    artSellModeOptions,
+  )
   config.plant.artSell.specifiedArts = ensureMultiSelectValue(
     config.plant.artSell.specifiedArts,
     flowerArtOptions,
+  )
+  config.plant.artSell.specifiedArtsFull = ensureMultiSelectValue(
+    config.plant.artSell.specifiedArtsFull,
+    getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull),
   )
 
   const market = config.plant.market
@@ -117,7 +136,8 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
 
   const land = config.union.land
-  land.plantMode = ensureSingleSelectValue(land.plantMode, qualitySpecificModeOptions)
+  land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)
+  land.lowStockThreshold = normalizeUnionLandLowStockThreshold(land.lowStockThreshold)
   land.flowers = ensureMultiSelectValue(land.flowers, flowerQualityOptions)
   land.specificFlowerIds = ensureMultiSelectValue(
     land.specificFlowerIds,

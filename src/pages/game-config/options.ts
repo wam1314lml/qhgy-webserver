@@ -1,7 +1,9 @@
 export { flowerOptions } from './flowerOptions'
 export { flowerArtOptions } from './flowerArtOptions'
+export { specifiedArtsFullOptions } from './specifiedArtsFullOptions'
 export { elfOptions } from './elfOptions'
 export { getFlowerPickerOptions } from './optionPickerUtils'
+export { getSpecifiedArtsFullPickerOptions } from './optionPickerUtils'
 
 // 标签页配置
 export const tabs = ['基础', '种植', '订单', '公会', '活动']
@@ -51,10 +53,23 @@ export const buyModeOptions = [
   { value: 'quality', label: '指定品质' },
 ]
 
+// —— 花艺上架模式 ——
+export const artSellModeOptions = [
+  { value: 'vase', label: '指定花瓶' },
+  { value: 'full', label: '指定花艺' },
+]
+
 // —— 公会土地种植策略 / 分享/摸花模式（只有品质、指定花朵两种） ——
 export const qualitySpecificModeOptions = [
   { value: 'quality', label: '指定品质' },
   { value: 'specific', label: '指定花朵' },
+]
+
+// —— 公会土地种植策略（品质 / 指定花朵 / 库存模式） ——
+export const unionLandPlantModeOptions = [
+  { value: 'quality', label: '指定品质' },
+  { value: 'specific', label: '指定花朵' },
+  { value: 'lowStock', label: '库存模式' },
 ]
 
 // —— 鱼乐无穷倍速 ——

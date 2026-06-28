@@ -1,4 +1,5 @@
 import { flowerOptions } from './flowerOptions'
+import { specifiedArtsFullOptions } from './specifiedArtsFullOptions'
 
 export type PickerOption = { value: string; label: string }
 
@@ -29,4 +30,10 @@ export function getFlowerPickerOptions(
   selectedIds?: Array<string | number> | null,
 ): PickerOption[] {
   return getPickerOptions(flowerOptions, selectedIds)
+}
+
+export function getSpecifiedArtsFullPickerOptions(
+  selectedIds?: Array<string | number> | null,
+): PickerOption[] {
+  return getPickerOptions(specifiedArtsFullOptions, selectedIds)
 }

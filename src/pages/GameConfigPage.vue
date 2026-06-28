@@ -888,14 +888,40 @@
             </CustomFormItem>
             <template v-if="config.plant.artSell.autoSellArt">
               <CustomFormItem
-                label="指定花艺"
+                label="上架模式"
+                name="plant.artSell.artSellMode"
+              >
+                <Radio.Group v-model:value="config.plant.artSell.artSellMode">
+                  <Space direction="vertical">
+                    <Radio value="vase">指定花瓶</Radio>
+                    <Radio value="full">指定花艺</Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花瓶"
                 name="plant.artSell.specifiedArts"
-                tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                v-if="config.plant.artSell.artSellMode === 'vase'"
               >
                 <CustomSelect
                   v-model:value="config.plant.artSell.specifiedArts"
                   mode="multiple"
                   :options="flowerArtOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花艺"
+                name="plant.artSell.specifiedArtsFull"
+                tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                v-if="config.plant.artSell.artSellMode === 'full'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.artSell.specifiedArtsFull"
+                  mode="multiple"
+                  placeholder="请选择花艺"
+                  :options="getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -1253,12 +1279,13 @@
               <CustomFormItem
                 label="种植策略"
                 name="union.land.plantMode"
-                tooltip="两种模式均为低等级优先"
+                tooltip="三种模式均为低等级优先"
               >
                 <Radio.Group v-model:value="config.union.land.plantMode">
                   <Space direction="vertical">
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="specific">指定花朵</Radio>
+                    <Radio value="lowStock">库存模式</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -1290,9 +1317,23 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                label="最低库存"
+                name="union.land.lowStockThreshold"
+                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，请注意设置"
+                v-if="config.union.land.plantMode === 'lowStock'"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.land.lowStockThreshold"
+                  :min="1"
+                  :max="9999999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="最高等级限制"
                 name="union.land.maxFlowerLevel"
                 tooltip="花朵等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
+                v-if="config.union.land.plantMode === 'quality'"
               >
                 <CustomInputNumber
                   v-model:value="config.union.land.maxFlowerLevel"
@@ -1450,10 +1491,22 @@
             <CustomFormItem
               label="限制分数"
               name="union.fmlRace.minTaskScore"
-              tooltip="只接分数不低于此值的任务，0 表示不限制。如果任务是升级过的任务，此分数针对升级前的分数进行限制。"
+              tooltip="接分数不低于此值的普通任务，0 表示不限制。"
             >
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minTaskScore"
+                :min="0"
+                :max="60"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="限制分数-升级后"
+              name="union.fmlRace.minUpgradeTaskScore"
+              tooltip="接分数不低于此值的升级后任务，包括原金任务，0 表示不限制，比如：想接升级前为28分，升级后为56分，那么就需要填56分"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.minUpgradeTaskScore"
                 :min="0"
                 :max="60"
                 class="w-42! sm:w-48!"
@@ -1887,6 +1940,22 @@
             >
               <Switch v-model:checked="config.activity.actHoney.enabled" />
             </CustomFormItem>
+
+            <Divider orientation="left">卡册</Divider>
+            <CustomFormItem
+              label="领取奖励"
+              name="activity.actCardCollect.enabledCardCollect"
+              tooltip="会领取福利卡包，开启卡包"
+            >
+              <Switch v-model:checked="config.activity.actCardCollect.enabledCardCollect" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="凝烟成炱"
+              name="activity.actCardCollect.enabledSmoke"
+              tooltip="会领取灯芯草并且按顺序凝烟"
+            >
+              <Switch v-model:checked="config.activity.actCardCollect.enabledSmoke" />
+            </CustomFormItem>
           </div>
         </Form>
       </div>
@@ -1950,6 +2019,7 @@ import {
   flowerCountOptions,
   flowerQualityOptions,
   getFlowerPickerOptions,
+  getSpecifiedArtsFullPickerOptions,
   fmlRaceTaskTypes,
   tabs,
 } from './game-config/options'

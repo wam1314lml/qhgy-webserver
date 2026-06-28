@@ -122,7 +122,9 @@ export interface GameConfig {
     }
     artSell: {
       autoSellArt: boolean
+      artSellMode: 'vase' | 'full' | string
       specifiedArts: Array<number | string>
+      specifiedArtsFull: Array<number | string>
       flowerArtPerRack: number
       autoUnlockStand: boolean
       recvArtCreateRwd: boolean
@@ -177,10 +179,11 @@ export interface GameConfig {
     land: {
       harvest: boolean
       autoPlant: boolean
-      plantMode: 'quality' | 'specific' | string
+      plantMode: 'quality' | 'specific' | 'lowStock' | string
       flowers: number[]
       specificFlowerIds: Array<number | string>
       maxFlowerLevel: number
+      lowStockThreshold: number
     }
     build: {
       free: boolean
@@ -202,6 +205,7 @@ export interface GameConfig {
       autoEnableModules: boolean
       useSpeedUpTicketInTask: boolean
       minTaskScore: number
+      minUpgradeTaskScore: number
       giveuplowscoretask: boolean
       onlyUpgradeTask: boolean
       excludeOthersUpgradeTask: boolean
@@ -299,6 +303,10 @@ export interface GameConfig {
     }
     actHoney: {
       enabled: boolean
+    }
+    actCardCollect: {
+      enabledCardCollect: boolean
+      enabledSmoke: boolean
     }
   }
 }
