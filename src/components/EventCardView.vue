@@ -142,6 +142,8 @@
               :class="gridItemClass(item)"
               :title="item.tip"
             >
+              <!-- 左上角编号 -->
+              <span v-if="item.index != null" class="evt-grid-index">{{ item.index }}</span>
               <!-- 右上角角标 -->
               <span v-if="item.badge" class="evt-grid-badge" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
               <div class="evt-grid-title">{{ item.title }}</div>
@@ -161,7 +163,7 @@
               </div>
               <!-- 接取人 / 倒计时 / 进度 -->
               <div v-if="item.takenBy" class="evt-grid-taken">👤 {{ item.takenBy }}</div>
-              <div v-else-if="item.countdown" class="evt-grid-countdown">⏱ {{ item.countdown }}</div>
+              <div v-else-if="item.countdown" class="evt-grid-countdown" :class="{ 'evt-grid-countdown--locked': item.status === 'locked' }">⏳ {{ item.countdown }}</div>
               <div v-if="item.progress" class="evt-grid-progress">
                 <div class="evt-grid-progress-bar">
                   <div class="evt-grid-progress-fill" :style="{ width: progressPct(item.progress) + '%' }"></div>
@@ -311,6 +313,7 @@ interface LayoutAlert { message: string; type?: 'info' | 'success' | 'warning' |
 /** 格子网格单元 */
 interface LayoutGridItem {
   id:          string | number
+  index?:      number
   title:       string
   subtitle?:   string
   badge?:      string     // 右上角角标文字
@@ -745,8 +748,9 @@ const formatTime = (ts: number) => {
 .evt-grid-item--pending   { border-color:#d1d5db; background:#f9fafb; }
 .evt-grid-item--locked    { border-color:#e5e7eb; background:#f3f4f6; opacity:.65; }
 
+.evt-grid-index { position:absolute; top:3px; left:4px; font-size:9px; font-weight:700; color:#6b7280; background:#e5e7eb; padding:1px 5px; border-radius:8px; line-height:1.4; }
 .evt-grid-badge { position:absolute; top:3px; right:4px; font-size:9px; font-weight:700; padding:1px 4px; border-radius:8px; }
-.evt-grid-title    { font-weight:600; color:#1f2937; line-height:1.3; padding-right:24px; }
+.evt-grid-title    { font-weight:600; color:#1f2937; line-height:1.3; padding-right:24px; padding-left:20px; }
 .evt-grid-subtitle { color:#6b7280; font-size:10px; }
 .evt-grid-score    { display:flex; align-items:center; gap:3px; font-size:11px; }
 .score-before { color:#9ca3af; text-decoration:line-through; }
@@ -755,6 +759,7 @@ const formatTime = (ts: number) => {
 .evt-grid-tags { display:flex; gap:2px; flex-wrap:wrap; margin-top:1px; }
 .evt-grid-taken    { color:#d97706; font-size:10px; font-weight:600; }
 .evt-grid-countdown { color:#9ca3af; font-size:10px; }
+.evt-grid-countdown--locked { color:#f59e0b; font-weight:600; }
 .evt-grid-progress { display:flex; align-items:center; gap:4px; margin-top:2px; }
 .evt-grid-progress-bar { flex:1; height:4px; background:#e5e7eb; border-radius:2px; overflow:hidden; }
 .evt-grid-progress-fill { height:100%; background:#10b981; }
