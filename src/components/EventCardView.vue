@@ -161,9 +161,10 @@
               <div v-if="item.tags?.length" class="evt-grid-tags">
                 <span v-for="(t, ti) in item.tags" :key="ti" class="evt-tag evt-tag--xs" :style="statStyle(t.color)">{{ t.label }}</span>
               </div>
-              <!-- 接取人 / 倒计时 / 进度 -->
-              <div v-if="item.takenBy" class="evt-grid-taken">👤 {{ item.takenBy }}</div>
-              <div v-else-if="item.countdown" class="evt-grid-countdown" :class="{ 'evt-grid-countdown--locked': item.status === 'locked' }">⏳ {{ item.countdown }}</div>
+              <!-- 接取人 / 升级人 / 倒计时 / 进度 -->
+              <div v-if="item.takenBy" class="evt-grid-taken">👤接: {{ item.takenBy }}</div>
+              <div v-if="item.upgradeBy" class="evt-grid-upgrade-by">⬆️升: {{ item.upgradeBy }}</div>
+              <div v-if="!item.takenBy && item.countdown" class="evt-grid-countdown" :class="{ 'evt-grid-countdown--locked': item.status === 'locked' }">⏳ {{ item.countdown }}</div>
               <div v-if="item.progress" class="evt-grid-progress">
                 <div class="evt-grid-progress-bar">
                   <div class="evt-grid-progress-fill" :style="{ width: progressPct(item.progress) + '%' }"></div>
@@ -323,6 +324,7 @@ interface LayoutGridItem {
   isUpgrade?:  boolean
   status?:     'available' | 'taken' | 'pending' | 'locked'
   takenBy?:    string
+  upgradeBy?:  string
   countdown?:  string
   tip?:        string
   tags?:       { label: string; color?: Color }[]
@@ -757,8 +759,9 @@ const formatTime = (ts: number) => {
 .score-arrow  { color:#f59e0b; }
 .score-after  { color:#10b981; font-weight:600; }
 .evt-grid-tags { display:flex; gap:2px; flex-wrap:wrap; margin-top:1px; }
-.evt-grid-taken    { color:#d97706; font-size:10px; font-weight:600; }
-.evt-grid-countdown { color:#9ca3af; font-size:10px; }
+.evt-grid-taken      { color:#d97706; font-size:10px; font-weight:600; }
+.evt-grid-upgrade-by { color:#8b5cf6; font-size:10px; font-weight:600; }
+.evt-grid-countdown  { color:#9ca3af; font-size:10px; }
 .evt-grid-countdown--locked { color:#f59e0b; font-weight:600; }
 .evt-grid-progress { display:flex; align-items:center; gap:4px; margin-top:2px; }
 .evt-grid-progress-bar { flex:1; height:4px; background:#e5e7eb; border-radius:2px; overflow:hidden; }
