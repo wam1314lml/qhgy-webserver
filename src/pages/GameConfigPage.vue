@@ -1496,9 +1496,8 @@
             >
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minTaskScore"
-                :min="0"
+                :min="minTaskScoreMin"
                 :max="60"
-                :disabled="config.union.fmlRace.upgradeTask"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -2027,7 +2026,7 @@ import {
 } from './game-config/options'
 import { deepMerge } from './game-config/utils'
 import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
-import { syncMinTaskScoreForAutoUpgrade } from './game-config/fmlRaceUtils'
+import { syncMinTaskScoreForAutoUpgrade, getMinTaskScoreFloor } from './game-config/fmlRaceUtils'
 import type { GameConfig } from './game-config/types'
 
 // 路由相关
@@ -2056,17 +2055,21 @@ const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
 
 watch(
-  () => [
-    config.value.union.fmlRace.upgradeTask,
-    config.value.union.fmlRace.minUpgradeTaskScore,
-  ] as const,
-  ([upgradeTask, minUpgradeTaskScore], [prevUpgradeTask, prevMinUpgradeTaskScore]) => {
-    if (!upgradeTask) return
-    if (upgradeTask !== prevUpgradeTask || minUpgradeTaskScore !== prevMinUpgradeTaskScore) {
-      syncMinTaskScoreForAutoUpgrade(config.value.union.fmlRace)
-    }
+  () => ({
+    upgradeTask: config.value.union.fmlRace.upgradeTask,
+    minUpgradeTaskScore: config.value.union.fmlRace.minUpgradeTaskScore,
+    minTaskScore: config.value.union.fmlRace.minTaskScore,
+  }),
+  () => {
+    syncMinTaskScoreForAutoUpgrade(config.value.union.fmlRace)
   },
 )
+
+const minTaskScoreMin = computed(() => {
+  const fmlRace = config.value.union.fmlRace
+  if (!fmlRace.upgradeTask) return 0
+  return getMinTaskScoreFloor(fmlRace.minUpgradeTaskScore)
+})
 
 const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
 const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
