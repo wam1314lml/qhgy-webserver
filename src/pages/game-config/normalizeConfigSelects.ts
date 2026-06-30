@@ -21,6 +21,7 @@ import {
   unionLandPlantModeOptions,
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
+import { syncMinTaskScoreForAutoUpgrade } from './fmlRaceUtils'
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
 const DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD = 1000
@@ -184,4 +185,6 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.activity.actSpool.speed,
     actSpoolSpeedOptions,
   )
+
+  syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
 }

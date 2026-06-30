@@ -1490,7 +1490,7 @@
               <Switch v-model:checked="config.union.fmlRace.useSpeedUpTicketInTask" />
             </CustomFormItem>
             <CustomFormItem
-              label="限制分数"
+              label="限制分数-未升级"
               name="union.fmlRace.minTaskScore"
               tooltip="接分数不低于此值的普通任务，0 表示不限制。"
             >
@@ -1498,13 +1498,14 @@
                 v-model:value="config.union.fmlRace.minTaskScore"
                 :min="0"
                 :max="60"
+                :disabled="config.union.fmlRace.upgradeTask"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
             <CustomFormItem
               label="限制分数-升级后"
               name="union.fmlRace.minUpgradeTaskScore"
-              tooltip="接分数不低于此值的升级后任务，包括原金任务，0 表示不限制，比如：想接升级前为28分，升级后为56分，那么就需要填56分"
+              tooltip="接分数不低于此值的玩家升级后任务/原金任务（双倍分数），0 表示不限制，举例：「限制分数-未升级」设置20，「限制分数-升级后」设置50，则接20分以上普通任务，50分以上升级后任务。注意！若要开启【放弃低分任务】+【自动升级任务】，需要设置「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值。否则会出现元宝升级后把这个任务放弃的情况"
             >
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minUpgradeTaskScore"
@@ -1516,7 +1517,7 @@
             <CustomFormItem
               label="放弃低分任务"
               name="union.fmlRace.giveuplowscoretask"
-              tooltip="开启后，若设置了限制27分，任务列表里有小于27分的任务，则会放弃，不开启则不放弃直接做完"
+              tooltip="根据「限制分数-未升级」「限制分数-升级后」的设置来判断，例：未升级设置了25，升级后设置了50，则任务列表里有小于等于25的未升级会放弃，有小于等于50的已升级会放弃。开启此项又开启了【自动升级任务】的话，必须要按照「限制分数-未升级」乘以2大于等于「限制分数-升级后」这个规则来设置，否则会出现元宝升级后把这个任务放弃的情况。"
             >
               <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
@@ -1558,7 +1559,7 @@
             <CustomFormItem
               label="自动升级任务"
               name="union.fmlRace.upgradeTask"
-              tooltip="领取任务后花费元宝自动升级"
+              tooltip="领取任务后花费元宝自动升级，开启此项又开启了【放弃低分任务】的话，必须要按照「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值，这个规则来设置，否则会出现元宝升级后把这个任务放弃的情况。"
             >
               <Switch v-model:checked="config.union.fmlRace.upgradeTask" />
             </CustomFormItem>
@@ -1990,7 +1991,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, h, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Form,
@@ -2026,6 +2027,7 @@ import {
 } from './game-config/options'
 import { deepMerge } from './game-config/utils'
 import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
+import { syncMinTaskScoreForAutoUpgrade } from './game-config/fmlRaceUtils'
 import type { GameConfig } from './game-config/types'
 
 // 路由相关
@@ -2052,6 +2054,19 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+watch(
+  () => [
+    config.value.union.fmlRace.upgradeTask,
+    config.value.union.fmlRace.minUpgradeTaskScore,
+  ] as const,
+  ([upgradeTask, minUpgradeTaskScore], [prevUpgradeTask, prevMinUpgradeTaskScore]) => {
+    if (!upgradeTask) return
+    if (upgradeTask !== prevUpgradeTask || minUpgradeTaskScore !== prevMinUpgradeTaskScore) {
+      syncMinTaskScoreForAutoUpgrade(config.value.union.fmlRace)
+    }
+  },
+)
 
 const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
 const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
