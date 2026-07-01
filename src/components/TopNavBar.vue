@@ -50,7 +50,7 @@
           >
             代理后台
           </a-menu-item>
-          <a-menu-item v-if="user?.role === 'admin'" key="admin" class="nav-tab">
+          <a-menu-item v-if="user?.role === 'admin' || user?.role === 'subadmin'" key="admin" class="nav-tab">
             管理面板
           </a-menu-item>
         </a-menu>
