@@ -61,12 +61,10 @@
                 size="large"
                 style="flex:1"
               />
-              <span v-else style="flex:1;font-size:13px;color:#6b7280;line-height:32px;">
-                仅显示 [[EVT]] 事件数据
-              </span>
               <a-button
                 :type="viewMode === 'evt' ? 'primary' : 'default'"
                 size="small"
+                :style="viewMode === 'evt' ? { marginLeft: 'auto' } : {}"
                 @click="viewMode = viewMode === 'log' ? 'evt' : 'log'"
               >
                 {{ viewMode === 'evt' ? '📋 普通日志' : '🗂 事件卡片' }}
@@ -91,6 +89,7 @@
               :raw-logs="rawEvtContent"
               :account-id="props.accountId"
               :filter-category="selectedCategory"
+              :history-reset-key="evtHistoryResetKey"
               @clear="onEvtClear"
               @categories-change="evtCategories = $event"
             />
@@ -155,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import axios from '../utils/axios'
 import { message } from 'ant-design-vue'
 import { useSwipeToClose } from '../hooks/useSwipeToClose'
@@ -164,6 +163,13 @@ import { sanitizeLog } from '../utils/sanitize'
 import { filterLogLines, shouldHideLogLine } from '../utils/logFilter'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import EventCardView from './EventCardView.vue'
+import {
+  clearEvtLines,
+  loadEvtLines,
+  runDailyAutoClearIfNeeded,
+  saveEvtLines,
+  scheduleMidnightEvtClear,
+} from '../utils/evtHistoryStorage'
 
 // 创建 ansi-to-html 转换器实例
 const ansiToHtml = new AnsiToHtml({
@@ -220,22 +226,20 @@ const swipeRef = useSwipeToClose({
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
 
-// ── EVT 行持久化缓存（按账号存 localStorage，弹窗关了再开仍然有数据） ────────
-const EVT_LINES_CACHE_KEY = (accId?: number) => `evt_raw_lines_acc${accId ?? 0}`
 const MAX_EVT_LINES = 2000  // 最多保留 2000 条 EVT 行
 
-function loadEvtLines(accId?: number): string {
-  try { return localStorage.getItem(EVT_LINES_CACHE_KEY(accId)) ?? '' } catch { return '' }
+const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
+const evtHistoryResetKey = ref(0)
+
+function resetEvtHistoryState() {
+  rawEvtContent.value = ''
+  evtHistoryResetKey.value++
 }
-function saveEvtLines(lines: string, accId?: number) {
-  try {
-    // 只保留最新的 MAX_EVT_LINES 行
-    const trimmed = lines.split('\n').filter(Boolean).slice(-MAX_EVT_LINES).join('\n')
-    localStorage.setItem(EVT_LINES_CACHE_KEY(accId), trimmed)
-  } catch {}
-}
-function clearEvtLines(accId?: number) {
-  try { localStorage.removeItem(EVT_LINES_CACHE_KEY(accId)) } catch {}
+
+function applyDailyAutoClearIfNeeded() {
+  if (runDailyAutoClearIfNeeded()) {
+    resetEvtHistoryState()
+  }
 }
 
 /** EventCardView 点击"清除历史"时同步清掉原始 EVT 行缓存，防止旧模块名卡片重新出现 */
@@ -244,7 +248,7 @@ function onEvtClear() {
   rawEvtContent.value = ''
 }
 
-const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
+let cancelMidnightClear: (() => void) | undefined
 const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
 const evtCategories = ref<LogCategory[]>([{ name: '全部', count: 0, color: '#6b7280' }])
@@ -630,6 +634,7 @@ watch(
 
     // 重置搜索状态
     if (isOpen && accountId) {
+      applyDailyAutoClearIfNeeded()
       selectedCategory.value = '全部'
       searchTerm.value = ''
       viewMode.value = 'evt'
@@ -665,10 +670,16 @@ watch([computedLogData, autoScrollToBottom], ([, autoScrollEnabled]) => {
   }
 })
 
+onMounted(() => {
+  applyDailyAutoClearIfNeeded()
+  cancelMidnightClear = scheduleMidnightEvtClear(resetEvtHistoryState)
+})
+
 onUnmounted(() => {
   if (refreshInterval.value) {
     clearInterval(refreshInterval.value)
   }
+  cancelMidnightClear?.()
 })
 </script>
 

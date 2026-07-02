@@ -404,7 +404,12 @@ interface ModuleCategory {
   color: string
 }
 
-const props = defineProps<{ rawLogs: string; accountId?: number; filterCategory?: string }>()
+const props = defineProps<{
+  rawLogs: string
+  accountId?: number
+  filterCategory?: string
+  historyResetKey?: number
+}>()
 const emit = defineEmits<{
   (e: 'clear'): void
   (e: 'categories-change', categories: ModuleCategory[]): void
@@ -545,6 +550,15 @@ watch(
   () => props.accountId,
   (accId) => {
     cachedModuleMap.value = loadCache(accId)
+  }
+)
+
+// 每日 0 点自动清除历史时，同步重置内存中的模块缓存
+watch(
+  () => props.historyResetKey,
+  (key) => {
+    if (!key) return
+    cachedModuleMap.value = new Map()
   }
 )
 
