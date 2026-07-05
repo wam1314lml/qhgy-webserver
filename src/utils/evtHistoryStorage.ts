@@ -1,5 +1,8 @@
 /** EVT 事件历史 localStorage 工具（原始行 + 模块卡片缓存） */
 
+/** 普通日志与 EVT 事件历史统一保留条数上限 */
+export const MAX_LOG_HISTORY = 2500
+
 export const EVT_LINES_CACHE_KEY = (accId?: number) => `evt_raw_lines_acc${accId ?? 0}`
 export const EVT_CACHE_KEY = (accId?: number, version = 2) =>
   `evt_cache_v${version}_acc${accId ?? 0}`
@@ -50,9 +53,13 @@ export function loadEvtLines(accId?: number): string {
   }
 }
 
-export function saveEvtLines(lines: string, accId?: number, maxLines = 2000) {
+export function trimLogLines(content: string, maxLines = MAX_LOG_HISTORY): string {
+  return content.split('\n').filter(Boolean).slice(-maxLines).join('\n')
+}
+
+export function saveEvtLines(lines: string, accId?: number, maxLines = MAX_LOG_HISTORY) {
   try {
-    const trimmed = lines.split('\n').filter(Boolean).slice(-maxLines).join('\n')
+    const trimmed = trimLogLines(lines, maxLines)
     localStorage.setItem(EVT_LINES_CACHE_KEY(accId), trimmed)
   } catch {}
 }

@@ -9,7 +9,7 @@
     <div v-else class="evt-cards">
       <!-- 顶部工具栏：清除缓存 -->
       <div class="evt-toolbar">
-        <span class="evt-toolbar-info">已缓存 {{ cards.length }} 个模块事件（历史保留，即使日志刷新也不丢失）</span>
+        <span class="evt-toolbar-info">已缓存 {{ totalEventCount }} 条模块事件（最多保留 {{ MAX_LOG_HISTORY }} 条，历史保留，即使日志刷新也不丢失）</span>
         <button class="evt-clear-btn" @click="clearCache" title="清除所有已缓存的 EVT 事件记录">🗑 清除历史</button>
       </div>
       <div
@@ -282,6 +282,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { MAX_LOG_HISTORY } from '../utils/evtHistoryStorage'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
 
@@ -433,20 +434,45 @@ function loadCache(accId?: number): Map<string, ModuleCache> {
     const raw = localStorage.getItem(cacheKey(accId))
     if (!raw) return new Map()
     const obj: Record<string, ModuleCache> = JSON.parse(raw)
-    return new Map(Object.entries(obj))
+    const map = new Map(Object.entries(obj))
+    trimModuleMapEvents(map, MAX_LOG_HISTORY)
+    return map
   } catch {
     return new Map()
   }
 }
 
-/** 写入 localStorage，每 module 保留最新 100 条 event */
+/** 全局保留最新 maxEvents 条非 silent 事件（跨模块合计） */
+function trimModuleMapEvents(moduleMap: Map<string, ModuleCache>, maxEvents: number) {
+  const all: { module: string; evt: EvtEvent }[] = []
+  moduleMap.forEach((mc, module) => {
+    for (const evt of mc.events) {
+      all.push({ module, evt })
+    }
+  })
+  if (all.length <= maxEvents) return
+
+  const keptIds = new Set(
+    all
+      .sort((a, b) => a.evt.ts - b.evt.ts)
+      .slice(-maxEvents)
+      .map((item) => item.evt.id),
+  )
+
+  moduleMap.forEach((mc) => {
+    mc.events = mc.events.filter((evt) => keptIds.has(evt.id))
+  })
+}
+
+/** 写入 localStorage，全局最多保留 MAX_LOG_HISTORY 条 event */
 function saveCache(moduleMap: Map<string, ModuleCache>, accId?: number) {
   try {
+    trimModuleMapEvents(moduleMap, MAX_LOG_HISTORY)
     const obj: Record<string, ModuleCache> = {}
     moduleMap.forEach((mc, mod) => {
       obj[mod] = {
         layout: mc.layout,
-        events: [...mc.events].sort((a, b) => a.ts - b.ts).slice(-100),
+        events: [...mc.events].sort((a, b) => a.ts - b.ts),
       }
     })
     localStorage.setItem(cacheKey(accId), JSON.stringify(obj))
@@ -605,6 +631,10 @@ const cards = computed<EvtCard[]>(() => {
   if (!filter || filter === '全部') return all
   return all.filter((card) => card.module === filter)
 })
+
+const totalEventCount = computed(() =>
+  buildCards(cachedModuleMap.value).reduce((sum, card) => sum + card.events.length, 0),
+)
 
 /** 清除当前账号的 EVT 缓存，同时通知父组件清掉原始行缓存 */
 function clearCache() {

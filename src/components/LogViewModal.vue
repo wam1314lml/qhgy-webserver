@@ -78,7 +78,7 @@
                 </a-checkbox>
               </div>
               <a-tag color="blue">
-                显示 {{ computedLogData.filteredLines.length }} 条日志 (最近2500条)
+                显示 {{ computedLogData.filteredLines.length }} 条日志 (最近{{ MAX_LOG_HISTORY }}条)
               </a-tag>
             </div>
           </div>
@@ -166,9 +166,11 @@ import EventCardView from './EventCardView.vue'
 import {
   clearEvtLines,
   loadEvtLines,
+  MAX_LOG_HISTORY,
   runDailyAutoClearIfNeeded,
   saveEvtLines,
   scheduleMidnightEvtClear,
+  trimLogLines,
 } from '../utils/evtHistoryStorage'
 
 // 创建 ansi-to-html 转换器实例
@@ -225,8 +227,6 @@ const swipeRef = useSwipeToClose({
 
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
-
-const MAX_EVT_LINES = 2000  // 最多保留 2000 条 EVT 行
 
 const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
 const evtHistoryResetKey = ref(0)
@@ -373,11 +373,11 @@ const computedLogData = computed(() => {
     return { categories: [], filteredLines: [], processedLines: [] }
   }
 
-  // 只取最近的2500条日志，并过滤 IP 封禁相关记录
+  // 只取最近的 MAX_LOG_HISTORY 条日志，并过滤 IP 封禁相关记录
   const allLines = logData.value.content
     .split('\n')
     .filter((line) => line.trim() && !shouldHideLogLine(line))
-  const lines = allLines.slice(-2500)
+  const lines = allLines.slice(-MAX_LOG_HISTORY)
   const categoryMap = new Map<string, number>()
   const colors = [
     '#3b82f6',
@@ -489,19 +489,21 @@ const fetchLogs = async (silent = false) => {
         // 提取含 [[EVT]] 的行（不过滤），追加到 rawEvtContent 并持久化
         const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
         if (evtLines.length > 0) {
-          rawEvtContent.value = rawEvtContent.value
-            ? rawEvtContent.value + '\n' + evtLines.join('\n')
-            : evtLines.join('\n')
+          rawEvtContent.value = trimLogLines(
+            rawEvtContent.value
+              ? rawEvtContent.value + '\n' + evtLines.join('\n')
+              : evtLines.join('\n'),
+          )
           saveEvtLines(rawEvtContent.value, props.accountId)
         }
 
         if (wasFirstLoad) {
           // 首次加载，直接设置日志内容
-          logData.value = { content: newLogs }
+          logData.value = { content: trimLogLines(newLogs) }
         } else if (newLogs) {
           // 增量更新，追加新日志
           const currentContent = logData.value?.content || ''
-          logData.value = { content: currentContent + '\n' + newLogs }
+          logData.value = { content: trimLogLines(currentContent + '\n' + newLogs) }
         }
 
         // 如果开启自动滚动，滚动到底部
@@ -647,7 +649,7 @@ watch(
         _lastWatchedAccountId = accountId
       }
       // 从 localStorage 恢复该账号的 EVT 行（弹窗关了再开立即有数据）
-      rawEvtContent.value = loadEvtLines(accountId)
+      rawEvtContent.value = trimLogLines(loadEvtLines(accountId))
 
       // 立即获取一次日志
       fetchLogs()
