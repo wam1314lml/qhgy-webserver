@@ -224,7 +224,7 @@
             <CustomFormItem
               label="雇佣券上限"
               name="basic.pearl.maxHireTicketUsage"
-              tooltip="当日最大可以使用的雇佣券数量, 为0则不限制。"
+              tooltip="当日最大可以使用的雇佣券数量, 比如设置10张，则今天用了10张后就不会再用了。为0则不限制，看不懂的请无脑填0。"
               v-if="config.basic.pearl.autoHire"
             >
               <CustomInputNumber
