@@ -228,12 +228,14 @@ const swipeRef = useSwipeToClose({
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
 
-const rawEvtContent = ref<string>('')   // 保留含 [[EVT]] 行的原始内容，供 EventCardView 解析
+const rawEvtContent = ref<string>('')   // EVT 行原始内容，供 EventCardView 解析
 const evtHistoryResetKey = ref(0)
+const evtLastLine = ref<number>(0)      // EVT 日志独立的 lastLine 指针
 
 function resetEvtHistoryState() {
   rawEvtContent.value = ''
   evtHistoryResetKey.value++
+  evtLastLine.value = 0
 }
 
 function applyDailyAutoClearIfNeeded() {
@@ -462,6 +464,7 @@ const sidebarCategories = computed(() =>
   viewMode.value === 'evt' ? evtCategories.value : computedLogData.value.categories,
 )
 
+// 获取普通日志（不含 EVT 行）
 const fetchLogs = async (silent = false) => {
   if (!props.accountId || !props.token) return
 
@@ -481,47 +484,28 @@ const fetchLogs = async (silent = false) => {
       const streamData: LogStreamResponse = response.data.data
       const wasFirstLoad = lastLine.value === 0
 
-      // 处理日志数据
       if (streamData.count > 0) {
+        // 过滤掉 [[EVT]] 行（普通日志视图不展示 EVT）
         const visibleLogs = filterLogLines(streamData.logs)
         const newLogs = visibleLogs.join('\n')
 
-        // 提取含 [[EVT]] 的行（不过滤），追加到 rawEvtContent 并持久化
-        const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
-        if (evtLines.length > 0) {
-          rawEvtContent.value = trimLogLines(
-            rawEvtContent.value
-              ? rawEvtContent.value + '\n' + evtLines.join('\n')
-              : evtLines.join('\n'),
-          )
-          saveEvtLines(rawEvtContent.value, props.accountId)
-        }
-
         if (wasFirstLoad) {
-          // 首次加载，直接设置日志内容
           logData.value = { content: trimLogLines(newLogs) }
         } else if (newLogs) {
-          // 增量更新，追加新日志
           const currentContent = logData.value?.content || ''
           logData.value = { content: trimLogLines(currentContent + '\n' + newLogs) }
         }
 
-        // 如果开启自动滚动，滚动到底部
         if (autoScrollToBottom.value) {
           scrollToBottomWithDelay()
         }
       } else if (wasFirstLoad) {
-        // 首次加载但没有日志
         logData.value = { content: '' }
       }
 
-      // 更新 lastLine
       lastLine.value = streamData.lastLine
 
-      // 获取账号信息（如果需要，可能需要额外的API调用）
       if (!accountInfo.value) {
-        // 这里可能需要单独调用获取账号信息的API
-        // 暂时使用 pod_id 作为占位符
         accountInfo.value = {
           id: props.accountId,
           nickname: `账号_${streamData.pod_id}`,
@@ -529,38 +513,55 @@ const fetchLogs = async (silent = false) => {
         }
       }
     } else {
-      // 根据新接口的错误格式处理
       const errorMsg = response.data.msg || '获取日志失败'
-
       if (response.data.code === 400) {
-        if (!silent) {
-          message.error('无效的账号ID')
-        }
+        if (!silent) message.error('无效的账号ID')
       } else if (response.data.code === 404) {
         logData.value = { 未找到日志: '账号不存在或未找到日志' }
       } else if (response.data.code === 503) {
-        if (!silent) {
-          message.error('服务器连接失败')
-        }
+        if (!silent) message.error('服务器连接失败')
       } else if (response.data.code === 504) {
-        if (!silent) {
-          message.error('服务器响应超时')
-        }
+        if (!silent) message.error('服务器响应超时')
       } else {
-        if (!silent) {
-          message.error(errorMsg)
-        }
+        if (!silent) message.error(errorMsg)
       }
     }
   } catch (error) {
     console.error('获取日志失败:', error)
-    if (!silent) {
-      message.error('网络请求失败')
-    }
+    if (!silent) message.error('网络请求失败')
   } finally {
-    if (!silent) {
-      loading.value = false
+    if (!silent) loading.value = false
+  }
+}
+
+// 获取 EVT 事件日志（独立接口，读 _evt.log 文件）
+const fetchEvtLogs = async () => {
+  if (!props.accountId || !props.token) return
+
+  try {
+    const response = await axios.get(`/api/game-accounts/evt-stream-poll`, {
+      params: {
+        id: props.accountId,
+        lastLine: evtLastLine.value,
+      },
+    })
+
+    if (response.data.code === 200 && response.data.data.success) {
+      const streamData: LogStreamResponse = response.data.data
+      if (streamData.count > 0) {
+        const newEvtLines = streamData.logs
+        rawEvtContent.value = trimLogLines(
+          rawEvtContent.value
+            ? rawEvtContent.value + '\n' + newEvtLines.join('\n')
+            : newEvtLines.join('\n'),
+        )
+        saveEvtLines(rawEvtContent.value, props.accountId)
+      }
+      evtLastLine.value = streamData.lastLine
     }
+  } catch (error) {
+    // EVT 日志获取失败静默处理，不影响普通日志
+    console.debug('获取EVT日志失败:', error)
   }
 }
 
@@ -640,29 +641,29 @@ watch(
       selectedCategory.value = '全部'
       searchTerm.value = ''
       viewMode.value = 'evt'
-      lastLine.value = 0 // 重置日志行数
+      lastLine.value = 0    // 重置普通日志行数
+      evtLastLine.value = 0 // 重置EVT日志行数
       // accountId 切换时才清空旧账号缓存
       if (accountId !== _lastWatchedAccountId) {
-        if (_lastWatchedAccountId !== undefined) {
-          // 不删除旧账号缓存，只是切换
-        }
         _lastWatchedAccountId = accountId
       }
       // 从 localStorage 恢复该账号的 EVT 行（弹窗关了再开立即有数据）
       rawEvtContent.value = trimLogLines(loadEvtLines(accountId))
 
-      // 立即获取一次日志
+      // 立即获取一次日志（普通 + EVT）
       fetchLogs()
+      fetchEvtLogs()
 
       // 如果启用自动刷新，设置定时器
       if (autoRefreshEnabled) {
         refreshInterval.value = setInterval(() => {
-          fetchLogs(true) // 静默刷新，不显示加载状态
+          fetchLogs(true)  // 普通日志静默刷新
+          fetchEvtLogs()   // EVT 日志刷新
         }, 10000)
       }
     }
   },
-  { immediate: false }, // 不需要立即执行，因为组件初始化时 isOpen 为 false
+  { immediate: false },
 )
 
 // 当过滤后的日志行发生变化时，如果启用自动滚动，滚动到底部
