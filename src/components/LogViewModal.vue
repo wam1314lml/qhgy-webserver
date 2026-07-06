@@ -573,17 +573,17 @@ const fetchEvtLogs = async () => {
         _applyEvtLines(streamData.logs)
       }
       evtLastLine.value = streamData.lastLine
-    } else if (response.data.code === 404) {
-      // 接口不存在，静默降级
+    } else if (response.data.code === 404 || response.data.code === 500) {
+      // 接口不存在或服务端异常，静默降级
       _evtApiUnavailable = true
-      console.debug('[EVT] evt-stream-poll 不可用，降级到普通日志提取模式')
+      console.debug(`[EVT] evt-stream-poll 不可用(${response.data.code})，降级到普通日志提取模式`)
     }
   } catch (error: any) {
-    // HTTP 404 有时会走 catch（axios 默认对非2xx抛异常）
+    // axios 默认对非2xx抛异常，404/500 均走此分支
     const status = error?.response?.status
-    if (status === 404) {
+    if (status === 404 || status === 500) {
       _evtApiUnavailable = true
-      console.debug('[EVT] evt-stream-poll 不可用，降级到普通日志提取模式')
+      console.debug(`[EVT] evt-stream-poll 不可用(${status})，降级到普通日志提取模式`)
     } else {
       console.debug('获取EVT日志失败:', error)
     }
