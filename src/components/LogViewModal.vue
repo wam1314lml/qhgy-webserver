@@ -231,6 +231,7 @@ const logData = ref<LogData | null>(null)
 const rawEvtContent = ref<string>('')   // EVT 行原始内容，供 EventCardView 解析
 const evtHistoryResetKey = ref(0)
 const evtLastLine = ref<number>(0)      // EVT 日志独立的 lastLine 指针
+let _evtApiUnavailable = false          // evt-stream-poll 不可用时降级到普通日志提取
 
 function resetEvtHistoryState() {
   rawEvtContent.value = ''
@@ -485,6 +486,11 @@ const fetchLogs = async (silent = false) => {
       const wasFirstLoad = lastLine.value === 0
 
       if (streamData.count > 0) {
+        // fallback 模式：evt-stream-poll 不可用时，从普通日志中提取 [[EVT]] 行
+        if (_evtApiUnavailable) {
+          const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
+          _applyEvtLines(evtLines)
+        }
         // 过滤掉 [[EVT]] 行（普通日志视图不展示 EVT）
         const visibleLogs = filterLogLines(streamData.logs)
         const newLogs = visibleLogs.join('\n')
@@ -534,9 +540,24 @@ const fetchLogs = async (silent = false) => {
   }
 }
 
+// 将 EVT 行追加到 rawEvtContent（fetchEvtLogs / fallback 共用）
+function _applyEvtLines(evtLines: string[]) {
+  if (!evtLines.length) return
+  rawEvtContent.value = trimLogLines(
+    rawEvtContent.value
+      ? rawEvtContent.value + '\n' + evtLines.join('\n')
+      : evtLines.join('\n'),
+  )
+  saveEvtLines(rawEvtContent.value, props.accountId)
+}
+
 // 获取 EVT 事件日志（独立接口，读 _evt.log 文件）
+// 若接口返回 404，静默降级为从普通日志中提取 [[EVT]] 行（fallback）
 const fetchEvtLogs = async () => {
   if (!props.accountId || !props.token) return
+
+  // 已知接口不可用，直接走 fallback（由 fetchLogs 提取）
+  if (_evtApiUnavailable) return
 
   try {
     const response = await axios.get(`/api/game-accounts/evt-stream-poll`, {
@@ -549,19 +570,23 @@ const fetchEvtLogs = async () => {
     if (response.data.code === 200 && response.data.data.success) {
       const streamData: LogStreamResponse = response.data.data
       if (streamData.count > 0) {
-        const newEvtLines = streamData.logs
-        rawEvtContent.value = trimLogLines(
-          rawEvtContent.value
-            ? rawEvtContent.value + '\n' + newEvtLines.join('\n')
-            : newEvtLines.join('\n'),
-        )
-        saveEvtLines(rawEvtContent.value, props.accountId)
+        _applyEvtLines(streamData.logs)
       }
       evtLastLine.value = streamData.lastLine
+    } else if (response.data.code === 404) {
+      // 接口不存在，静默降级
+      _evtApiUnavailable = true
+      console.debug('[EVT] evt-stream-poll 不可用，降级到普通日志提取模式')
     }
-  } catch (error) {
-    // EVT 日志获取失败静默处理，不影响普通日志
-    console.debug('获取EVT日志失败:', error)
+  } catch (error: any) {
+    // HTTP 404 有时会走 catch（axios 默认对非2xx抛异常）
+    const status = error?.response?.status
+    if (status === 404) {
+      _evtApiUnavailable = true
+      console.debug('[EVT] evt-stream-poll 不可用，降级到普通日志提取模式')
+    } else {
+      console.debug('获取EVT日志失败:', error)
+    }
   }
 }
 
@@ -643,6 +668,7 @@ watch(
       viewMode.value = 'evt'
       lastLine.value = 0    // 重置普通日志行数
       evtLastLine.value = 0 // 重置EVT日志行数
+      _evtApiUnavailable = false // 每次重新打开时重新探测接口可用性
       // accountId 切换时才清空旧账号缓存
       if (accountId !== _lastWatchedAccountId) {
         _lastWatchedAccountId = accountId
