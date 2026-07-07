@@ -1627,7 +1627,7 @@
             <CustomFormItem
               label="领取奖励"
               name="activity.cyclicNote.enabled"
-              tooltip="领取已完成的任务奖励，领取阶段宝箱奖励，不会帮你做任务哦。"
+              tooltip="领取已完成的任务奖励，领取阶段宝箱奖励，花笺所需任务都是基本的日常任务，没有写专门去做这个任务，只需把基础页种植页订单页那些功能开起来，就能完成花笺的任务，会帮你把完成的领取"
             >
               <Switch v-model:checked="config.activity.cyclicNote.enabled" />
             </CustomFormItem>
