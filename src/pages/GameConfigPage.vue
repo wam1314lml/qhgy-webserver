@@ -1618,9 +1618,9 @@
           <div v-if="activeTab === '活动'" class="config-section">
             <Divider orientation="left">花笺集芳</Divider>
             <CustomFormItem
-              label="自动完成"
+              label="领取奖励"
               name="activity.cyclicNote.enabled"
-              tooltip="自动完成花笺集芳任务，自动领取阶段宝箱奖励"
+              tooltip="领取已完成的任务奖励，领取阶段宝箱奖励，不会帮你做任务哦。"
             >
               <Switch v-model:checked="config.activity.cyclicNote.enabled" />
             </CustomFormItem>
@@ -1631,13 +1631,6 @@
                 tooltip="自动花费元宝解锁任务槽位"
               >
                 <Switch v-model:checked="config.activity.cyclicNote.unlockSlot" />
-              </CustomFormItem>
-              <CustomFormItem
-                label="自动开启模块"
-                name="activity.cyclicNote.autoEnableModules"
-                tooltip="根据任务自动启用对应功能模块（种植、花艺售卖、居民订单、顾客订单、珍珠雇佣等），任务完成后自动恢复到您开始的设置"
-              >
-                <Switch v-model:checked="config.activity.cyclicNote.autoEnableModules" />
               </CustomFormItem>
             </template>
 
