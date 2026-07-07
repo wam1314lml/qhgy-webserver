@@ -150,6 +150,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         specifiedArts: [],
         specifiedArtsFull: [],
         flowerArtPerRack: 12,
+        rackAutoRefresh: false,
         autoUnlockStand: false,
         recvArtCreateRwd: false,
         recvCollectRwd: false,
@@ -264,6 +265,10 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         unlockSlot: false,
         autoEnableModules: false,
+        orderGuard: {
+          enabled: false,
+          timeRanges: [{ start: '00:00', end: '21:00' }],
+        },
       },
       actCyclicStory: {
         enabled: false,

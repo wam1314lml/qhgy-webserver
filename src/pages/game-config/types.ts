@@ -126,6 +126,7 @@ export interface GameConfig {
       specifiedArts: Array<number | string>
       specifiedArtsFull: Array<number | string>
       flowerArtPerRack: number
+      rackAutoRefresh: boolean
       autoUnlockStand: boolean
       recvArtCreateRwd: boolean
       recvCollectRwd: boolean
@@ -229,6 +230,10 @@ export interface GameConfig {
       enabled: boolean
       unlockSlot: boolean
       autoEnableModules: boolean
+      orderGuard: {
+        enabled: boolean
+        timeRanges: Array<{ start: string; end: string }>
+      }
     }
     actCyclicStory: {
       enabled: boolean

@@ -187,4 +187,40 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
 
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
+  normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
+}
+
+function normalizeTimeHM(
+  value: unknown,
+  fallbackHour: number,
+  fallbackMinute: number,
+): string {
+  const parts = String(value ?? '').split(':')
+  let hour = Number(parts[0])
+  let minute = Number(parts[1])
+  if (!Number.isFinite(hour)) hour = fallbackHour
+  if (!Number.isFinite(minute)) minute = fallbackMinute
+  hour = Math.min(23, Math.max(0, Math.floor(hour)))
+  minute = Math.min(59, Math.max(0, Math.floor(minute)))
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
+function normalizeCyclicNoteOrderGuard(
+  cyclicNote: GameConfig['activity']['cyclicNote'],
+): void {
+  if (!cyclicNote.orderGuard) {
+    cyclicNote.orderGuard = { enabled: false, timeRanges: [{ start: '00:00', end: '21:00' }] }
+  }
+  cyclicNote.orderGuard.enabled = !!cyclicNote.orderGuard.enabled
+  if (
+    !Array.isArray(cyclicNote.orderGuard.timeRanges) ||
+    cyclicNote.orderGuard.timeRanges.length === 0
+  ) {
+    cyclicNote.orderGuard.timeRanges = [{ start: '00:00', end: '21:00' }]
+  }
+  const range = cyclicNote.orderGuard.timeRanges[0]
+  cyclicNote.orderGuard.timeRanges[0] = {
+    start: normalizeTimeHM(range.start, 0, 0),
+    end: normalizeTimeHM(range.end, 21, 0),
+  }
 }

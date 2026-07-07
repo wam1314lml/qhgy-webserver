@@ -938,6 +938,13 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
+              <CustomFormItem
+                label="花艺4分钟下架"
+                name="plant.artSell.rackAutoRefresh"
+                tooltip="上架后4分钟能下架了马上下架，适合做一些任务"
+              >
+                <Switch v-model:checked="config.plant.artSell.rackAutoRefresh" />
+              </CustomFormItem>
             </template>
             <CustomFormItem
               label="花艺经验"
@@ -1632,6 +1639,36 @@
               >
                 <Switch v-model:checked="config.activity.cyclicNote.unlockSlot" />
               </CustomFormItem>
+              <CustomFormItem
+                label="居民订单守护"
+                name="activity.cyclicNote.orderGuard.enabled"
+                tooltip="开启后，在花笺活动期间内，根据设置的时间，在设置的时间内，就算订单页的居民订单开启了，也不会做，需等到花笺出现居民订单任务了才会做，在设置时间外就会正常做居民订单了。如：设置了21：00，那么00：00-21：00期间就只会等待花笺出现居民订单任务才会做居民订单。21点后就不等待了直接做居民订单"
+              >
+                <Switch v-model:checked="config.activity.cyclicNote.orderGuard.enabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.activity.cyclicNote.orderGuard.enabled"
+                label="设置时间"
+                name="activity.cyclicNote.orderGuard.timeRanges"
+                tooltip="守护生效的截止时间点。例如设置 21:00，则 00:00-21:00 期间等待花笺居民订单任务，21:00 后正常做居民订单"
+              >
+                <Space>
+                  <Select v-model:value="cyclicNoteOrderGuardHour" class="w-24!">
+                    <Select.Option v-for="h in cyclicNoteOrderGuardHourOptions" :key="h" :value="h">
+                      {{ h }}时
+                    </Select.Option>
+                  </Select>
+                  <Select v-model:value="cyclicNoteOrderGuardMinute" class="w-24!">
+                    <Select.Option
+                      v-for="m in cyclicNoteOrderGuardMinuteOptions"
+                      :key="m"
+                      :value="m"
+                    >
+                      {{ String(m).padStart(2, '0') }}分
+                    </Select.Option>
+                  </Select>
+                </Space>
+              </CustomFormItem>
             </template>
 
             <Divider orientation="left">莳花纪闻</Divider>
@@ -2066,6 +2103,48 @@ const minTaskScoreMin = computed(() => {
 
 const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
 const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
+
+const cyclicNoteOrderGuardHourOptions = Array.from({ length: 24 }, (_, i) => i)
+const cyclicNoteOrderGuardMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
+
+const parseOrderGuardEndTime = (time?: string) => {
+  const [hRaw, mRaw] = (time || '21:00').split(':')
+  let hour = Number(hRaw)
+  let minute = Number(mRaw)
+  if (!Number.isFinite(hour)) hour = 21
+  if (!Number.isFinite(minute)) minute = 0
+  hour = Math.min(23, Math.max(0, Math.floor(hour)))
+  minute = Math.min(59, Math.max(0, Math.floor(minute)))
+  return { hour, minute }
+}
+
+const ensureCyclicNoteOrderGuardRange = () => {
+  const orderGuard = config.value.activity.cyclicNote.orderGuard
+  if (!orderGuard.timeRanges?.length) {
+    orderGuard.timeRanges = [{ start: '00:00', end: '21:00' }]
+  }
+  return orderGuard.timeRanges[0]
+}
+
+const cyclicNoteOrderGuardHour = computed({
+  get: () => parseOrderGuardEndTime(ensureCyclicNoteOrderGuardRange().end).hour,
+  set: (hour: number) => {
+    const range = ensureCyclicNoteOrderGuardRange()
+    const { minute } = parseOrderGuardEndTime(range.end)
+    range.start = '00:00'
+    range.end = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
+
+const cyclicNoteOrderGuardMinute = computed({
+  get: () => parseOrderGuardEndTime(ensureCyclicNoteOrderGuardRange().end).minute,
+  set: (minute: number) => {
+    const range = ensureCyclicNoteOrderGuardRange()
+    const { hour } = parseOrderGuardEndTime(range.end)
+    range.start = '00:00'
+    range.end = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
 
 const parseForceCollectTime = (time?: string) => {
   const [hRaw, mRaw] = (time || '23:30').split(':')
