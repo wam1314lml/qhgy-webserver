@@ -89,6 +89,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     getFlowerPickerOptions(friendSteal.excludeFlowerIds),
   )
   friendSteal.stealMode = ensureSingleSelectValue(friendSteal.stealMode, stealModeOptions)
+  const buyStealCount = Number(friendSteal.buyStealCount)
+  friendSteal.buyStealCount = Number.isFinite(buyStealCount)
+    ? Math.min(10, Math.max(1, Math.floor(buyStealCount)))
+    : 10
 
   config.plant.elves.selectedElvesIds = ensureMultiSelectValue(
     config.plant.elves.selectedElvesIds,

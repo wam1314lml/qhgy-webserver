@@ -60,16 +60,28 @@
         三级代理名额已满（{{ MAX_TERTIARY_AGENTS }} 个），无法继续任命。如需调整，请先卸任现有三级代理。
       </div>
       <div class="appoint-form">
-        <div class="form-row">
+        <div class="form-row form-row--dual">
           <input
-            v-model="searchKeyword"
+            v-model="searchUsername"
             class="agent-input"
-            placeholder="输入邮箱搜索用户（需全名邮箱）"
+            placeholder="输入用户名"
             :disabled="isTertiaryAgentLimitReached"
-            @input="onSearchInput"
           />
-          <button class="agent-btn primary" :disabled="isTertiaryAgentLimitReached" @click="doSearch">搜索</button>
+          <input
+            v-model="searchEmail"
+            class="agent-input"
+            placeholder="输入邮箱（需全名邮箱）"
+            :disabled="isTertiaryAgentLimitReached"
+          />
+          <button
+            class="agent-btn primary"
+            :disabled="isTertiaryAgentLimitReached || !canSearchUser"
+            @click="doSearch"
+          >
+            搜索
+          </button>
         </div>
+        <p class="search-hint">需同时输入用户名和邮箱进行双重验证后才能搜索</p>
 
         <!-- 搜索结果 -->
         <div v-if="searchResults.length > 0" class="search-results">
@@ -91,7 +103,9 @@
           </div>
         </div>
         <div v-if="searchError" class="load-error">{{ searchError }}</div>
-        <div v-else-if="searchDone && searchResults.length === 0" class="no-results">未找到相关用户</div>
+        <div v-else-if="searchDone && searchResults.length === 0" class="no-results">
+          未找到用户名与邮箱同时匹配的用户
+        </div>
 
         <!-- 选中用户后显示任命表单 -->
         <div v-if="selectedUser" class="appoint-detail">
@@ -466,25 +480,36 @@ async function loadMyAgents() {
 }
 
 // ── 搜索用户 ──
-const searchKeyword = ref('')
+const searchUsername = ref('')
+const searchEmail = ref('')
 const searchResults = ref<any[]>([])
 const searchDone = ref(false)
-let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-function onSearchInput() {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(doSearch, 400)
-}
+const canSearchUser = computed(
+  () => !!searchUsername.value.trim() && !!searchEmail.value.trim(),
+)
+
 const searchError = ref('')
 async function doSearch() {
-  const q = searchKeyword.value.trim()
-  if (!q) { searchResults.value = []; searchDone.value = false; searchError.value = ''; return }
+  const username = searchUsername.value.trim()
+  const email = searchEmail.value.trim()
+  if (!username || !email) {
+    searchResults.value = []
+    searchDone.value = false
+    searchError.value = '请同时输入用户名和邮箱'
+    return
+  }
   searchError.value = ''
   try {
-    const res = await apiFetch(`/search-user?q=${encodeURIComponent(q)}`)
+    const params = new URLSearchParams({ username, email, q: email })
+    const res = await apiFetch(`/search-user?${params.toString()}`)
     if (res.success) {
-      // 过滤掉 username 为空的用户
-      searchResults.value = (res.data || []).filter((u: any) => u.username && u.username.trim())
+      const normalizedEmail = email.toLowerCase()
+      searchResults.value = (res.data || []).filter(
+        (u: any) =>
+          u.username?.trim() === username &&
+          u.email?.trim().toLowerCase() === normalizedEmail,
+      )
     } else {
       searchResults.value = []
       searchError.value = res.message || '搜索失败，请重试'
@@ -512,7 +537,8 @@ function selectUser(user: any) {
 function cancelAppoint() {
   selectedUser.value = null
   searchResults.value = []
-  searchKeyword.value = ''
+  searchUsername.value = ''
+  searchEmail.value = ''
   searchDone.value = false
   appointMsg.value = ''
 }
@@ -759,6 +785,17 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   margin-bottom: 12px;
+}
+.form-row--dual {
+  flex-wrap: wrap;
+}
+.form-row--dual .agent-btn {
+  flex: 0 0 auto;
+}
+.search-hint {
+  margin: -4px 0 12px;
+  font-size: 12px;
+  color: #888;
 }
 .agent-input {
   flex: 1;

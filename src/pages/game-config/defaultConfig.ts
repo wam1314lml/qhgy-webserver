@@ -121,7 +121,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         stealFlowerIds: [],
         excludeFlowerIds: [],
         buyStealEnabled: false,
-        buyStealCount: 0,
+        buyStealCount: 10,
       },
       elves: {
         enabled: false,

@@ -768,7 +768,8 @@
               >
                 <CustomInputNumber
                   v-model:value="config.plant.friendSteal.buyStealCount"
-                  :min="0"
+                  :min="1"
+                  :max="10"
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
