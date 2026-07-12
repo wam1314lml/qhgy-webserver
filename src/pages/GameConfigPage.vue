@@ -511,14 +511,14 @@
               <CustomFormItem
                 label="严格模式"
                 name="plant.flower.strictLayout"
-                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低"
+                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低，效率低体现在做任务方面，如居民订单，顾客订单之类的"
               >
                 <Switch v-model:checked="config.plant.flower.strictLayout" />
               </CustomFormItem>
               <CustomFormItem
                 label="单花占地数量"
                 name="plant.flower.landGroupSize"
-                tooltip="指一种花占几块地，可实现土地规整"
+                tooltip="指一种花占几块地，可实现土地规整，若选择了指定种类，则单花占地数量不生效，跟着设置了多少种进行种植"
                 v-if="config.plant.flower.strictLayout"
               >
                 <Radio.Group v-model:value="config.plant.flower.landGroupSize">
