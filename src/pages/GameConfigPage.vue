@@ -537,7 +537,6 @@
                 label="分组浇水"
                 name="plant.flower.groupWaterEnabled"
                 tooltip="为了保持美观，4个1组，满4个水滴浇一组，若保留水滴设置了5，那么就是满9个水滴才会浇一组"
-                v-if="config.plant.flower.strictLayout"
               >
                 <Switch v-model:checked="config.plant.flower.groupWaterEnabled" />
               </CustomFormItem>
