@@ -189,11 +189,21 @@
                 <span class="stat-value">{{ getAccountGameData(account).decorateFinish }}</span>
               </div>
             </div>
-            <div class="flex justify-between items-baseline info-line expire-line">
+            <div class="stats-grid task-stats">
               <div class="stat-item compact">
                 <span class="stat-label">顾客订单</span>
                 <span class="stat-value">{{ getAccountGameData(account).customerFinish }}</span>
               </div>
+              <div class="stat-item compact">
+                <span class="stat-label">团单数量</span>
+                <span class="stat-value">{{ getAccountGameData(account).teamOrderSubmit }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">今日累计经验</span>
+                <span class="stat-value">{{ getAccountGameData(account).teamOrderExp }}</span>
+              </div>
+            </div>
+            <div class="flex justify-end items-baseline info-line expire-line">
               <div>
                 到期时间：<span
                   :style="{
@@ -694,6 +704,10 @@ interface GameRecordDetails {
     lastDispatchTime: string | null
     totalCount: number
   }
+  teamOrder?: {
+    totalSubmit?: number
+    totalExp?: number
+  }
   isOnline: boolean
   lastOnlineUpdate: string
   // 支付宝七天授权相关字段（platform===1，ZFB_ 账号有效）
@@ -764,6 +778,8 @@ const getAccountGameData = (account: GameAccount) => {
     decorateFinish: 0,
     satinFinish: 0,
     customerFinish: 0,
+    teamOrderSubmit: 0,
+    teamOrderExp: 0,
     isStarted: false,
     isOnline: false,
   }
@@ -780,6 +796,7 @@ const getAccountGameData = (account: GameAccount) => {
   const attrs = gameRecordDetails.playerAttrs || {}
   const orders = gameRecordDetails.orderStats || {}
   const fmlRace = gameRecordDetails.fmlRace || {}
+  const teamOrder = gameRecordDetails.teamOrder || {}
 
   return {
     level: attrs.level ?? 0,
@@ -797,6 +814,8 @@ const getAccountGameData = (account: GameAccount) => {
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
     customerFinish: orders.customerFinish ?? 0,
+    teamOrderSubmit: teamOrder.totalSubmit ?? 0,
+    teamOrderExp: teamOrder.totalExp ?? 0,
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }

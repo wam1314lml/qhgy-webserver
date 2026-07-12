@@ -73,6 +73,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         useSpeedUpTicket: false,
         speedUpTicketMax: 20,
         waterThreshold: 0,
+        strictLayout: false,
+        landGroupSize: 4,
+        groupWaterEnabled: false,
         taskMode: true,
         taskLogEnabled: false,
         taskPriorityConfig: {
@@ -129,6 +132,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         requestAid: false,
         recvAid: false,
         helpFrd: false,
+        helpFrdMode: 'unlimited',
         dispatch: false,
         speedUpDispatch: false,
         recvDispatch: false,

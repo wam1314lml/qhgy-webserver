@@ -74,6 +74,9 @@ export interface GameConfig {
       useSpeedUpTicket: boolean
       speedUpTicketMax: number
       waterThreshold: number
+      strictLayout: boolean
+      landGroupSize: number
+      groupWaterEnabled: boolean
       taskMode: boolean
       taskLogEnabled: boolean
       taskPriorityConfig: Record<string, number>
@@ -105,6 +108,7 @@ export interface GameConfig {
       requestAid: boolean
       recvAid: boolean
       helpFrd: boolean
+      helpFrdMode: 'limit3' | 'unlimited' | string
       dispatch: boolean
       speedUpDispatch: boolean
       recvDispatch: boolean

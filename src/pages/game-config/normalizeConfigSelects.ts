@@ -11,6 +11,8 @@ import {
   flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
+  helpFrdModeOptions,
+  landGroupSizeOptions,
   getFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions,
   plantingModeOptions,
@@ -56,6 +58,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     getFlowerPickerOptions(flower.specificFlowerIds),
   )
   flower.flowerCount = ensureSingleSelectValue(flower.flowerCount, flowerCountOptions)
+  flower.landGroupSize = ensureSingleSelectValue(flower.landGroupSize, landGroupSizeOptions)
+  if (flower.groupWaterEnabled === undefined && (flower as { groupWater?: boolean }).groupWater !== undefined) {
+    flower.groupWaterEnabled = !!(flower as { groupWater?: boolean }).groupWater
+    delete (flower as { groupWater?: boolean }).groupWater
+  }
   flower.plantingMode = ensureSingleSelectValue(flower.plantingMode, plantingModeOptions)
   flower.lowStockThreshold = normalizeThreshold(flower.lowStockThreshold)
   if (!Array.isArray(flower.freeStyleList) || flower.freeStyleList.length === 0) {
@@ -97,6 +104,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.plant.elves.selectedElvesIds = ensureMultiSelectValue(
     config.plant.elves.selectedElvesIds,
     elfOptions,
+  )
+  config.plant.elves.helpFrdMode = ensureSingleSelectValue(
+    config.plant.elves.helpFrdMode,
+    helpFrdModeOptions,
   )
 
   config.plant.artSell.artSellMode = ensureSingleSelectValue(

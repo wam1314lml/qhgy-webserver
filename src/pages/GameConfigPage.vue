@@ -509,6 +509,39 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                label="严格模式"
+                name="plant.flower.strictLayout"
+                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低"
+              >
+                <Switch v-model:checked="config.plant.flower.strictLayout" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="单花占地数量"
+                name="plant.flower.landGroupSize"
+                tooltip="指一种花占几块地，可实现土地规整"
+                v-if="config.plant.flower.strictLayout"
+              >
+                <Radio.Group v-model:value="config.plant.flower.landGroupSize">
+                  <Space>
+                    <Radio
+                      v-for="option in landGroupSizeOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                label="分组浇水"
+                name="plant.flower.groupWaterEnabled"
+                tooltip="为了保持美观，4个1组，满4个水滴浇一组，若保留水滴设置了5，那么就是满9个水滴才会浇一组"
+                v-if="config.plant.flower.strictLayout"
+              >
+                <Switch v-model:checked="config.plant.flower.groupWaterEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
                 label="任务优先"
                 name="plant.flower.taskMode"
                 tooltip="开启后：如果订单里缺花，系统会先种订单需要的花；发现有空地时，会直接插队用来种这些花；花种完以后，会自动恢复到原来设置的模式（指定品质 / 指定种类 / 指定花朵）"
@@ -814,8 +847,21 @@
             <CustomFormItem
               label="自动协助好友"
               name="plant.elves.helpFrd"
+              tooltip="根据用户设置模式进行协助。协助3次：协助完3次完成协助任务后就不会协助了。一直协助：好友能协助就一直协助"
             >
               <Switch v-model:checked="config.plant.elves.helpFrd" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="协助模式"
+              name="plant.elves.helpFrdMode"
+              v-if="config.plant.elves.helpFrd"
+            >
+              <Radio.Group v-model:value="config.plant.elves.helpFrdMode">
+                <Space>
+                  <Radio value="limit3">协助3次</Radio>
+                  <Radio value="unlimited">一直协助</Radio>
+                </Space>
+              </Radio.Group>
             </CustomFormItem>
             <CustomFormItem
               label="自动派遣花灵"
@@ -2053,6 +2099,7 @@ import {
   getFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions,
   fmlRaceTaskTypes,
+  landGroupSizeOptions,
   tabs,
 } from './game-config/options'
 import { deepMerge } from './game-config/utils'

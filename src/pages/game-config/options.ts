@@ -8,6 +8,17 @@ export { getSpecifiedArtsFullPickerOptions } from './optionPickerUtils'
 // 标签页配置
 export const tabs = ['基础', '种植', '订单', '公会', '活动']
 
+// —— 单花占地数量（1/2/4/8/16/32/64） ——
+export const landGroupSizeOptions = [
+  { value: 1, label: '1' },
+  { value: 2, label: '2' },
+  { value: 4, label: '4' },
+  { value: 8, label: '8' },
+  { value: 16, label: '16' },
+  { value: 32, label: '32' },
+  { value: 64, label: '64' },
+]
+
 // —— 种植花朵数量（1/2/4/8/16） ——
 export const flowerCountOptions = [
   { value: 1, label: '1' },
@@ -24,6 +35,12 @@ export const plantingModeOptions = [
   { value: 'specific', label: '指定花朵' },
   { value: 'lowStock', label: '库存模式' },
   { value: 'freeStyle', label: '64块地模式' },
+]
+
+// —— 花灵协助好友模式 ——
+export const helpFrdModeOptions = [
+  { value: 'limit3', label: '协助3次' },
+  { value: 'unlimited', label: '一直协助' },
 ]
 
 // —— 偷花模式 ——
