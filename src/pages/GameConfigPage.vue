@@ -998,7 +998,7 @@
             <CustomFormItem
               label="花艺首做"
               name="plant.artSell.artFirstMake"
-              tooltip="自动制作所有未首次制作过的花艺，挂钩花艺优先级，花艺优先级设置1则先执行这项"
+              tooltip="自动制作所有未首次制作过的花艺，制作效率和任务优先级里的花艺售卖优先级挂钩"
             >
               <Switch v-model:checked="config.plant.artSell.artFirstMake" />
             </CustomFormItem>
