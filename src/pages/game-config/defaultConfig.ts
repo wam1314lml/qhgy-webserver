@@ -237,7 +237,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         minUpgradeTaskScore: 50,
         giveuplowscoretask: false,
         onlyUpgradeTask: false,
-        othersUpgradeTaskMode: false,
+        othersUpgradeTaskMode: true,
         excludeOthersUpgradeTask: true,
         onlySpecifiedUpgradeTask: false,
         specifiedUpgradePlayers: [],
