@@ -37,17 +37,12 @@ export const plantingModeOptions = [
   { value: 'freeStyle', label: '64块地模式' },
 ]
 
-// —— 花灵协助好友模式 ——
-export const helpFrdModeOptions = [
-  { value: 'limit3', label: '协助3次' },
-  { value: 'unlimited', label: '一直协助' },
-]
-
 // —— 偷花模式 ——
 export const stealModeOptions = [
   { value: 'quality', label: '指定品质' },
   { value: 'specific', label: '指定花朵' },
   { value: 'exclude', label: '排除花朵' },
+  { value: 'excludeCultivating', label: '排除已有种子' },
 ]
 
 // —— 花贸市场上架策略 ——
@@ -68,6 +63,7 @@ export const buyModeOptions = [
   { value: 'all', label: '全部' },
   { value: 'specific', label: '指定花朵' },
   { value: 'quality', label: '指定品质' },
+  { value: 'exclude', label: '排除花朵' },
 ]
 
 // —— 花艺上架模式 ——

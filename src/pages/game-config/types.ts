@@ -95,7 +95,7 @@ export interface GameConfig {
     friendSteal: {
       enabled: boolean
       stealElves: boolean
-      stealMode: 'quality' | 'specific' | 'exclude' | string
+      stealMode: 'quality' | 'specific' | 'exclude' | 'excludeCultivating' | string
       stealQualities: number[]
       stealFlowerIds: Array<number | string>
       excludeFlowerIds: Array<number | string>
@@ -108,7 +108,7 @@ export interface GameConfig {
       requestAid: boolean
       recvAid: boolean
       helpFrd: boolean
-      helpFrdMode: 'limit3' | 'unlimited' | string
+      helpFrdMode: 'limit3'
       dispatch: boolean
       speedUpDispatch: boolean
       recvDispatch: boolean
@@ -134,6 +134,7 @@ export interface GameConfig {
       autoUnlockStand: boolean
       recvArtCreateRwd: boolean
       recvCollectRwd: boolean
+      artFirstMake: boolean
     }
     market: {
       autoUnlockShelf: boolean
@@ -146,9 +147,10 @@ export interface GameConfig {
       autoBuyPutCount: boolean
       buyPutCount: number
       autoBuyFromFriend: boolean
-      buyMode: 'all' | 'specific' | 'quality' | string
+      buyMode: 'all' | 'specific' | 'quality' | 'exclude' | string
       buySpecificFlowerIds: Array<number | string>
       buyQualities: number[]
+      excludeFlowerIds: Array<number | string>
       minPutTimeDiff: number
     }
   }
@@ -213,13 +215,18 @@ export interface GameConfig {
       minUpgradeTaskScore: number
       giveuplowscoretask: boolean
       onlyUpgradeTask: boolean
+      othersUpgradeTaskMode: boolean
       excludeOthersUpgradeTask: boolean
+      onlySpecifiedUpgradeTask: boolean
+      specifiedUpgradePlayers: string[]
       taskTypePriority: Record<string, number>
       upgradeTask: boolean
       deleteTask: boolean
       deleteTaskMaxScore: number
       keepSystemUpgrade: boolean
       keepPlayerUpgrade: boolean
+      deleteUnclaimedTask: boolean
+      deleteUnclaimedMinutes: number
     }
     redPacket: {
       enabled: boolean

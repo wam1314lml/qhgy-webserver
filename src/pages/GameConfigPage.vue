@@ -734,13 +734,14 @@
               <CustomFormItem
                 label="偷花模式"
                 name="plant.friendSteal.stealMode"
-                tooltip="选择偷花过滤模式：指定品质或指定花朵或排除花朵"
+                tooltip="排除已有种子：选择此项就会不偷自己可以种的花朵，只偷不能种的"
               >
                 <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
                   <Space >
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="specific">指定花朵 </Radio>
                     <Radio value="exclude">排除花朵 </Radio>
+                    <Radio value="excludeCultivating">排除已有种子</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -846,21 +847,9 @@
             <CustomFormItem
               label="自动协助好友"
               name="plant.elves.helpFrd"
-              tooltip="根据用户设置模式进行协助。协助3次：协助完3次完成协助任务后就不会协助了。一直协助：好友能协助就一直协助"
+              tooltip="只协助3次，协助完3次完成协助任务后就不会协助了，因官方限制问题。不能一直协助"
             >
               <Switch v-model:checked="config.plant.elves.helpFrd" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="协助模式"
-              name="plant.elves.helpFrdMode"
-              v-if="config.plant.elves.helpFrd"
-            >
-              <Radio.Group v-model:value="config.plant.elves.helpFrdMode">
-                <Space>
-                  <Radio value="limit3">协助3次</Radio>
-                  <Radio value="unlimited">一直协助</Radio>
-                </Space>
-              </Radio.Group>
             </CustomFormItem>
             <CustomFormItem
               label="自动派遣花灵"
@@ -1006,6 +995,13 @@
             >
               <Switch v-model:checked="config.plant.artSell.recvCollectRwd" />
             </CustomFormItem>
+            <CustomFormItem
+              label="花艺首做"
+              name="plant.artSell.artFirstMake"
+              tooltip="自动制作所有未首次制作过的花艺，挂钩花艺优先级，花艺优先级设置1则先执行这项"
+            >
+              <Switch v-model:checked="config.plant.artSell.artFirstMake" />
+            </CustomFormItem>
 
             <Divider orientation="left">花贸市场</Divider>
             <CustomFormItem
@@ -1110,6 +1106,7 @@
                     <Radio value="all">全部</Radio>
                     <Radio value="specific">指定花朵</Radio>
                     <Radio value="quality">指定品质</Radio>
+                    <Radio value="exclude">排除花朵</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -1140,6 +1137,22 @@
                   mode="multiple"
                   :options="flowerQualityOptions"
                   placeholder="请选择品质"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.market.excludeFlowerIds"
+                tooltip="选择不要购买的花朵，可多选"
+                v-if="config.plant.market.buyMode === 'exclude'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.market.excludeFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择不要购买的花朵"
+                  :options="getFlowerPickerOptions(config.plant.market.excludeFlowerIds)"
+                  show-search
+                  option-filter-prop="label"
                   style="width: 100%"
                 />
               </CustomFormItem>
@@ -1581,11 +1594,47 @@
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
             <CustomFormItem
+              label="他人升级任务设置"
+              name="union.fmlRace.othersUpgradeTaskMode"
+              tooltip="根据用户设置接不接元宝升级任务"
+            >
+              <Switch v-model:checked="config.union.fmlRace.othersUpgradeTaskMode" />
+            </CustomFormItem>
+            <CustomFormItem
               label="排除他人升级任务"
               name="union.fmlRace.excludeOthersUpgradeTask"
               tooltip="基于礼貌的开关，开启后，公会其他玩家用元宝升级的任务就不会去接了"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode"
             >
-              <Switch v-model:checked="config.union.fmlRace.excludeOthersUpgradeTask" />
+              <Radio
+                :checked="othersUpgradeTaskChoice === 'exclude'"
+                @change="othersUpgradeTaskChoice = 'exclude'"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="接指定玩家升级任务"
+              name="union.fmlRace.onlySpecifiedUpgradeTask"
+              tooltip="选择他就只会接指定玩家的升级任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode"
+            >
+              <Radio
+                :checked="othersUpgradeTaskChoice === 'specified'"
+                @change="othersUpgradeTaskChoice = 'specified'"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="指定用户名"
+              name="union.fmlRace.specifiedUpgradePlayers"
+              tooltip="可填写多个玩家名，不要有错别字不然识别不了，按回车就是填写下一个玩家名"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.specifiedUpgradePlayers"
+                mode="tags"
+                placeholder="输入玩家名后按回车"
+                :token-separators="[',', '，']"
+                style="width: 100%"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="任务优先级"
@@ -1650,6 +1699,26 @@
               v-if="config.union.fmlRace.deleteTask"
             >
               <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="多少分钟无人认领删除"
+              name="union.fmlRace.deleteUnclaimedTask"
+              tooltip="会根据设置删除多少分钟内无人领取的任务，不判断分数。保留原金、保留已升级开启则这两种就不删除，删除其他的。"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.deleteUnclaimedTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="分钟"
+              name="union.fmlRace.deleteUnclaimedMinutes"
+              v-if="config.union.fmlRace.deleteTask && config.union.fmlRace.deleteUnclaimedTask"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.deleteUnclaimedMinutes"
+                :min="1"
+                :max="999"
+                class="w-42! sm:w-48!"
+              />
             </CustomFormItem>
 
             <Divider orientation="left">公会竞赛积分兑换</Divider>
@@ -2130,6 +2199,16 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+const othersUpgradeTaskChoice = computed({
+  get: () =>
+    config.value.union.fmlRace.onlySpecifiedUpgradeTask ? 'specified' : 'exclude',
+  set: (value: 'exclude' | 'specified') => {
+    const onlySpecified = value === 'specified'
+    config.value.union.fmlRace.onlySpecifiedUpgradeTask = onlySpecified
+    config.value.union.fmlRace.excludeOthersUpgradeTask = !onlySpecified
+  },
+})
 
 watch(
   () => ({

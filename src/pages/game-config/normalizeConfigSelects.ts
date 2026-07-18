@@ -11,7 +11,6 @@ import {
   flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
-  helpFrdModeOptions,
   landGroupSizeOptions,
   getFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions,
@@ -47,6 +46,19 @@ function normalizeUnionLandLowStockThreshold(value: unknown): number {
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD
   return Math.min(9999999, Math.max(1, Math.floor(numberValue)))
+}
+
+function normalizeDeleteUnclaimedMinutes(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return 60
+  return Math.min(999, Math.max(1, Math.floor(numberValue)))
+}
+
+function normalizePlayerNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return Array.from(
+    new Set(value.map((item) => String(item).trim()).filter(Boolean)),
+  )
 }
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
@@ -105,10 +117,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.plant.elves.selectedElvesIds,
     elfOptions,
   )
-  config.plant.elves.helpFrdMode = ensureSingleSelectValue(
-    config.plant.elves.helpFrdMode,
-    helpFrdModeOptions,
-  )
+  config.plant.elves.helpFrdMode = 'limit3'
 
   config.plant.artSell.artSellMode = ensureSingleSelectValue(
     config.plant.artSell.artSellMode ||
@@ -123,6 +132,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.plant.artSell.specifiedArtsFull,
     getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull),
   )
+  config.plant.artSell.artFirstMake = !!config.plant.artSell.artFirstMake
 
   const market = config.plant.market
   market.putMode = ensureSingleSelectValue(market.putMode, putModeOptions)
@@ -137,6 +147,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     getFlowerPickerOptions(market.buySpecificFlowerIds),
   )
   market.buyQualities = ensureMultiSelectValue(market.buyQualities, flowerQualityOptions)
+  market.excludeFlowerIds = Array.isArray(market.excludeFlowerIds)
+    ? market.excludeFlowerIds
+    : []
 
   config.order.resident.qualities = ensureMultiSelectValue(
     config.order.resident.qualities,
@@ -201,6 +214,15 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     actSpoolSpeedOptions,
   )
 
+  const fmlRace = config.union.fmlRace
+  fmlRace.othersUpgradeTaskMode = !!fmlRace.othersUpgradeTaskMode
+  fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
+  fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
+  fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
+  fmlRace.deleteUnclaimedTask = !!fmlRace.deleteUnclaimedTask
+  config.union.fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
+    config.union.fmlRace.deleteUnclaimedMinutes,
+  )
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }
