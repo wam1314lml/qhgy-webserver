@@ -524,6 +524,7 @@ function mergeLayout(existing: Layout | null, incoming: Layout): Layout {
   if (incoming.kvList          !== undefined) base.kvList          = incoming.kvList
   if (incoming.alert           !== undefined) base.alert           = incoming.alert
   if (incoming.grid            !== undefined) base.grid            = incoming.grid
+  if (incoming.tables          !== undefined) base.tables          = incoming.tables
   if (incoming.table           !== undefined) base.table           = incoming.table
   if (incoming.rankList        !== undefined) base.rankList        = incoming.rankList
   if (incoming.rankListLabel   !== undefined) base.rankListLabel   = incoming.rankListLabel
