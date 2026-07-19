@@ -175,26 +175,26 @@
           </div>
         </template>
 
-        <!-- ┌─ 组件区 7: table 表格 ─┐ -->
-        <template v-if="card.layout?.table">
-          <div class="evt-section-toggle" @click="toggleSection(card.module, 'table')">
-            <span>{{ card.layout.table.label || '数据表格' }}（{{ card.layout.table.rows.length }} 行）</span>
-            <span class="evt-toggle-arrow">{{ expanded(card.module, 'table') ? '▲ 收起' : '▼ 展开' }}</span>
+        <!-- ┌─ 组件区 7: table 表格（支持 tables 数组 / 向下兼容 table 单对象）─┐ -->
+        <template v-for="(tbl, tblIdx) in resolvedTables(card)" :key="tblIdx">
+          <div class="evt-section-toggle" @click="toggleSection(card.module, 'table_' + tblIdx)">
+            <span>{{ tbl.label || '数据表格' }}（{{ tbl.rows.length }} 行）</span>
+            <span class="evt-toggle-arrow">{{ expanded(card.module, 'table_' + tblIdx) ? '▲ 收起' : '▼ 展开' }}</span>
           </div>
-          <div v-if="expanded(card.module, 'table')" class="evt-table-wrap">
+          <div v-if="expanded(card.module, 'table_' + tblIdx)" class="evt-table-wrap">
             <table class="evt-table">
               <thead>
                 <tr>
-                  <th v-for="col in card.layout.table.columns" :key="col.key">{{ col.label }}</th>
+                  <th v-for="col in tbl.columns" :key="col.key">{{ col.label }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-for="(row, ri) in card.layout.table.rows"
+                  v-for="(row, ri) in tbl.rows"
                   :key="ri"
                   :class="row._rowClass"
                 >
-                  <td v-for="col in card.layout.table.columns" :key="col.key">
+                  <td v-for="col in tbl.columns" :key="col.key">
                     <span :style="row[col.colorKey] ? { color: colorText(row[col.colorKey]) } : {}">
                       {{ row[col.key] ?? '—' }}
                     </span>
@@ -365,7 +365,8 @@ interface Layout {
   kvList?:         LayoutKvItem[]     // 键值对列表
   alert?:          LayoutAlert        // 告警横幅
   grid?:           LayoutGrid         // 格子网格（可折叠）
-  table?:          LayoutTable        // 表格（可折叠）
+  table?:          LayoutTable        // 表格（可折叠，向下兼容单对象）
+  tables?:         LayoutTable[]      // 多个表格（可折叠，优先于 table）
   rankList?:       LayoutRankItem[]   // 排行榜（可折叠）
   rankListLabel?:  string
   statGrid?:       LayoutStatCell[]   // 数字仪表格（可折叠）
@@ -662,6 +663,15 @@ const statStyle  = (c?: Color) => {
   return { background: m.bg, color: m.text }
 }
 const colorText  = (c?: Color) => (COLOR_MAP[c ?? 'gray'] ?? COLOR_MAP.gray).text
+
+/** 兼容 tables 数组和旧的单 table 字段，统一返回数组 */
+const resolvedTables = (card: EvtCard): LayoutTable[] => {
+  const layout = card.layout as Layout | null
+  if (!layout) return []
+  if (layout.tables && layout.tables.length > 0) return layout.tables
+  if (layout.table) return [layout.table]
+  return []
+}
 
 const progressPct = (p: LayoutProgress) =>
   p.total > 0 ? Math.min(Math.round((p.current / p.total) * 100), 100) : 0
