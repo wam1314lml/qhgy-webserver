@@ -48,17 +48,17 @@ function normalizeUnionLandLowStockThreshold(value: unknown): number {
   return Math.min(9999999, Math.max(1, Math.floor(numberValue)))
 }
 
-function normalizeDeleteUnclaimedMinutes(value: unknown): number {
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return 60
-  return Math.min(999, Math.max(1, Math.floor(numberValue)))
-}
-
 function normalizePlayerNames(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return Array.from(
     new Set(value.map((item) => String(item).trim()).filter(Boolean)),
   )
+}
+
+function normalizeGuildRaceTaskPriority(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return 3
+  return Math.min(10, Math.max(1, Math.floor(numberValue)))
 }
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
@@ -76,6 +76,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     delete (flower as { groupWater?: boolean }).groupWater
   }
   flower.plantingMode = ensureSingleSelectValue(flower.plantingMode, plantingModeOptions)
+  flower.taskPriorityConfig['公会竞赛'] = normalizeGuildRaceTaskPriority(
+    flower.taskPriorityConfig['公会竞赛'],
+  )
   flower.lowStockThreshold = normalizeThreshold(flower.lowStockThreshold)
   if (!Array.isArray(flower.freeStyleList) || flower.freeStyleList.length === 0) {
     flower.freeStyleList = [{ name: DEFAULT_FREE_STYLE_TEMPLATE, lands: {} }]
@@ -219,10 +222,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
-  fmlRace.deleteUnclaimedTask = !!fmlRace.deleteUnclaimedTask
-  config.union.fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
-    config.union.fmlRace.deleteUnclaimedMinutes,
-  )
+  const legacyFmlRace = fmlRace as typeof fmlRace & {
+    deleteUnclaimedTask?: unknown
+    deleteUnclaimedMinutes?: unknown
+  }
+  delete legacyFmlRace.deleteUnclaimedTask
+  delete legacyFmlRace.deleteUnclaimedMinutes
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }

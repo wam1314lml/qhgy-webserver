@@ -225,8 +225,6 @@ export interface GameConfig {
       deleteTaskMaxScore: number
       keepSystemUpgrade: boolean
       keepPlayerUpgrade: boolean
-      deleteUnclaimedTask: boolean
-      deleteUnclaimedMinutes: number
     }
     redPacket: {
       enabled: boolean

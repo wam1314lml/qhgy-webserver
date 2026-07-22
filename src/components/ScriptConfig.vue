@@ -527,10 +527,12 @@
               class="qrcode-image"
             />
             <div v-else-if="!groupChatImageLoading" class="no-image">
-              <p>暂无群聊二维码</p>
+              <p>群聊二维码未配置或获取失败，请关闭后重新打开获取</p>
             </div>
           </div>
-          <p class="service-text">扫描二维码加入群聊</p>
+          <p v-if="groupChatImage && !groupChatImageLoading" class="service-text">
+            扫描二维码加入群聊
+          </p>
         </a-spin>
         <div class="service-footer">
           <a-button type="primary" size="large" block @click="showCustomerServiceModal = false">
@@ -1060,18 +1062,14 @@ const isSuperValueQuotaOption = (option: { days: number; points: number }) =>
 const fetchGroupChatImage = async () => {
   try {
     groupChatImageLoading.value = true
+    groupChatImage.value = ''
     const response = await axios.get('/api/auth/group-chat-image')
 
     if (response.data.success && response.data.data?.image) {
       groupChatImage.value = response.data.data.image
-    } else {
-      // 如果没有配置图片，使用默认图片
-      groupChatImage.value = '/images/qrcode.jpg'
     }
   } catch (error) {
     console.error('获取群聊二维码图片失败:', error)
-    // 如果接口失败，使用默认图片
-    groupChatImage.value = '/images/qrcode.jpg'
   } finally {
     groupChatImageLoading.value = false
   }

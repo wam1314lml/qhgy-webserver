@@ -558,7 +558,7 @@
               <CustomFormItem
                 label="任务优先级"
                 name="plant.flower.taskPriorityConfig"
-                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务，可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
+                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
                 v-if="config.plant.flower.taskMode"
               >
                 <div class="w-full max-w-[420px] flex flex-col gap-2">
@@ -611,7 +611,7 @@
                     <span class="text-sm">公会竞赛</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['公会竞赛']"
-                      :min="0"
+                      :min="1"
                       :max="10"
                       class="w-24!"
                     />
@@ -1700,27 +1700,6 @@
             >
               <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
             </CustomFormItem>
-            <CustomFormItem
-              label="多少分钟无人认领删除"
-              name="union.fmlRace.deleteUnclaimedTask"
-              tooltip="会根据设置删除多少分钟内无人领取的任务，不判断分数。保留原金、保留已升级开启则这两种就不删除，删除其他的。"
-              v-if="config.union.fmlRace.deleteTask"
-            >
-              <Switch v-model:checked="config.union.fmlRace.deleteUnclaimedTask" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="分钟"
-              name="union.fmlRace.deleteUnclaimedMinutes"
-              v-if="config.union.fmlRace.deleteTask && config.union.fmlRace.deleteUnclaimedTask"
-            >
-              <CustomInputNumber
-                v-model:value="config.union.fmlRace.deleteUnclaimedMinutes"
-                :min="1"
-                :max="999"
-                class="w-42! sm:w-48!"
-              />
-            </CustomFormItem>
-
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"
@@ -2473,6 +2452,7 @@ const importConfigFromSelectedAccount = async () => {
     }
 
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
+    normalizeGameConfigSelects(payload)
     const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
 
     if (!saveResponse.data?.success) {
