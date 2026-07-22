@@ -261,6 +261,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         deleteTaskMaxScore: 0,
         keepSystemUpgrade: false,
         keepPlayerUpgrade: false,
+        deleteUnclaimedTask: false,
+        deleteUnclaimedMinutes: 60,
       },
       redPacket: {
         enabled: false,

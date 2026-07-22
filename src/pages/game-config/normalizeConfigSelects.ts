@@ -55,6 +55,12 @@ function normalizePlayerNames(value: unknown): string[] {
   )
 }
 
+function normalizeDeleteUnclaimedMinutes(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return 60
+  return Math.min(999, Math.max(1, Math.floor(numberValue)))
+}
+
 function normalizeGuildRaceTaskPriority(value: unknown): number {
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return 3
@@ -222,12 +228,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
-  const legacyFmlRace = fmlRace as typeof fmlRace & {
-    deleteUnclaimedTask?: unknown
-    deleteUnclaimedMinutes?: unknown
-  }
-  delete legacyFmlRace.deleteUnclaimedTask
-  delete legacyFmlRace.deleteUnclaimedMinutes
+  fmlRace.deleteUnclaimedTask = !!fmlRace.deleteUnclaimedTask
+  fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
+    fmlRace.deleteUnclaimedMinutes,
+  )
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }

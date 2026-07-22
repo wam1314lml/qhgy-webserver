@@ -1700,6 +1700,26 @@
             >
               <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
             </CustomFormItem>
+            <CustomFormItem
+              label="多少分钟无人认领删除"
+              name="union.fmlRace.deleteUnclaimedTask"
+              tooltip="会根据设置删除多少分钟内无人领取的任务，不判断分数。保留原金、保留已升级开启则这两种就不删除，删除其他的。"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.deleteUnclaimedTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="分钟"
+              name="union.fmlRace.deleteUnclaimedMinutes"
+              v-if="config.union.fmlRace.deleteTask && config.union.fmlRace.deleteUnclaimedTask"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.deleteUnclaimedMinutes"
+                :min="1"
+                :max="999"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"
