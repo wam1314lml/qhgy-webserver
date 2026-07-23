@@ -1268,6 +1268,10 @@ const specifiedArtsFullNameMap: Record<string, string> = {
   "310602": "碧澜金樽(龙舟竞渡,丹红蜀葵花,粉石菖蒲)",
   "310603": "碧澜金樽(龙舟竞渡,金盏蜀葵花,粉石菖蒲)",
   "310701": "徽院清隅(天下一墨,云松墨笺,浅粉凤仙花)",
+  "310801": "山海浮岚(星璇寰宇,扶摇云鲲,珠斓银杏)",
+  "310802": "山海浮岚(星璇寰宇,扶摇云鲲,玉蕊金棠)",
+  "310803": "山海浮岚(星璇寰宇,扶摇云鲲,霓羽翠云)",
+  "310901": "晴亭水榭(大暑·夏漪清欢,三花水杨梅,蓝花亚麻)",
 }
 
 export const specifiedArtsFullOptions = Object.entries(specifiedArtsFullNameMap).map(
