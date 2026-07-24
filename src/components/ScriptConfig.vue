@@ -124,6 +124,10 @@
             </div>
           </div>
 
+          <div class="game-account-line">
+            游戏账号：{{ formatGameAccountName(account) }}
+          </div>
+
           <div class="account-info">
             <div class="stats-grid resource-stats">
               <div class="stat-item compact">
@@ -881,6 +885,28 @@ const getAlipayTokenStatus = (account: GameAccount) => {
   if (hours > 0) timeLeft += `${hours}h`
   timeLeft += `${minutes}m`
   return { state: 'ok' as const, timeLeft }
+}
+
+const maskOfficialAccountName = (value: string): string => {
+  const chars = Array.from(value)
+  const length = chars.length
+  let hiddenCount = 4
+
+  if (length <= 1) hiddenCount = 1
+  else if (length <= 3) hiddenCount = 1
+  else if (length <= 5) hiddenCount = 2
+  else if (length === 6) hiddenCount = 3
+
+  hiddenCount = Math.min(hiddenCount, length)
+  return `${chars.slice(0, length - hiddenCount).join('')}${'*'.repeat(hiddenCount)}`
+}
+
+const formatGameAccountName = (account: GameAccount): string => {
+  const accountName = String(account.username || '').trim()
+  if (!accountName) return '--'
+
+  const platform = Number(account.platform)
+  return platform === 1 || platform === 2 ? accountName : maskOfficialAccountName(accountName)
 }
 
 const isAccountExpired = (account: GameAccount): boolean => {
