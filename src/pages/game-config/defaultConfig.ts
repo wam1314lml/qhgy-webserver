@@ -134,6 +134,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         helpFrd: false,
         helpFrdMode: 'limit3',
         dispatch: false,
+        dispatchDoubleOnly: false,
         speedUpDispatch: false,
         recvDispatch: false,
         recvPass: false,

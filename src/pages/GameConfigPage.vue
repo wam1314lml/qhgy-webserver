@@ -859,6 +859,14 @@
               <Switch v-model:checked="config.plant.elves.dispatch" />
             </CustomFormItem>
             <CustomFormItem
+              v-if="config.plant.elves.dispatch"
+              label="只派遣双倍花灵"
+              name="plant.elves.dispatchDoubleOnly"
+              tooltip="开启后只派遣当期双倍活动花灵；关闭时优先派遣双倍/指定花灵，无合适花灵时则派遣背包任意花灵"
+            >
+              <Switch v-model:checked="config.plant.elves.dispatchDoubleOnly" />
+            </CustomFormItem>
+            <CustomFormItem
               label="自动加速派遣"
               name="plant.elves.speedUpDispatch"
               tooltip="花费元宝加速派遣中的花灵"

@@ -110,6 +110,7 @@ export interface GameConfig {
       helpFrd: boolean
       helpFrdMode: 'limit3'
       dispatch: boolean
+      dispatchDoubleOnly: boolean
       speedUpDispatch: boolean
       recvDispatch: boolean
       recvPass: boolean
