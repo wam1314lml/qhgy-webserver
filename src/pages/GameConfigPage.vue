@@ -988,6 +988,13 @@
               >
                 <Switch v-model:checked="config.plant.artSell.rackAutoRefresh" />
               </CustomFormItem>
+              <CustomFormItem
+                label="库存优先"
+                name="plant.artSell.stockFirst"
+                tooltip="开启后会优先上架已有的花艺(从多到少排序)，全部没有后才会再根据上架模式上架设置的花艺"
+              >
+                <Switch v-model:checked="config.plant.artSell.stockFirst" />
+              </CustomFormItem>
             </template>
             <CustomFormItem
               label="花艺经验"

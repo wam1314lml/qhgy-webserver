@@ -160,6 +160,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         recvArtCreateRwd: false,
         recvCollectRwd: false,
         artFirstMake: false,
+        stockFirst: false,
       },
       market: {
         autoUnlockShelf: false,

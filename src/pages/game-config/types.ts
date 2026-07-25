@@ -136,6 +136,7 @@ export interface GameConfig {
       recvArtCreateRwd: boolean
       recvCollectRwd: boolean
       artFirstMake: boolean
+      stockFirst: boolean
     }
     market: {
       autoUnlockShelf: boolean
