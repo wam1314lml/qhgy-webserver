@@ -56,6 +56,10 @@ export const createDefaultGameConfig = (): GameConfig =>
           maxSpendDmd: 0,
           maxSpendFloralCoin: 0,
         },
+        floralShop: {
+          enabled: false,
+          itemIds: [],
+        },
       },
     },
     plant: {

@@ -56,6 +56,10 @@ export interface GameConfig {
         maxSpendDmd: number
         maxSpendFloralCoin: number
       }
+      floralShop: {
+        enabled: boolean
+        itemIds: number[]
+      }
     }
   }
 

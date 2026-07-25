@@ -325,6 +325,36 @@
               </CustomFormItem>
             </template>
 
+            <Divider orientation="left">花坊</Divider>
+            <CustomFormItem
+              label="花坊兑换"
+              name="basic.shop.floralShop.enabled"
+              tooltip="开启后会根据用户设置兑换未拥有的鲜花/花瓶（花坊商店 tempId=6，每种限购一件，已购过的自动跳过）"
+            >
+              <Switch v-model:checked="config.basic.shop.floralShop.enabled" />
+            </CustomFormItem>
+            <template v-if="config.basic.shop.floralShop.enabled">
+              <CustomFormItem
+                label="兑换商品"
+                name="basic.shop.floralShop.itemIds"
+                tooltip="填写花坊商店 itemId，多个用英文逗号分隔，例如：10025,20005（鲜花类 1xxxx，花瓶类 2xxxx）"
+              >
+                <a-input
+                  :value="(config.basic.shop.floralShop.itemIds ?? []).join(',')"
+                  placeholder="商品 itemId，逗号分隔，如 10025,20005"
+                  class="w-72! sm:w-80!"
+                  @change="(e: Event) => {
+                    const raw = (e.target as HTMLInputElement).value
+                    config.basic.shop.floralShop.itemIds = raw
+                      .split(',')
+                      .map(s => s.trim())
+                      .filter(s => /^\d+$/.test(s))
+                      .map(Number)
+                  }"
+                />
+              </CustomFormItem>
+            </template>
+
             <Divider orientation="left">随机事件</Divider>
             <CustomFormItem label="自动处理" name="basic.randomEvent" tooltip="自动处理随机事件">
               <Switch v-model:checked="config.basic.randomEvent" />
