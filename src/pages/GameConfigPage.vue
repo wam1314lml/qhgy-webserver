@@ -337,20 +337,16 @@
               <CustomFormItem
                 label="兑换商品"
                 name="basic.shop.floralShop.itemIds"
-                tooltip="填写花坊商店 itemId，多个用英文逗号分隔，例如：10025,20005（鲜花类 1xxxx，花瓶类 2xxxx）"
+                tooltip="选择花坊商店要兑换的鲜花/花瓶，已购过的自动跳过"
               >
-                <a-input
-                  :value="(config.basic.shop.floralShop.itemIds ?? []).join(',')"
-                  placeholder="商品 itemId，逗号分隔，如 10025,20005"
-                  class="w-72! sm:w-80!"
-                  @change="(e: Event) => {
-                    const raw = (e.target as HTMLInputElement).value
-                    config.basic.shop.floralShop.itemIds = raw
-                      .split(',')
-                      .map(s => s.trim())
-                      .filter(s => /^\d+$/.test(s))
-                      .map(Number)
-                  }"
+                <a-select
+                  v-model:value="config.basic.shop.floralShop.itemIds"
+                  mode="multiple"
+                  :options="floralShopAllOptions"
+                  placeholder="请选择要兑换的商品"
+                  allow-clear
+                  class="w-72! sm:w-96!"
+                  :max-tag-count="5"
                 />
               </CustomFormItem>
             </template>
@@ -2308,6 +2304,7 @@ import {
   landGroupSizeOptions,
   tabs,
 } from './game-config/options'
+import { floralShopAllOptions } from './game-config/shopItem6Options'
 import { deepMerge } from './game-config/utils'
 import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
 import { syncMinTaskScoreForAutoUpgrade, getMinTaskScoreFloor } from './game-config/fmlRaceUtils'
