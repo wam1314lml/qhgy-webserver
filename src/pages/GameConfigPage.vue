@@ -1772,6 +1772,34 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              label="公会玩家"
+              tooltip="点一下就读取了这个公会所有玩家的名字，可以点单个名字，点了就添加到指定用户名里"
+              v-if="
+                config.union.fmlRace.othersUpgradeTaskMode &&
+                config.union.fmlRace.onlySpecifiedUpgradeTask
+              "
+            >
+              <div class="w-full max-w-[480px] flex flex-col gap-2">
+                <a-button
+                  :loading="guildMembersLoading"
+                  :disabled="guildMembersLoading"
+                  @click="fetchGuildMemberNames"
+                >
+                  读取公会所有玩家名字
+                </a-button>
+                <Select
+                  v-if="guildMemberOptions.length"
+                  v-model:value="selectedGuildMember"
+                  :options="guildMemberOptions"
+                  placeholder="选择玩家，选择后自动添加"
+                  show-search
+                  allow-clear
+                  :filter-option="filterGuildMemberOption"
+                  @select="addSpecifiedUpgradePlayer"
+                />
+              </div>
+            </CustomFormItem>
+            <CustomFormItem
               label="任务优先级"
               name="union.fmlRace.taskTypePriority"
               tooltip="设置每种任务类型的接取优先级。数字越小越优先；填 0 表示不接此类任务。优先级相同时分数高优先。"
@@ -2323,6 +2351,9 @@ const importConfigModalVisible = ref(false)
 const importAccountListLoading = ref(false)
 const importSourceAccountId = ref<number | undefined>()
 const importAccountOptions = ref<Array<{ value: number; label: string }>>([])
+const guildMembersLoading = ref(false)
+const guildMemberOptions = ref<Array<{ value: string; label: string }>>([])
+const selectedGuildMember = ref<string | undefined>()
 const activeTab = ref('基础')
 const formRef = ref()
 
@@ -2344,6 +2375,103 @@ const othersUpgradeTaskChoice = computed({
     config.value.union.fmlRace.excludeOthersUpgradeTask = !onlySpecified
   },
 })
+
+const getGuildMemberName = (member: unknown): string => {
+  if (typeof member === 'string') return member.trim()
+  if (!member || typeof member !== 'object') return ''
+
+  const data = member as Record<string, unknown>
+  const nameKeys = [
+    'nickName',
+    'nickname',
+    'name',
+    'playerName',
+    'memberName',
+    'roleName',
+    'userName',
+    'username',
+    'nick',
+    'displayName',
+  ]
+  for (const key of nameKeys) {
+    if (typeof data[key] === 'string' && data[key].trim()) return data[key].trim()
+  }
+
+  const nestedKeys = ['player', 'member', 'user', 'profile']
+  for (const key of nestedKeys) {
+    const nestedName = getGuildMemberName(data[key])
+    if (nestedName) return nestedName
+  }
+  return ''
+}
+
+const normalizeGuildMembers = (value: unknown): string[] => {
+  let members: unknown[] = []
+  if (Array.isArray(value)) {
+    members = value
+  } else if (value && typeof value === 'object') {
+    const data = value as Record<string, unknown>
+    const nestedList =
+      data.members ?? data.memberList ?? data.list ?? data.items ?? data.results ?? data.data
+    members = Array.isArray(nestedList) ? nestedList : Object.values(data)
+  }
+
+  return Array.from(new Set(members.map(getGuildMemberName).filter(Boolean))).sort((a, b) =>
+    a.localeCompare(b, 'zh-CN'),
+  )
+}
+
+const fetchGuildMemberNames = async () => {
+  if (!accountId.value) {
+    message.error('缺少账号参数')
+    return
+  }
+
+  guildMembersLoading.value = true
+  guildMemberOptions.value = []
+  selectedGuildMember.value = undefined
+  try {
+    const response = await axios.get(`/api/game-accounts/player_records?ids=${accountId.value}`)
+    const results = response.data?.data?.results
+    const records = Array.isArray(results) ? results : []
+    const playerRecord =
+      records.find((item: { id?: string | number }) => Number(item?.id) === accountId.value) ??
+      records[0]
+    const record = playerRecord?.record ?? playerRecord
+    const names = normalizeGuildMembers(record?.fmlMembers)
+
+    if (!names.length) {
+      message.warning('未读取到公会成员名字，请确认账号已启动并加入公会')
+      return
+    }
+
+    guildMemberOptions.value = names.map((name) => ({ value: name, label: name }))
+    message.success(`已读取 ${names.length} 名公会玩家`)
+  } catch (error) {
+    console.error('读取公会玩家失败:', error)
+    message.error('读取公会玩家失败，请稍后重试')
+  } finally {
+    guildMembersLoading.value = false
+  }
+}
+
+const filterGuildMemberOption = (input: string, option?: { label?: string }) =>
+  (option?.label ?? '').toLowerCase().includes(input.trim().toLowerCase())
+
+const addSpecifiedUpgradePlayer = (name: string) => {
+  const normalizedName = String(name || '').trim()
+  selectedGuildMember.value = undefined
+  if (!normalizedName) return
+
+  const players = config.value.union.fmlRace.specifiedUpgradePlayers
+  if (players.includes(normalizedName)) {
+    message.info(`${normalizedName} 已在指定用户名中`)
+    return
+  }
+
+  config.value.union.fmlRace.specifiedUpgradePlayers = [...players, normalizedName]
+  message.success(`已添加 ${normalizedName}`)
+}
 
 watch(
   () => ({
