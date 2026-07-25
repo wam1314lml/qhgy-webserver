@@ -1324,14 +1324,43 @@
                 <Switch v-model:checked="config.order.team.submitOnlyCultivatedFlowers" />
               </CustomFormItem>
               <CustomFormItem
-                label="品质限定"
+                label="团单模式"
+                name="order.team.teamMode"
+                tooltip="品质限定：只提交指定品质的花朵；排除花朵：碰到排除的花朵就刷新，其余花朵均可提交"
+              >
+                <Radio.Group v-model:value="config.order.team.teamMode">
+                  <Space>
+                    <Radio value="quality">品质限定</Radio>
+                    <Radio value="exclude">排除花朵</Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <!-- 品质限定模式 -->
+              <CustomFormItem
+                label="选择品质"
                 name="order.team.qualities"
                 tooltip="仅提交指定品质的花朵到团单"
+                v-if="config.order.team.teamMode === 'quality'"
               >
                 <CustomSelect
                   v-model:value="config.order.team.qualities"
                   mode="multiple"
                   :options="flowerQualityOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <!-- 排除花朵模式 -->
+              <CustomFormItem
+                label="排除花朵"
+                name="order.team.excludeFlowerIds"
+                tooltip="请选择排除的花朵，团单碰到排除的花朵就会跳过（刷新）"
+                v-if="config.order.team.teamMode === 'exclude'"
+              >
+                <CustomSelect
+                  v-model:value="config.order.team.excludeFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择排除的花朵"
+                  :options="getFlowerPickerOptions(config.order.team.excludeFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>

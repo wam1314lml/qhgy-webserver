@@ -202,7 +202,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         oneMore: false,
         submitOnlyCultivatedFlowers: true,
+        teamMode: 'quality',
         qualities: [1, 2, 3, 4, 5],
+        excludeFlowerIds: [],
       },
     },
     union: {

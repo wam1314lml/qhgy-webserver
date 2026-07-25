@@ -179,7 +179,9 @@ export interface GameConfig {
       enabled: boolean
       oneMore: boolean
       submitOnlyCultivatedFlowers: boolean
+      teamMode: 'quality' | 'exclude'
       qualities: number[]
+      excludeFlowerIds: number[]
     }
   }
 
