@@ -111,6 +111,8 @@ export interface GameConfig {
       helpFrdMode: 'limit3'
       dispatch: boolean
       dispatchDoubleOnly: boolean
+      dispatchMode: 'doubleFirst' | 'doubleOnly'
+      dispatchCount: number
       speedUpDispatch: boolean
       recvDispatch: boolean
       recvPass: boolean

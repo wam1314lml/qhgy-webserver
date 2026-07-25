@@ -860,11 +860,28 @@
             </CustomFormItem>
             <CustomFormItem
               v-if="config.plant.elves.dispatch"
-              label="只派遣双倍花灵"
-              name="plant.elves.dispatchDoubleOnly"
-              tooltip="开启后只派遣当期双倍活动花灵；关闭时优先派遣双倍/指定花灵，无合适花灵时则派遣背包任意花灵"
+              label="派遣模式"
+              name="plant.elves.dispatchMode"
+              tooltip="先双倍后普通：优先派遣双倍花灵，无双倍花灵时派遣普通花灵；只派遣双倍：无双倍花灵时跳过派遣"
             >
-              <Switch v-model:checked="config.plant.elves.dispatchDoubleOnly" />
+              <Radio.Group v-model:value="config.plant.elves.dispatchMode">
+                <Space direction="vertical">
+                  <Radio value="doubleFirst">先双倍后普通</Radio>
+                  <Radio value="doubleOnly">只派遣双倍</Radio>
+                </Space>
+              </Radio.Group>
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.dispatch"
+              label="派遣数量"
+              name="plant.elves.dispatchCount"
+              tooltip="每个槽位每次派遣几个花灵（1-12）"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.elves.dispatchCount"
+                :min="1"
+                :max="12"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="自动加速派遣"
