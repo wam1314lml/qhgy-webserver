@@ -125,6 +125,10 @@ export const createDefaultGameConfig = (): GameConfig =>
         excludeFlowerIds: [],
         buyStealEnabled: false,
         buyStealCount: 10,
+        noStealEnabled: false,
+        noStealStart: '22:00',
+        noStealEnd: '07:00',
+        lateNightConsumeEnabled: false,
       },
       elves: {
         enabled: false,

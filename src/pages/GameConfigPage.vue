@@ -806,6 +806,42 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
+              <CustomFormItem
+                label="禁止偷花时段"
+                name="plant.friendSteal.noStealEnabled"
+                tooltip="开启后，在设置的时间段内不执行偷花，建议半夜别偷"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.noStealEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.noStealEnabled"
+                label="禁止时段"
+                name="plant.friendSteal.noStealStart"
+                tooltip="格式 HH:mm，前面时间需小于后面时间时为白天段；前大于后为跨午夜夜间段（推荐 22:00 至 07:00）"
+              >
+                <Space align="center">
+                  <Input
+                    v-model:value="config.plant.friendSteal.noStealStart"
+                    placeholder="开始时间"
+                    style="width: 100px"
+                    maxlength="5"
+                  />
+                  <span class="text-gray-400">至</span>
+                  <Input
+                    v-model:value="config.plant.friendSteal.noStealEnd"
+                    placeholder="结束时间"
+                    style="width: 100px"
+                    maxlength="5"
+                  />
+                </Space>
+              </CustomFormItem>
+              <CustomFormItem
+                label="晚上用完剩余次数"
+                name="plant.friendSteal.lateNightConsumeEnabled"
+                tooltip="23:00 后忽略所有偷花筛选条件（品质、指定花朵、排除花朵等），直接偷任何普通花耗光免费次数，不自动购买；注意：避开花灵土地此配置仍然生效"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.lateNightConsumeEnabled" />
+              </CustomFormItem>
             </template>
 
             <Divider orientation="left">花灵</Divider>

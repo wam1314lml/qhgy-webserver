@@ -101,6 +101,10 @@ export interface GameConfig {
       excludeFlowerIds: Array<number | string>
       buyStealEnabled: boolean
       buyStealCount: number
+      noStealEnabled: boolean
+      noStealStart: string
+      noStealEnd: string
+      lateNightConsumeEnabled: boolean
     }
     elves: {
       enabled: boolean
