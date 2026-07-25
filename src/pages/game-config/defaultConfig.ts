@@ -126,7 +126,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         buyStealEnabled: false,
         buyStealCount: 10,
         noStealEnabled: false,
-        noStealStart: '22:00',
+        noStealStart: '01:00',
         noStealEnd: '07:00',
         lateNightConsumeEnabled: false,
       },

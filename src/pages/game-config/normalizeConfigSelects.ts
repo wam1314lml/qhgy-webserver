@@ -124,7 +124,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
 
   // 时间格式校验（HH:mm），格式不合法则恢复默认
   const HHmmRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-  if (!HHmmRegex.test(friendSteal.noStealStart as string)) friendSteal.noStealStart = '22:00'
+  if (!HHmmRegex.test(friendSteal.noStealStart as string)) friendSteal.noStealStart = '01:00'
   if (!HHmmRegex.test(friendSteal.noStealEnd as string))   friendSteal.noStealEnd   = '07:00'
 
   config.plant.elves.selectedElvesIds = ensureMultiSelectValue(
