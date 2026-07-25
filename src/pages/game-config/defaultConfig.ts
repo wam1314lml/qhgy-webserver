@@ -194,6 +194,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       customer: {
         enabled: false,
         rejectEnabled: false,
+        customerMaxNum: 999,
       },
       palace: {
         enabled: false,

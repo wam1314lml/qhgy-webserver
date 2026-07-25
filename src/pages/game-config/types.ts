@@ -171,6 +171,7 @@ export interface GameConfig {
     customer: {
       enabled: boolean
       rejectEnabled: boolean
+      customerMaxNum: number
     }
     palace: {
       enabled: boolean

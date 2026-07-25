@@ -1305,6 +1305,18 @@
             >
               <Switch v-model:checked="config.order.customer.rejectEnabled" />
             </CustomFormItem>
+            <CustomFormItem
+              label="顾客订单上限"
+              name="order.customer.customerMaxNum"
+              tooltip="今日累计完成顾客订单达到此数量后停止完成，且不再为顾客订单种植花卉（1-9999）"
+              v-if="config.order.customer.enabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.order.customer.customerMaxNum"
+                :min="1"
+                :max="9999"
+              />
+            </CustomFormItem>
 
             <Divider orientation="left">宫廷订单</Divider>
             <CustomFormItem label="自动完成" name="order.palace.enabled">
