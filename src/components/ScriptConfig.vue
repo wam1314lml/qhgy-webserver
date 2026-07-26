@@ -274,7 +274,7 @@
           </div>
         </div>
 
-        <div class="add-account-card" @click="handleAddAccount">
+        <div v-if="canAddAccount" class="add-account-card" @click="handleAddAccount">
           <div class="add-icon">+</div>
           <div class="add-text">添加游戏账号</div>
         </div>
@@ -557,7 +557,8 @@
       description="菜单"
     >
       <template #icon>
-        <PlusOutlined />
+        <PlusOutlined v-if="canAddAccount" />
+        <MoreOutlined v-else />
       </template>
 
       <a-float-button
@@ -576,6 +577,7 @@
       </a-float-button>
 
       <a-float-button
+        v-if="canAddAccount"
         tooltip="添加账号"
         @click="
           () => {
@@ -752,6 +754,8 @@ console.log('🚀 ScriptConfig 组件加载')
 
 // 所有状态管理
 const accounts = ref<GameAccount[]>([])
+const MAX_GAME_ACCOUNTS = 10
+const canAddAccount = computed(() => accounts.value.length < MAX_GAME_ACCOUNTS)
 const showAddModal = ref(false)
 const isLoading = ref(false)
 const operatingAccounts = ref<Set<number>>(new Set())
@@ -1293,6 +1297,10 @@ const refreshAllAccountsData = async () => {
 
 // 处理添加账号
 const handleAddAccount = () => {
+  if (!canAddAccount.value) {
+    message.warning(`最多只能绑定 ${MAX_GAME_ACCOUNTS} 个游戏账号`)
+    return
+  }
   showAddModal.value = true
 }
 
