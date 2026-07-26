@@ -1773,7 +1773,7 @@
             </CustomFormItem>
             <CustomFormItem
               label="公会玩家"
-              tooltip="点一下就读取了这个公会所有玩家的名字，可以点单个名字，点了就添加到指定用户名里"
+              tooltip="点一下读取公会所有玩家名字，支持输入名字搜索；选择名字后会自动添加到指定用户名里"
               v-if="
                 config.union.fmlRace.othersUpgradeTaskMode &&
                 config.union.fmlRace.onlySpecifiedUpgradeTask
@@ -1791,7 +1791,7 @@
                   v-if="guildMemberOptions.length"
                   v-model:value="selectedGuildMember"
                   :options="guildMemberOptions"
-                  placeholder="选择玩家，选择后自动添加"
+                  placeholder="输入玩家名搜索，选择后自动添加"
                   show-search
                   allow-clear
                   :filter-option="filterGuildMemberOption"
