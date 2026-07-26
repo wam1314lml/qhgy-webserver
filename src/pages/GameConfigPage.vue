@@ -2412,8 +2412,18 @@ const normalizeGuildMembers = (value: unknown): string[] => {
   } else if (value && typeof value === 'object') {
     const data = value as Record<string, unknown>
     const nestedList =
-      data.members ?? data.memberList ?? data.list ?? data.items ?? data.results ?? data.data
-    members = Array.isArray(nestedList) ? nestedList : Object.values(data)
+      data.names ??
+      data.members ??
+      data.memberList ??
+      data.list ??
+      data.items ??
+      data.results ??
+      data.data
+    members = Array.isArray(nestedList)
+      ? nestedList
+      : nestedList && typeof nestedList === 'object'
+        ? Object.values(nestedList)
+        : Object.values(data)
   }
 
   return Array.from(new Set(members.map(getGuildMemberName).filter(Boolean))).sort((a, b) =>
