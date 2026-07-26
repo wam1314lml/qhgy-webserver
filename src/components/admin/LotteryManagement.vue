@@ -178,6 +178,15 @@
             </a-select>
           </a-form-item>
 
+          <a-form-item label="奖励值">
+            <a-input
+              v-model:value="searchForm.rewardValue"
+              placeholder="如: 100"
+              style="width: 120px"
+              @pressEnter="handleSearch"
+            />
+          </a-form-item>
+
           <a-form-item label="日期范围">
             <a-range-picker
               v-model:value="searchForm.dateRange"
@@ -355,6 +364,7 @@ const searchForm = ref({
   username: '',
   type: undefined,
   rewardType: undefined,
+  rewardValue: '',
   dateRange: undefined as any,
 })
 
@@ -517,6 +527,9 @@ const loadRecords = async (page = 1) => {
     if (searchForm.value.rewardType) {
       params.rewardType = searchForm.value.rewardType
     }
+    if (searchForm.value.rewardValue) {
+      params.rewardValue = searchForm.value.rewardValue
+    }
     if (searchForm.value.dateRange && searchForm.value.dateRange.length === 2) {
       params.startDate = searchForm.value.dateRange[0].format('YYYY-MM-DD 00:00:00')
       params.endDate = searchForm.value.dateRange[1].format('YYYY-MM-DD 23:59:59')
@@ -545,6 +558,7 @@ const handleResetSearch = () => {
     username: '',
     type: undefined,
     rewardType: undefined,
+    rewardValue: '',
     dateRange: undefined,
   }
   recordPage.value = 1
