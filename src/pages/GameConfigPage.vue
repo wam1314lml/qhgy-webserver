@@ -2376,8 +2376,11 @@ const othersUpgradeTaskChoice = computed({
   },
 })
 
+const stripGuildMemberServerPrefix = (name: string): string =>
+  name.trim().replace(/^s\d+\./i, '')
+
 const getGuildMemberName = (member: unknown): string => {
-  if (typeof member === 'string') return member.trim()
+  if (typeof member === 'string') return stripGuildMemberServerPrefix(member)
   if (!member || typeof member !== 'object') return ''
 
   const data = member as Record<string, unknown>
@@ -2394,7 +2397,9 @@ const getGuildMemberName = (member: unknown): string => {
     'displayName',
   ]
   for (const key of nameKeys) {
-    if (typeof data[key] === 'string' && data[key].trim()) return data[key].trim()
+    if (typeof data[key] === 'string' && data[key].trim()) {
+      return stripGuildMemberServerPrefix(data[key])
+    }
   }
 
   const nestedKeys = ['player', 'member', 'user', 'profile']
