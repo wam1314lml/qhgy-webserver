@@ -388,21 +388,6 @@
             {{ baseQuotaPoints + additionalPoints }} 点
           </span>
         </div>
-        <div
-          style="
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            background: #fff1f0;
-            border: 1px solid #ffccc7;
-            border-radius: 6px;
-            color: #cf1322;
-            font-size: 13px;
-            line-height: 1.6;
-            font-weight: 600;
-          "
-        >
-          注：如本身套餐消耗 10 配额增加 10 天，这里再设置 10 则消耗 20 配额增加 20 天
-        </div>
         <div style="display: flex; gap: 12px; align-items: center">
           <a-slider
             v-model:value="additionalPoints"
