@@ -149,6 +149,50 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <!-- 抽奖次数操作Modal -->
+    <a-modal
+      :title="`${lotteryOperationType === 'add' ? '增加抽奖次数' : '扣除抽奖次数'} - ${selectedUserForLottery?.username || ''}`"
+      v-model:open="lotteryModalOpen"
+      @ok="handleLotterySubmit"
+      @cancel="() => { lotteryModalOpen = false; selectedUserForLottery = null }"
+      :confirm-loading="lotteryLoading"
+      width="500px"
+      ok-text="确认"
+      cancel-text="取消"
+    >
+      <div style="margin-bottom: 16px">
+        <p>用户：<strong>{{ selectedUserForLottery?.username }}</strong></p>
+        <p>当前抽奖次数：<strong>{{ selectedUserForLottery?.recharge_lottery_count ?? 0 }}</strong></p>
+      </div>
+      <a-form ref="lotteryFormRef" :model="lotteryForm" layout="vertical">
+        <a-form-item
+          name="tickets"
+          label="次数"
+          :rules="[
+            { required: true, message: '请输入次数' },
+            { type: 'number', min: 1, message: '次数必须大于0' },
+          ]"
+        >
+          <a-input-number
+            :min="1"
+            style="width: 100%"
+            placeholder="请输入次数"
+            v-model:value="lotteryForm.tickets"
+          />
+        </a-form-item>
+        <a-form-item
+          name="reason"
+          :label="lotteryOperationType === 'add' ? '增加原因' : '扣除原因'"
+          :rules="[{ required: true, message: '请输入操作原因' }]"
+        >
+          <a-textarea
+            :rows="3"
+            :placeholder="lotteryOperationType === 'add' ? '请输入增加原因' : '请输入扣除原因'"
+            v-model:value="lotteryForm.reason"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -165,6 +209,7 @@ interface User {
   email: string
   role: string
   points: number
+  recharge_lottery_count: number
   invite_code: string
   total_invites: number
   invited_by: string | null
@@ -366,6 +411,24 @@ const userColumns = computed(() => [
           Button,
           {
             size: 'small',
+            style: { background: '#059669', color: '#fff', borderColor: '#059669' },
+            onClick: () => handleSingleUserAddLottery(record),
+          },
+          '加次数',
+        ),
+        h(
+          Button,
+          {
+            size: 'small',
+            style: { background: '#dc2626', color: '#fff', borderColor: '#dc2626' },
+            onClick: () => handleSingleUserSubtractLottery(record),
+          },
+          '扣次数',
+        ),
+        h(
+          Button,
+          {
+            size: 'small',
             style: { background: '#7c3aed', color: '#fff', borderColor: '#7c3aed' },
             onClick: () => openAgentConfigModal(record),
           },
@@ -482,7 +545,7 @@ const updateUserRole = async (userId: number, role: string) => {
 const openAgentConfigModal = async (user: User) => {
   agentConfigTarget.value = user
   agentConfigForm.value = {
-    action: user.role === 'agent3' ? 'appoint' : 'appoint',
+    action: user.role === 'agent3' ? 'dismiss' : 'appoint',
     parent_agent_id: undefined,
     commission_rate: undefined,
   }
@@ -550,6 +613,58 @@ const handleSingleUserSubtractPoints = (user: User) => {
   selectedUserForPoints.value = user
   singleOperationType.value = 'subtract'
   singlePointsModalOpen.value = true
+}
+
+// ── 抽奖次数操作 ──
+const lotteryModalOpen = ref(false)
+const lotteryOperationType = ref<'add' | 'subtract'>('add')
+const selectedUserForLottery = ref<User | null>(null)
+const lotteryLoading = ref(false)
+const lotteryFormRef = ref<FormInstance>()
+const lotteryForm = ref({ tickets: 1, reason: '' })
+
+const handleSingleUserAddLottery = (user: User) => {
+  selectedUserForLottery.value = user
+  lotteryOperationType.value = 'add'
+  lotteryForm.value = { tickets: 1, reason: '' }
+  lotteryModalOpen.value = true
+}
+
+const handleSingleUserSubtractLottery = (user: User) => {
+  selectedUserForLottery.value = user
+  lotteryOperationType.value = 'subtract'
+  lotteryForm.value = { tickets: 1, reason: '' }
+  lotteryModalOpen.value = true
+}
+
+const handleLotterySubmit = async () => {
+  try {
+    await lotteryFormRef.value?.validate()
+  } catch {
+    return
+  }
+  if (!selectedUserForLottery.value) return
+  lotteryLoading.value = true
+  try {
+    const response = await axios.post('/api/admin/user-lottery-tickets', {
+      userId: selectedUserForLottery.value.id,
+      tickets: lotteryForm.value.tickets,
+      operation: lotteryOperationType.value,
+      reason: lotteryForm.value.reason,
+    })
+    if (response.data.success) {
+      message.success(`${lotteryOperationType.value === 'add' ? '增加' : '扣除'}抽奖次数成功`)
+      lotteryModalOpen.value = false
+      selectedUserForLottery.value = null
+      fetchUsers()
+    } else {
+      message.error(response.data.message || '操作失败')
+    }
+  } catch (err: any) {
+    message.error(err?.response?.data?.message || '操作失败')
+  } finally {
+    lotteryLoading.value = false
+  }
 }
 
 // 执行单个用户点数操作
