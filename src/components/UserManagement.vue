@@ -334,6 +334,12 @@ const userColumns = computed(() => [
     customRender: ({ text }: { text: number }) => `${text} 点`,
   },
   {
+    title: '抽奖次数',
+    dataIndex: 'recharge_lottery_count',
+    key: 'recharge_lottery_count',
+    customRender: ({ text }: { text: number }) => `${text ?? 0} 次`,
+  },
+  {
     title: '邀请码',
     dataIndex: 'invite_code',
     key: 'invite_code',
