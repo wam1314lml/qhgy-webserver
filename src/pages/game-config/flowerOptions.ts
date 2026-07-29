@@ -498,6 +498,20 @@ const flowerNameMap: Record<string, string> = {
   "23579": "蓝花亚麻"
 }
 
+Object.assign(flowerNameMap, {
+  "23583": "身有彩翼",
+  "23584": "辉似朝阳",
+  "23585": "皎如明月",
+  "23586": "灿若繁星",
+  "23587": "凝紫四照花",
+  "23588": "桃粉四照花",
+  "23589": "青绿四照花",
+  "23590": "星垂绮夜",
+  "23591": "狸奴衔芳",
+  "23592": "萤栖紫绡",
+  "23593": "幽紫蓝铃花",
+})
+
 export const flowerOptions = Object.entries(flowerNameMap).map(([value, label]) => ({
   value,
   label,

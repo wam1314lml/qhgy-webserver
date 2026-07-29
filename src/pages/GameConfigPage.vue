@@ -1896,6 +1896,15 @@
             <CustomFormItem label="自动收集能量" name="union.fmlForest.enabled">
               <Switch v-model:checked="config.union.fmlForest.enabled" />
             </CustomFormItem>
+
+            <Divider orientation="left">公会抢红包</Divider>
+            <CustomFormItem
+              label="抢红包"
+              name="activity.actFmlRedEnvelope.enabled"
+              tooltip="开启后会抢公会里的红包"
+            >
+              <Switch v-model:checked="config.activity.actFmlRedEnvelope.enabled" />
+            </CustomFormItem>
           </div>
 
           <!-- 活动设置 -->

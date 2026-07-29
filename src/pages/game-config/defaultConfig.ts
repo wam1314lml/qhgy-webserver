@@ -286,6 +286,9 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
     },
     activity: {
+      actFmlRedEnvelope: {
+        enabled: false,
+      },
       cyclicNote: {
         enabled: false,
         unlockSlot: false,

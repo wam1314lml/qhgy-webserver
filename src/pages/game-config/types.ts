@@ -251,6 +251,9 @@ export interface GameConfig {
   }
 
   activity: {
+    actFmlRedEnvelope: {
+      enabled: boolean
+    }
     cyclicNote: {
       enabled: boolean
       unlockSlot: boolean
