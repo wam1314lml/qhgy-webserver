@@ -1883,6 +1883,26 @@
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
+            <CustomFormItem
+              label="小号专属-只升级不做"
+              name="activity.fmlRace.onlyDiamondUpgradeTask"
+              tooltip="开启后，会根据设置的公会任务优先级（只要不填0都会接）和限制分数-未升级这两项设置来接任务，用元宝升级，升级后放弃任务，造福公会内的其他玩家。例：任务优先级设置了种植收获1、顾客订单2，限制分数-未升级设置了21，那么会接所有种植收获和顾客订单中大于等于21分的任务并用元宝升级，种植收获的元宝升级优先级大于顾客订单，升级后就放弃任务。"
+            >
+              <Switch v-model:checked="config.activity.fmlRace.onlyDiamondUpgradeTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.activity.fmlRace.onlyDiamondUpgradeTask"
+              label="保留元宝"
+              name="union.fmlRace.diamondUpgradeReserve"
+              tooltip="填0则不保留"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.diamondUpgradeReserve"
+                :min="0"
+                :max="9999999"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"

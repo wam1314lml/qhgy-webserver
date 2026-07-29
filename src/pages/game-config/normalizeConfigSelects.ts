@@ -61,6 +61,12 @@ function normalizeDeleteUnclaimedMinutes(value: unknown): number {
   return Math.min(999, Math.max(1, Math.floor(numberValue)))
 }
 
+function normalizeDiamondUpgradeReserve(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return 0
+  return Math.min(9999999, Math.max(0, Math.floor(numberValue)))
+}
+
 function normalizeGuildRaceTaskPriority(value: unknown): number {
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return 3
@@ -237,6 +243,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
     fmlRace.deleteUnclaimedMinutes,
   )
+  fmlRace.diamondUpgradeReserve = normalizeDiamondUpgradeReserve(
+    fmlRace.diamondUpgradeReserve,
+  )
+  config.activity.fmlRace.enabled = !!config.activity.fmlRace.enabled
+  config.activity.fmlRace.onlyDiamondUpgradeTask =
+    !!config.activity.fmlRace.onlyDiamondUpgradeTask
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }
