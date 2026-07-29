@@ -75,6 +75,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         plantEnabled: false,
         videoSpeedUp: false,
         useSpeedUpTicket: false,
+        speedUpTicketMode: 'dailyLimit',
+        speedUpTicketMinMinutes: 33,
+        speedUpTicketReserve: 0,
         speedUpTicketMax: 20,
         waterThreshold: 0,
         strictLayout: false,
@@ -380,6 +383,10 @@ export const createDefaultGameConfig = (): GameConfig =>
       actCardCollect: {
         enabledCardCollect: false,
         enabledSmoke: false,
+      },
+      actAnniv26Star: {
+        enabled: false,
+        lightStarsEnabled: false,
       },
     },
   }) as GameConfig

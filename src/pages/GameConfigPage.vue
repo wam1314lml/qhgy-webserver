@@ -512,14 +512,61 @@
                 <Switch v-model:checked="config.plant.flower.useSpeedUpTicket" />
               </CustomFormItem>
               <CustomFormItem
+                label="加速模式"
+                name="plant.flower.speedUpTicketMode"
+                v-if="config.plant.flower.useSpeedUpTicket"
+              >
+                <Radio.Group v-model:value="config.plant.flower.speedUpTicketMode">
+                  <Space direction="vertical">
+                    <Radio value="dailyLimit">每天使用多少张加速卡</Radio>
+                    <Radio value="remainingMinutes">收获时间大于多少分钟使用</Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
                 label="加速上限"
                 name="plant.flower.speedUpTicketMax"
                 tooltip="若设置100，则今日使用到100张就不使用了"
-                v-if="config.plant.flower.useSpeedUpTicket"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'dailyLimit'
+                "
               >
                 <CustomInputNumber
                   v-model:value="config.plant.flower.speedUpTicketMax"
                   :min="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="大于多少分钟"
+                name="plant.flower.speedUpTicketMinMinutes"
+                tooltip="仅当剩余成熟时间严格大于该分钟数时才会使用加速卡"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'remainingMinutes'
+                "
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.speedUpTicketMinMinutes"
+                  :min="0"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="保留加速卡"
+                name="plant.flower.speedUpTicketReserve"
+                tooltip="当加速卡库存小于等于该值时不使用加速卡"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'remainingMinutes'
+                "
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.speedUpTicketReserve"
+                  :min="0"
+                  :max="99999"
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
@@ -2292,6 +2339,23 @@
               tooltip="会领取灯芯草并且按顺序凝烟"
             >
               <Switch v-model:checked="config.activity.actCardCollect.enabledSmoke" />
+            </CustomFormItem>
+
+            <Divider orientation="left">彩翼星绽</Divider>
+            <CustomFormItem
+              label="灿若繁星"
+              name="activity.actAnniv26Star.enabled"
+              tooltip="开启后会领取奖励"
+            >
+              <Switch v-model:checked="config.activity.actAnniv26Star.enabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.activity.actAnniv26Star.enabled"
+              label="点亮星辰"
+              name="activity.actAnniv26Star.lightStarsEnabled"
+              tooltip="开启后星石袋就会去点亮星辰"
+            >
+              <Switch v-model:checked="config.activity.actAnniv26Star.lightStarsEnabled" />
             </CustomFormItem>
           </div>
         </Form>

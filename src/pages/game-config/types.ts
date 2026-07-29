@@ -76,6 +76,9 @@ export interface GameConfig {
       plantEnabled: boolean
       videoSpeedUp: boolean
       useSpeedUpTicket: boolean
+      speedUpTicketMode: 'dailyLimit' | 'remainingMinutes' | string
+      speedUpTicketMinMinutes: number
+      speedUpTicketReserve: number
       speedUpTicketMax: number
       waterThreshold: number
       strictLayout: boolean
@@ -345,6 +348,10 @@ export interface GameConfig {
     actCardCollect: {
       enabledCardCollect: boolean
       enabledSmoke: boolean
+    }
+    actAnniv26Star: {
+      enabled: boolean
+      lightStarsEnabled: boolean
     }
   }
 }

@@ -73,9 +73,34 @@ function normalizeGuildRaceTaskPriority(value: unknown): number {
   return Math.min(10, Math.max(1, Math.floor(numberValue)))
 }
 
+function normalizeSpeedUpTicketMode(value: unknown): 'dailyLimit' | 'remainingMinutes' {
+  return value === 'remainingMinutes' ? 'remainingMinutes' : 'dailyLimit'
+}
+
+function normalizeSpeedUpTicketNumber(
+  value: unknown,
+  fallback: number,
+  max: number,
+): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return fallback
+  return Math.min(max, Math.max(0, Math.floor(numberValue)))
+}
+
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
   const flower = config.plant.flower
+  flower.speedUpTicketMode = normalizeSpeedUpTicketMode(flower.speedUpTicketMode)
+  flower.speedUpTicketMinMinutes = normalizeSpeedUpTicketNumber(
+    flower.speedUpTicketMinMinutes,
+    33,
+    99,
+  )
+  flower.speedUpTicketReserve = normalizeSpeedUpTicketNumber(
+    flower.speedUpTicketReserve,
+    0,
+    99999,
+  )
   flower.qualities = ensureMultiSelectValue(flower.qualities, flowerQualityOptions)
   flower.specificFlowerIds = ensureMultiSelectValue(
     flower.specificFlowerIds,
