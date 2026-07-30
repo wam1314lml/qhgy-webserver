@@ -56,8 +56,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits } from 'vue'
-import { message } from 'ant-design-vue'
+import { ref, defineProps, defineEmits, h } from 'vue'
+import { Modal } from 'ant-design-vue'
 
 interface Prize {
   id: number
@@ -77,6 +77,8 @@ const props = defineProps<{
   prizes: Prize[]
   canDraw: boolean
   buttonText?: string
+  redirectToMiniProgram?: boolean
+  miniProgramName?: string
 }>()
 
 const emit = defineEmits<{
@@ -121,6 +123,21 @@ const getSectorStyle = (index: number) => {
 
 // 处理抽奖
 const handleDraw = () => {
+  if (props.redirectToMiniProgram) {
+    const miniProgramName = props.miniProgramName || '微信小程序'
+    Modal.warning({
+      title: '请前往微信小程序',
+      content: h(
+        'div',
+        { style: 'white-space: pre-wrap; word-break: break-word; line-height: 1.8;' },
+        `网页版福利已迁移至微信小程序\n请前往微信 → 发现 → 小程序，搜索“${miniProgramName}”`
+      ),
+      okText: '知道了',
+      centered: true,
+    })
+    return
+  }
+
   if (!props.canDraw || spinning.value) {
     return
   }

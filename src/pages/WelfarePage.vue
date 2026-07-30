@@ -1,6 +1,14 @@
 <template>
   <div class="welfare-page">
     <div class="welfare-container">
+      <div v-if="activeTab === 'daily'" class="mini-program-notice" role="alert">
+        <img src="/icons/wechat.svg" alt="" class="mini-program-notice__icon" />
+        <div class="mini-program-notice__content">
+          <div class="mini-program-notice__title">日常福利已移到微信小程序</div>
+          <div>请前往微信 → 发现 → 小程序，搜索“龟龟花园”</div>
+        </div>
+      </div>
+
       <!-- 标签切换 -->
       <a-tabs v-model:activeKey="activeTab" centered>
         <a-tab-pane key="daily" tab="日常福利" v-if="lotteryInfo.dailyEnabled">
@@ -37,10 +45,23 @@
               ref="dailyWheelRef"
               :prizes="dailyPrizes"
               :can-draw="lotteryInfo.canDailyDraw && !!selectedAccountId"
+              redirect-to-mini-program
+              mini-program-name="龟龟花园"
               button-text="开始"
               @draw="handleDailyDraw"
               @confirm="handlePrizeConfirm"
             />
+
+            <div class="tab-mini-program-entry" aria-label="微信小程序福利">
+              <div class="tab-mini-program-entry__badge">
+                <img src="/icons/wechat.svg" alt="微信小程序" />
+                <span>3/3</span>
+              </div>
+              <div>
+                <div class="tab-mini-program-entry__title">看视频请前往“龟龟花园”</div>
+                <div class="tab-mini-program-entry__text">微信 → 发现 → 小程序，搜索“龟龟花园”</div>
+              </div>
+            </div>
           </div>
         </a-tab-pane>
 
@@ -80,10 +101,23 @@
               ref="rechargeWheelRef"
               :prizes="rechargePrizes"
               :can-draw="lotteryInfo.rechargeLotteryCount > 0 && !!selectedRechargeAccountId"
+              redirect-to-mini-program
+              mini-program-name="龟龟花园"
               button-text="开始"
               @draw="handleRechargeDraw"
               @confirm="handlePrizeConfirm"
             />
+
+            <div class="tab-mini-program-entry" aria-label="微信小程序福利">
+              <div class="tab-mini-program-entry__badge">
+                <img src="/icons/wechat.svg" alt="微信小程序" />
+                <span>3/3</span>
+              </div>
+              <div>
+                <div class="tab-mini-program-entry__title">看视频请前往“龟龟花园”</div>
+                <div class="tab-mini-program-entry__text">网页版本暂未开放，请在小程序中获取</div>
+              </div>
+            </div>
           </div>
         </a-tab-pane>
       </a-tabs>
@@ -406,7 +440,87 @@ onMounted(async () => {
 }
 
 .tab-content {
+  position: relative;
   padding: 20px 0;
+}
+
+.mini-program-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border: 2px solid #ff4d4f;
+  border-radius: 10px;
+  background: #fff1f0;
+  color: #cf1322;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.mini-program-notice__icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+}
+
+.mini-program-notice__title {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.tab-mini-program-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 20px;
+  padding: 10px 14px;
+  border: 1px solid #ffccc7;
+  border-radius: 10px;
+  background: #fff7f6;
+  color: #cf1322;
+}
+
+.tab-mini-program-entry__badge {
+  position: relative;
+  flex: none;
+  width: 54px;
+  height: 54px;
+}
+
+.tab-mini-program-entry__badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.tab-mini-program-entry__badge span {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.tab-mini-program-entry__title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.tab-mini-program-entry__text {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .account-selector {
@@ -434,6 +548,25 @@ onMounted(async () => {
 
   .welfare-container {
     padding: 20px 15px;
+  }
+
+  .mini-program-notice {
+    align-items: flex-start;
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .mini-program-notice__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .mini-program-notice__title {
+    font-size: 16px;
+  }
+
+  .tab-mini-program-entry {
+    align-items: flex-start;
   }
 }
 </style>
