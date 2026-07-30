@@ -5,7 +5,7 @@
         <img src="/icons/wechat.svg" alt="" class="mini-program-notice__icon" />
         <div class="mini-program-notice__content">
           <div class="mini-program-notice__title">日常福利已移到微信小程序</div>
-          <div>请前往微信 → 发现 → 小程序，搜索“龟龟花园”</div>
+          <div>请前往微信 → 发现 → 小程序，搜索“花园龟龟”</div>
         </div>
       </div>
 
@@ -46,7 +46,7 @@
               :prizes="dailyPrizes"
               :can-draw="lotteryInfo.canDailyDraw && !!selectedAccountId"
               redirect-to-mini-program
-              mini-program-name="龟龟花园"
+              mini-program-name="花园龟龟"
               button-text="开始"
               @draw="handleDailyDraw"
               @confirm="handlePrizeConfirm"
@@ -58,8 +58,8 @@
                 <span>3/3</span>
               </div>
               <div>
-                <div class="tab-mini-program-entry__title">看视频请前往“龟龟花园”</div>
-                <div class="tab-mini-program-entry__text">微信 → 发现 → 小程序，搜索“龟龟花园”</div>
+                <div class="tab-mini-program-entry__title">看视频请前往“花园龟龟”</div>
+                <div class="tab-mini-program-entry__text">微信 → 发现 → 小程序，搜索“花园龟龟”</div>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@
               :prizes="rechargePrizes"
               :can-draw="lotteryInfo.rechargeLotteryCount > 0 && !!selectedRechargeAccountId"
               redirect-to-mini-program
-              mini-program-name="龟龟花园"
+              mini-program-name="花园龟龟"
               button-text="开始"
               @draw="handleRechargeDraw"
               @confirm="handlePrizeConfirm"
@@ -114,7 +114,7 @@
                 <span>3/3</span>
               </div>
               <div>
-                <div class="tab-mini-program-entry__title">看视频请前往“龟龟花园”</div>
+                <div class="tab-mini-program-entry__title">看视频请前往“花园龟龟”</div>
                 <div class="tab-mini-program-entry__text">网页版本暂未开放，请在小程序中获取</div>
               </div>
             </div>
