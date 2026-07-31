@@ -87,6 +87,19 @@ function normalizeSpeedUpTicketNumber(
   return Math.min(max, Math.max(0, Math.floor(numberValue)))
 }
 
+function normalizeFlowerQualities(value: unknown): number[] {
+  const allowedValues = new Set(flowerQualityOptions.map((option) => Number(option.value)))
+  const normalized = Array.isArray(value)
+    ? value
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && allowedValues.has(item))
+    : []
+  const uniqueValues = Array.from(new Set(normalized))
+  return uniqueValues.length > 0
+    ? uniqueValues
+    : [Number(flowerQualityOptions[0]?.value ?? 1)]
+}
+
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
   const flower = config.plant.flower
@@ -101,7 +114,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     0,
     99999,
   )
-  flower.qualities = ensureMultiSelectValue(flower.qualities, flowerQualityOptions)
+  flower.qualities = normalizeFlowerQualities(flower.qualities)
   flower.specificFlowerIds = ensureMultiSelectValue(
     flower.specificFlowerIds,
     getFlowerPickerOptions(flower.specificFlowerIds),
@@ -138,7 +151,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   flower.freeStyleTemplate = matchedTemplate?.name || flower.freeStyleList[0].name
 
   const friendSteal = config.plant.friendSteal
-  friendSteal.stealQualities = ensureMultiSelectValue(friendSteal.stealQualities, flowerQualityOptions)
+  friendSteal.stealQualities = normalizeFlowerQualities(friendSteal.stealQualities)
   friendSteal.stealFlowerIds = ensureMultiSelectValue(
     friendSteal.stealFlowerIds,
     getFlowerPickerOptions(friendSteal.stealFlowerIds),
@@ -191,28 +204,23 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     market.buySpecificFlowerIds,
     getFlowerPickerOptions(market.buySpecificFlowerIds),
   )
-  market.buyQualities = ensureMultiSelectValue(market.buyQualities, flowerQualityOptions)
+  market.buyQualities = normalizeFlowerQualities(market.buyQualities)
   market.excludeFlowerIds = Array.isArray(market.excludeFlowerIds)
     ? market.excludeFlowerIds
     : []
 
-  config.order.resident.qualities = ensureMultiSelectValue(
+  config.order.resident.qualities = normalizeFlowerQualities(
     config.order.resident.qualities,
-    flowerQualityOptions,
   )
-  config.order.palace.qualities = ensureMultiSelectValue(
+  config.order.palace.qualities = normalizeFlowerQualities(
     config.order.palace.qualities,
-    flowerQualityOptions,
   )
-  config.order.team.qualities = ensureMultiSelectValue(
-    config.order.team.qualities,
-    flowerQualityOptions,
-  )
+  config.order.team.qualities = normalizeFlowerQualities(config.order.team.qualities)
 
   const land = config.union.land
   land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)
   land.lowStockThreshold = normalizeUnionLandLowStockThreshold(land.lowStockThreshold)
-  land.flowers = ensureMultiSelectValue(land.flowers, flowerQualityOptions)
+  land.flowers = normalizeFlowerQualities(land.flowers)
   land.specificFlowerIds = ensureMultiSelectValue(
     land.specificFlowerIds,
     getFlowerPickerOptions(land.specificFlowerIds),
@@ -221,18 +229,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   const unionFlower = config.union.flower
   unionFlower.shareMode = ensureSingleSelectValue(unionFlower.shareMode, qualitySpecificModeOptions)
   unionFlower.takeMode = ensureSingleSelectValue(unionFlower.takeMode, qualitySpecificModeOptions)
-  unionFlower.shareQualities = ensureMultiSelectValue(
-    unionFlower.shareQualities,
-    flowerQualityOptions,
-  )
+  unionFlower.shareQualities = normalizeFlowerQualities(unionFlower.shareQualities)
   unionFlower.shareFlowerIds = ensureMultiSelectValue(
     unionFlower.shareFlowerIds,
     getFlowerPickerOptions(unionFlower.shareFlowerIds),
   )
-  unionFlower.takeQualities = ensureMultiSelectValue(
-    unionFlower.takeQualities,
-    flowerQualityOptions,
-  )
+  unionFlower.takeQualities = normalizeFlowerQualities(unionFlower.takeQualities)
   unionFlower.takeFlowerIds = ensureMultiSelectValue(
     unionFlower.takeFlowerIds,
     getFlowerPickerOptions(unionFlower.takeFlowerIds),
