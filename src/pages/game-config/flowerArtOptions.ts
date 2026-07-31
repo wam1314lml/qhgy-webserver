@@ -6,7 +6,7 @@ Object.assign(flowerArtNameMap, {
   "3099": "月露兰庭",
   "3110": "id=3110",
   "3111": "凝霄花境",
-  "3112": "id=3112",
+  "3112": "花映芳辰",
   "3113": "id=3113",
   "3114": "id=3114",
   "3115": "id=3115",
@@ -23,7 +23,12 @@ Object.assign(flowerArtNameMap, {
   "3126": "id=3126",
 })
 
-export const flowerArtOptions = Object.entries(flowerArtNameMap).map(([value, label]) => ({
-  value,
-  label,
-}))
+export const flowerArtOptions = Object.entries(flowerArtNameMap)
+  .filter(([, label]) => {
+    const text = label.trim()
+    return !!text && text !== '0' && !/^id\s*=/i.test(text)
+  })
+  .map(([value, label]) => ({
+    value,
+    label,
+  }))

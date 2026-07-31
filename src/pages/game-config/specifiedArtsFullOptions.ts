@@ -1349,9 +1349,21 @@ Object.assign(specifiedArtsFullNameMap, {
   "311327": "id=3113(0,0,0)",
 })
 
-export const specifiedArtsFullOptions = Object.entries(specifiedArtsFullNameMap).map(
-  ([value, label]) => ({
+const isCompleteFlowerArtLabel = (label: string): boolean => {
+  const text = label.trim()
+  if (!text || text === '0' || /^id\s*=/i.test(text)) return false
+
+  const ingredientMatch = text.match(/[（(]([^）)]*)[）)]/)
+  if (!ingredientMatch) return true
+
+  return ingredientMatch[1]
+    .split(/[,，]/)
+    .every((ingredient) => ingredient.trim() && ingredient.trim() !== '0')
+}
+
+export const specifiedArtsFullOptions = Object.entries(specifiedArtsFullNameMap)
+  .filter(([, label]) => isCompleteFlowerArtLabel(label))
+  .map(([value, label]) => ({
     value,
     label,
-  }),
-)
+  }))

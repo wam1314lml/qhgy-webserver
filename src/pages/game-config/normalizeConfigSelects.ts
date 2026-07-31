@@ -100,6 +100,21 @@ function normalizeFlowerQualities(value: unknown): number[] {
     : [Number(flowerQualityOptions[0]?.value ?? 1)]
 }
 
+function normalizeArtOptionValues(
+  value: unknown,
+  options: Array<{ value: string | number }>,
+): string[] {
+  const allowedValues = new Set(options.map((option) => String(option.value)))
+  const normalized = Array.isArray(value)
+    ? value
+        .map((item) => String(item))
+        .filter((item) => allowedValues.has(item))
+    : []
+  const uniqueValues = Array.from(new Set(normalized))
+  if (uniqueValues.length > 0) return uniqueValues
+  return options[0] ? [String(options[0].value)] : []
+}
+
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
   const flower = config.plant.flower
@@ -182,11 +197,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
       (config.plant.artSell.specifiedArtsFull?.length ? 'full' : 'vase'),
     artSellModeOptions,
   )
-  config.plant.artSell.specifiedArts = ensureMultiSelectValue(
+  config.plant.artSell.specifiedArts = normalizeArtOptionValues(
     config.plant.artSell.specifiedArts,
     flowerArtOptions,
   )
-  config.plant.artSell.specifiedArtsFull = ensureMultiSelectValue(
+  config.plant.artSell.specifiedArtsFull = normalizeArtOptionValues(
     config.plant.artSell.specifiedArtsFull,
     getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull),
   )
