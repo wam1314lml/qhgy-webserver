@@ -258,9 +258,8 @@
   font-size: 16px;
 }
 
-.expire-line {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
+.expire-stat {
+  margin-left: auto;
 }
 
 .info-row {
