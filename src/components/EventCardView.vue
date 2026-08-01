@@ -574,6 +574,8 @@ function mergeLayout(existing: Layout | null, incoming: Layout): Layout {
   if (incoming.table           !== undefined) base.table           = incoming.table
   if (incoming.rankList        !== undefined) base.rankList        = incoming.rankList
   if (incoming.rankListLabel   !== undefined) base.rankListLabel   = incoming.rankListLabel
+  if (incoming.rankTabs        !== undefined) base.rankTabs        = incoming.rankTabs
+  if (incoming.rankTabDefault  !== undefined) base.rankTabDefault  = incoming.rankTabDefault
   if (incoming.statGrid        !== undefined) base.statGrid        = incoming.statGrid
   if (incoming.statGridLabel   !== undefined) base.statGridLabel   = incoming.statGridLabel
   if (incoming.timeline        !== undefined) base.timeline        = incoming.timeline

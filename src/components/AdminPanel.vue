@@ -341,6 +341,50 @@
                 </a-space>
               </template>
 
+              <!-- 二次筛选：按今日加点次数 -->
+              <a-card size="small" title="二次筛选：按今日加点次数" style="margin-bottom: 16px">
+                <a-form layout="inline">
+                  <a-form-item label="点数">
+                    <a-input-number
+                      v-model:value="todayPointsFilter.points"
+                      :min="1"
+                      placeholder="30"
+                      style="width: 100px"
+                    />
+                  </a-form-item>
+                  <a-form-item label="筛选条件">
+                    <a-radio-group v-model:value="todayPointsFilter.mode">
+                      <a-radio value="exact">恰好N次</a-radio>
+                      <a-radio value="none">今日未加过</a-radio>
+                    </a-radio-group>
+                  </a-form-item>
+                  <a-form-item v-if="todayPointsFilter.mode === 'exact'" label="次数">
+                    <a-input-number
+                      v-model:value="todayPointsFilter.count"
+                      :min="0"
+                      placeholder="1"
+                      style="width: 80px"
+                    />
+                  </a-form-item>
+                  <a-form-item label="匹配原因">
+                    <a-input
+                      v-model:value="todayPointsFilter.reason"
+                      placeholder="留空则不限原因"
+                      style="width: 150px"
+                      allow-clear
+                    />
+                  </a-form-item>
+                  <a-form-item>
+                    <a-space>
+                      <a-button type="primary" @click="handleTodayPointsFilter">
+                        应用筛选
+                      </a-button>
+                      <a-button @click="clearTodayPointsFilter"> 清除 </a-button>
+                    </a-space>
+                  </a-form-item>
+                </a-form>
+              </a-card>
+
               <custom-table
                 :columns="batchFilterUserColumns"
                 :data-source="filteredBatchUsers"
@@ -1566,6 +1610,7 @@
             batchPointsModalOpen = false
             batchPointsForm.points = 0
             batchPointsForm.reason = ''
+            batchPointsForm.skipIfTodayAdded = false
           }
         "
         :confirm-loading="batchPointsLoading"
@@ -2121,6 +2166,16 @@ const batchOperationType = ref<'add' | 'subtract'>('add')
 // 批量筛选相关
 const batchFilterUsers = ref<string>('')
 const filteredBatchUsers = ref<any[]>([])
+// 二次筛选前的完整列表（用于重置）
+const originalBatchUsers = ref<any[]>([])
+
+// 今日加点次数二次筛选条件
+const todayPointsFilter = ref({
+  points: 30,
+  mode: 'exact' as 'exact' | 'none',
+  count: 1,
+  reason: '',
+})
 
 // 批量筛选用户表格列定义
 const batchFilterUserColumns = [
@@ -3494,6 +3549,7 @@ const handleBatchFilter = async () => {
       if (data.success) {
         const filteredUsers = Array.isArray(data.users) ? data.users : []
         filteredBatchUsers.value = filteredUsers
+        originalBatchUsers.value = filteredUsers
         if (data.message) {
           message.success(data.message)
         }
@@ -3514,6 +3570,59 @@ const handleBatchFilter = async () => {
 const clearBatchFilter = () => {
   batchFilterUsers.value = ''
   filteredBatchUsers.value = []
+  originalBatchUsers.value = []
+}
+
+// 二次筛选：按今日加点次数
+const handleTodayPointsFilter = async () => {
+  const base = originalBatchUsers.value.length > 0 ? originalBatchUsers.value : filteredBatchUsers.value
+  if (base.length === 0) {
+    message.warning('请先执行主筛选')
+    return
+  }
+  if (!todayPointsFilter.value.points) {
+    message.warning('请输入点数')
+    return
+  }
+  try {
+    const body: any = {
+      userIds: base.map((u: any) => u.id),
+      points: todayPointsFilter.value.points,
+      mode: todayPointsFilter.value.mode,
+    }
+    if (todayPointsFilter.value.mode === 'exact') {
+      body.count = todayPointsFilter.value.count
+    }
+    if (todayPointsFilter.value.reason) {
+      body.reason = todayPointsFilter.value.reason
+    }
+    const resp = await fetch('/api/admin/batch-filter-today-points', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${props.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+    const data = await resp.json()
+    if (data.success) {
+      filteredBatchUsers.value = Array.isArray(data.users) ? data.users : []
+      message.success(data.message || `找到 ${filteredBatchUsers.value.length} 个用户`)
+    } else {
+      message.error(data.message || '筛选失败')
+    }
+  } catch {
+    message.error('二次筛选失败')
+  }
+}
+
+// 清除二次筛选，恢复原始列表
+const clearTodayPointsFilter = () => {
+  if (originalBatchUsers.value.length > 0) {
+    filteredBatchUsers.value = [...originalBatchUsers.value]
+  }
+  todayPointsFilter.value = { points: 30, mode: 'exact', count: 1, reason: '' }
+  message.success('已恢复原始筛选结果')
 }
 
 // 批量加点数
@@ -4442,37 +4551,50 @@ const executeBatchPointsOperation = async () => {
   batchPointsLoading.value = true
   try {
     const operation = batchOperationType.value === 'add' ? 'add' : 'subtract'
+    const skipIfTodayAdded = operation === 'add' ? batchPointsForm.value.skipIfTodayAdded : false
 
-    // 批量处理用户点数
-    const promises = filteredBatchUsers.value.map((user: any) =>
-      fetch('/api/admin/batch-points', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${props.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          points: batchPointsForm.value.points,
-          operation: operation,
-          reason: batchPointsForm.value.reason,
-        }),
-      }),
-    )
+    // 分批串行处理，每批 10 个，避免并发过多耗尽数据库连接池
+    const BATCH_SIZE = 10
+    const users = filteredBatchUsers.value
+    let successCount = 0
+    let failCount = 0
+    let skippedCount = 0
 
-    const responses = await Promise.all(promises)
-    const results = await Promise.all(responses.map((res: any) => res.json()))
-
-    const successCount = results.filter((result: any) => result.success).length
-    const failCount = results.length - successCount
-
-    if (successCount > 0) {
-      message.success(
-        `成功处理 ${successCount} 个用户${failCount > 0 ? `，失败 ${failCount} 个` : ''}`,
+    for (let i = 0; i < users.length; i += BATCH_SIZE) {
+      const batch = users.slice(i, i + BATCH_SIZE)
+      const batchResults = await Promise.all(
+        batch.map((user: any) =>
+          fetch('/api/admin/batch-points', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${props.token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              points: batchPointsForm.value.points,
+              operation: operation,
+              reason: batchPointsForm.value.reason,
+              skipIfTodayAdded,
+            }),
+          }).then((res: any) => res.json()),
+        ),
       )
+      for (const result of batchResults) {
+        if (result.skipped) skippedCount++
+        else if (result.success) successCount++
+        else failCount++
+      }
+    }
+
+    const skippedTip = skippedCount > 0 ? `，跳过 ${skippedCount} 个（今日已加过）` : ''
+    const failTip = failCount > 0 ? `，失败 ${failCount} 个` : ''
+    if (successCount > 0 || skippedCount > 0) {
+      message.success(`成功处理 ${successCount} 个用户${skippedTip}${failTip}`)
       batchPointsModalOpen.value = false
       batchPointsForm.value.points = 0
       batchPointsForm.value.reason = ''
+      batchPointsForm.value.skipIfTodayAdded = false
     } else {
       message.error('批量操作失败')
     }
