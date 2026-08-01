@@ -205,8 +205,38 @@
           </div>
         </template>
 
+        <!-- ┌─ 组件区 8: rankTabs 可切换排行榜 ─┐ -->
+        <template v-if="card.layout?.rankTabs?.length">
+          <div class="evt-rank-tabs">
+            <button
+              v-for="tab in card.layout.rankTabs"
+              :key="tab.key"
+              type="button"
+              class="evt-rank-tab"
+              :class="{ 'evt-rank-tab--active': activeRankTab(card)?.key === tab.key }"
+              @click="setActiveRankTab(card.module, tab.key)"
+            >
+              {{ tab.label }}
+            </button>
+          </div>
+          <div class="evt-rank-list evt-rank-list--tabs">
+            <div
+              v-for="(item, i) in activeRankTab(card)?.items || []"
+              :key="`${activeRankTab(card)?.key}-${i}`"
+              class="evt-rank-item"
+              :class="{ 'evt-rank-item--highlight': item.highlight }"
+            >
+              <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
+              <span class="evt-rank-name">{{ item.name }}</span>
+              <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
+              <span class="evt-rank-value">{{ item.value }}</span>
+            </div>
+            <div v-if="!(activeRankTab(card)?.items?.length)" class="evt-rank-empty">暂无排名数据</div>
+          </div>
+        </template>
+
         <!-- ┌─ 组件区 8: rankList 排行榜 ─┐ -->
-        <template v-if="card.layout?.rankList?.length">
+        <template v-if="card.layout?.rankList?.length && !card.layout?.rankTabs?.length">
           <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankList')">
             <span>{{ card.layout.rankListLabel || '排行榜' }}</span>
             <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankList') ? '▲ 收起' : '▼ 展开' }}</span>
@@ -350,7 +380,8 @@ interface LayoutTable {
 }
 
 /** 排行榜单行 */
-interface LayoutRankItem { name: string; value: string; badge?: string; badgeColor?: Color; highlight?: boolean }
+interface LayoutRankItem { name: string; value: string | number; badge?: string; badgeColor?: Color; highlight?: boolean }
+interface LayoutRankTab { key: string; label: string; items: LayoutRankItem[] }
 
 /** 数字仪表格单格 */
 interface LayoutStatCell { label: string; value: string; sub?: string; color?: Color }
@@ -369,6 +400,8 @@ interface Layout {
   tables?:         LayoutTable[]      // 多个表格（可折叠，优先于 table）
   rankList?:       LayoutRankItem[]   // 排行榜（可折叠）
   rankListLabel?:  string
+  rankTabs?:       LayoutRankTab[]    // 多个可切换排行榜
+  rankTabDefault?: string
   statGrid?:       LayoutStatCell[]   // 数字仪表格（可折叠）
   statGridLabel?:  string
   timeline?:       boolean            // 默认 true；false 时隐藏时间线
@@ -489,6 +522,19 @@ const expanded    = (module: string, section: string) => expandedSet.value.has(`
 const toggleSection = (module: string, section: string) => {
   const key = `${module}:${section}`
   if (expandedSet.value.has(key)) { expandedSet.value.delete(key) } else { expandedSet.value.add(key) }
+}
+
+// ── 双排行榜切换状态 ─────────────────────────────────────────────────────────
+
+const activeRankTabs = ref<Record<string, string>>({})
+const activeRankTab = (card: EvtCard): LayoutRankTab | null => {
+  const tabs = card.layout?.rankTabs
+  if (!tabs?.length) return null
+  const activeKey = activeRankTabs.value[card.module] ?? card.layout?.rankTabDefault ?? tabs[0].key
+  return tabs.find(tab => String(tab.key) === String(activeKey)) ?? tabs[0]
+}
+const setActiveRankTab = (module: string, tabKey: string) => {
+  activeRankTabs.value = { ...activeRankTabs.value, [module]: tabKey }
 }
 
 // ── 解析 & 聚合 ─────────────────────────────────────────────────────────────
@@ -832,15 +878,26 @@ const formatTime = (ts: number) => {
 .evt-table tr:hover td { background:#f9fafb; }
 
 /* ── 排行榜 ── */
+.evt-rank-tabs { display:flex; gap:6px; padding:10px 14px 2px; }
+.evt-rank-tab { border:0; border-radius:14px; padding:5px 16px; background:#f3f4f6; color:#6b7280; font-size:12px; font-weight:600; cursor:pointer; }
+.evt-rank-tab--active { background:linear-gradient(135deg,#9333ea,#c026d3); color:#fff; box-shadow:0 2px 6px rgba(147,51,234,.25); }
 .evt-rank-list { padding:8px 14px 10px; display:flex; flex-direction:column; gap:3px; }
+.evt-rank-list--tabs { gap:0; }
 .evt-rank-item { display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; font-size:12px; }
-.evt-rank-item--highlight { background:#fef9c3; }
+.evt-rank-list--tabs .evt-rank-item { min-height:34px; padding:5px 10px; border-radius:0; border-bottom:1px solid #f3e8ff; background:#fff; }
+.evt-rank-list--tabs .evt-rank-item:nth-child(even) { background:#fdf4ff; }
+.evt-rank-item--highlight { background:#fef9c3 !important; }
 .evt-rank-no { width:20px; height:20px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.evt-rank-pos { width:24px; color:#9ca3af; font-weight:700; text-align:center; flex-shrink:0; }
+.evt-rank-pos--1 { color:#d97706; font-size:15px; }
+.evt-rank-pos--2 { color:#6b7280; font-size:14px; }
+.evt-rank-pos--3 { color:#b45309; font-size:14px; }
 .rank-gold   { background:#fbbf24; color:#fff; }
 .rank-silver { background:#9ca3af; color:#fff; }
 .rank-bronze { background:#ca8a04; color:#fff; }
-.evt-rank-name  { flex:1; color:#374151; font-weight:500; }
-.evt-rank-value { color:#1f2937; font-weight:700; }
+.evt-rank-name  { flex:1; color:#374151; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.evt-rank-value { color:#a8557a; font-weight:700; }
+.evt-rank-empty { padding:14px; color:#9ca3af; text-align:center; font-size:12px; }
 
 /* ── 数字仪表格 ── */
 .evt-stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; padding:10px 12px; }
