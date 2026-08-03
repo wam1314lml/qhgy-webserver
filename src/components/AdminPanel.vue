@@ -1347,6 +1347,71 @@
           </a-card>
         </a-tab-pane>
 
+        <!-- 玩家操作记录 -->
+        <a-tab-pane key="player-logs" v-if="hasModuleAccess('user_management')">
+          <template #tab>
+            <span>
+              <FileTextOutlined />
+              玩家记录
+            </span>
+          </template>
+          <a-card title="查询玩家记录" class="player-logs-card">
+            <a-space direction="vertical" style="width: 100%">
+              <a-input-search
+                v-model:value="playerLogsUsername"
+                placeholder="输入玩家用户名"
+                enter-button="查询"
+                style="max-width: 400px"
+                @search="fetchPlayerLogs"
+              />
+
+              <!-- 用户基本信息 -->
+              <a-descriptions v-if="playerLogsUser" bordered size="small" :column="4">
+                <a-descriptions-item label="用户名">{{ playerLogsUser.username }}</a-descriptions-item>
+                <a-descriptions-item label="邮箱">{{ playerLogsUser.email }}</a-descriptions-item>
+                <a-descriptions-item label="点数">{{ playerLogsUser.points }}</a-descriptions-item>
+                <a-descriptions-item label="注册时间">{{ playerLogsUser.created_at }}</a-descriptions-item>
+              </a-descriptions>
+
+              <a-tabs v-if="playerLogsUser" v-model:active-key="playerLogsSubTab" @change="onPlayerLogsSubTabChange">
+                <!-- 操作记录 -->
+                <a-tab-pane key="ops" tab="角色操作记录">
+                  <custom-table
+                    :columns="playerOpsColumns"
+                    :data-source="playerOpsList"
+                    :loading="playerLogsLoading"
+                    row-key="id"
+                    :pagination="{
+                      current: playerOpsPage,
+                      pageSize: 20,
+                      total: playerOpsTotal,
+                      showTotal: (t: number) => `共 ${t} 条`,
+                      onChange: (p: number) => { playerOpsPage = p; fetchPlayerOps() }
+                    }"
+                  />
+                </a-tab-pane>
+
+                <!-- 交易记录 -->
+                <a-tab-pane key="txn" tab="交易记录">
+                  <custom-table
+                    :columns="playerTxnColumns"
+                    :data-source="playerTxnList"
+                    :loading="playerLogsLoading"
+                    row-key="id"
+                    :pagination="{
+                      current: playerTxnPage,
+                      pageSize: 20,
+                      total: playerTxnTotal,
+                      showTotal: (t: number) => `共 ${t} 条`,
+                      onChange: (p: number) => { playerTxnPage = p; fetchPlayerTxn() }
+                    }"
+                  />
+                </a-tab-pane>
+              </a-tabs>
+            </a-space>
+          </a-card>
+        </a-tab-pane>
+
         <!-- 其他配置 -->
       </a-tabs>
 
