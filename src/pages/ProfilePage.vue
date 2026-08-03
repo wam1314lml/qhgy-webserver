@@ -188,8 +188,6 @@
             <div v-else class="no-transactions">暂无交易记录</div>
           </div>
         </div>
-      </div>
-    </div>
 
         <!-- 操作历史 -->
         <div class="transactions-card" style="margin-top:24px">
@@ -234,8 +232,8 @@
             </div>
           </div>
         </div>
-        </div>
       </div>
+    </div>
     </div>
 
     <!-- 修改密码模态框 -->
