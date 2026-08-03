@@ -234,7 +234,6 @@
         </div>
       </div>
     </div>
-    </div>
 
     <!-- 修改密码模态框 -->
     <ForgotPasswordModal v-model:open="changePasswordModalVisible" :username="user?.username" title="修改密码"
