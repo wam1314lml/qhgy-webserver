@@ -610,6 +610,7 @@ onMounted(() => {
   fetchInviteInfo()
   fetchCustomerServiceInfo()
   fetchWelfareCards()
+  fetchOperationLogs()
 })
 // ===================== 操作历史 =====================
 const operationLogs = ref<any[]>([])
