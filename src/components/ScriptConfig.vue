@@ -198,10 +198,18 @@
                 <span class="stat-label">顾客订单</span>
                 <span class="stat-value">{{ getAccountGameData(account).customerFinish }}</span>
               </div>
-              <div class="stat-item compact expire-stat">
-                <span class="stat-label">到期时间</span>
-                <span
-                  class="stat-value"
+              <div class="stat-item compact">
+                <span class="stat-label">团单数量</span>
+                <span class="stat-value">{{ getAccountGameData(account).teamOrderSubmit }}</span>
+              </div>
+              <div class="stat-item compact">
+                <span class="stat-label">团单今日经验</span>
+                <span class="stat-value">{{ formatTeamOrderExp(getAccountGameData(account).teamOrderExp) }}</span>
+              </div>
+            </div>
+            <div class="flex justify-end items-baseline info-line expire-line">
+              <div>
+                到期时间：<span
                   :style="{
                     color: isAccountExpired(account) ? '#ff4d4f' : 'inherit',
                   }"
@@ -918,6 +926,15 @@ const formatGoldAmount = (value: number | null | undefined): string => {
   }
   if (num >= 10000) {
     return `${parseFloat((num / 10000).toFixed(1))}万`
+  }
+  return String(num)
+}
+
+const formatTeamOrderExp = (value: number | null | undefined): string => {
+  const num = Number(value ?? 0)
+  if (!Number.isFinite(num)) return '0'
+  if (num >= 10000) {
+    return `${parseFloat((num / 10000).toFixed(1))}W`
   }
   return String(num)
 }

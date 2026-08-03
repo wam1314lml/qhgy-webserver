@@ -4935,7 +4935,115 @@ onMounted(() => {
   // 不再预加载数据，改为在切换标签页时按需加载
   // 这样可以避免非admin用户因为权限问题导致数据加载失败
 })
+// ===================== 玩家操作记录 & 交易记录 =====================
+const playerLogsUsername = ref('')
+const playerLogsUser = ref<any>(null)
+const playerLogsLoading = ref(false)
+const playerLogsSubTab = ref('ops')
+
+// 操作记录
+const playerOpsList = ref<any[]>([])
+const playerOpsTotal = ref(0)
+let playerOpsPage = 1
+
+// 交易记录
+const playerTxnList = ref<any[]>([])
+const playerTxnTotal = ref(0)
+let playerTxnPage = 1
+
+const playerOpsColumns = [
+  { title: 'ID', dataIndex: 'id', width: 80 },
+  { title: '操作类型', dataIndex: 'operation_type', customRender: ({ text }: any) => text === 'add' ? '添加' : '删除' },
+  { title: '游戏账号', dataIndex: 'username' },
+  { title: '服务器', dataIndex: 'server_name' },
+  { title: '槽位', dataIndex: 'slot_id' },
+  { title: '卡片到期时间', dataIndex: 'expire_time', customRender: ({ text }: any) => text ? new Date(text).toLocaleString('zh-CN') : '-' },
+  { title: '描述', dataIndex: 'description', ellipsis: true },
+  { title: '操作时间', dataIndex: 'created_at', customRender: ({ text }: any) => new Date(text).toLocaleString('zh-CN') },
+]
+
+const playerTxnColumns = [
+  { title: 'ID', dataIndex: 'id', width: 80 },
+  { title: '类型', dataIndex: 'type' },
+  { title: '变动', dataIndex: 'amount', customRender: ({ text }: any) => text > 0 ? `+${text}` : `${text}` },
+  { title: '余额', dataIndex: 'balance_after' },
+  { title: '描述', dataIndex: 'description', ellipsis: true },
+  { title: '时间', dataIndex: 'created_at', customRender: ({ text }: any) => new Date(text).toLocaleString('zh-CN') },
+]
+
+const fetchPlayerLogs = async () => {
+  const username = playerLogsUsername.value.trim()
+  if (!username) { message.warning('请输入用户名'); return }
+  playerLogsLoading.value = true
+  playerLogsUser.value = null
+  playerOpsList.value = []
+  playerTxnList.value = []
+  playerOpsPage = 1
+  playerTxnPage = 1
+  try {
+    await fetchPlayerOps()
+    if (playerLogsSubTab.value === 'txn') await fetchPlayerTxn()
+  } finally {
+    playerLogsLoading.value = false
+  }
+}
+
+const fetchPlayerOps = async () => {
+  const username = playerLogsUsername.value.trim()
+  if (!username) return
+  playerLogsLoading.value = true
+  try {
+    const res = await axios.get('/api/admin/user-operation-logs', {
+      params: { username, page: playerOpsPage, limit: 20 },
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (res.data.success) {
+      playerLogsUser.value = res.data.user
+      playerOpsList.value = res.data.list
+      playerOpsTotal.value = res.data.pagination.total
+    } else {
+      message.error(res.data.message || '查询失败')
+    }
+  } catch (e: any) {
+    message.error(e.response?.data?.message || '查询失败')
+  } finally {
+    playerLogsLoading.value = false
+  }
+}
+
+const fetchPlayerTxn = async () => {
+  const username = playerLogsUsername.value.trim()
+  if (!username) return
+  playerLogsLoading.value = true
+  try {
+    const res = await axios.get('/api/admin/user-transactions', {
+      params: { username, page: playerTxnPage, limit: 20 },
+      headers: { Authorization: `Bearer ${props.token}` }
+    })
+    if (res.data.success) {
+      playerLogsUser.value = res.data.user
+      playerTxnList.value = res.data.list
+      playerTxnTotal.value = res.data.pagination.total
+    } else {
+      message.error(res.data.message || '查询失败')
+    }
+  } catch (e: any) {
+    message.error(e.response?.data?.message || '查询失败')
+  } finally {
+    playerLogsLoading.value = false
+  }
+}
+
+const onPlayerLogsSubTabChange = (key: string) => {
+  if (key === 'txn' && playerTxnList.value.length === 0) fetchPlayerTxn()
+  if (key === 'ops' && playerOpsList.value.length === 0) fetchPlayerOps()
+}
 </script>
+
+<style lang="scss">
+@import './AdminPanel.css';
+</style>
+
 
 <style lang="scss">
 @import './AdminPanel.css';

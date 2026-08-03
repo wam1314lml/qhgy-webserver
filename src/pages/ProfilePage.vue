@@ -191,6 +191,53 @@
       </div>
     </div>
 
+        <!-- 操作历史 -->
+        <div class="transactions-card" style="margin-top:24px">
+          <div class="transactions-header">
+            <h3>操作历史</h3>
+            <a-button class="refresh-button" type="primary" @click="fetchOperationLogs">
+              刷新
+            </a-button>
+          </div>
+          <div class="transactions-list">
+            <template v-if="operationLogs.length > 0">
+              <div
+                v-for="log in operationLogs"
+                :key="log.id"
+                class="transaction-item"
+              >
+                <div class="transaction-info">
+                  <div class="transaction-type" :style="{ color: log.operation_type === 'add' ? '#52c41a' : '#ff4d4f' }">
+                    {{ log.operation_type === 'add' ? '添加角色' : '删除角色' }}
+                  </div>
+                  <div class="transaction-description">
+                    {{ log.description || `${log.username}（${log.server_name}）` }}
+                  </div>
+                  <div class="transaction-meta" v-if="log.expire_time">
+                    卡片到期：{{ formatDate(log.expire_time) }}
+                  </div>
+                  <div class="transaction-meta">
+                    {{ formatDate(log.created_at) }}
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div v-else class="no-transactions">暂无操作记录</div>
+            <div v-if="operationLogs.length > 0" style="text-align:center;padding:12px 0">
+              <a-button
+                v-if="operationLogsHasMore"
+                :loading="operationLogsLoading"
+                @click="loadMoreOperationLogs"
+                size="small"
+              >加载更多</a-button>
+              <span v-else style="color:#999;font-size:12px">共 {{ operationLogsTotal }} 条，已全部加载</span>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 修改密码模态框 -->
     <ForgotPasswordModal v-model:open="changePasswordModalVisible" :username="user?.username" title="修改密码"
       :hideUsername="true" @success="handleChangePasswordSuccess" />
@@ -567,7 +614,141 @@ onMounted(() => {
   fetchCustomerServiceInfo()
   fetchWelfareCards()
 })
+// ===================== 操作历史 =====================
+const operationLogs = ref<any[]>([])
+const operationLogsLoading = ref(false)
+const operationLogsPage = ref(1)
+const operationLogsTotal = ref(0)
+const operationLogsHasMore = ref(false)
+
+const fetchOperationLogs = async () => {
+  operationLogsLoading.value = true
+  try {
+    const response = await axios.get('/api/points/operation-logs?limit=20&page=1')
+    operationLogs.value = response.data.list || []
+    operationLogsPage.value = 1
+    operationLogsTotal.value = response.data.pagination?.total || operationLogs.value.length
+    operationLogsHasMore.value = response.data.pagination?.hasMore ?? false
+  } catch (error) {
+    console.error('获取操作历史失败:', error)
+  } finally {
+    operationLogsLoading.value = false
+  }
+}
+
+const loadMoreOperationLogs = async () => {
+  if (operationLogsLoading.value || !operationLogsHasMore.value) return
+  operationLogsLoading.value = true
+  try {
+    const nextPage = operationLogsPage.value + 1
+    const response = await axios.get(`/api/points/operation-logs?limit=20&page=${nextPage}`)
+    operationLogs.value = [...operationLogs.value, ...(response.data.list || [])]
+    operationLogsPage.value = nextPage
+    operationLogsTotal.value = response.data.pagination?.total || operationLogsTotal.value
+    operationLogsHasMore.value = response.data.pagination?.hasMore ?? false
+  } catch (error) {
+    console.error('加载更多操作历史失败:', error)
+  } finally {
+    operationLogsLoading.value = false
+  }
+}
 </script>
+
+<style scoped>
+@import '../components/Dashboard.css';
+
+.profile-wrapper {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 0;
+  margin: 0;
+}
+
+.profile-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 服务中心面板样式 */
+.service-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.service-content {
+  width: 100%;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4f8 100%);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  min-height: 100px;
+}
+
+.service-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f0f4ff 0%, #e0f0f6 100%);
+}
+
+.service-icon {
+  font-size: 32px;
+  color: #667eea;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .service-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .service-item {
+    padding: 16px;
+    min-height: 80px;
+  }
+
+  .service-icon {
+    font-size: 28px;
+  }
+}
+</style>
+
 
 <style scoped>
 @import '../components/Dashboard.css';
