@@ -285,12 +285,24 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
     fmlRace.deleteUnclaimedMinutes,
   )
+  fmlRace.onlyDiamondUpgradeTask = !!fmlRace.onlyDiamondUpgradeTask
+  fmlRace.diamondRefreshTask = !!fmlRace.diamondRefreshTask
+  fmlRace.diamondRefreshBelowScore = Math.min(
+    99,
+    Math.max(1, Math.floor(Number(fmlRace.diamondRefreshBelowScore) || 14)),
+  )
+  fmlRace.diamondRefreshTargetScore = Math.min(
+    99,
+    Math.max(1, Math.floor(Number(fmlRace.diamondRefreshTargetScore) || 24)),
+  )
+  fmlRace.minDiamondUpgradeScore = Math.min(
+    99,
+    Math.max(1, Math.floor(Number(fmlRace.minDiamondUpgradeScore) || 24)),
+  )
   fmlRace.diamondUpgradeReserve = normalizeDiamondUpgradeReserve(
     fmlRace.diamondUpgradeReserve,
   )
   config.activity.fmlRace.enabled = !!config.activity.fmlRace.enabled
-  config.activity.fmlRace.onlyDiamondUpgradeTask =
-    !!config.activity.fmlRace.onlyDiamondUpgradeTask
   syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }

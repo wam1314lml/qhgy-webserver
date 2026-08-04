@@ -1938,24 +1938,71 @@
             </CustomFormItem>
             <CustomFormItem
               label="小号专属-只升级不做"
-              name="activity.fmlRace.onlyDiamondUpgradeTask"
-              tooltip="开启后，会根据设置的公会任务优先级（只要不填0都会接）和限制分数-未升级这两项设置来接任务，用元宝升级，升级后放弃任务，造福公会内的其他玩家。例：任务优先级设置了种植收获1、顾客订单2，限制分数-未升级设置了21，那么会接所有种植收获和顾客订单中大于等于21分的任务并用元宝升级，种植收获的元宝升级优先级大于顾客订单，升级后就放弃任务。"
+              name="union.fmlRace.onlyDiamondUpgradeTask"
+              tooltip="开启后只执行接取、元宝升级、放弃流程；未开启元宝刷新时，仅处理达到升级最低分且任务优先级不为0的任务。"
             >
-              <Switch v-model:checked="config.activity.fmlRace.onlyDiamondUpgradeTask" />
+              <Switch v-model:checked="config.union.fmlRace.onlyDiamondUpgradeTask" />
             </CustomFormItem>
-            <CustomFormItem
-              v-if="config.activity.fmlRace.onlyDiamondUpgradeTask"
-              label="保留元宝"
-              name="union.fmlRace.diamondUpgradeReserve"
-              tooltip="填0则不保留"
-            >
-              <CustomInputNumber
-                v-model:value="config.union.fmlRace.diamondUpgradeReserve"
-                :min="0"
-                :max="9999999"
-                class="w-42! sm:w-48!"
-              />
-            </CustomFormItem>
+            <template v-if="config.union.fmlRace.onlyDiamondUpgradeTask">
+              <CustomFormItem
+                label="元宝刷新任务"
+                name="union.fmlRace.diamondRefreshTask"
+                tooltip="开启后，接取低于设定分数的任务时不判断任务优先级，持续用元宝刷新；达到目标分数且任务优先级大于等于1后停止刷新并升级、放弃。"
+              >
+                <Switch v-model:checked="config.union.fmlRace.diamondRefreshTask" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.union.fmlRace.diamondRefreshTask"
+                label="接取低分阈值"
+                name="union.fmlRace.diamondRefreshBelowScore"
+                tooltip="仅接取低于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.diamondRefreshBelowScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.union.fmlRace.diamondRefreshTask"
+                label="刷新目标积分"
+                name="union.fmlRace.diamondRefreshTargetScore"
+                tooltip="刷新到该分数且任务优先级大于等于1时停止，默认24，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-else
+                label="升级最低积分"
+                name="union.fmlRace.minDiamondUpgradeScore"
+                tooltip="未开启元宝刷新时，只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="保留元宝"
+                name="union.fmlRace.diamondUpgradeReserve"
+                tooltip="刷新和升级共用该保留值，任一步操作后元宝低于此值都将停止；填0则不保留。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.diamondUpgradeReserve"
+                  :min="0"
+                  :max="9999999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+            </template>
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"

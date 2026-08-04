@@ -280,6 +280,11 @@ export const createDefaultGameConfig = (): GameConfig =>
         keepPlayerUpgrade: false,
         deleteUnclaimedTask: false,
         deleteUnclaimedMinutes: 60,
+        onlyDiamondUpgradeTask: false,
+        diamondRefreshTask: false,
+        diamondRefreshBelowScore: 14,
+        diamondRefreshTargetScore: 24,
+        minDiamondUpgradeScore: 24,
         diamondUpgradeReserve: 0,
       },
       redPacket: {
@@ -292,7 +297,6 @@ export const createDefaultGameConfig = (): GameConfig =>
     activity: {
       fmlRace: {
         enabled: true,
-        onlyDiamondUpgradeTask: false,
       },
       actFmlRedEnvelope: {
         enabled: false,

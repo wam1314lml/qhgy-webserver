@@ -244,6 +244,7 @@ export interface GameConfig {
       keepPlayerUpgrade: boolean
       deleteUnclaimedTask: boolean
       deleteUnclaimedMinutes: number
+      minDiamondUpgradeScore: number
       diamondUpgradeReserve: number
     }
     redPacket: {
@@ -257,7 +258,6 @@ export interface GameConfig {
   activity: {
     fmlRace: {
       enabled: boolean
-      onlyDiamondUpgradeTask: boolean
     }
     actFmlRedEnvelope: {
       enabled: boolean
