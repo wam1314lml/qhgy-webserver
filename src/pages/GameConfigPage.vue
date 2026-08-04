@@ -798,6 +798,12 @@
             </CustomFormItem>
             <template v-if="config.plant.friendSteal.enabled">
               <CustomFormItem
+                label="不摸花灵"
+                tooltip="若好友地块中某花朵是花灵书册的副花品种、且该好友同时种了对应主花，则判定为花灵副花并跳过不偷，需偷花灵请把偷取花灵开关打开即可"
+              >
+                <Switch :checked="true" disabled class="locked-on-switch" />
+              </CustomFormItem>
+              <CustomFormItem
                 label="偷取花灵"
                 name="plant.friendSteal.stealElves"
                 tooltip="开启后偷取有花灵的地块，关闭则跳过有花灵的地块"
@@ -3111,6 +3117,10 @@ onMounted(() => {
 
 .mode-detail strong {
   color: #0c4a6e;
+}
+
+.locked-on-switch.ant-switch-checked {
+  background-color: #bfbfbf;
 }
 
 /* Loading 样式 */
