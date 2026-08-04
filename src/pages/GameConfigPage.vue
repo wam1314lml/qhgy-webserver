@@ -1978,10 +1978,9 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                v-else
                 label="升级最低积分"
                 name="union.fmlRace.minDiamondUpgradeScore"
-                tooltip="未开启元宝刷新时，只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
+                tooltip="只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
