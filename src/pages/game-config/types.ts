@@ -102,6 +102,10 @@ export interface GameConfig {
     friendSteal: {
       enabled: boolean
       stealElves: boolean
+      onlyStealSpecifiedFriends: boolean
+      specifiedFriendNames: string[]
+      onlyStealSpecifiedElves: boolean
+      specifiedElvesIds: Array<number | string>
       stealMode: 'quality' | 'specific' | 'exclude' | 'excludeCultivating' | string
       stealQualities: number[]
       stealFlowerIds: Array<number | string>
@@ -116,6 +120,8 @@ export interface GameConfig {
     elves: {
       enabled: boolean
       selectedElvesIds: Array<number | string>
+      delayedHarvestEnabled: boolean
+      delayedHarvestMinutes: number
       requestAid: boolean
       recvAid: boolean
       helpFrd: boolean
@@ -161,10 +167,11 @@ export interface GameConfig {
       autoBuyPutCount: boolean
       buyPutCount: number
       autoBuyFromFriend: boolean
-      buyMode: 'all' | 'specific' | 'quality' | 'exclude' | string
+      buyMode: 'all' | 'specific' | 'quality' | 'exclude' | 'friend' | string
       buySpecificFlowerIds: Array<number | string>
       buyQualities: number[]
       excludeFlowerIds: Array<number | string>
+      buyFriendNames: string[]
       minPutTimeDiff: number
     }
   }
@@ -231,6 +238,7 @@ export interface GameConfig {
       minTaskScore: number
       minUpgradeTaskScore: number
       giveuplowscoretask: boolean
+      avoidProgressTask: boolean
       onlyUpgradeTask: boolean
       othersUpgradeTaskMode: boolean
       excludeOthersUpgradeTask: boolean
@@ -245,6 +253,8 @@ export interface GameConfig {
       deleteUnclaimedTask: boolean
       deleteUnclaimedMinutes: number
       minDiamondUpgradeScore: number
+      harvestUpgradeRefine: boolean
+      harvestUpgradeFlowerIds: Array<number | string>
       diamondUpgradeReserve: number
     }
     redPacket: {

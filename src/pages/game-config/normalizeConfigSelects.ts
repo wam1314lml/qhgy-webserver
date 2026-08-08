@@ -175,6 +175,17 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     friendSteal.excludeFlowerIds,
     getFlowerPickerOptions(friendSteal.excludeFlowerIds),
   )
+  const rawSpecifiedFriendNames = Array.isArray(friendSteal.specifiedFriendNames)
+    ? friendSteal.specifiedFriendNames
+    : String(friendSteal.specifiedFriendNames || '').split(/[,，]/)
+  friendSteal.specifiedFriendNames = rawSpecifiedFriendNames
+    .flatMap((name: unknown) => String(name || '').split(/[,，]/))
+    .map((name: string) => name.trim().replace(/[。．]/g, '.'))
+    .filter(Boolean)
+  friendSteal.specifiedElvesIds = ensureMultiSelectValue(
+    friendSteal.specifiedElvesIds,
+    elfOptions,
+  )
   friendSteal.stealMode = ensureSingleSelectValue(friendSteal.stealMode, stealModeOptions)
   const buyStealCount = Number(friendSteal.buyStealCount)
   friendSteal.buyStealCount = Number.isFinite(buyStealCount)
@@ -190,6 +201,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.plant.elves.selectedElvesIds,
     elfOptions,
   )
+  const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)
+  config.plant.elves.delayedHarvestMinutes = Number.isFinite(delayedHarvestMinutes)
+    ? Math.min(999, Math.max(1, Math.floor(delayedHarvestMinutes)))
+    : 10
   config.plant.elves.helpFrdMode = 'limit3'
 
   config.plant.artSell.artSellMode = ensureSingleSelectValue(
@@ -223,6 +238,13 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   market.excludeFlowerIds = Array.isArray(market.excludeFlowerIds)
     ? market.excludeFlowerIds
     : []
+  const rawBuyFriendNames = Array.isArray(market.buyFriendNames)
+    ? market.buyFriendNames
+    : String(market.buyFriendNames || '').split(/[,，]/)
+  market.buyFriendNames = [...new Set(rawBuyFriendNames
+    .flatMap((name: unknown) => String(name || '').split(/[,，]/))
+    .map((name: string) => name.trim().replace(/[。．]/g, '.'))
+    .filter(Boolean))]
 
   config.order.resident.qualities = normalizeFlowerQualities(
     config.order.resident.qualities,
@@ -277,6 +299,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
 
   const fmlRace = config.union.fmlRace
+  fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
   fmlRace.othersUpgradeTaskMode = !!fmlRace.othersUpgradeTaskMode
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
@@ -299,6 +322,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     99,
     Math.max(1, Math.floor(Number(fmlRace.minDiamondUpgradeScore) || 24)),
   )
+  fmlRace.harvestUpgradeRefine = !!fmlRace.harvestUpgradeRefine
+  fmlRace.harvestUpgradeFlowerIds = Array.isArray(fmlRace.harvestUpgradeFlowerIds)
+    ? fmlRace.harvestUpgradeFlowerIds
+    : []
   fmlRace.diamondUpgradeReserve = normalizeDiamondUpgradeReserve(
     fmlRace.diamondUpgradeReserve,
   )

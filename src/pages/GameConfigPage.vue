@@ -811,6 +811,51 @@
                 <Switch v-model:checked="config.plant.friendSteal.stealElves" />
               </CustomFormItem>
               <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves"
+                label="只偷指定好友"
+                name="plant.friendSteal.onlyStealSpecifiedFriends"
+                tooltip="开启后仅限制花灵偷取为指定好友，普通花偷取不受影响"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedFriends" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedFriends"
+                label="好友名字"
+                name="plant.friendSteal.specifiedFriendNames"
+                tooltip="输入好友完整名字后按回车，可连续录入多个；支持中英文逗号分隔，中文句号会自动转换为英文点号"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.specifiedFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  :token-separators="[',', '，']"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves"
+                label="只偷指定花灵"
+                name="plant.friendSteal.onlyStealSpecifiedElves"
+                tooltip="开启后只偷选中的花灵种类"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedElves" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedElves"
+                label="指定花灵"
+                name="plant.friendSteal.specifiedElvesIds"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.specifiedElvesIds"
+                  mode="multiple"
+                  placeholder="请选择花灵"
+                  :options="elfOptions"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="偷花模式"
                 name="plant.friendSteal.stealMode"
                 tooltip="排除已有种子：选择此项就会不偷自己可以种的花朵，只偷不能种的"
@@ -944,6 +989,26 @@
                 show-search
                 option-filter-prop="label"
                 style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="延迟收获"
+              name="plant.elves.delayedHarvestEnabled"
+              tooltip="浇水/加速后等待指定分钟数再收获，让花灵在地里待一会儿供好友偷取"
+            >
+              <Switch v-model:checked="config.plant.elves.delayedHarvestEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.delayedHarvestEnabled"
+              label="延迟时间（分）"
+              name="plant.elves.delayedHarvestMinutes"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.elves.delayedHarvestMinutes"
+                :min="1"
+                :max="999"
+                :step="1"
+                class="w-42! sm:w-48!"
               />
             </CustomFormItem>
             <CustomFormItem
@@ -1254,8 +1319,22 @@
                     <Radio value="specific">指定花朵</Radio>
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="exclude">排除花朵</Radio>
+                    <Radio value="friend">指定好友</Radio>
                   </Space>
                 </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.market.buyMode === 'friend'"
+                label="好友名字"
+                name="plant.market.buyFriendNames"
+                tooltip="可填多个好友名字，输入后按回车添加下一个；中文句号会自动转换为英文点号"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.market.buyFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬"
+                  style="width: 100%"
+                />
               </CustomFormItem>
               <CustomFormItem
                 label="指定花朵"
@@ -1775,6 +1854,13 @@
               <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
             <CustomFormItem
+              label="避开有进度任务"
+              name="union.fmlRace.avoidProgressTask"
+              tooltip="开启后，只要任务已有进度（别人做了一半后放弃的任务），即使满足其他接取条件也不会接取。"
+            >
+              <Switch v-model:checked="config.union.fmlRace.avoidProgressTask" />
+            </CustomFormItem>
+            <CustomFormItem
               label="只接已升级任务"
               name="union.fmlRace.onlyUpgradeTask"
               tooltip="比如设置了限制27分，开启后就只会接大于等于54分的任务，会使公会任务做的非常慢，慎重开启（系统/玩家升级好的双倍任务比较少，捡漏的可能是比较小的哦）"
@@ -1987,6 +2073,29 @@
                   :min="1"
                   :max="99"
                   class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="种植收获细化"
+                name="union.fmlRace.harvestUpgradeRefine"
+                tooltip="开启后，种植收获优先级大于等于1时，只会升级指定花朵且达到升级最低积分的任务；若开启元宝刷新任务，则刷新到指定花朵且达到升级最低积分的任务才会停止刷新。"
+              >
+                <Switch v-model:checked="config.union.fmlRace.harvestUpgradeRefine" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.union.fmlRace.harvestUpgradeRefine"
+                label="指定花朵"
+                name="union.fmlRace.harvestUpgradeFlowerIds"
+                tooltip="未选择花朵时，不会升级任何种植收获任务。"
+              >
+                <CustomSelect
+                  v-model:value="config.union.fmlRace.harvestUpgradeFlowerIds"
+                  mode="multiple"
+                  show-search
+                  :filter-option="filterOption"
+                  :options="getFlowerPickerOptions()"
+                  class="w-full sm:w-80"
+                  placeholder="请选择指定花朵"
                 />
               </CustomFormItem>
               <CustomFormItem
