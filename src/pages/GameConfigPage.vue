@@ -822,7 +822,7 @@
                 v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedFriends"
                 label="好友名字"
                 name="plant.friendSteal.specifiedFriendNames"
-                tooltip="输入好友完整名字后按回车，可连续录入多个；支持中英文逗号分隔，中文句号会自动转换为英文点号"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.specifiedFriendNames"
@@ -1328,7 +1328,7 @@
                 v-if="config.plant.market.buyMode === 'friend'"
                 label="好友名字"
                 name="plant.market.buyFriendNames"
-                tooltip="可填多个好友名字，输入后按回车添加下一个；中文句号会自动转换为英文点号"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.buyFriendNames"
@@ -2094,7 +2094,7 @@
                   mode="multiple"
                   show-search
                   :filter-option="filterOption"
-                  :options="getFlowerPickerOptions()"
+                  :options="getFlowerPickerOptions(config.union.fmlRace.harvestUpgradeFlowerIds)"
                   class="w-full sm:w-80"
                   placeholder="请选择指定花朵"
                 />
