@@ -992,6 +992,7 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              v-if="config.plant.elves.enabled"
               label="延迟收获"
               name="plant.elves.delayedHarvestEnabled"
               tooltip="浇水/加速后等待指定分钟数再收获，让花灵在地里待一会儿供好友偷取"
@@ -999,7 +1000,7 @@
               <Switch v-model:checked="config.plant.elves.delayedHarvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              v-if="config.plant.elves.delayedHarvestEnabled"
+              v-if="config.plant.elves.enabled && config.plant.elves.delayedHarvestEnabled"
               label="延迟时间（分）"
               name="plant.elves.delayedHarvestMinutes"
             >
