@@ -1408,6 +1408,7 @@ Object.assign(specifiedArtsFullNameMap, {
   "311325": "芳华承露(酒红山月桂,暖橙兜兰,锦橙花菱草)",
   "311326": "芳华承露(酒红山月桂,暖橙兜兰,云蜜花菱草)",
   "311327": "芳华承露(酒红山月桂,暖橙兜兰,霓粉花菱草)",
+  "311501": "廊桥映水(花溪灯语,芳蕊琼莲,淡紫凤仙花)",
 })
 
 const isCompleteFlowerArtLabel = (label: string): boolean => {
