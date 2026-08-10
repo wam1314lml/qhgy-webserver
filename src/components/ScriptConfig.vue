@@ -602,6 +602,12 @@
           <CustomerServiceOutlined />
         </template>
       </a-float-button>
+
+      <a-float-button tooltip="打开小程序" @click="onOpenWechatMiniProgram">
+        <template #icon>
+          <WechatOutlined />
+        </template>
+      </a-float-button>
     </a-float-button-group>
 
     <!-- Tour 漫游式引导 -->
@@ -629,6 +635,7 @@ import {
   PlusOutlined,
   QuestionCircleOutlined,
   CustomerServiceOutlined,
+  WechatOutlined,
   MoreOutlined,
   DeleteOutlined,
   LockOutlined,
@@ -1525,6 +1532,9 @@ const handleViewLogs = (accountId: number) => {
 }
 
 const router = useRouter()
+
+const WECHAT_MINI_PROGRAM_URL =
+  'weixin://dl/business/?appid=wx596f42a36bddba9e&path=pages/login/login'
 
 // 客服模态框相关状态
 const showCustomerServiceModal = ref(false)
@@ -2548,6 +2558,11 @@ const onShowTour = () => {
 }
 
 // 显示帮助文档链接
+const onOpenWechatMiniProgram = () => {
+  floatButtonOpen.value = false
+  window.location.href = WECHAT_MINI_PROGRAM_URL
+}
+
 const onShowLink = () => {
   floatButtonOpen.value = false
 
