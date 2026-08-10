@@ -2121,7 +2121,7 @@
                   v-model:value="config.union.fmlRace.harvestUpgradeFlowerIds"
                   mode="multiple"
                   show-search
-                  :filter-option="filterOption"
+                  option-filter-prop="label"
                   :options="getFlowerPickerOptions(config.union.fmlRace.harvestUpgradeFlowerIds)"
                   class="w-full sm:w-80"
                   placeholder="请选择指定花朵"
