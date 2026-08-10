@@ -205,34 +205,64 @@
           </div>
         </template>
 
-        <!-- ┌─ 组件区 8: rankTabs 可切换排行榜 ─┐ -->
+        <!-- ┌─ 组件区 8: rankTabs 可切换/独立折叠排行榜 ─┐ -->
         <template v-if="card.layout?.rankTabs?.length">
-          <div class="evt-rank-tabs">
-            <button
-              v-for="tab in card.layout.rankTabs"
-              :key="tab.key"
-              type="button"
-              class="evt-rank-tab"
-              :class="{ 'evt-rank-tab--active': activeRankTab(card)?.key === tab.key }"
-              @click="setActiveRankTab(card.module, tab.key)"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
-          <div class="evt-rank-list evt-rank-list--tabs">
-            <div
-              v-for="(item, i) in activeRankTab(card)?.items || []"
-              :key="`${activeRankTab(card)?.key}-${i}`"
-              class="evt-rank-item"
-              :class="{ 'evt-rank-item--highlight': item.highlight }"
-            >
-              <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
-              <span class="evt-rank-name">{{ item.name }}</span>
-              <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
-              <span class="evt-rank-value">{{ item.value }}</span>
+          <template v-if="card.layout.rankTabsMode === 'sections'">
+            <template v-for="tab in card.layout.rankTabs" :key="tab.key">
+              <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTab_' + tab.key)">
+                <span>{{ tab.label }}（{{ tab.items.length }} 名）</span>
+                <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
+              </div>
+              <div v-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
+                <div
+                  v-for="(item, i) in tab.items"
+                  :key="`${tab.key}-${i}`"
+                  class="evt-rank-item"
+                  :class="{ 'evt-rank-item--highlight': item.highlight }"
+                >
+                  <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
+                  <span class="evt-rank-name">{{ item.name }}</span>
+                  <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
+                  <span class="evt-rank-value">{{ item.value }}</span>
+                </div>
+                <div v-if="!tab.items.length" class="evt-rank-empty">暂无排名数据</div>
+              </div>
+            </template>
+          </template>
+          <template v-else>
+            <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTabs')">
+              <span>排行榜（{{ activeRankTab(card)?.items?.length || 0 }} 名）</span>
+              <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTabs') ? '▲ 收起' : '▼ 展开' }}</span>
             </div>
-            <div v-if="!(activeRankTab(card)?.items?.length)" class="evt-rank-empty">暂无排名数据</div>
-          </div>
+            <template v-if="expanded(card.module, 'rankTabs')">
+              <div class="evt-rank-tabs">
+                <button
+                  v-for="tab in card.layout.rankTabs"
+                  :key="tab.key"
+                  type="button"
+                  class="evt-rank-tab"
+                  :class="{ 'evt-rank-tab--active': activeRankTab(card)?.key === tab.key }"
+                  @click="setActiveRankTab(card.module, tab.key)"
+                >
+                  {{ tab.label }}
+                </button>
+              </div>
+              <div class="evt-rank-list evt-rank-list--tabs">
+                <div
+                  v-for="(item, i) in activeRankTab(card)?.items || []"
+                  :key="`${activeRankTab(card)?.key}-${i}`"
+                  class="evt-rank-item"
+                  :class="{ 'evt-rank-item--highlight': item.highlight }"
+                >
+                  <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
+                  <span class="evt-rank-name">{{ item.name }}</span>
+                  <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
+                  <span class="evt-rank-value">{{ item.value }}</span>
+                </div>
+                <div v-if="!(activeRankTab(card)?.items?.length)" class="evt-rank-empty">暂无排名数据</div>
+              </div>
+            </template>
+          </template>
         </template>
 
         <!-- ┌─ 组件区 8: rankList 排行榜 ─┐ -->
@@ -400,8 +430,9 @@ interface Layout {
   tables?:         LayoutTable[]      // 多个表格（可折叠，优先于 table）
   rankList?:       LayoutRankItem[]   // 排行榜（可折叠）
   rankListLabel?:  string
-  rankTabs?:       LayoutRankTab[]    // 多个可切换排行榜
+  rankTabs?:       LayoutRankTab[]    // 多个可切换或独立折叠排行榜
   rankTabDefault?: string
+  rankTabsMode?:   'tabs' | 'sections'
   statGrid?:       LayoutStatCell[]   // 数字仪表格（可折叠）
   statGridLabel?:  string
   timeline?:       boolean            // 默认 true；false 时隐藏时间线
