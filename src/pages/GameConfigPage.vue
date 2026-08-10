@@ -1006,7 +1006,7 @@
             >
               <CustomInputNumber
                 v-model:value="config.plant.elves.delayedHarvestMinutes"
-                :min="1"
+                :min="10"
                 :max="999"
                 :step="1"
                 class="w-42! sm:w-48!"
@@ -1536,7 +1536,15 @@
               tooltip="开启后，若没有用户设置的品质，且没有免费刷新了，则会无视品质做完这个宫廷订单"
               v-if="config.order.palace.enabled"
             >
-              <Switch v-model:checked="config.order.palace.ignoreQuality" />
+              <Switch v-model:checked="palaceIgnoreQuality" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="元宝刷新"
+              name="order.palace.diamondRefresh"
+              tooltip="开启后，若没有设置的品质，则会使用元宝刷新到有设置的品质为止，慎重开启，可能会用掉很多元宝"
+              v-if="config.order.palace.enabled"
+            >
+              <Switch v-model:checked="palaceDiamondRefresh" />
             </CustomFormItem>
 
             <Divider orientation="left">组团订单</Divider>
@@ -1938,6 +1946,26 @@
                   @select="addSpecifiedUpgradePlayer"
                 />
               </div>
+            </CustomFormItem>
+            <CustomFormItem
+              label="接指定花朵"
+              name="union.fmlRace.harvestTaskFlowerFilterEnabled"
+              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵"
+            >
+              <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
+              label="指定花朵"
+              name="union.fmlRace.harvestTaskFlowerIds"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
+                mode="multiple"
+                placeholder="请选择花朵"
+                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
+                style="width: 100%"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="任务优先级"
@@ -2612,6 +2640,22 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+const palaceIgnoreQuality = computed({
+  get: () => config.value.order.palace.ignoreQuality,
+  set: (enabled: boolean) => {
+    config.value.order.palace.ignoreQuality = enabled
+    if (enabled) config.value.order.palace.diamondRefresh = false
+  },
+})
+
+const palaceDiamondRefresh = computed({
+  get: () => config.value.order.palace.diamondRefresh,
+  set: (enabled: boolean) => {
+    config.value.order.palace.diamondRefresh = enabled
+    if (enabled) config.value.order.palace.ignoreQuality = false
+  },
+})
 
 const othersUpgradeTaskChoice = computed({
   get: () =>

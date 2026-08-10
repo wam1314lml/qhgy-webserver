@@ -203,7 +203,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
   const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)
   config.plant.elves.delayedHarvestMinutes = Number.isFinite(delayedHarvestMinutes)
-    ? Math.min(999, Math.max(1, Math.floor(delayedHarvestMinutes)))
+    ? Math.min(999, Math.max(10, Math.floor(delayedHarvestMinutes)))
     : 10
   config.plant.elves.helpFrdMode = 'limit3'
 
@@ -252,6 +252,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.order.palace.qualities = normalizeFlowerQualities(
     config.order.palace.qualities,
   )
+  config.order.palace.diamondRefresh = !!config.order.palace.diamondRefresh
+  config.order.palace.ignoreQuality = config.order.palace.diamondRefresh
+    ? false
+    : !!config.order.palace.ignoreQuality
   config.order.team.qualities = normalizeFlowerQualities(config.order.team.qualities)
 
   const land = config.union.land
@@ -304,6 +308,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
+  fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled
+  fmlRace.harvestTaskFlowerIds = Array.isArray(fmlRace.harvestTaskFlowerIds)
+    ? fmlRace.harvestTaskFlowerIds
+    : []
   fmlRace.deleteUnclaimedTask = !!fmlRace.deleteUnclaimedTask
   fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
     fmlRace.deleteUnclaimedMinutes,

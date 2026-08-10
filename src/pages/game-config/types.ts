@@ -195,6 +195,7 @@ export interface GameConfig {
       enabled: boolean
       qualities: number[]
       ignoreQuality: boolean
+      diamondRefresh: boolean
     }
     team: {
       enabled: boolean
@@ -244,6 +245,8 @@ export interface GameConfig {
       excludeOthersUpgradeTask: boolean
       onlySpecifiedUpgradeTask: boolean
       specifiedUpgradePlayers: string[]
+      harvestTaskFlowerFilterEnabled: boolean
+      harvestTaskFlowerIds: Array<number | string>
       taskTypePriority: Record<string, number>
       upgradeTask: boolean
       deleteTask: boolean

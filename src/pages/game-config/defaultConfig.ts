@@ -218,6 +218,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         qualities: [1, 2, 3, 4, 5],
         ignoreQuality: false,
+        diamondRefresh: false,
       },
       team: {
         enabled: false,
@@ -266,6 +267,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         excludeOthersUpgradeTask: true,
         onlySpecifiedUpgradeTask: false,
         specifiedUpgradePlayers: [],
+        harvestTaskFlowerFilterEnabled: false,
+        harvestTaskFlowerIds: [],
         taskTypePriority: {
           '2004': 0,
           '3006': 0,
