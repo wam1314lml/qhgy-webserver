@@ -231,7 +231,7 @@
           </template>
           <template v-else>
             <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTabs')">
-              <span>排行榜（{{ activeRankTab(card)?.items?.length || 0 }} 名）</span>
+              <span>{{ card.layout.rankListLabel || '排行榜' }}（{{ activeRankTab(card)?.items?.length || 0 }} 名）</span>
               <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTabs') ? '▲ 收起' : '▼ 展开' }}</span>
             </div>
             <template v-if="expanded(card.module, 'rankTabs')">
