@@ -1539,13 +1539,25 @@
               <Switch v-model:checked="palaceIgnoreQuality" />
             </CustomFormItem>
             <CustomFormItem
-              label="元宝刷新"
-              name="order.palace.diamondRefresh"
-              tooltip="开启后，若没有设置的品质，则会使用元宝刷新到有设置的品质为止，慎重开启，可能会用掉很多元宝"
               v-if="config.order.palace.enabled"
+              label="持续元宝刷新"
+              name="order.palace.diamondRefresh"
+              tooltip="开启后，品质不符合时先使用免费刷新；免费次数耗尽后继续消耗元宝刷新，直到出现已选品质"
             >
-              <Switch v-model:checked="palaceDiamondRefresh" />
+              <Switch
+                v-model:checked="palaceDiamondRefresh"
+                checked-children="已开启"
+                un-checked-children="已关闭"
+              />
             </CustomFormItem>
+            <Alert
+              v-if="config.order.palace.enabled && config.order.palace.diamondRefresh"
+              type="warning"
+              show-icon
+              message="已开启持续元宝刷新"
+              description="免费刷新次数耗尽后仍会持续消耗元宝，直到刷出符合品质限定的宫廷订单；开启后将自动关闭“不论品质”。"
+              class="mb-6"
+            />
 
             <Divider orientation="left">组团订单</Divider>
             <CustomFormItem label="自动完成" name="order.team.enabled" tooltip="自动完成团单">
@@ -2579,6 +2591,7 @@ import {
   Input,
   Switch,
   Divider,
+  Alert,
   message,
   Select,
   Radio,
