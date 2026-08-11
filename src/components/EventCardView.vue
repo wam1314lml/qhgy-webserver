@@ -607,6 +607,7 @@ function mergeLayout(existing: Layout | null, incoming: Layout): Layout {
   if (incoming.rankListLabel   !== undefined) base.rankListLabel   = incoming.rankListLabel
   if (incoming.rankTabs        !== undefined) base.rankTabs        = incoming.rankTabs
   if (incoming.rankTabDefault  !== undefined) base.rankTabDefault  = incoming.rankTabDefault
+  if (incoming.rankTabsMode    !== undefined) base.rankTabsMode    = incoming.rankTabsMode
   if (incoming.statGrid        !== undefined) base.statGrid        = incoming.statGrid
   if (incoming.statGridLabel   !== undefined) base.statGridLabel   = incoming.statGridLabel
   if (incoming.timeline        !== undefined) base.timeline        = incoming.timeline
