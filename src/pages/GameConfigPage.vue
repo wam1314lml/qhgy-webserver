@@ -814,7 +814,7 @@
                 v-if="config.plant.friendSteal.stealElves"
                 label="只偷指定好友"
                 name="plant.friendSteal.onlyStealSpecifiedFriends"
-                tooltip="开启后仅限制花灵偷取为指定好友，普通花偷取不受影响"
+                tooltip="开启后，去设置的好友的地里就只会偷取花灵，就算设置的好友的地里有普通花，每天没偷完4次花灵之前也不会偷取"
               >
                 <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedFriends" />
               </CustomFormItem>
