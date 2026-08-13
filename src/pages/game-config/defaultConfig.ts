@@ -358,6 +358,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         autoClaimEnergy: false,
         useItems: false,
+        openBox: false,
         speed: 1,
       },
       actMerge2: {

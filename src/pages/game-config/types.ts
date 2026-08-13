@@ -319,6 +319,7 @@ export interface GameConfig {
       enabled: boolean
       autoClaimEnergy: boolean
       useItems: boolean
+      openBox: boolean
       speed: number
     }
     actMerge2: {

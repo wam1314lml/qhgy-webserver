@@ -2398,9 +2398,22 @@
               >
                 <Switch v-model:checked="config.activity.actDessert.autoClaimEnergy" />
               </CustomFormItem>
-              <CustomFormItem label="使用道具" name="activity.actDessert.useItems">
+              <CustomFormItem
+                label="使用道具"
+                name="activity.actDessert.useItems"
+                tooltip="使用道具会消耗少量元宝，介意的勿开"
+              >
                 <Switch v-model:checked="config.activity.actDessert.useItems" />
               </CustomFormItem>
+              <!-- 后端功能确认后再开放
+              <CustomFormItem
+                label="开箱子"
+                name="activity.actDessert.openBox"
+                tooltip="开启后会开箱子，只会1个1个开，介意的勿开"
+              >
+                <Switch v-model:checked="config.activity.actDessert.openBox" />
+              </CustomFormItem>
+              -->
               <CustomFormItem
                 label="游戏倍速"
                 name="activity.actDessert.speed"

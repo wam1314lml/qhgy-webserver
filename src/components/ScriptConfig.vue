@@ -430,6 +430,30 @@
       </div>
     </a-modal>
 
+    <!-- 延期配额二次确认弹窗 -->
+    <a-modal
+      v-model:open="showQuotaConfirmModal"
+      title="确认分配配额"
+      :confirmLoading="addingQuota"
+      @ok="executeExtendQuota"
+      @cancel="showQuotaConfirmModal = false"
+      okText="确认分配"
+      cancelText="取消"
+      :okButtonProps="{ danger: true, disabled: addingQuota }"
+    >
+      <div class="delete-warning quota-confirm-warning">
+        <div class="warning-icon">⚠️</div>
+        <p>
+          您正在为 <strong>{{ currentAccountNickname }}</strong> 分配
+          <strong>{{ quotaPointsToAssign }} 点配额</strong>
+        </p>
+        <p>
+          分配后到期时间为 <strong>{{ predictedExpiryTime }}</strong>
+        </p>
+        <p class="warning-text">配额一旦分配便不可撤销。</p>
+      </div>
+    </a-modal>
+
     <!-- 删除确认弹窗 -->
     <a-modal
       v-model:open="showDeleteModal"
@@ -980,6 +1004,7 @@ watch(
 
 // 配额管理相关状态
 const showQuotaModal = ref(false)
+const showQuotaConfirmModal = ref(false)
 const selectedQuotaDays = ref<number | null>(null)
 const addingQuota = ref(false)
 const userPoints = ref(props.user?.points || 0)
@@ -997,6 +1022,8 @@ const quotaOptions = ref<
     description?: string
   }>
 >([])
+
+const quotaPointsToAssign = computed(() => baseQuotaPoints.value + additionalPoints.value)
 
 // 计算预计到期时间
 const predictedExpiryTime = computed(() => {
@@ -1423,8 +1450,8 @@ const handleExtendQuota = (accountId: number) => {
   }
 }
 
-// 确认延期配额
-const confirmExtendQuota = async () => {
+// 第一次确认：校验延期信息并打开不可撤销提示
+const confirmExtendQuota = () => {
   if (!currentQuotaAccountId.value || !selectedQuotaDays.value) {
     message.error('请选择延期时长')
     return
@@ -1451,6 +1478,38 @@ const confirmExtendQuota = async () => {
   // 前端校验：确保额外配额不为负数
   if (additionalPoints.value < 0) {
     message.error('额外配额不能为负数')
+    return
+  }
+
+  if (!predictedExpiryTime.value) {
+    message.error('无法计算预计到期时间，请重新选择延期时长')
+    return
+  }
+
+  showQuotaConfirmModal.value = true
+}
+
+// 第二次确认：真正提交延期请求
+const executeExtendQuota = async () => {
+  if (!currentQuotaAccountId.value || !selectedQuotaDays.value) {
+    message.error('延期信息已失效，请重新选择')
+    showQuotaConfirmModal.value = false
+    return
+  }
+
+  const selectedOption = quotaOptions.value.find(
+    (option: any) => option.days === selectedQuotaDays.value
+  )
+  if (!selectedOption) {
+    message.error('无效的配额选项')
+    showQuotaConfirmModal.value = false
+    return
+  }
+
+  const totalPoints = selectedOption.points + additionalPoints.value
+  if (userPoints.value < totalPoints || additionalPoints.value < 0) {
+    message.error(userPoints.value < totalPoints ? '积分不足，请先充值' : '额外配额不能为负数')
+    showQuotaConfirmModal.value = false
     return
   }
 
@@ -1510,6 +1569,7 @@ const confirmExtendQuota = async () => {
       await fetchGameAccounts()
 
       // 关闭弹窗
+      showQuotaConfirmModal.value = false
       showQuotaModal.value = false
       currentQuotaAccountId.value = null
       selectedQuotaDays.value = null

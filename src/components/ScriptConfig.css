@@ -592,6 +592,11 @@
   margin: 14px 0 !important;
 }
 
+.quota-confirm-warning strong {
+  display: inline-block;
+  margin: 0 2px;
+}
+
 .countdown-info {
   margin: 16px 0;
 }

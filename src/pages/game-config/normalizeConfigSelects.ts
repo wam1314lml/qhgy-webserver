@@ -293,6 +293,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.activity.actDessert.speed,
     actDessertSpeedOptions,
   )
+  config.activity.actDessert.openBox = !!config.activity.actDessert.openBox
   config.activity.actMerge2.speed = ensureSingleSelectValue(
     config.activity.actMerge2.speed,
     actMerge2SpeedOptions,
