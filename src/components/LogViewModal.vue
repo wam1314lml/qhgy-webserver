@@ -16,15 +16,15 @@
         <p>加载日志中...</p>
       </div>
 
-      <!-- 未找到日志 -->
-      <div v-else-if="logData?.未找到日志" class="log-not-found">
+      <!-- 未找到日志：EVT 流水或状态快照存在时仍需挂载事件卡片 -->
+      <div v-else-if="logData?.未找到日志 && !evtStateSnapshot && !rawEvtContent" class="log-not-found">
         <div class="not-found-icon">📄</div>
         <h4>暂无日志</h4>
         <p>未找到今日的日志文件：{{ logData.未找到日志 }}</p>
       </div>
 
-      <!-- 日志内容 -->
-      <div v-else-if="logData?.content" class="log-main-content">
+      <!-- 日志内容：允许仅凭 EVT 状态快照展示卡片 -->
+      <div v-else-if="logData?.content || evtStateSnapshot || rawEvtContent" class="log-main-content">
         <!-- 左侧分类标签栏 -->
         <div class="log-categories">
           <a-button
@@ -87,6 +87,7 @@
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
             <EventCardView
               :raw-logs="rawEvtContent"
+              :state-snapshot="evtStateSnapshot"
               :account-id="props.accountId"
               :filter-category="selectedCategory"
               :history-reset-key="evtHistoryResetKey"
@@ -188,12 +189,23 @@ interface LogData {
   未找到日志?: string
 }
 
+interface EvtStateSnapshot {
+  schemaVersion: number
+  version: number
+  updatedAt: number
+  modules: Record<string, { updatedAt: number; layout: Record<string, unknown> }>
+}
+
 interface LogStreamResponse {
   success: boolean
   count: number
   lastLine: number
   logs: string[]
   pod_id: string
+  streamReset?: boolean
+  stateVersion?: number
+  stateChanged?: boolean
+  state?: EvtStateSnapshot | null
 }
 
 interface AccountInfo {
@@ -229,12 +241,16 @@ const loading = ref(false)
 const logData = ref<LogData | null>(null)
 
 const rawEvtContent = ref<string>('')   // EVT 行原始内容，供 EventCardView 解析
+const evtStateSnapshot = ref<EvtStateSnapshot | null>(null)
+const evtStateVersion = ref<number | null>(null)
 const evtHistoryResetKey = ref(0)
 const evtLastLine = ref<number>(0)      // EVT 日志独立的 lastLine 指针
 let _evtApiUnavailable = false          // evt-stream-poll 不可用时降级到普通日志提取
 
 function resetEvtHistoryState() {
   rawEvtContent.value = ''
+  evtStateSnapshot.value = null
+  evtStateVersion.value = null
   evtHistoryResetKey.value++
   evtLastLine.value = 0
 }
@@ -564,14 +580,22 @@ const fetchEvtLogs = async () => {
       params: {
         id: props.accountId,
         lastLine: evtLastLine.value,
+        ...(evtStateVersion.value === null ? {} : { stateVersion: evtStateVersion.value }),
       },
     })
 
     if (response.data.code === 200 && response.data.data.success) {
       const streamData: LogStreamResponse = response.data.data
+      if (streamData.streamReset) {
+        clearEvtLines(props.accountId)
+        rawEvtContent.value = ''
+        evtHistoryResetKey.value++
+      }
       if (streamData.count > 0) {
         _applyEvtLines(streamData.logs)
       }
+      if (streamData.state) evtStateSnapshot.value = streamData.state
+      if (typeof streamData.stateVersion === 'number') evtStateVersion.value = streamData.stateVersion
       evtLastLine.value = streamData.lastLine
     } else if (response.data.code === 404 || response.data.code === 500) {
       // 接口不存在或服务端异常，静默降级
