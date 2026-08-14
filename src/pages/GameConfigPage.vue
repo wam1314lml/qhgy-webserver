@@ -1851,7 +1851,7 @@
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minTaskScore"
                 :min="minTaskScoreMin"
-                :max="60"
+                :max="40"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -1863,7 +1863,7 @@
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minUpgradeTaskScore"
                 :min="0"
-                :max="60"
+                :max="80"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
