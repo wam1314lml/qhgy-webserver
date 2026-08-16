@@ -470,16 +470,8 @@ interface ModuleCategory {
   color: string
 }
 
-interface EvtStateSnapshot {
-  schemaVersion: number
-  version: number
-  updatedAt: number
-  modules: Record<string, { updatedAt: number; layout: Layout }>
-}
-
 const props = defineProps<{
   rawLogs: string
-  stateSnapshot?: EvtStateSnapshot | null
   accountId?: number
   filterCategory?: string
   historyResetKey?: number
@@ -676,25 +668,6 @@ watch(
     if (!key) return
     cachedModuleMap.value = new Map()
   }
-)
-
-// 服务端快照是 layout 的权威最新状态；逐模块、逐字段合并，避免部分更新清掉任务表或排行榜。
-watch(
-  () => props.stateSnapshot,
-  (snapshot) => {
-    if (!snapshot?.modules) return
-    for (const [moduleName, moduleState] of Object.entries(snapshot.modules)) {
-      let mc = cachedModuleMap.value.get(moduleName)
-      if (!mc) {
-        mc = { events: [], layout: null }
-        cachedModuleMap.value.set(moduleName, mc)
-      }
-      mc.layout = mergeLayout(mc.layout, moduleState.layout)
-    }
-    cachedModuleMap.value = new Map(cachedModuleMap.value)
-    saveCache(cachedModuleMap.value, props.accountId)
-  },
-  { immediate: true },
 )
 
 // rawLogs 变化时，追加新 EVT 到内存 + 持久化
