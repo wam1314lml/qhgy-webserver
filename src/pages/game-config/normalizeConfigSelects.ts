@@ -117,6 +117,9 @@ function normalizeArtOptionValues(
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
+  // VIP 商店功能已下线，清理服务端遗留字段，避免旧配置继续生效。
+  delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
+
   const flower = config.plant.flower
   flower.speedUpTicketMode = normalizeSpeedUpTicketMode(flower.speedUpTicketMode)
   flower.speedUpTicketMinMinutes = normalizeSpeedUpTicketNumber(

@@ -293,38 +293,6 @@
               />
             </CustomFormItem>
 
-            <CustomFormItem
-              label="vip商店"
-              name="basic.shop.vipShop.autoBuy"
-              tooltip="自动购买vip商店物品"
-            >
-              <Switch v-model:checked="config.basic.shop.vipShop.autoBuy" />
-            </CustomFormItem>
-            <template v-if="config.basic.shop.vipShop.autoBuy">
-              <CustomFormItem
-                label="元宝上限"
-                name="basic.shop.vipShop.maxSpendDmd"
-                tooltip="vip商店花费元宝上限，0则不限制"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.shop.vipShop.maxSpendDmd"
-                  :min="0"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-              <CustomFormItem
-                label="花坊币上限"
-                name="basic.shop.vipShop.maxSpendFloralCoin"
-                tooltip="vip商店花费花坊币上限，0则不限制"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.shop.vipShop.maxSpendFloralCoin"
-                  :min="0"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </template>
-
             <Divider orientation="left">花坊</Divider>
             <CustomFormItem
               label="花坊兑换"

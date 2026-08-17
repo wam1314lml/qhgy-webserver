@@ -51,11 +51,6 @@ export const createDefaultGameConfig = (): GameConfig =>
           autoBuy: false,
           maxSpendGold: 0,
         },
-        vipShop: {
-          autoBuy: false,
-          maxSpendDmd: 0,
-          maxSpendFloralCoin: 0,
-        },
         floralShop: {
           enabled: false,
           itemIds: [],

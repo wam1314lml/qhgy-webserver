@@ -51,11 +51,6 @@ export interface GameConfig {
         autoBuy: boolean
         maxSpendGold: number
       }
-      vipShop: {
-        autoBuy: boolean
-        maxSpendDmd: number
-        maxSpendFloralCoin: number
-      }
       floralShop: {
         enabled: boolean
         itemIds: number[]
