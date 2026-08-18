@@ -177,9 +177,14 @@ const handleResultClose = () => {
   wonPrize.value = null
 }
 
+const resetSpin = () => {
+  spinning.value = false
+}
+
 // 暴露方法供父组件调用
 defineExpose({
   startSpin,
+  resetSpin,
 })
 </script>
 

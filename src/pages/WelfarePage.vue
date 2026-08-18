@@ -100,7 +100,7 @@
             <LotteryWheel
               ref="rechargeWheelRef"
               :prizes="rechargePrizes"
-              :can-draw="lotteryInfo.rechargeLotteryCount > 0 && !!selectedRechargeAccountId"
+              :can-draw="lotteryInfo.rechargeLotteryCount > 0"
               button-text="开始"
               @draw="handleRechargeDraw"
               @confirm="handlePrizeConfirm"
@@ -337,14 +337,17 @@ const handleDailyDraw = async () => {
 
 // 处理充值福利
 const handleRechargeDraw = async () => {
-  if (!selectedRechargeAccountId.value) {
+  const accountId = selectedRechargeAccountId.value || accounts.value[0]?.id
+  if (!accountId) {
     message.warning('请先选择游戏账号')
+    rechargeWheelRef.value?.resetSpin()
     return
   }
+  selectedRechargeAccountId.value = accountId
 
   try {
     const response = await axios.post('/api/lottery/recharge', {
-      accountId: selectedRechargeAccountId.value,
+      accountId,
     })
 
     const prize = response.data.prize
@@ -367,6 +370,7 @@ const handleRechargeDraw = async () => {
     // 刷新记录
     await loadRecords()
   } catch (error: any) {
+    rechargeWheelRef.value?.resetSpin()
     message.error(error.response?.data?.message || '抽奖失败')
   }
 }
