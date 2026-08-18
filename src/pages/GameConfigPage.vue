@@ -1037,7 +1037,10 @@
               name="plant.elves.speedUpDispatch"
               tooltip="花费元宝加速派遣中的花灵"
             >
-              <Switch v-model:checked="config.plant.elves.speedUpDispatch" />
+              <Switch
+                :checked="config.plant.elves.speedUpDispatch"
+                @change="(checked) => handleDiamondCostSwitchChange('plant.elves.speedUpDispatch', checked)"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="自动领取派遣奖励"
@@ -1513,7 +1516,8 @@
               tooltip="开启后，品质不符合时先使用免费刷新；免费次数耗尽后继续消耗元宝刷新，直到出现已选品质"
             >
               <Switch
-                v-model:checked="palaceDiamondRefresh"
+                :checked="palaceDiamondRefresh"
+                @change="(checked) => handleDiamondCostSwitchChange('order.palace.diamondRefresh', checked)"
                 checked-children="已开启"
                 un-checked-children="已关闭"
               />
@@ -1533,7 +1537,10 @@
             </CustomFormItem>
             <template v-if="config.order.team.enabled">
               <CustomFormItem label="再来一单" name="order.team.oneMore" tooltip="花费元宝再来一单">
-                <Switch v-model:checked="config.order.team.oneMore" />
+                <Switch
+                  :checked="config.order.team.oneMore"
+                  @change="(checked) => handleDiamondCostSwitchChange('order.team.oneMore', checked)"
+                />
               </CustomFormItem>
               <CustomFormItem
                 label="仅已培育"
@@ -1686,7 +1693,10 @@
               name="union.build.dmd"
               tooltip="自动花费元宝进行公会建设"
             >
-              <Switch v-model:checked="config.union.build.dmd" />
+              <Switch
+                :checked="config.union.build.dmd"
+                @change="(checked) => handleDiamondCostSwitchChange('union.build.dmd', checked)"
+              />
             </CustomFormItem>
 
             <Divider orientation="left">公会分享</Divider>
@@ -1973,7 +1983,10 @@
               name="union.fmlRace.upgradeTask"
               tooltip="领取任务后花费元宝自动升级，开启此项又开启了【放弃低分任务】的话，必须要按照「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值，这个规则来设置，否则会出现元宝升级后把这个任务放弃的情况。"
             >
-              <Switch v-model:checked="config.union.fmlRace.upgradeTask" />
+              <Switch
+                :checked="config.union.fmlRace.upgradeTask"
+                @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.upgradeTask', checked)"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="删除低分任务"
@@ -2036,7 +2049,10 @@
               name="union.fmlRace.onlyDiamondUpgradeTask"
               tooltip="开启后只执行接取、元宝升级、放弃流程；未开启元宝刷新时，仅处理达到升级最低分且任务优先级不为0的任务。"
             >
-              <Switch v-model:checked="config.union.fmlRace.onlyDiamondUpgradeTask" />
+              <Switch
+                :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
+                @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)"
+              />
             </CustomFormItem>
             <template v-if="config.union.fmlRace.onlyDiamondUpgradeTask">
               <CustomFormItem
@@ -2044,7 +2060,10 @@
                 name="union.fmlRace.diamondRefreshTask"
                 tooltip="开启后，接取低于设定分数的任务时不判断任务优先级，持续用元宝刷新；达到目标分数且任务优先级大于等于1后停止刷新并升级、放弃。"
               >
-                <Switch v-model:checked="config.union.fmlRace.diamondRefreshTask" />
+                <Switch
+                  :checked="config.union.fmlRace.diamondRefreshTask"
+                  @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.diamondRefreshTask', checked)"
+                />
               </CustomFormItem>
               <CustomFormItem
                 v-if="config.union.fmlRace.diamondRefreshTask"
@@ -2650,6 +2669,49 @@ const palaceDiamondRefresh = computed({
     if (enabled) config.value.order.palace.ignoreQuality = false
   },
 })
+
+const DIAMOND_COST_WARNING = '开启此项会消耗元宝，请谨慎开启，谢谢'
+
+type DiamondCostSwitchPath =
+  | 'plant.elves.speedUpDispatch'
+  | 'order.palace.diamondRefresh'
+  | 'order.team.oneMore'
+  | 'union.build.dmd'
+  | 'union.fmlRace.upgradeTask'
+  | 'union.fmlRace.onlyDiamondUpgradeTask'
+  | 'union.fmlRace.diamondRefreshTask'
+
+const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
+  if (path === 'order.palace.diamondRefresh') {
+    palaceDiamondRefresh.value = enabled
+    return
+  }
+
+  const keys = path.split('.')
+  let target = config.value as unknown as Record<string, any>
+  for (let index = 0; index < keys.length - 1; index += 1) {
+    target = target[keys[index]] as Record<string, any>
+  }
+  target[keys[keys.length - 1]] = enabled
+}
+
+const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boolean) => {
+  if (!enabled) {
+    applyDiamondCostSwitchValue(path, false)
+    return
+  }
+
+  Modal.confirm({
+    title: '开启确认',
+    content: DIAMOND_COST_WARNING,
+    okText: '确认开启',
+    cancelText: '取消',
+    centered: true,
+    onOk() {
+      applyDiamondCostSwitchValue(path, true)
+    },
+  })
+}
 
 const othersUpgradeTaskChoice = computed({
   get: () =>
