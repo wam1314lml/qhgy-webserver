@@ -248,7 +248,13 @@
               name="basic.pearl.autoBuyHireTicket"
               tooltip="雇佣书不足时自动购买"
             >
-              <Switch v-model:checked="config.basic.pearl.autoBuyHireTicket" />
+              <Switch
+                :checked="config.basic.pearl.autoBuyHireTicket"
+                @change="
+                  (enabled: boolean) =>
+                    handleDiamondCostSwitchChange('basic.pearl.autoBuyHireTicket', enabled)
+                "
+              />
             </CustomFormItem>
             <CustomFormItem
               label="元宝上限"
@@ -2673,6 +2679,7 @@ const palaceDiamondRefresh = computed({
 const DIAMOND_COST_WARNING = '开启此项会消耗元宝，请谨慎开启，谢谢'
 
 type DiamondCostSwitchPath =
+  | 'basic.pearl.autoBuyHireTicket'
   | 'plant.elves.speedUpDispatch'
   | 'order.palace.diamondRefresh'
   | 'order.team.oneMore'

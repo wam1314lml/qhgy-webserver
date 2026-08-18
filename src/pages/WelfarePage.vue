@@ -101,8 +101,6 @@
               ref="rechargeWheelRef"
               :prizes="rechargePrizes"
               :can-draw="lotteryInfo.rechargeLotteryCount > 0 && !!selectedRechargeAccountId"
-              redirect-to-mini-program
-              mini-program-name="花园龟龟"
               button-text="开始"
               @draw="handleRechargeDraw"
               @confirm="handlePrizeConfirm"
