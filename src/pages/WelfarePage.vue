@@ -108,16 +108,6 @@
               @confirm="handlePrizeConfirm"
             />
 
-            <div class="tab-mini-program-entry" aria-label="微信小程序福利">
-              <div class="tab-mini-program-entry__badge">
-                <img src="/icons/wechat.svg" alt="微信小程序" />
-                <span>3/3</span>
-              </div>
-              <div>
-                <div class="tab-mini-program-entry__title">看视频请前往“花园龟龟”</div>
-                <div class="tab-mini-program-entry__text">网页版本暂未开放，请在小程序中获取</div>
-              </div>
-            </div>
           </div>
         </a-tab-pane>
       </a-tabs>
