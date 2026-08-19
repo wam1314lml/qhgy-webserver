@@ -363,5 +363,8 @@ export interface GameConfig {
       enabled: boolean
       lightStarsEnabled: boolean
     }
+    actTwinFlight: {
+      enabled: boolean
+    }
   }
 }

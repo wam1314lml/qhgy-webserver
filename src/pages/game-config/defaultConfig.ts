@@ -402,5 +402,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         lightStarsEnabled: false,
       },
+      actTwinFlight: {
+        enabled: false,
+      },
     },
   }) as GameConfig

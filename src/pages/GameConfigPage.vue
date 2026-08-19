@@ -2573,6 +2573,15 @@
             >
               <Switch v-model:checked="config.activity.actAnniv26Star.lightStarsEnabled" />
             </CustomFormItem>
+
+            <Divider orientation="left">比翼连枝</Divider>
+            <CustomFormItem
+              label="比翼双飞"
+              name="activity.actTwinFlight.enabled"
+              tooltip="开启后每日自动领取任务、视频和汇总奖励"
+            >
+              <Switch v-model:checked="config.activity.actTwinFlight.enabled" />
+            </CustomFormItem>
           </div>
         </Form>
       </div>

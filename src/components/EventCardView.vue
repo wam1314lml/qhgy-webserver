@@ -206,9 +206,9 @@
         </template>
 
         <!-- ┌─ 组件区 8: rankTabs 可切换/独立折叠排行榜 ─┐ -->
-        <template v-if="card.layout?.rankTabs?.length">
-          <template v-if="card.layout.rankTabsMode === 'sections'">
-            <template v-for="tab in card.layout.rankTabs" :key="tab.key">
+        <template v-if="rankTabsFor(card).length">
+          <template v-if="card.layout?.rankTabsMode === 'sections'">
+            <template v-for="tab in rankTabsFor(card)" :key="tab.key">
               <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTab_' + tab.key)">
                 <span>{{ tab.label }}（{{ tab.items.length }} 名）</span>
                 <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
@@ -237,7 +237,7 @@
             <template v-if="expanded(card.module, 'rankTabs')">
               <div class="evt-rank-tabs">
                 <button
-                  v-for="tab in card.layout.rankTabs"
+                  v-for="tab in rankTabsFor(card)"
                   :key="tab.key"
                   type="button"
                   class="evt-rank-tab"
@@ -410,7 +410,15 @@ interface LayoutTable {
 }
 
 /** 排行榜单行 */
-interface LayoutRankItem { name: string; value: string | number; badge?: string; badgeColor?: Color; highlight?: boolean }
+interface LayoutRankItem {
+  name: string
+  value: string | number
+  badge?: string
+  badgeColor?: Color
+  highlight?: boolean
+  quality?: number
+  itemId?: number
+}
 interface LayoutRankTab { key: string; label: string; items: LayoutRankItem[] }
 
 /** 数字仪表格单格 */
@@ -558,9 +566,27 @@ const toggleSection = (module: string, section: string) => {
 // ── 双排行榜切换状态 ─────────────────────────────────────────────────────────
 
 const activeRankTabs = ref<Record<string, string>>({})
+const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
+  const tabs = card.layout?.rankTabs ?? []
+  if (card.module !== '花卉库存' || !tabs.length) return tabs
+
+  const items = tabs[0].items ?? []
+  const byCount = [...items].sort((a, b) => Number(b.value) - Number(a.value))
+  const byQuality = [...items].sort((a, b) => {
+    const qualityDiff = Number(b.quality ?? 0) - Number(a.quality ?? 0)
+    return qualityDiff || Number(b.value) - Number(a.value)
+  })
+
+  return [
+    { key: 'count', label: '按数量', items: byCount },
+    { key: 'quality', label: '按品质', items: byQuality },
+    { key: 'stockHigh', label: '500库存↑', items: byCount.filter(item => Number(item.value) >= 500) },
+    { key: 'stockLow', label: '500库存↓', items: [...byCount].reverse().filter(item => Number(item.value) < 500) },
+  ]
+}
 const activeRankTab = (card: EvtCard): LayoutRankTab | null => {
-  const tabs = card.layout?.rankTabs
-  if (!tabs?.length) return null
+  const tabs = rankTabsFor(card)
+  if (!tabs.length) return null
   const activeKey = activeRankTabs.value[card.module] ?? card.layout?.rankTabDefault ?? tabs[0].key
   return tabs.find(tab => String(tab.key) === String(activeKey)) ?? tabs[0]
 }
