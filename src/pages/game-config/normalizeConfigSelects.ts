@@ -120,6 +120,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   // VIP 商店功能已下线，清理服务端遗留字段，避免旧配置继续生效。
   delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
 
+  const cultivate = config.plant.cultivate
+  cultivate.upgradeQualityEnabled = !!cultivate.upgradeQualityEnabled
+  cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)
+
   const flower = config.plant.flower
   flower.speedUpTicketMode = normalizeSpeedUpTicketMode(flower.speedUpTicketMode)
   flower.speedUpTicketMinMinutes = normalizeSpeedUpTicketNumber(
@@ -185,6 +189,14 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     ? friendSteal.specifiedFriendNames
     : String(friendSteal.specifiedFriendNames || '').split(/[,，]/)
   friendSteal.specifiedFriendNames = rawSpecifiedFriendNames
+    .flatMap((name: unknown) => String(name || '').split(/[,，]/))
+    .map((name: string) => name.trim().replace(/[。．]/g, '.'))
+    .filter(Boolean)
+  friendSteal.excludeFriendsEnabled = !!friendSteal.excludeFriendsEnabled
+  const rawExcludedFriendNames = Array.isArray(friendSteal.excludedFriendNames)
+    ? friendSteal.excludedFriendNames
+    : String(friendSteal.excludedFriendNames || '').split(/[,，]/)
+  friendSteal.excludedFriendNames = rawExcludedFriendNames
     .flatMap((name: unknown) => String(name || '').split(/[,，]/))
     .map((name: string) => name.trim().replace(/[。．]/g, '.'))
     .filter(Boolean)

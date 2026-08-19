@@ -376,6 +376,27 @@
               <Switch v-model:checked="config.plant.cultivate.upgradeEnabled" />
             </CustomFormItem>
             <CustomFormItem
+              label="指定品质"
+              name="plant.cultivate.upgradeQualityEnabled"
+              tooltip="开启后就只会升级指定颜色的花到指定等级了"
+              v-if="config.plant.cultivate.upgradeEnabled"
+            >
+              <Switch v-model:checked="config.plant.cultivate.upgradeQualityEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="选择品质"
+              name="plant.cultivate.upgradeQualities"
+              tooltip="选择要升级的花朵品质，可多选"
+              v-if="config.plant.cultivate.upgradeEnabled && config.plant.cultivate.upgradeQualityEnabled"
+            >
+              <CustomSelect
+                v-model:value="config.plant.cultivate.upgradeQualities"
+                mode="multiple"
+                :options="flowerQualityOptions"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="目标等级"
               name="plant.cultivate.tagetLevel"
               tooltip="鲜花升级到目标等级"
@@ -788,6 +809,27 @@
               <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
             <template v-if="config.plant.friendSteal.enabled">
+              <CustomFormItem
+                label="排除好友"
+                name="plant.friendSteal.excludeFriendsEnabled"
+                tooltip="开启后不会偷取所填好友地里的任何花朵；优先级高于只偷指定好友"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.excludeFriendsEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.excludeFriendsEnabled"
+                label="排除好友名字"
+                name="plant.friendSteal.excludedFriendNames"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.excludedFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  :token-separators="[',', '，']"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="不摸花灵"
                 tooltip="若好友地块中某花朵是花灵书册的副花品种、且该好友同时种了对应主花，则判定为花灵副花并跳过不偷，需偷花灵请把偷取花灵开关打开即可"

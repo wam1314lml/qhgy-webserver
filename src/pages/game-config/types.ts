@@ -63,6 +63,8 @@ export interface GameConfig {
       enabled: boolean
       videoSpeedUp: boolean
       upgradeEnabled: boolean
+      upgradeQualityEnabled: boolean
+      upgradeQualities: number[]
       tagetLevel: number
     }
     flower: {
@@ -98,6 +100,8 @@ export interface GameConfig {
     friendSteal: {
       enabled: boolean
       stealElves: boolean
+      excludeFriendsEnabled: boolean
+      excludedFriendNames: string[]
       onlyStealSpecifiedFriends: boolean
       specifiedFriendNames: string[]
       onlyStealSpecifiedElves: boolean

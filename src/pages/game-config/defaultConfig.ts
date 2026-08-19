@@ -62,6 +62,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         videoSpeedUp: false,
         upgradeEnabled: false,
+        upgradeQualityEnabled: false,
+        upgradeQualities: [1, 2, 3, 4, 5],
         tagetLevel: 20,
       },
       flower: {
@@ -122,6 +124,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       friendSteal: {
         enabled: false,
         stealElves: false,
+        excludeFriendsEnabled: false,
+        excludedFriendNames: [],
         onlyStealSpecifiedFriends: false,
         specifiedFriendNames: [],
         onlyStealSpecifiedElves: false,
