@@ -35,6 +35,7 @@ const props = withDefaults(
     value?: any
     options?: SelectOption[] // 选项列表
     showSelectAll?: boolean // 是否启用全选功能
+    allowEmpty?: boolean // 多选模式是否允许保持空数组
     className?: string
     wide?: boolean // 宽选项：占满容器并完整展示长文本
   }>(),
@@ -103,6 +104,11 @@ const isAllSelected = computed(() => {
 const modelValue = computed({
   get: () => props.value,
   set: (val) => {
+    if (props.allowEmpty && isMultipleMode.value && Array.isArray(val) && val.length === 0) {
+      emit('update:value', [])
+      return
+    }
+
     // 处理全选逻辑
     if (isMultipleMode.value && Array.isArray(val) && val.includes(SELECT_ALL_VALUE)) {
       const allValues = getAllOptionValues.value
@@ -124,8 +130,12 @@ const modelValue = computed({
 })
 
 watch(
-  [() => props.value, () => props.options, isMultipleMode],
+  [() => props.value, () => props.options, isMultipleMode, () => props.allowEmpty],
   () => {
+    if (props.allowEmpty && isMultipleMode.value && Array.isArray(props.value) && props.value.length === 0) {
+      return
+    }
+
     const next = normalizeSelectValue(props.value, props.options, isMultipleMode.value)
     if (!isSameSelectValue(props.value, next)) {
       emit('update:value', next)

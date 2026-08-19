@@ -745,6 +745,7 @@
                 <CustomSelect
                   v-model:value="config.plant.flower.plantExcludeFlowerIds"
                   mode="multiple"
+                  allow-empty
                   placeholder="请选择常规种植要排除的花朵"
                   :options="getFlowerPickerOptions(config.plant.flower.plantExcludeFlowerIds)"
                   show-search
@@ -1907,9 +1908,9 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="接指定玩家升级任务"
+              label="只接指定玩家和系统升级任务"
               name="union.fmlRace.onlySpecifiedUpgradeTask"
-              tooltip="选择他就只会接指定玩家的升级任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
+              tooltip="开启后只接指定玩家的升级任务和系统生成的原金升级任务，其他玩家及普通任务均不接，适合小号给大号刷任务用"
               v-if="config.union.fmlRace.othersUpgradeTaskMode"
             >
               <Radio
@@ -1920,7 +1921,7 @@
             <CustomFormItem
               label="指定用户名"
               name="union.fmlRace.specifiedUpgradePlayers"
-              tooltip="可填写多个玩家名，不要有错别字不然识别不了，按回车就是填写下一个玩家名"
+              tooltip="可填写多个玩家名，按回车添加下一个；系统原金升级任务无需填写"
               v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
             >
               <CustomSelect
