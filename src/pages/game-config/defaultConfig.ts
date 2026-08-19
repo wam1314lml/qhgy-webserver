@@ -117,6 +117,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         qualities: [1, 2, 3, 4, 5],
         flowerCount: 4,
         specificFlowerIds: [],
+        plantExcludeFlowerIds: [],
       },
       friendSteal: {
         enabled: false,

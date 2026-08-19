@@ -93,6 +93,7 @@ export interface GameConfig {
       qualities: number[]
       flowerCount: number
       specificFlowerIds: Array<number | string>
+      plantExcludeFlowerIds: Array<number | string>
     }
     friendSteal: {
       enabled: boolean

@@ -736,6 +736,22 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.plantExcludeFlowerIds"
+                tooltip="仅在指定种类、指定品质和库存模式的常规自动种植选花时生效：列表中的花不会被这些模式选中，可用于排除新花或耗水较高的花。顾客订单、公会竞赛等任务种植，以及指定花朵和64块地模式均不受影响。"
+                v-if="['count', 'quality', 'lowStock'].includes(config.plant.flower.plantingMode)"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.flower.plantExcludeFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择常规种植要排除的花朵"
+                  :options="getFlowerPickerOptions(config.plant.flower.plantExcludeFlowerIds)"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
               <!-- 64块地模式 -->
               <CustomFormItem
                 label="设置每块土地"

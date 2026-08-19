@@ -137,6 +137,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     flower.specificFlowerIds,
     getFlowerPickerOptions(flower.specificFlowerIds),
   )
+  flower.plantExcludeFlowerIds = Array.isArray(flower.plantExcludeFlowerIds)
+    ? Array.from(new Set(flower.plantExcludeFlowerIds.map((item) => String(item)).filter(Boolean)))
+    : []
   flower.flowerCount = ensureSingleSelectValue(flower.flowerCount, flowerCountOptions)
   flower.landGroupSize = ensureSingleSelectValue(flower.landGroupSize, landGroupSizeOptions)
   if (flower.groupWaterEnabled === undefined && (flower as { groupWater?: boolean }).groupWater !== undefined) {
