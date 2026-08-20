@@ -195,6 +195,7 @@ interface LogStreamResponse {
   logs: string[]
   pod_id: string
   streamReset?: boolean
+  streamId?: string
 }
 
 interface AccountInfo {
@@ -232,12 +233,14 @@ const logData = ref<LogData | null>(null)
 const rawEvtContent = ref<string>('')   // EVT 行原始内容，供 EventCardView 解析
 const evtHistoryResetKey = ref(0)
 const evtLastLine = ref<number>(0)      // EVT 日志独立的 lastLine 指针
+const evtStreamId = ref<string>('')     // EVT 最老分段身份，滚动后用于重置失效游标
 let _evtApiUnavailable = false          // evt-stream-poll 不可用时降级到普通日志提取
 
 function resetEvtHistoryState() {
   rawEvtContent.value = ''
   evtHistoryResetKey.value++
   evtLastLine.value = 0
+  evtStreamId.value = ''
 }
 
 function applyDailyAutoClearIfNeeded() {
@@ -565,6 +568,7 @@ const fetchEvtLogs = async () => {
       params: {
         id: props.accountId,
         lastLine: evtLastLine.value,
+        streamId: evtStreamId.value,
       },
     })
 
@@ -579,6 +583,7 @@ const fetchEvtLogs = async () => {
         _applyEvtLines(streamData.logs)
       }
       evtLastLine.value = streamData.lastLine
+      evtStreamId.value = streamData.streamId || ''
     } else if (response.data.code === 404 || response.data.code === 500) {
       // 接口不存在或服务端异常，静默降级
       _evtApiUnavailable = true
