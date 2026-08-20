@@ -2215,7 +2215,10 @@
               name="union.fmlRace.smallAccountExclusiveEnabled"
               tooltip="本功能为小号专用，大号勿开，会消耗大量元宝，开启本功能里的任意一个功能后，都不会做公会任务了，只会升级或者刷新公会任务。开启后按需设置功能，可达到小号升级指定分数任务，刷新到指定分数任务"
             >
-              <Switch v-model:checked="config.union.fmlRace.smallAccountExclusiveEnabled" />
+              <Switch
+                :checked="config.union.fmlRace.smallAccountExclusiveEnabled"
+                @change="handleSmallAccountExclusiveChange"
+              />
             </CustomFormItem>
             <template v-if="config.union.fmlRace.smallAccountExclusiveEnabled">
               <CustomFormItem
@@ -2895,6 +2898,15 @@ const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boo
       applyDiamondCostSwitchValue(path, true)
     },
   })
+}
+
+const handleSmallAccountExclusiveChange = (enabled: boolean) => {
+  const fmlRace = config.value.union.fmlRace
+  fmlRace.smallAccountExclusiveEnabled = enabled
+  if (!enabled) {
+    fmlRace.onlyDiamondUpgradeTask = false
+    fmlRace.diamondRefreshTask = false
+  }
 }
 
 const othersUpgradeTaskChoice = computed({

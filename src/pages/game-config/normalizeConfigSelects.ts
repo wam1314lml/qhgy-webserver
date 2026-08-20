@@ -376,6 +376,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
       : !!fmlRace.smallAccountExclusiveEnabled
   fmlRace.onlyDiamondUpgradeTask = !!fmlRace.onlyDiamondUpgradeTask
   fmlRace.diamondRefreshTask = !!fmlRace.diamondRefreshTask
+  if (!fmlRace.smallAccountExclusiveEnabled) {
+    fmlRace.onlyDiamondUpgradeTask = false
+    fmlRace.diamondRefreshTask = false
+  }
   fmlRace.diamondRefreshBelowScore = Math.min(
     99,
     Math.max(1, Math.floor(Number(fmlRace.diamondRefreshBelowScore) || 14)),
