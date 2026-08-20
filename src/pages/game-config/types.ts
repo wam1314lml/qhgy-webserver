@@ -95,6 +95,14 @@ export interface GameConfig {
       qualities: number[]
       flowerCount: number
       specificFlowerIds: Array<number | string>
+      qualityExcludeEnabled: boolean
+      qualityExcludeFlowerIds: Array<number | string>
+      countExcludeEnabled: boolean
+      countExcludeFlowerIds: Array<number | string>
+      lowStockExcludeEnabled: boolean
+      lowStockExcludeFlowerIds: Array<number | string>
+      plantExcludeMigrated: boolean
+      /** 兼容脚本端现有的当前模式排除列表。 */
       plantExcludeFlowerIds: Array<number | string>
     }
     friendSteal: {
@@ -258,6 +266,11 @@ export interface GameConfig {
       keepPlayerUpgrade: boolean
       deleteUnclaimedTask: boolean
       deleteUnclaimedMinutes: number
+      smallAccountExclusiveEnabled: boolean
+      onlyDiamondUpgradeTask: boolean
+      diamondRefreshTask: boolean
+      diamondRefreshBelowScore: number
+      diamondRefreshTargetScore: number
       minDiamondUpgradeScore: number
       harvestUpgradeRefine: boolean
       harvestUpgradeFlowerIds: Array<number | string>

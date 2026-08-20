@@ -715,6 +715,33 @@
                   style="width: 100%"
                 />
               </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.qualityExcludeEnabled"
+                tooltip="设置了排除的花朵就算库存0也不会种"
+                v-if="config.plant.flower.plantingMode === 'quality'"
+              >
+                <Switch v-model:checked="config.plant.flower.qualityExcludeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.qualityExcludeFlowerIds"
+                v-if="
+                  config.plant.flower.plantingMode === 'quality' &&
+                  config.plant.flower.qualityExcludeEnabled
+                "
+              >
+                <CustomSelect
+                  v-model:value="config.plant.flower.qualityExcludeFlowerIds"
+                  mode="multiple"
+                  allow-empty
+                  placeholder="请选择排除花朵"
+                  :options="getFlowerPickerOptions(config.plant.flower.qualityExcludeFlowerIds)"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
               <!-- 指定种类模式 -->
               <CustomFormItem
                 label="选择数量"
@@ -726,6 +753,33 @@
                   v-model:value="config.plant.flower.flowerCount"
                   :options="flowerCountOptions"
                   class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.countExcludeEnabled"
+                tooltip="设置了排除的花朵就算库存0也不会种"
+                v-if="config.plant.flower.plantingMode === 'count'"
+              >
+                <Switch v-model:checked="config.plant.flower.countExcludeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.countExcludeFlowerIds"
+                v-if="
+                  config.plant.flower.plantingMode === 'count' &&
+                  config.plant.flower.countExcludeEnabled
+                "
+              >
+                <CustomSelect
+                  v-model:value="config.plant.flower.countExcludeFlowerIds"
+                  mode="multiple"
+                  allow-empty
+                  placeholder="请选择排除花朵"
+                  :options="getFlowerPickerOptions(config.plant.flower.countExcludeFlowerIds)"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
                 />
               </CustomFormItem>
               <!-- 指定花朵模式 -->
@@ -759,16 +813,26 @@
               </CustomFormItem>
               <CustomFormItem
                 label="排除花朵"
-                name="plant.flower.plantExcludeFlowerIds"
-                tooltip="仅在指定种类、指定品质和库存模式的常规自动种植选花时生效：列表中的花不会被这些模式选中，可用于排除新花或耗水较高的花。顾客订单、公会竞赛等任务种植，以及指定花朵和64块地模式均不受影响。"
-                v-if="['count', 'quality', 'lowStock'].includes(config.plant.flower.plantingMode)"
+                name="plant.flower.lowStockExcludeEnabled"
+                tooltip="设置了排除的花朵就算库存0也不会种"
+                v-if="config.plant.flower.plantingMode === 'lowStock'"
+              >
+                <Switch v-model:checked="config.plant.flower.lowStockExcludeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除花朵"
+                name="plant.flower.lowStockExcludeFlowerIds"
+                v-if="
+                  config.plant.flower.plantingMode === 'lowStock' &&
+                  config.plant.flower.lowStockExcludeEnabled
+                "
               >
                 <CustomSelect
-                  v-model:value="config.plant.flower.plantExcludeFlowerIds"
+                  v-model:value="config.plant.flower.lowStockExcludeFlowerIds"
                   mode="multiple"
                   allow-empty
-                  placeholder="请选择常规种植要排除的花朵"
-                  :options="getFlowerPickerOptions(config.plant.flower.plantExcludeFlowerIds)"
+                  placeholder="请选择排除花朵"
+                  :options="getFlowerPickerOptions(config.plant.flower.lowStockExcludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
                   style="width: 100%"
@@ -809,27 +873,6 @@
               <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
             <template v-if="config.plant.friendSteal.enabled">
-              <CustomFormItem
-                label="排除好友"
-                name="plant.friendSteal.excludeFriendsEnabled"
-                tooltip="开启后不会偷取所填好友地里的任何花朵；优先级高于只偷指定好友"
-              >
-                <Switch v-model:checked="config.plant.friendSteal.excludeFriendsEnabled" />
-              </CustomFormItem>
-              <CustomFormItem
-                v-if="config.plant.friendSteal.excludeFriendsEnabled"
-                label="排除好友名字"
-                name="plant.friendSteal.excludedFriendNames"
-                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
-              >
-                <CustomSelect
-                  v-model:value="config.plant.friendSteal.excludedFriendNames"
-                  mode="tags"
-                  placeholder="例如：s1047.曼冬,s1047.酷暑"
-                  :token-separators="[',', '，']"
-                  style="width: 100%"
-                />
-              </CustomFormItem>
               <CustomFormItem
                 label="不摸花灵"
                 tooltip="若好友地块中某花朵是花灵书册的副花品种、且该好友同时种了对应主花，则判定为花灵副花并跳过不偷，需偷花灵请把偷取花灵开关打开即可"
@@ -959,7 +1002,7 @@
                 <CustomInputNumber
                   v-model:value="config.plant.friendSteal.buyStealCount"
                   :min="1"
-                  :max="10"
+                  :max="99"
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
@@ -998,6 +1041,27 @@
                 tooltip="23:00 后忽略所有偷花筛选条件（品质、指定花朵、排除花朵等），直接偷任何普通花耗光免费次数，不自动购买；注意：避开花灵土地此配置仍然生效"
               >
                 <Switch v-model:checked="config.plant.friendSteal.lateNightConsumeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="排除好友"
+                name="plant.friendSteal.excludeFriendsEnabled"
+                tooltip="开启后，就不会再偷设置的好友地里的任意花朵，若在偷取花灵里设置了好友A，又在排除好友里设置了好友A，也是不会去偷好友A的"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.excludeFriendsEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.excludeFriendsEnabled"
+                label="好友名字"
+                name="plant.friendSteal.excludedFriendNames"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.excludedFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  :token-separators="[',', '，']"
+                  style="width: 100%"
+                />
               </CustomFormItem>
             </template>
 
@@ -1989,7 +2053,7 @@
             <CustomFormItem
               label="只接指定玩家和系统升级任务"
               name="union.fmlRace.onlySpecifiedUpgradeTask"
-              tooltip="开启后只接指定玩家的升级任务和系统生成的原金升级任务，其他玩家及普通任务均不接，适合小号给大号刷任务用"
+              tooltip="选择他就只会接指定玩家的升级任务，和系统升级的任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
               v-if="config.union.fmlRace.othersUpgradeTaskMode"
             >
               <Radio
@@ -2147,16 +2211,36 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="小号专属-只升级不做"
-              name="union.fmlRace.onlyDiamondUpgradeTask"
-              tooltip="开启后只执行接取、元宝升级、放弃流程；未开启元宝刷新时，仅处理达到升级最低分且任务优先级不为0的任务。"
+              label="小号专属"
+              name="union.fmlRace.smallAccountExclusiveEnabled"
+              tooltip="本功能为小号专用，大号勿开，会消耗大量元宝，开启本功能里的任意一个功能后，都不会做公会任务了，只会升级或者刷新公会任务。开启后按需设置功能，可达到小号升级指定分数任务，刷新到指定分数任务"
             >
-              <Switch
-                :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
-                @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)"
-              />
+              <Switch v-model:checked="config.union.fmlRace.smallAccountExclusiveEnabled" />
             </CustomFormItem>
-            <template v-if="config.union.fmlRace.onlyDiamondUpgradeTask">
+            <template v-if="config.union.fmlRace.smallAccountExclusiveEnabled">
+              <CustomFormItem
+                label="元宝升级任务"
+                name="union.fmlRace.onlyDiamondUpgradeTask"
+                tooltip="只执行接取、元宝升级、放弃流程；未开启元宝刷新时，仅处理达到升级最低分且任务优先级不为0的任务。"
+              >
+                <Switch
+                  :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
+                  @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.union.fmlRace.onlyDiamondUpgradeTask"
+                label="升级最低积分"
+                name="union.fmlRace.minDiamondUpgradeScore"
+                tooltip="只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="元宝刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
@@ -2188,18 +2272,6 @@
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
-                  :min="1"
-                  :max="99"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-              <CustomFormItem
-                label="升级最低积分"
-                name="union.fmlRace.minDiamondUpgradeScore"
-                tooltip="只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
-              >
-                <CustomInputNumber
-                  v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
                   :min="1"
                   :max="99"
                   class="w-42! sm:w-48!"
@@ -2658,7 +2730,7 @@
             <CustomFormItem
               label="比翼双飞"
               name="activity.actTwinFlight.enabled"
-              tooltip="开启后每日自动领取任务、视频和汇总奖励"
+              tooltip="开启后会领取每日任务奖励"
             >
               <Switch v-model:checked="config.activity.actTwinFlight.enabled" />
             </CustomFormItem>
@@ -3093,7 +3165,7 @@ const fetchConfig = async () => {
     if (response.status === 200) {
       if (response.data && !response.data['未找到账号']) {
         // 使用深度合并确保所有默认字段都存在
-        const mergedConfig = deepMerge(config.value, response.data.data)
+        const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig)
         config.value = mergedConfig
         console.log('✅ 配置加载成功')

@@ -27,6 +27,13 @@
               <span class="evt-card-module">{{ card.module }}</span>
               <!-- 副标题 -->
               <span v-if="card.layout?.subtitle" class="evt-card-subtitle">{{ card.layout.subtitle }}</span>
+              <button
+                v-if="card.module === '花卉库存'"
+                type="button"
+                class="evt-copy-inventory-btn"
+                title="复制全部花卉库存"
+                @click="copyFlowerInventory(card)"
+              >复制全部</button>
             </div>
             <!-- headerStats：右上角徽标 -->
             <div v-if="card.layout?.headerStats?.length" class="evt-header-stats">
@@ -342,6 +349,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { message } from 'ant-design-vue'
 import { MAX_LOG_HISTORY } from '../utils/evtHistoryStorage'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
@@ -751,6 +759,55 @@ function clearCache() {
   emit('clear')
 }
 
+async function writeClipboardText(text: string): Promise<void> {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  textarea.style.pointerEvents = 'none'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  document.body.removeChild(textarea)
+  if (!copied) throw new Error('clipboard unavailable')
+}
+
+async function copyFlowerInventory(card: EvtCard) {
+  const tabs = card.layout?.rankTabs ?? []
+  const sourceTab = tabs.reduce<LayoutRankTab | null>((selected, tab) => {
+    if (!selected) return tab
+    return tab.items.length > selected.items.length ? tab : selected
+  }, null)
+  const items = sourceTab?.items ?? []
+  if (!items.length) {
+    message.warning('暂无库存数据')
+    return
+  }
+
+  const headerStats = (card.layout?.headerStats ?? [])
+    .map(stat => `${stat.label}${stat.value == null ? '' : ` ${stat.value}`}`)
+    .filter(Boolean)
+    .join('，')
+  const lines = items.map((item, index) => {
+    const parts = [`${index + 1}. ${item.name ?? ''}`]
+    if (item.badge) parts.push(String(item.badge))
+    if (item.value != null && item.value !== '') parts.push(String(item.value))
+    return parts.join(' | ')
+  })
+  const text = [card.module, headerStats, ...lines].filter(Boolean).join('\n')
+
+  try {
+    await writeClipboardText(text)
+    message.success(`已复制${items.length}条库存`)
+  } catch {
+    message.error('复制失败，请重试')
+  }
+}
+
 // ── 工具函数 ────────────────────────────────────────────────────────────────
 
 const COLOR_MAP: Record<string, { bg: string; text: string }> = {
@@ -849,6 +906,8 @@ const formatTime = (ts: number) => {
 .evt-card-title-left { display:flex; align-items:baseline; gap:6px; }
 .evt-card-module { font-size:14px; font-weight:700; color:#1f2937; }
 .evt-card-subtitle { font-size:11px; color:#9ca3af; }
+.evt-copy-inventory-btn { border:1px solid #93c5fd; border-radius:4px; padding:1px 8px; background:#eff6ff; color:#2563eb; font-size:11px; line-height:18px; cursor:pointer; transition:background .15s,border-color .15s; }
+.evt-copy-inventory-btn:hover { background:#dbeafe; border-color:#60a5fa; }
 
 /* headerStats */
 .evt-header-stats { display:flex; gap:4px; flex-wrap:wrap; }

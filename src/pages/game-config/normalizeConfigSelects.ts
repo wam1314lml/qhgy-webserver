@@ -141,9 +141,26 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     flower.specificFlowerIds,
     getFlowerPickerOptions(flower.specificFlowerIds),
   )
-  flower.plantExcludeFlowerIds = Array.isArray(flower.plantExcludeFlowerIds)
-    ? Array.from(new Set(flower.plantExcludeFlowerIds.map((item) => String(item)).filter(Boolean)))
-    : []
+  const normalizePlantExcludeIds = (value: unknown): Array<number | string> =>
+    Array.isArray(value)
+      ? Array.from(new Set(value.map((item) => String(item)).filter(Boolean)))
+      : []
+  const legacyPlantExcludeFlowerIds = normalizePlantExcludeIds(flower.plantExcludeFlowerIds)
+  flower.qualityExcludeFlowerIds = normalizePlantExcludeIds(flower.qualityExcludeFlowerIds)
+  flower.countExcludeFlowerIds = normalizePlantExcludeIds(flower.countExcludeFlowerIds)
+  flower.lowStockExcludeFlowerIds = normalizePlantExcludeIds(flower.lowStockExcludeFlowerIds)
+  flower.qualityExcludeEnabled = !!flower.qualityExcludeEnabled
+  flower.countExcludeEnabled = !!flower.countExcludeEnabled
+  flower.lowStockExcludeEnabled = !!flower.lowStockExcludeEnabled
+  if (!flower.plantExcludeMigrated && legacyPlantExcludeFlowerIds.length > 0) {
+    flower.qualityExcludeEnabled = true
+    flower.countExcludeEnabled = true
+    flower.lowStockExcludeEnabled = true
+    flower.qualityExcludeFlowerIds = [...legacyPlantExcludeFlowerIds]
+    flower.countExcludeFlowerIds = [...legacyPlantExcludeFlowerIds]
+    flower.lowStockExcludeFlowerIds = [...legacyPlantExcludeFlowerIds]
+  }
+  flower.plantExcludeMigrated = true
   flower.flowerCount = ensureSingleSelectValue(flower.flowerCount, flowerCountOptions)
   flower.landGroupSize = ensureSingleSelectValue(flower.landGroupSize, landGroupSizeOptions)
   if (flower.groupWaterEnabled === undefined && (flower as { groupWater?: boolean }).groupWater !== undefined) {
@@ -151,6 +168,21 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     delete (flower as { groupWater?: boolean }).groupWater
   }
   flower.plantingMode = ensureSingleSelectValue(flower.plantingMode, plantingModeOptions)
+  const activeExcludeConfig = {
+    quality: {
+      enabled: flower.qualityExcludeEnabled,
+      ids: flower.qualityExcludeFlowerIds,
+    },
+    count: {
+      enabled: flower.countExcludeEnabled,
+      ids: flower.countExcludeFlowerIds,
+    },
+    lowStock: {
+      enabled: flower.lowStockExcludeEnabled,
+      ids: flower.lowStockExcludeFlowerIds,
+    },
+  }[flower.plantingMode]
+  flower.plantExcludeFlowerIds = activeExcludeConfig?.enabled ? [...activeExcludeConfig.ids] : []
   flower.taskPriorityConfig['公会竞赛'] = normalizeGuildRaceTaskPriority(
     flower.taskPriorityConfig['公会竞赛'],
   )
@@ -207,7 +239,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   friendSteal.stealMode = ensureSingleSelectValue(friendSteal.stealMode, stealModeOptions)
   const buyStealCount = Number(friendSteal.buyStealCount)
   friendSteal.buyStealCount = Number.isFinite(buyStealCount)
-    ? Math.min(10, Math.max(1, Math.floor(buyStealCount)))
+    ? Math.min(99, Math.max(1, Math.floor(buyStealCount)))
     : 10
 
   // 时间格式校验（HH:mm），格式不合法则恢复默认
@@ -338,6 +370,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
     fmlRace.deleteUnclaimedMinutes,
   )
+  fmlRace.smallAccountExclusiveEnabled =
+    fmlRace.smallAccountExclusiveEnabled === undefined
+      ? !!fmlRace.onlyDiamondUpgradeTask
+      : !!fmlRace.smallAccountExclusiveEnabled
   fmlRace.onlyDiamondUpgradeTask = !!fmlRace.onlyDiamondUpgradeTask
   fmlRace.diamondRefreshTask = !!fmlRace.diamondRefreshTask
   fmlRace.diamondRefreshBelowScore = Math.min(
