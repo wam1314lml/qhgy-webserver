@@ -267,6 +267,7 @@ const showScrollToBottomButton = ref(false)
 const logContentRef = ref<HTMLDivElement>()
 const refreshInterval = ref<ReturnType<typeof setInterval>>()
 const lastLine = ref<number>(0)
+const logStreamId = ref<string>('')     // 普通日志最老分段身份，滚动后用于重置失效游标
 const isAutoScrolling = ref(false) // 标记是否正在自动滚动，防止触发 handleScroll
 
 // 滚动到底部
@@ -482,12 +483,16 @@ const fetchLogs = async (silent = false) => {
       params: {
         id: props.accountId,
         lastLine: lastLine.value,
+        streamId: logStreamId.value,
       },
     })
 
     if (response.data.code === 200 && response.data.data.success) {
       const streamData: LogStreamResponse = response.data.data
-      const wasFirstLoad = lastLine.value === 0
+      if (streamData.streamReset) {
+        logData.value = { content: '' }
+      }
+      const wasFirstLoad = lastLine.value === 0 || Boolean(streamData.streamReset)
 
       if (streamData.count > 0) {
         // fallback 模式：evt-stream-poll 不可用时，从普通日志中提取 [[EVT]] 行
@@ -514,6 +519,7 @@ const fetchLogs = async (silent = false) => {
       }
 
       lastLine.value = streamData.lastLine
+      logStreamId.value = streamData.streamId || ''
 
       if (!accountInfo.value) {
         accountInfo.value = {
@@ -678,6 +684,7 @@ watch(
       searchTerm.value = ''
       viewMode.value = 'evt'
       lastLine.value = 0    // 重置普通日志行数
+      logStreamId.value = '' // 重置普通日志分段身份
       evtLastLine.value = 0 // 重置EVT日志行数
       _evtApiUnavailable = false // 每次重新打开时重新探测接口可用性
       // accountId 切换时才清空旧账号缓存
