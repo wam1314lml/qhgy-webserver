@@ -1495,6 +1495,43 @@
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
+            <CustomFormItem
+              label="自定义订单时间"
+              name="order.resident.timedEnabled"
+              tooltip="开启后，居民、绸缎和建材订单仅在设置的每日时段内执行；支持跨午夜，开始与结束相同则视为全天"
+            >
+              <Switch v-model:checked="config.order.resident.timedEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.order.resident.timedEnabled"
+              label="设置时间"
+              name="order.resident.startTime"
+              tooltip="每日允许执行居民、绸缎和建材订单的开始与结束时间"
+            >
+              <Space align="center" wrap>
+                <Select v-model:value="residentOrderStartHour" class="w-24!">
+                  <Select.Option v-for="h in residentOrderHourOptions" :key="`start-${h}`" :value="h">
+                    {{ h }}时
+                  </Select.Option>
+                </Select>
+                <Select v-model:value="residentOrderStartMinute" class="w-24!">
+                  <Select.Option v-for="m in residentOrderMinuteOptions" :key="`start-${m}`" :value="m">
+                    {{ String(m).padStart(2, '0') }}分
+                  </Select.Option>
+                </Select>
+                <span class="text-gray-400">至</span>
+                <Select v-model:value="residentOrderEndHour" class="w-24!">
+                  <Select.Option v-for="h in residentOrderHourOptions" :key="`end-${h}`" :value="h">
+                    {{ h }}时
+                  </Select.Option>
+                </Select>
+                <Select v-model:value="residentOrderEndMinute" class="w-24!">
+                  <Select.Option v-for="m in residentOrderMinuteOptions" :key="`end-${m}`" :value="m">
+                    {{ String(m).padStart(2, '0') }}分
+                  </Select.Option>
+                </Select>
+              </Space>
+            </CustomFormItem>
             <!-- <CustomFormItem
               label="仅已培育"
               name="basic.hasSeparation"
@@ -2927,6 +2964,52 @@ const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
 
 const cyclicNoteOrderGuardHourOptions = Array.from({ length: 24 }, (_, i) => i)
 const cyclicNoteOrderGuardMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
+const residentOrderHourOptions = Array.from({ length: 24 }, (_, i) => i)
+const residentOrderMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
+
+const parseResidentOrderTime = (time?: string) => {
+  const [hRaw, mRaw] = (time || '00:00').split(':')
+  let hour = Number(hRaw)
+  let minute = Number(mRaw)
+  if (!Number.isFinite(hour)) hour = 0
+  if (!Number.isFinite(minute)) minute = 0
+  return {
+    hour: Math.min(23, Math.max(0, Math.floor(hour))),
+    minute: Math.min(59, Math.max(0, Math.floor(minute))),
+  }
+}
+
+const residentOrderStartHour = computed({
+  get: () => parseResidentOrderTime(config.value.order.resident.startTime).hour,
+  set: (hour: number) => {
+    const { minute } = parseResidentOrderTime(config.value.order.resident.startTime)
+    config.value.order.resident.startTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
+
+const residentOrderStartMinute = computed({
+  get: () => parseResidentOrderTime(config.value.order.resident.startTime).minute,
+  set: (minute: number) => {
+    const { hour } = parseResidentOrderTime(config.value.order.resident.startTime)
+    config.value.order.resident.startTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
+
+const residentOrderEndHour = computed({
+  get: () => parseResidentOrderTime(config.value.order.resident.endTime).hour,
+  set: (hour: number) => {
+    const { minute } = parseResidentOrderTime(config.value.order.resident.endTime)
+    config.value.order.resident.endTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
+
+const residentOrderEndMinute = computed({
+  get: () => parseResidentOrderTime(config.value.order.resident.endTime).minute,
+  set: (minute: number) => {
+    const { hour } = parseResidentOrderTime(config.value.order.resident.endTime)
+    config.value.order.resident.endTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+  },
+})
 
 const parseOrderGuardEndTime = (time?: string) => {
   const [hRaw, mRaw] = (time || '21:00').split(':')

@@ -184,6 +184,9 @@ export interface GameConfig {
       normalMaxNum: number
       satinMaxNum: number
       decorateMaxNum: number
+      timedEnabled: boolean
+      startTime: string
+      endTime: string
       qualities: number[]
     }
     customer: {

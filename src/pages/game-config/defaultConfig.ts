@@ -207,6 +207,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         normalMaxNum: 1200,
         satinMaxNum: 120,
         decorateMaxNum: 120,
+        timedEnabled: false,
+        startTime: '00:00',
+        endTime: '00:00',
         qualities: [1, 2, 3, 4, 5],
       },
       customer: {
