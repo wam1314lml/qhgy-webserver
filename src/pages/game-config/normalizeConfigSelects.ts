@@ -302,6 +302,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.order.resident.timedEnabled = !!config.order.resident.timedEnabled
   config.order.resident.startTime = normalizeTimeHM(config.order.resident.startTime, 0, 0)
   config.order.resident.endTime = normalizeTimeHM(config.order.resident.endTime, 0, 0)
+  config.order.customer.floralCoinEnabled = !!config.order.customer.floralCoinEnabled
+  const floralCoinCount = Number(config.order.customer.floralCoinCount)
+  config.order.customer.floralCoinCount = ([1, 2, 3].includes(floralCoinCount)
+    ? floralCoinCount
+    : 2) as 1 | 2 | 3
   config.order.palace.qualities = normalizeFlowerQualities(
     config.order.palace.qualities,
   )
@@ -360,6 +365,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
   fmlRace.othersUpgradeTaskMode = !!fmlRace.othersUpgradeTaskMode
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
+  fmlRace.acceptQualifiedNormalTask = !!fmlRace.acceptQualifiedNormalTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
   fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled

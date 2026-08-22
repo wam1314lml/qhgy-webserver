@@ -221,6 +221,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       customer: {
         enabled: false,
+        floralCoinEnabled: false,
+        floralCoinCount: 2,
         rejectEnabled: false,
         customerMaxNum: 999,
       },
@@ -276,6 +278,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         othersUpgradeTaskMode: true,
         excludeOthersUpgradeTask: true,
         onlySpecifiedUpgradeTask: false,
+        acceptQualifiedNormalTask: false,
         specifiedUpgradePlayers: [],
         harvestTaskFlowerFilterEnabled: false,
         harvestTaskFlowerIds: [],

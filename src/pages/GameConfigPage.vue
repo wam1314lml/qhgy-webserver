@@ -1630,6 +1630,25 @@
               <Switch v-model:checked="config.order.customer.enabled" />
             </CustomFormItem>
             <CustomFormItem
+              label="花坊币数量"
+              name="order.customer.floralCoinEnabled"
+              tooltip="开启后会按设置达到花坊币的数量才接，否则都拒绝，若设置3个花坊币可能会导致顾客订单偏少，谨慎设置"
+              v-if="config.order.customer.enabled"
+            >
+              <Switch v-model:checked="config.order.customer.floralCoinEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="花坊币"
+              name="order.customer.floralCoinCount"
+              v-if="config.order.customer.enabled && config.order.customer.floralCoinEnabled"
+            >
+              <Radio.Group v-model:value="config.order.customer.floralCoinCount" button-style="solid">
+                <Radio.Button :value="1">1</Radio.Button>
+                <Radio.Button :value="2">2</Radio.Button>
+                <Radio.Button :value="3">3</Radio.Button>
+              </Radio.Group>
+            </CustomFormItem>
+            <CustomFormItem
               label="自动拒绝"
               name="order.customer.rejectEnabled"
               tooltip="自动拒绝无法培育且库存不足的订单"
@@ -2060,6 +2079,14 @@
                 :checked="othersUpgradeTaskChoice === 'specified'"
                 @change="othersUpgradeTaskChoice = 'specified'"
               />
+            </CustomFormItem>
+            <CustomFormItem
+              label="接达到分数的未升级任务"
+              name="union.fmlRace.acceptQualifiedNormalTask"
+              tooltip="开启后，即使勾选“只接指定玩家和系统升级任务”，也会接达到“限制分数-未升级”设置分数的未升级任务"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.acceptQualifiedNormalTask" />
             </CustomFormItem>
             <CustomFormItem
               label="指定用户名"

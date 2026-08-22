@@ -199,6 +199,8 @@ export interface GameConfig {
     }
     customer: {
       enabled: boolean
+      floralCoinEnabled: boolean
+      floralCoinCount: 1 | 2 | 3
       rejectEnabled: boolean
       customerMaxNum: number
     }
@@ -255,6 +257,7 @@ export interface GameConfig {
       othersUpgradeTaskMode: boolean
       excludeOthersUpgradeTask: boolean
       onlySpecifiedUpgradeTask: boolean
+      acceptQualifiedNormalTask: boolean
       specifiedUpgradePlayers: string[]
       harvestTaskFlowerFilterEnabled: boolean
       harvestTaskFlowerIds: Array<number | string>
