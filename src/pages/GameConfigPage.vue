@@ -358,7 +358,18 @@
               name="plant.cultivate.enabled"
               tooltip="自动培育可培育花种"
             >
-              <Switch v-model:checked="config.plant.cultivate.enabled" />
+              <Switch
+                v-model:checked="config.plant.cultivate.enabled"
+                @change="handleCultivateEnabledChange"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="自动收获"
+              name="plant.cultivate.autoHarvestEnabled"
+              tooltip="开启后培育完成后会自动收获"
+              v-if="config.plant.cultivate.enabled"
+            >
+              <Switch v-model:checked="config.plant.cultivate.autoHarvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
               label="视频加速"
@@ -2866,6 +2877,10 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+const handleCultivateEnabledChange = (enabled: boolean) => {
+  config.value.plant.cultivate.autoHarvestEnabled = enabled
+}
 
 const palaceIgnoreQuality = computed({
   get: () => config.value.order.palace.ignoreQuality,

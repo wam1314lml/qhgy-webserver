@@ -121,6 +121,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
 
   const cultivate = config.plant.cultivate
+  cultivate.autoHarvestEnabled = cultivate.enabled && !!cultivate.autoHarvestEnabled
   cultivate.upgradeQualityEnabled = !!cultivate.upgradeQualityEnabled
   cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)
 
