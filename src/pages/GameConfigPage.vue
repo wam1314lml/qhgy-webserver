@@ -1646,7 +1646,10 @@
               tooltip="开启后会按设置达到花坊币的数量才接，否则都拒绝，若设置3个花坊币可能会导致顾客订单偏少，谨慎设置"
               v-if="config.order.customer.enabled"
             >
-              <Switch v-model:checked="config.order.customer.floralCoinEnabled" />
+              <Switch
+                :checked="config.order.customer.floralCoinEnabled"
+                @change="handleCustomerFloralCoinEnabledChange"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="花坊币"
@@ -2938,6 +2941,24 @@ const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boo
     centered: true,
     onOk() {
       applyDiamondCostSwitchValue(path, true)
+    },
+  })
+}
+
+const handleCustomerFloralCoinEnabledChange = (enabled: boolean) => {
+  if (!enabled) {
+    config.value.order.customer.floralCoinEnabled = false
+    return
+  }
+
+  Modal.confirm({
+    title: '注意！',
+    content: '开启此项可能造成每天做的顾客订单偏少，请谨慎开启',
+    okText: '确认开启',
+    cancelText: '取消',
+    centered: true,
+    onOk() {
+      config.value.order.customer.floralCoinEnabled = true
     },
   })
 }
