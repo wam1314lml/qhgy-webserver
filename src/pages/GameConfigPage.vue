@@ -1400,7 +1400,10 @@
                 name="plant.market.autoBuyPutCount"
                 tooltip="当免费上架次数用完时，自动花费元宝购买上架次数"
               >
-                <Switch v-model:checked="config.plant.market.autoBuyPutCount" />
+                <Switch
+                  :checked="config.plant.market.autoBuyPutCount"
+                  @change="handleDiamondCostSwitchChange('plant.market.autoBuyPutCount', $event)"
+                />
               </CustomFormItem>
               <CustomFormItem
                 label="购买次数"
@@ -2906,6 +2909,7 @@ const DIAMOND_COST_WARNING = '开启此项会消耗元宝，请谨慎开启，�
 type DiamondCostSwitchPath =
   | 'basic.pearl.autoBuyHireTicket'
   | 'plant.elves.speedUpDispatch'
+  | 'plant.market.autoBuyPutCount'
   | 'order.palace.diamondRefresh'
   | 'order.team.oneMore'
   | 'union.build.dmd'
