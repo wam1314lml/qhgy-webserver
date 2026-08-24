@@ -612,20 +612,25 @@
         </a-float-button>
       </a-tooltip>
 
-      <a-float-button
-        @click="
-          () => {
-            showCustomerServiceModal = true
-            floatButtonOpen = false
-          }
-        "
-        class="tour-4"
-        :open="true"
-      >
-        <template #icon>
-          <CustomerServiceOutlined />
+      <a-tooltip placement="right" :open="groupChatTooltipOpen">
+        <template #title>
+          <span>点它加入官方售后群</span>
         </template>
-      </a-float-button>
+        <a-float-button
+          @click="
+            () => {
+              showCustomerServiceModal = true
+              floatButtonOpen = false
+            }
+          "
+          class="tour-4"
+          :open="true"
+        >
+          <template #icon>
+            <CustomerServiceOutlined />
+          </template>
+        </a-float-button>
+      </a-tooltip>
 
       <a-float-button tooltip="打开小程序" @click="onOpenWechatMiniProgram">
         <template #icon>
