@@ -2268,7 +2268,7 @@
               <CustomFormItem
                 label="元宝升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
-                tooltip="只执行接取、元宝升级、放弃流程；未开启元宝刷新时，仅处理达到升级最低分且任务优先级不为0的任务。"
+                tooltip="只执行接取、元宝升级、放弃流程；未开启元宝刷新任务时，仅处理达到升级最低积分且任务优先级不为0的任务。例：设置升级最低积分为24分，则会升级所有达到24分的任务，想要只升级指定花请打开种植收获细化设置"
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
