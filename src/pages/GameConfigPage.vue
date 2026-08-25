@@ -2268,7 +2268,7 @@
               <CustomFormItem
                 label="元宝升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
-                tooltip="只执行接取、元宝升级、放弃流程；未开启元宝刷新任务时，仅处理达到升级最低积分且任务优先级不为0的任务。例：设置升级最低积分为24分，则会升级所有达到24分的任务，想要只升级指定花请打开种植收获细化设置"
+                tooltip="独立开关：接取达到升级最低积分且任务优先级大于等于1的任务，执行元宝升级后放弃；可与元宝刷新任务同时开启。例：设置升级最低积分为24分，则会升级所有达到24分的任务；想只升级指定花，请开启种植收获细化设置。"
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
@@ -2291,7 +2291,7 @@
               <CustomFormItem
                 label="元宝刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
-                tooltip="开启后，接取低于设定分数的任务时不判断任务优先级，持续用元宝刷新；达到目标分数且任务优先级大于等于1后停止刷新并升级、放弃。"
+                tooltip="独立开关：接取积分小于等于低分阈值的任务并持续刷新，达到刷新目标后放弃；仅当同时开启元宝升级且达到升级条件时才会升级。"
               >
                 <Switch
                   :checked="config.union.fmlRace.diamondRefreshTask"
@@ -2302,7 +2302,7 @@
                 v-if="config.union.fmlRace.diamondRefreshTask"
                 label="接取低分阈值"
                 name="union.fmlRace.diamondRefreshBelowScore"
-                tooltip="仅接取低于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
+                tooltip="仅接取积分小于等于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondRefreshBelowScore"
@@ -2315,7 +2315,7 @@
                 v-if="config.union.fmlRace.diamondRefreshTask"
                 label="刷新目标积分"
                 name="union.fmlRace.diamondRefreshTargetScore"
-                tooltip="刷新到该分数且任务优先级大于等于1时停止，默认24，范围1-99。"
+                tooltip="刷新达到该分数后停止并放弃；若同时开启元宝升级任务，只有达到独立升级最低分且优先级大于等于1时才升级。默认24，范围1-99。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
@@ -2327,7 +2327,7 @@
               <CustomFormItem
                 label="种植收获细化"
                 name="union.fmlRace.harvestUpgradeRefine"
-                tooltip="开启后，种植收获优先级大于等于1时，只会升级指定花朵且达到升级最低积分的任务；若开启元宝刷新任务，则刷新到指定花朵且达到升级最低积分的任务才会停止刷新。"
+                tooltip="仅约束元宝升级条件：种植收获任务只有包含指定花朵、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
               >
                 <Switch v-model:checked="config.union.fmlRace.harvestUpgradeRefine" />
               </CustomFormItem>
