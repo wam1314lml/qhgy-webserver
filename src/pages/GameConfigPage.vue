@@ -1837,7 +1837,7 @@
               <CustomFormItem
                 label="指定花朵"
                 name="union.land.specificFlowerIds"
-                tooltip="留空则不限定花朵"
+                tooltip="会种植指定的花朵"
                 v-if="config.union.land.plantMode === 'specific'"
               >
                 <CustomSelect
@@ -2151,11 +2151,16 @@
               label="接指定花朵"
               name="union.fmlRace.harvestTaskFlowerFilterEnabled"
               tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
             >
               <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
+              v-if="
+                config.union.fmlRace.othersUpgradeTaskMode &&
+                config.union.fmlRace.onlySpecifiedUpgradeTask &&
+                config.union.fmlRace.harvestTaskFlowerFilterEnabled
+              "
               label="指定花朵"
               name="union.fmlRace.harvestTaskFlowerIds"
             >
