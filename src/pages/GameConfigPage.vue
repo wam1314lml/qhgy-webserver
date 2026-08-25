@@ -2069,6 +2069,26 @@
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
             <CustomFormItem
+              label="接指定花朵"
+              name="union.fmlRace.harvestTaskFlowerFilterEnabled"
+              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵，若同时开启了排除他人升级任务，就算设置的花朵满足接取条件也不会接取"
+            >
+              <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
+              label="指定花朵"
+              name="union.fmlRace.harvestTaskFlowerIds"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
+                mode="multiple"
+                placeholder="请选择花朵"
+                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="他人升级任务设置"
               name="union.fmlRace.othersUpgradeTaskMode"
               tooltip="根据用户设置接不接元宝升级任务"
@@ -2146,31 +2166,6 @@
                   @select="addSpecifiedUpgradePlayer"
                 />
               </div>
-            </CustomFormItem>
-            <CustomFormItem
-              label="接指定花朵"
-              name="union.fmlRace.harvestTaskFlowerFilterEnabled"
-              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵"
-              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
-            >
-              <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
-            </CustomFormItem>
-            <CustomFormItem
-              v-if="
-                config.union.fmlRace.othersUpgradeTaskMode &&
-                config.union.fmlRace.onlySpecifiedUpgradeTask &&
-                config.union.fmlRace.harvestTaskFlowerFilterEnabled
-              "
-              label="指定花朵"
-              name="union.fmlRace.harvestTaskFlowerIds"
-            >
-              <CustomSelect
-                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
-                mode="multiple"
-                placeholder="请选择花朵"
-                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
-                style="width: 100%"
-              />
             </CustomFormItem>
             <CustomFormItem
               label="任务优先级"
