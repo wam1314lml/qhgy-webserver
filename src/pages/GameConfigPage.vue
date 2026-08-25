@@ -2050,7 +2050,7 @@
             <CustomFormItem
               label="放弃低分任务"
               name="union.fmlRace.giveuplowscoretask"
-              tooltip="根据「限制分数-未升级」「限制分数-升级后」的设置来判断，例：未升级设置了25，升级后设置了50，则任务列表里有小于等于25的未升级会放弃，有小于等于50的已升级会放弃。开启此项又开启了【自动升级任务】的话，必须要按照「限制分数-未升级」乘以2大于等于「限制分数-升级后」这个规则来设置，否则会出现元宝升级后把这个任务放弃的情况。"
+              tooltip="开了自动升级任务和放弃低分任务，才这样强制校正，只开了自动升级任务，不执行这个校正"
             >
               <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
