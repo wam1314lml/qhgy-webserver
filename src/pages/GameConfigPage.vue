@@ -2050,7 +2050,7 @@
             <CustomFormItem
               label="放弃低分任务"
               name="union.fmlRace.giveuplowscoretask"
-              tooltip="开了自动升级任务和放弃低分任务，才这样强制校正，只开了自动升级任务，不执行这个校正"
+              tooltip="开启放弃低分任务才会强制校正，只开启自动升级任务不执行校正"
             >
               <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
@@ -3096,6 +3096,7 @@ const addSpecifiedUpgradePlayer = (name: string) => {
 watch(
   () => ({
     upgradeTask: config.value.union.fmlRace.upgradeTask,
+    giveuplowscoretask: config.value.union.fmlRace.giveuplowscoretask,
     minUpgradeTaskScore: config.value.union.fmlRace.minUpgradeTaskScore,
     minTaskScore: config.value.union.fmlRace.minTaskScore,
   }),
@@ -3106,7 +3107,7 @@ watch(
 
 const minTaskScoreMin = computed(() => {
   const fmlRace = config.value.union.fmlRace
-  if (!fmlRace.upgradeTask) return 0
+  if (!fmlRace.giveuplowscoretask) return 0
   return getMinTaskScoreFloor(fmlRace.minUpgradeTaskScore)
 })
 
