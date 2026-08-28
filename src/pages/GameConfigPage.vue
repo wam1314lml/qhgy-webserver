@@ -2050,7 +2050,7 @@
             <CustomFormItem
               label="放弃低分任务"
               name="union.fmlRace.giveuplowscoretask"
-              tooltip="开启放弃低分任务才会强制校正，只开启自动升级任务不执行校正"
+              tooltip="开启后若已接了比“限制分数-未升级/已升级”分数更低的任务，则会放弃，严格按照“限制分数-未升级/已升级”设置的分数接取任务，开启此项也会强行校正“限制分数-未升级/已升级”的值，必须是未升级分数*2=已升级分数"
             >
               <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
