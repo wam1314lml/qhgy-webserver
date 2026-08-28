@@ -2064,7 +2064,7 @@
             <CustomFormItem
               label="只接已升级任务"
               name="union.fmlRace.onlyUpgradeTask"
-              tooltip="比如设置了限制27分，开启后就只会接大于等于54分的任务，会使公会任务做的非常慢，慎重开启（系统/玩家升级好的双倍任务比较少，捡漏的可能是比较小的哦）"
+              tooltip="开启后就只会接已升级的任务，分数是根据你设置的“限制分数-升级后”来判断的，比如设置了46，那么就只会接升级后大于等于46的任务了(系统/玩家升级好的双倍任务比较少，捡漏的可能是比较小的哦)"
             >
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
