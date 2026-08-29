@@ -176,7 +176,7 @@ export interface GameConfig {
       autoBuyPutCount: boolean
       buyPutCount: number
       autoBuyFromFriend: boolean
-      buyMode: 'all' | 'specific' | 'quality' | 'exclude' | 'friend' | string
+      buyMode: 'all' | 'specific' | 'quality' | 'exclude' | 'friend' | 'excludeFriend' | 'uncultivated' | string
       buySpecificFlowerIds: Array<number | string>
       buyQualities: number[]
       excludeFlowerIds: Array<number | string>

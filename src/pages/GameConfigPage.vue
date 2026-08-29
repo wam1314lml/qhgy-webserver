@@ -1435,11 +1435,13 @@
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="exclude">排除花朵</Radio>
                     <Radio value="friend">指定好友</Radio>
+                    <Radio value="excludeFriend">排除好友</Radio>
+                    <Radio value="uncultivated">只扫没有的种子</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
-                v-if="config.plant.market.buyMode === 'friend'"
+                v-if="config.plant.market.buyMode === 'friend' || config.plant.market.buyMode === 'excludeFriend'"
                 label="好友名字"
                 name="plant.market.buyFriendNames"
                 tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
