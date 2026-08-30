@@ -73,7 +73,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         plantEnabled: false,
         videoSpeedUp: false,
         useSpeedUpTicket: false,
+        speedUpTicketScenes: ['normal', 'elves'],
         speedUpTicketMode: 'dailyLimit',
+
         speedUpTicketMinMinutes: 33,
         speedUpTicketReserve: 0,
         speedUpTicketMax: 20,

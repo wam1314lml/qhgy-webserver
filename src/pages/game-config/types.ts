@@ -74,7 +74,9 @@ export interface GameConfig {
       plantEnabled: boolean
       videoSpeedUp: boolean
       useSpeedUpTicket: boolean
-      speedUpTicketMode: 'dailyLimit' | 'remainingMinutes' | string
+      speedUpTicketScenes: Array<'normal' | 'elves'>
+      speedUpTicketMode: 'dailyLimit' | 'remainingMinutes'
+ | string
       speedUpTicketMinMinutes: number
       speedUpTicketReserve: number
       speedUpTicketMax: number

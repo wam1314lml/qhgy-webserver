@@ -518,6 +518,18 @@
                 <Switch v-model:checked="config.plant.flower.useSpeedUpTicket" />
               </CustomFormItem>
               <CustomFormItem
+                label="加速场景"
+                name="plant.flower.speedUpTicketScenes"
+                v-if="config.plant.flower.useSpeedUpTicket"
+              >
+                <Checkbox.Group v-model:value="config.plant.flower.speedUpTicketScenes">
+                  <Space direction="vertical">
+                    <Checkbox value="normal">常规/订单/花艺</Checkbox>
+                    <Checkbox value="elves">种植花灵</Checkbox>
+                  </Space>
+                </Checkbox.Group>
+              </CustomFormItem>
+              <CustomFormItem
                 label="加速模式"
                 name="plant.flower.speedUpTicketMode"
                 v-if="config.plant.flower.useSpeedUpTicket"
@@ -2827,6 +2839,7 @@ import {
   message,
   Select,
   Radio,
+  Checkbox,
   Space,
   Modal,
 } from 'ant-design-vue'

@@ -73,6 +73,13 @@ function normalizeGuildRaceTaskPriority(value: unknown): number {
   return Math.min(10, Math.max(1, Math.floor(numberValue)))
 }
 
+function normalizeSpeedUpTicketScenes(value: unknown): Array<'normal' | 'elves'> {
+  if (!Array.isArray(value)) return ['normal', 'elves']
+  return Array.from(
+    new Set(value.filter((scene): scene is 'normal' | 'elves' => scene === 'normal' || scene === 'elves')),
+  )
+}
+
 function normalizeSpeedUpTicketMode(value: unknown): 'dailyLimit' | 'remainingMinutes' {
   return value === 'remainingMinutes' ? 'remainingMinutes' : 'dailyLimit'
 }
@@ -126,6 +133,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)
 
   const flower = config.plant.flower
+  flower.speedUpTicketScenes = normalizeSpeedUpTicketScenes(flower.speedUpTicketScenes)
   flower.speedUpTicketMode = normalizeSpeedUpTicketMode(flower.speedUpTicketMode)
   flower.speedUpTicketMinMinutes = normalizeSpeedUpTicketNumber(
     flower.speedUpTicketMinMinutes,
