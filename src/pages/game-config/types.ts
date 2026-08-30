@@ -254,7 +254,6 @@ export interface GameConfig {
       useSpeedUpTicketInTask: boolean
       minTaskScore: number
       minUpgradeTaskScore: number
-      giveuplowscoretask: boolean
       avoidProgressTask: boolean
       onlyUpgradeTask: boolean
       othersUpgradeTaskMode: boolean

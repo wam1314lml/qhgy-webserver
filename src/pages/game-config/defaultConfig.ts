@@ -275,7 +275,6 @@ export const createDefaultGameConfig = (): GameConfig =>
         useSpeedUpTicketInTask: false,
         minTaskScore: 25,
         minUpgradeTaskScore: 50,
-        giveuplowscoretask: false,
         avoidProgressTask: false,
         onlyUpgradeTask: false,
         othersUpgradeTaskMode: true,

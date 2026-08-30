@@ -22,7 +22,6 @@ import {
   unionLandPlantModeOptions,
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
-import { syncMinTaskScoreForAutoUpgrade } from './fmlRaceUtils'
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
 const DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD = 1000
@@ -371,6 +370,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
 
   const fmlRace = config.union.fmlRace
+  delete (fmlRace as unknown as Record<string, unknown>).giveuplowscoretask
   fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
   fmlRace.othersUpgradeTaskMode = !!fmlRace.othersUpgradeTaskMode
   fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
@@ -415,7 +415,6 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     fmlRace.diamondUpgradeReserve,
   )
   config.activity.fmlRace.enabled = !!config.activity.fmlRace.enabled
-  syncMinTaskScoreForAutoUpgrade(config.union.fmlRace)
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }
 

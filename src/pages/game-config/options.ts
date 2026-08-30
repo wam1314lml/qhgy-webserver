@@ -65,6 +65,8 @@ export const buyModeOptions = [
   { value: 'quality', label: '指定品质' },
   { value: 'exclude', label: '排除花朵' },
   { value: 'friend', label: '指定好友' },
+  { value: 'excludeFriend', label: '排除好友' },
+  { value: 'uncultivated', label: '只扫没有的种子' },
 ]
 
 // —— 花艺上架模式 ——

@@ -518,13 +518,13 @@
                 <Switch v-model:checked="config.plant.flower.useSpeedUpTicket" />
               </CustomFormItem>
               <CustomFormItem
-                label="加速场景"
+                label="使用场景"
                 name="plant.flower.speedUpTicketScenes"
                 v-if="config.plant.flower.useSpeedUpTicket"
               >
                 <Checkbox.Group v-model:value="config.plant.flower.speedUpTicketScenes">
                   <Space direction="vertical">
-                    <Checkbox value="normal">常规/订单/花艺</Checkbox>
+                    <Checkbox value="normal">普通种花</Checkbox>
                     <Checkbox value="elves">种植花灵</Checkbox>
                   </Space>
                 </Checkbox.Group>
@@ -1441,7 +1441,7 @@
             <template v-if="config.plant.market.autoBuyFromFriend">
               <CustomFormItem label="扫货策略" name="plant.market.buyMode">
                 <Radio.Group v-model:value="config.plant.market.buyMode">
-                  <Space >
+                  <Space direction="vertical">
                     <Radio value="all">全部</Radio>
                     <Radio value="specific">指定花朵</Radio>
                     <Radio value="quality">指定品质</Radio>
@@ -2016,6 +2016,9 @@
             </template>
 
             <Divider orientation="left">公会竞赛</Divider>
+            <div class="preset-button-container mb-4">
+              <a-button type="primary" @click="openFmlRaceQuickSetup">快速设置</a-button>
+            </div>
             <CustomFormItem
               label="自动完成"
               name="union.fmlRace.enabled"
@@ -2044,7 +2047,7 @@
             >
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minTaskScore"
-                :min="minTaskScoreMin"
+                :min="0"
                 :max="40"
                 class="w-42! sm:w-48!"
               />
@@ -2052,7 +2055,7 @@
             <CustomFormItem
               label="限制分数-升级后"
               name="union.fmlRace.minUpgradeTaskScore"
-              tooltip="接分数不低于此值的玩家升级后任务/原金任务（双倍分数），0 表示不限制，举例：「限制分数-未升级」设置20，「限制分数-升级后」设置50，则接20分以上普通任务，50分以上升级后任务。注意！若要开启【放弃低分任务】+【自动升级任务】，需要设置「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值。否则会出现元宝升级后把这个任务放弃的情况"
+              tooltip="接分数不低于此值的玩家升级后任务/原金任务（双倍分数），0 表示不限制，举例：「限制分数-未升级」设置20，「限制分数-升级后」设置50，则接20分以上普通任务，50分以上升级后任务。注意！若要开启【自动升级任务】，需要设置「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值。否则会出现元宝升级后把这个任务放弃的情况"
             >
               <CustomInputNumber
                 v-model:value="config.union.fmlRace.minUpgradeTaskScore"
@@ -2060,13 +2063,6 @@
                 :max="80"
                 class="w-42! sm:w-48!"
               />
-            </CustomFormItem>
-            <CustomFormItem
-              label="放弃低分任务"
-              name="union.fmlRace.giveuplowscoretask"
-              tooltip="开启后若已接了比“限制分数-未升级/已升级”分数更低的任务，则会放弃，严格按照“限制分数-未升级/已升级”设置的分数接取任务，开启此项也会强行校正“限制分数-未升级/已升级”的值，必须是未升级分数*2=已升级分数"
-            >
-              <Switch v-model:checked="config.union.fmlRace.giveuplowscoretask" />
             </CustomFormItem>
             <CustomFormItem
               label="避开有进度任务"
@@ -2205,7 +2201,7 @@
             <CustomFormItem
               label="自动升级任务"
               name="union.fmlRace.upgradeTask"
-              tooltip="领取任务后花费元宝自动升级，开启此项又开启了【放弃低分任务】的话，必须要按照「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值，这个规则来设置，否则会出现元宝升级后把这个任务放弃的情况。"
+              tooltip="领取任务后花费元宝自动升级。"
             >
               <Switch
                 :checked="config.union.fmlRace.upgradeTask"
@@ -2801,6 +2797,62 @@
     </div>
 
     <Modal
+      :open="fmlRaceQuickSetupVisible"
+      :title="fmlRaceQuickSetupTitle"
+      :confirm-loading="fmlRaceQuickSetupSaving"
+      okText="确认"
+      cancelText="取消"
+      centered
+      :mask-closable="false"
+      @ok="handleFmlRaceQuickSetupConfirm"
+      @cancel="cancelFmlRaceQuickSetup"
+    >
+      <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
+        <div class="fml-race-quick-setup-field">
+          <span>普通任务接取分数</span>
+          <CustomInputNumber
+            v-model:value="fmlRaceQuickSetupNormalScore"
+            :min="0"
+            :max="40"
+            class="w-42! sm:w-48!"
+          />
+        </div>
+        <div class="fml-race-quick-setup-field">
+          <span>升级任务接取分数</span>
+          <CustomInputNumber
+            v-model:value="fmlRaceQuickSetupUpgradeScore"
+            :min="0"
+            :max="80"
+            class="w-42! sm:w-48!"
+          />
+        </div>
+      </div>
+      <div v-else-if="fmlRaceQuickSetupStep === 2" class="fml-race-quick-setup">
+        <div class="fml-race-quick-setup-question">接取他人升级任务</div>
+        <Radio.Group v-model:value="fmlRaceQuickSetupAcceptOthersUpgrade">
+          <Space>
+            <Radio :value="true">是</Radio>
+            <Radio :value="false">否</Radio>
+          </Space>
+        </Radio.Group>
+      </div>
+      <div v-else class="fml-race-quick-setup">
+        <div class="fml-race-quick-setup-question">是否使用元宝升级</div>
+        <Radio.Group v-model:value="fmlRaceQuickSetupUseDiamondUpgrade">
+          <Space>
+            <Radio :value="true">是</Radio>
+            <Radio :value="false">否</Radio>
+          </Space>
+        </Radio.Group>
+        <Alert
+          type="warning"
+          show-icon
+          message="注意！开启此项会消耗元宝"
+        />
+      </div>
+    </Modal>
+
+    <Modal
       v-model:open="importConfigModalVisible"
       title="导入配置"
       :confirm-loading="importConfigLoading"
@@ -2868,7 +2920,6 @@ import {
 import { floralShopAllOptions } from './game-config/shopItem6Options'
 import { deepMerge } from './game-config/utils'
 import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
-import { syncMinTaskScoreForAutoUpgrade, getMinTaskScoreFloor } from './game-config/fmlRaceUtils'
 import type { GameConfig } from './game-config/types'
 
 // 路由相关
@@ -2889,6 +2940,18 @@ const guildMemberOptions = ref<Array<{ value: string; label: string }>>([])
 const selectedGuildMember = ref<string | undefined>()
 const activeTab = ref('基础')
 const formRef = ref()
+const fmlRaceQuickSetupVisible = ref(false)
+const fmlRaceQuickSetupSaving = ref(false)
+const fmlRaceQuickSetupStep = ref<1 | 2 | 3>(1)
+const fmlRaceQuickSetupNormalScore = ref(23)
+const fmlRaceQuickSetupUpgradeScore = ref(46)
+const fmlRaceQuickSetupAcceptOthersUpgrade = ref(false)
+const fmlRaceQuickSetupUseDiamondUpgrade = ref(true)
+const fmlRaceQuickSetupTitle = computed(() => {
+  if (fmlRaceQuickSetupStep.value === 1) return '设置分数'
+  if (fmlRaceQuickSetupStep.value === 2) return '他人升级任务设置'
+  return '使用元宝升级任务'
+})
 
 // 表单验证规则
 const formRules = {
@@ -2898,6 +2961,30 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+const enforceUpgradeTaskScores = (target: GameConfig) => {
+  const fmlRace = target.union.fmlRace
+  if (!fmlRace.upgradeTask) return
+
+  const minTaskScore = Math.max(0, Math.min(40, Math.floor(Number(fmlRace.minTaskScore) || 0)))
+  const minUpgradeTaskScore = minTaskScore * 2
+  if (fmlRace.minTaskScore !== minTaskScore) fmlRace.minTaskScore = minTaskScore
+  if (fmlRace.minUpgradeTaskScore !== minUpgradeTaskScore) {
+    fmlRace.minUpgradeTaskScore = minUpgradeTaskScore
+  }
+}
+
+const syncUpgradeTaskScores = () => enforceUpgradeTaskScores(config.value)
+
+watch(
+  () => [
+    config.value.union.fmlRace.upgradeTask,
+    config.value.union.fmlRace.minTaskScore,
+    config.value.union.fmlRace.minUpgradeTaskScore,
+  ],
+  syncUpgradeTaskScores,
+  { immediate: true },
+)
 
 const handleCultivateEnabledChange = (enabled: boolean) => {
   config.value.plant.cultivate.autoHarvestEnabled = enabled
@@ -2988,6 +3075,78 @@ const handleSmallAccountExclusiveChange = (enabled: boolean) => {
   if (!enabled) {
     fmlRace.onlyDiamondUpgradeTask = false
     fmlRace.diamondRefreshTask = false
+  }
+}
+
+const resetFmlRaceQuickSetup = () => {
+  fmlRaceQuickSetupStep.value = 1
+  fmlRaceQuickSetupNormalScore.value = 23
+  fmlRaceQuickSetupUpgradeScore.value = 46
+  fmlRaceQuickSetupAcceptOthersUpgrade.value = false
+  fmlRaceQuickSetupUseDiamondUpgrade.value = true
+}
+
+const openFmlRaceQuickSetup = () => {
+  resetFmlRaceQuickSetup()
+  fmlRaceQuickSetupVisible.value = true
+}
+
+const cancelFmlRaceQuickSetup = () => {
+  if (fmlRaceQuickSetupSaving.value) return
+  fmlRaceQuickSetupVisible.value = false
+  resetFmlRaceQuickSetup()
+}
+
+const applyFmlRaceQuickSetup = async () => {
+  const normalScore = Math.max(
+    0,
+    Math.min(40, Math.floor(Number(fmlRaceQuickSetupNormalScore.value) || 0)),
+  )
+  const upgradeScore = fmlRaceQuickSetupUseDiamondUpgrade.value
+    ? normalScore * 2
+    : Math.max(0, Math.min(80, Math.floor(Number(fmlRaceQuickSetupUpgradeScore.value) || 0)))
+  const fmlRace = config.value.union.fmlRace
+
+  fmlRace.enabled = true
+  fmlRace.autoEnableModules = true
+  fmlRace.useSpeedUpTicketInTask = true
+  fmlRace.minTaskScore = normalScore
+  fmlRace.minUpgradeTaskScore = upgradeScore
+  fmlRace.avoidProgressTask = false
+  fmlRace.othersUpgradeTaskMode = !fmlRaceQuickSetupAcceptOthersUpgrade.value
+  fmlRace.excludeOthersUpgradeTask = !fmlRaceQuickSetupAcceptOthersUpgrade.value
+  fmlRace.onlySpecifiedUpgradeTask = false
+  fmlRace.acceptQualifiedNormalTask = false
+  fmlRaceTaskTypes.forEach((item) => {
+    fmlRace.taskTypePriority[item.key] = item.key === '3036' ? 1 : 0
+  })
+  fmlRace.upgradeTask = fmlRaceQuickSetupUseDiamondUpgrade.value
+
+  const flower = config.value.plant.flower
+  flower.harvestEnabled = true
+  flower.plantEnabled = true
+  flower.videoSpeedUp = true
+  flower.waterThreshold = 1
+  flower.taskMode = true
+  flower.taskPriorityConfig['公会竞赛'] = 1
+
+  syncUpgradeTaskScores()
+  fmlRaceQuickSetupVisible.value = false
+  await saveConfig()
+  resetFmlRaceQuickSetup()
+}
+
+const handleFmlRaceQuickSetupConfirm = async () => {
+  if (fmlRaceQuickSetupStep.value < 3) {
+    fmlRaceQuickSetupStep.value = (fmlRaceQuickSetupStep.value + 1) as 1 | 2 | 3
+    return
+  }
+
+  fmlRaceQuickSetupSaving.value = true
+  try {
+    await applyFmlRaceQuickSetup()
+  } finally {
+    fmlRaceQuickSetupSaving.value = false
   }
 }
 
@@ -3107,24 +3266,6 @@ const addSpecifiedUpgradePlayer = (name: string) => {
   config.value.union.fmlRace.specifiedUpgradePlayers = [...players, normalizedName]
   message.success(`已添加 ${normalizedName}`)
 }
-
-watch(
-  () => ({
-    upgradeTask: config.value.union.fmlRace.upgradeTask,
-    giveuplowscoretask: config.value.union.fmlRace.giveuplowscoretask,
-    minUpgradeTaskScore: config.value.union.fmlRace.minUpgradeTaskScore,
-    minTaskScore: config.value.union.fmlRace.minTaskScore,
-  }),
-  () => {
-    syncMinTaskScoreForAutoUpgrade(config.value.union.fmlRace)
-  },
-)
-
-const minTaskScoreMin = computed(() => {
-  const fmlRace = config.value.union.fmlRace
-  if (!fmlRace.giveuplowscoretask) return 0
-  return getMinTaskScoreFloor(fmlRace.minUpgradeTaskScore)
-})
 
 const forceCollectHourOptions = Array.from({ length: 8 }, (_, i) => i + 16)
 const forceCollectMinuteOptions = Array.from({ length: 60 }, (_, i) => i)
@@ -3317,6 +3458,7 @@ const saveConfig = async () => {
     })
 
     normalizeGameConfigSelects(config.value)
+    syncUpgradeTaskScores()
 
     const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
 
@@ -3419,6 +3561,7 @@ const importConfigFromSelectedAccount = async () => {
 
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload)
+    enforceUpgradeTaskScores(payload)
     const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
 
     if (!saveResponse.data?.success) {
@@ -3676,6 +3819,25 @@ onMounted(() => {
   display: flex;
   justify-content: flex-start;
   align-items: center;
+}
+
+.fml-race-quick-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.fml-race-quick-setup-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fml-race-quick-setup-question {
+  font-weight: 500;
+  color: #262626;
 }
 
 .exclusive-mode-description {
