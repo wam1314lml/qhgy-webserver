@@ -602,7 +602,7 @@
               <CustomFormItem
                 label="严格模式"
                 name="plant.flower.strictLayout"
-                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低，效率低体现在做任务方面，如居民订单，顾客订单之类的"
+                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低，效率低体现在做任务方面，如居民订单，顾客订单之类的。生效的模式：指定品质-指定花朵-指定库存"
               >
                 <Switch v-model:checked="config.plant.flower.strictLayout" />
               </CustomFormItem>
@@ -3112,7 +3112,7 @@ const applyFmlRaceQuickSetup = async () => {
   fmlRace.useSpeedUpTicketInTask = true
   fmlRace.minTaskScore = normalScore
   fmlRace.minUpgradeTaskScore = upgradeScore
-  fmlRace.avoidProgressTask = false
+  fmlRace.avoidProgressTask = true
   fmlRace.othersUpgradeTaskMode = !fmlRaceQuickSetupAcceptOthersUpgrade.value
   fmlRace.excludeOthersUpgradeTask = !fmlRaceQuickSetupAcceptOthersUpgrade.value
   fmlRace.onlySpecifiedUpgradeTask = false
