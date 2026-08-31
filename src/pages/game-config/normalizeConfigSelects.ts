@@ -323,6 +323,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     ? false
     : !!config.order.palace.ignoreQuality
   config.order.team.qualities = normalizeFlowerQualities(config.order.team.qualities)
+  config.order.team.reserveStock = normalizeDiamondUpgradeReserve(config.order.team.reserveStock)
 
   const land = config.union.land
   land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)

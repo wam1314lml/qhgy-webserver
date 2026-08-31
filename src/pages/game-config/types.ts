@@ -220,6 +220,7 @@ export interface GameConfig {
       teamMode: 'quality' | 'exclude'
       qualities: number[]
       excludeFlowerIds: number[]
+      reserveStock: number
     }
   }
 

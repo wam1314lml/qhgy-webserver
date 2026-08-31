@@ -1766,6 +1766,18 @@
                 <Switch v-model:checked="config.order.team.submitOnlyCultivatedFlowers" />
               </CustomFormItem>
               <CustomFormItem
+                label="保留库存"
+                name="order.team.reserveStock"
+                tooltip="每种花提交团单后至少保留的库存；库存不足以同时支付订单消耗并满足保留数量时将刷新订单，填0则不额外保留"
+              >
+                <CustomInputNumber
+                  v-model:value="config.order.team.reserveStock"
+                  :min="0"
+                  :max="9999999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="团单模式"
                 name="order.team.teamMode"
                 tooltip="品质限定：只提交指定品质的花朵；排除花朵：碰到排除的花朵就刷新，其余花朵均可提交"
