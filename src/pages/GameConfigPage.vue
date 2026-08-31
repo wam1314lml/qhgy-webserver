@@ -69,31 +69,28 @@
           :wrapper-col="{ span: 16 }"
         >
           <!-- 基础设置 -->
-          <div v-if="activeTab === '基础'" class="config-section hierarchy-config-section">
+          <div v-if="activeTab === '基础'" class="config-section">
             <Divider orientation="left">基础设置</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="礼仪分监控"
               name="basic.reputation.enabled"
               tooltip="每10分钟检查礼仪分，低于阈值时自动停止所有任务"
             >
               <Switch v-model:checked="config.basic.reputation.enabled" />
             </CustomFormItem>
-            <div v-if="config.basic.reputation.enabled" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="礼仪分阈值"
-                name="basic.reputation.threshold"
-                tooltip="礼仪分低于此值时停止所有任务"
-              >
-                <custom-input-number
-                  v-model:value="config.basic.reputation.threshold"
-                  :min="0"
-                  :max="100"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="礼仪分阈值"
+              name="basic.reputation.threshold"
+              tooltip="礼仪分低于此值时停止所有任务"
+              v-if="config.basic.reputation.enabled"
+            >
+              <custom-input-number
+                v-model:value="config.basic.reputation.threshold"
+                :min="0"
+                :max="100"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <CustomFormItem
               label="道具日志"
               name="basic.debug"
@@ -207,41 +204,35 @@
             >
               <Switch v-model:checked="config.basic.pearl.freePearl" />
             </CustomFormItem>
-            <CustomFormItem
-              class="guild-hierarchy-parent"
-              label="雇佣劳工"
-              name="basic.pearl.autoHire"
-              tooltip="自动雇佣劳工"
-            >
+            <CustomFormItem label="雇佣劳工" name="basic.pearl.autoHire" tooltip="自动雇佣劳工">
               <Switch v-model:checked="config.basic.pearl.autoHire" />
             </CustomFormItem>
-            <div v-if="config.basic.pearl.autoHire" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="等级限制"
-                name="basic.pearl.maxHireLevel"
-                tooltip="只雇佣等级<=此值的用户，0表示不限制"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.pearl.maxHireLevel"
-                  :min="0"
-                  :max="100"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="雇佣券上限"
-                name="basic.pearl.maxHireTicketUsage"
-                tooltip="当日最大可以使用的雇佣券数量, 比如设置10张，则今天用了10张后就不会再用了。为0则不限制，看不懂的请无脑填0。"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.pearl.maxHireTicketUsage"
-                  :min="0"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </div>
+
+            <CustomFormItem
+              label="等级限制"
+              name="basic.pearl.maxHireLevel"
+              tooltip="只雇佣等级<=此值的用户，0表示不限制"
+              v-if="config.basic.pearl.autoHire"
+            >
+              <CustomInputNumber
+                v-model:value="config.basic.pearl.maxHireLevel"
+                :min="0"
+                :max="100"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="雇佣券上限"
+              name="basic.pearl.maxHireTicketUsage"
+              tooltip="当日最大可以使用的雇佣券数量, 比如设置10张，则今天用了10张后就不会再用了。为0则不限制，看不懂的请无脑填0。"
+              v-if="config.basic.pearl.autoHire"
+            >
+              <CustomInputNumber
+                v-model:value="config.basic.pearl.maxHireTicketUsage"
+                :min="0"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <CustomFormItem label="自动开珍珠" name="basic.pearl.autoPearlDraw">
               <Switch v-model:checked="config.basic.pearl.autoPearlDraw" />
             </CustomFormItem>
@@ -253,7 +244,6 @@
               <Switch v-model:checked="config.basic.pearl.protectEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="买雇佣书"
               name="basic.pearl.autoBuyHireTicket"
               tooltip="雇佣书不足时自动购买"
@@ -266,21 +256,19 @@
                 "
               />
             </CustomFormItem>
-            <div v-if="config.basic.pearl.autoBuyHireTicket" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="元宝上限"
-                name="basic.pearl.maxSpendDmd"
-                tooltip="购买雇佣书消耗最大元宝"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.pearl.maxSpendDmd"
-                  :min="0"
-                  :step="25"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="元宝上限"
+              name="basic.pearl.maxSpendDmd"
+              tooltip="购买雇佣书消耗最大元宝"
+              v-if="config.basic.pearl.autoBuyHireTicket"
+            >
+              <CustomInputNumber
+                v-model:value="config.basic.pearl.maxSpendDmd"
+                :min="0"
+                :step="25"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
 
             <Divider orientation="left">商城购买</Divider>
             <CustomFormItem
@@ -291,41 +279,36 @@
               <Switch v-model:checked="config.basic.shop.videoFreeGift" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="材料商店"
               name="basic.shop.cultivateShop.autoBuy"
               tooltip="自动买光材料商店所有耗材，自动刷新"
             >
               <Switch v-model:checked="config.basic.shop.cultivateShop.autoBuy" />
             </CustomFormItem>
-            <div v-if="config.basic.shop.cultivateShop.autoBuy" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="金币上限"
-                name="basic.shop.cultivateShop.maxSpendGold"
-                tooltip="材料商店花费金币上限，0则不限制"
-              >
-                <CustomInputNumber
-                  v-model:value="config.basic.shop.cultivateShop.maxSpendGold"
-                  :min="0"
-                  :step="100000"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="金币上限"
+              name="basic.shop.cultivateShop.maxSpendGold"
+              tooltip="材料商店花费金币上限，0则不限制"
+              v-if="config.basic.shop.cultivateShop.autoBuy"
+            >
+              <CustomInputNumber
+                v-model:value="config.basic.shop.cultivateShop.maxSpendGold"
+                :min="0"
+                :step="100000"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
 
             <Divider orientation="left">花坊</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="花坊兑换"
               name="basic.shop.floralShop.enabled"
               tooltip="开启后会根据用户设置兑换未拥有的鲜花/花瓶（花坊商店 tempId=6，每种限购一件，已购过的自动跳过）"
             >
               <Switch v-model:checked="config.basic.shop.floralShop.enabled" />
             </CustomFormItem>
-            <div v-if="config.basic.shop.floralShop.enabled" class="guild-child-panel">
+            <template v-if="config.basic.shop.floralShop.enabled">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="兑换商品"
                 name="basic.shop.floralShop.itemIds"
                 tooltip="选择花坊商店要兑换的鲜花/花瓶，已购过的自动跳过"
@@ -340,7 +323,7 @@
                   :max-tag-count="5"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">随机事件</Divider>
             <CustomFormItem label="自动处理" name="basic.randomEvent" tooltip="自动处理随机事件">
@@ -348,47 +331,29 @@
             </CustomFormItem>
 
             <Divider orientation="left">喂猫撸猫</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="总开关" name="basic.feedCat.enabled">
+            <CustomFormItem label="总开关" name="basic.feedCat.enabled">
               <Switch v-model:checked="config.basic.feedCat.enabled" />
             </CustomFormItem>
 
-            <div v-if="config.basic.feedCat.enabled" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="自动召回"
-                name="basic.feedCat.autoRecall"
-              >
+            <template v-if="config.basic.feedCat.enabled">
+              <CustomFormItem label="自动召回" name="basic.feedCat.autoRecall">
                 <Switch v-model:checked="config.basic.feedCat.autoRecall" />
               </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="自动购买猫粮"
-                name="basic.feedCat.autoBuyFood"
-              >
+              <CustomFormItem label="自动购买猫粮" name="basic.feedCat.autoBuyFood">
                 <Switch v-model:checked="config.basic.feedCat.autoBuyFood" />
               </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="自动喂猫"
-                name="basic.feedCat.autoFeed"
-                tooltip="保持猫粮盆满"
-              >
+              <CustomFormItem label="自动喂猫" name="basic.feedCat.autoFeed" tooltip="保持猫粮盆满">
                 <Switch v-model:checked="config.basic.feedCat.autoFeed" />
               </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="自动撸猫"
-                name="basic.feedCat.autoStroke"
-              >
+              <CustomFormItem label="自动撸猫" name="basic.feedCat.autoStroke">
                 <Switch v-model:checked="config.basic.feedCat.autoStroke" />
               </CustomFormItem>
-            </div>
+            </template>
           </div>
           <!-- 种植设置 -->
-          <div v-if="activeTab === '种植'" class="config-section hierarchy-config-section">
+          <div v-if="activeTab === '种植'" class="config-section">
             <Divider orientation="left">培育配置</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动培育"
               name="plant.cultivate.enabled"
               tooltip="自动培育可培育花种"
@@ -398,16 +363,14 @@
                 @change="handleCultivateEnabledChange"
               />
             </CustomFormItem>
-            <div v-if="config.plant.cultivate.enabled" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="自动收获"
-                name="plant.cultivate.autoHarvestEnabled"
-                tooltip="开启后培育完成后会自动收获"
-              >
-                <Switch v-model:checked="config.plant.cultivate.autoHarvestEnabled" />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="自动收获"
+              name="plant.cultivate.autoHarvestEnabled"
+              tooltip="开启后培育完成后会自动收获"
+              v-if="config.plant.cultivate.enabled"
+            >
+              <Switch v-model:checked="config.plant.cultivate.autoHarvestEnabled" />
+            </CustomFormItem>
             <CustomFormItem
               label="视频加速"
               name="plant.cultivate.videoSpeedUp"
@@ -417,67 +380,57 @@
             </CustomFormItem>
 
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="鲜花升级"
               name="plant.cultivate.upgradeEnabled"
               tooltip="自动花费金币进行鲜花升级"
             >
               <Switch v-model:checked="config.plant.cultivate.upgradeEnabled" />
             </CustomFormItem>
-            <div v-if="config.plant.cultivate.upgradeEnabled" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="指定品质"
-                name="plant.cultivate.upgradeQualityEnabled"
-                tooltip="开启后就只会升级指定颜色的花到指定等级了"
-              >
-                <Switch v-model:checked="config.plant.cultivate.upgradeQualityEnabled" />
-              </CustomFormItem>
-              <div
-                v-if="config.plant.cultivate.upgradeQualityEnabled"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="选择品质"
-                  name="plant.cultivate.upgradeQualities"
-                  tooltip="选择要升级的花朵品质，可多选"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.cultivate.upgradeQualities"
-                    mode="multiple"
-                    :options="flowerQualityOptions"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="目标等级"
-                name="plant.cultivate.tagetLevel"
-                tooltip="鲜花升级到目标等级"
-              >
-                <CustomInputNumber
-                  v-model:value="config.plant.cultivate.tagetLevel"
-                  :min="1"
-                  :max="20"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="指定品质"
+              name="plant.cultivate.upgradeQualityEnabled"
+              tooltip="开启后就只会升级指定颜色的花到指定等级了"
+              v-if="config.plant.cultivate.upgradeEnabled"
+            >
+              <Switch v-model:checked="config.plant.cultivate.upgradeQualityEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="选择品质"
+              name="plant.cultivate.upgradeQualities"
+              tooltip="选择要升级的花朵品质，可多选"
+              v-if="config.plant.cultivate.upgradeEnabled && config.plant.cultivate.upgradeQualityEnabled"
+            >
+              <CustomSelect
+                v-model:value="config.plant.cultivate.upgradeQualities"
+                mode="multiple"
+                :options="flowerQualityOptions"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="目标等级"
+              name="plant.cultivate.tagetLevel"
+              tooltip="鲜花升级到目标等级"
+              v-if="config.plant.cultivate.upgradeEnabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.cultivate.tagetLevel"
+                :min="1"
+                :max="20"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
 
             <Divider orientation="left">水滴配置</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="水车水滴"
               name="plant.water.enabled"
               tooltip="3分钟领取一次水滴，这样才能最大化暴击，所以领取会略慢。"
             >
               <Switch v-model:checked="config.plant.water.enabled" />
             </CustomFormItem>
-            <div v-if="config.plant.water.enabled" class="guild-child-panel">
+            <template v-if="config.plant.water.enabled">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="限时水滴"
                 name="plant.water.timedEnabled"
                 tooltip="自动领取限时水滴"
@@ -485,7 +438,6 @@
                 <Switch v-model:checked="config.plant.water.timedEnabled" />
               </CustomFormItem>
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="水滴阈值"
                 name="plant.water.minWaterThreshold"
                 tooltip="若设置100，你的水滴低于100点才会领取，0代表不限制，设置0才会及时领水哦，不理解的建议无脑设置0"
@@ -497,42 +449,36 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="无视阈值直接领"
                 name="plant.water.forceCollectEnabled"
                 tooltip="会根据设置好的时间段，到时间点后就无视水滴阈值且每次领水不等待3分钟直接领取"
               >
                 <Switch v-model:checked="config.plant.water.forceCollectEnabled" />
               </CustomFormItem>
-              <div
+              <CustomFormItem
                 v-if="config.plant.water.forceCollectEnabled"
-                class="guild-grandchild-panel"
+                label="领取时间"
+                name="plant.water.forceCollectTime"
+                tooltip="到该时间点后将无视水滴阈值并直接领取，时只能设置 16-23"
               >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="领取时间"
-                  name="plant.water.forceCollectTime"
-                  tooltip="到该时间点后将无视水滴阈值并直接领取，时只能设置 16-23"
-                >
-                  <Space>
-                    <Select v-model:value="forceCollectHour" class="w-24!">
-                      <Select.Option v-for="h in forceCollectHourOptions" :key="h" :value="h">
-                        {{ h }}时
-                      </Select.Option>
-                    </Select>
-                    <Select v-model:value="forceCollectMinute" class="w-24!">
-                      <Select.Option
-                        v-for="m in forceCollectMinuteOptions"
-                        :key="m"
-                        :value="m"
-                      >
-                        {{ String(m).padStart(2, '0') }}分
-                      </Select.Option>
-                    </Select>
-                  </Space>
-                </CustomFormItem>
-              </div>
-            </div>
+                <Space>
+                  <Select v-model:value="forceCollectHour" class="w-24!">
+                    <Select.Option v-for="h in forceCollectHourOptions" :key="h" :value="h">
+                      {{ h }}时
+                    </Select.Option>
+                  </Select>
+                  <Select v-model:value="forceCollectMinute" class="w-24!">
+                    <Select.Option
+                      v-for="m in forceCollectMinuteOptions"
+                      :key="m"
+                      :value="m"
+                    >
+                      {{ String(m).padStart(2, '0') }}分
+                    </Select.Option>
+                  </Select>
+                </Space>
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">种花配置</Divider>
             <CustomFormItem
@@ -550,14 +496,13 @@
               <Switch v-model:checked="config.plant.flower.harvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动种植"
               name="plant.flower.plantEnabled"
               tooltip="自动完成土地浇水，加速，种植"
             >
               <Switch v-model:checked="config.plant.flower.plantEnabled" />
             </CustomFormItem>
-            <div v-if="config.plant.flower.plantEnabled" class="guild-child-panel">
+            <template v-if="config.plant.flower.plantEnabled">
               <CustomFormItem
                 label="视频加速"
                 name="plant.flower.videoSpeedUp"
@@ -572,71 +517,77 @@
               >
                 <Switch v-model:checked="config.plant.flower.useSpeedUpTicket" />
               </CustomFormItem>
-              <div
+              <CustomFormItem
+                label="使用场景"
+                name="plant.flower.speedUpTicketScenes"
                 v-if="config.plant.flower.useSpeedUpTicket"
-                class="guild-grandchild-panel"
               >
-                <CustomFormItem
-                  label="使用场景"
-                  name="plant.flower.speedUpTicketScenes"
-                >
-                  <Checkbox.Group v-model:value="config.plant.flower.speedUpTicketScenes">
-                    <Space direction="vertical">
-                      <Checkbox value="normal">普通种花</Checkbox>
-                      <Checkbox value="elves">种植花灵</Checkbox>
-                    </Space>
-                  </Checkbox.Group>
-                </CustomFormItem>
-                <CustomFormItem
-                  label="加速模式"
-                  name="plant.flower.speedUpTicketMode"
-                >
-                  <Radio.Group v-model:value="config.plant.flower.speedUpTicketMode">
-                    <Space direction="vertical">
-                      <Radio value="dailyLimit">每天使用多少张加速卡</Radio>
-                      <Radio value="remainingMinutes">收获时间大于多少分钟使用</Radio>
-                    </Space>
-                  </Radio.Group>
-                </CustomFormItem>
-                <CustomFormItem
-                  label="加速上限"
-                  name="plant.flower.speedUpTicketMax"
-                  tooltip="若设置100，则今日使用到100张就不使用了"
-                  v-if="config.plant.flower.speedUpTicketMode === 'dailyLimit'"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.flower.speedUpTicketMax"
-                    :min="0"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  label="大于多少分钟"
-                  name="plant.flower.speedUpTicketMinMinutes"
-                  tooltip="仅当剩余成熟时间严格大于该分钟数时才会使用加速卡"
-                  v-if="config.plant.flower.speedUpTicketMode === 'remainingMinutes'"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.flower.speedUpTicketMinMinutes"
-                    :min="0"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  label="保留加速卡"
-                  name="plant.flower.speedUpTicketReserve"
-                  tooltip="当加速卡库存小于等于该值时不使用加速卡"
-                  v-if="config.plant.flower.speedUpTicketMode === 'remainingMinutes'"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.flower.speedUpTicketReserve"
-                    :min="0"
-                    :max="99999"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
+                <Checkbox.Group v-model:value="config.plant.flower.speedUpTicketScenes">
+                  <Space direction="vertical">
+                    <Checkbox value="normal">普通种花</Checkbox>
+                    <Checkbox value="elves">种植花灵</Checkbox>
+                  </Space>
+                </Checkbox.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                label="加速模式"
+                name="plant.flower.speedUpTicketMode"
+                v-if="config.plant.flower.useSpeedUpTicket"
+              >
+                <Radio.Group v-model:value="config.plant.flower.speedUpTicketMode">
+                  <Space direction="vertical">
+                    <Radio value="dailyLimit">每天使用多少张加速卡</Radio>
+                    <Radio value="remainingMinutes">收获时间大于多少分钟使用</Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
+              <CustomFormItem
+                label="加速上限"
+                name="plant.flower.speedUpTicketMax"
+                tooltip="若设置100，则今日使用到100张就不使用了"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'dailyLimit'
+                "
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.speedUpTicketMax"
+                  :min="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="大于多少分钟"
+                name="plant.flower.speedUpTicketMinMinutes"
+                tooltip="仅当剩余成熟时间严格大于该分钟数时才会使用加速卡"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'remainingMinutes'
+                "
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.speedUpTicketMinMinutes"
+                  :min="0"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="保留加速卡"
+                name="plant.flower.speedUpTicketReserve"
+                tooltip="当加速卡库存小于等于该值时不使用加速卡"
+                v-if="
+                  config.plant.flower.useSpeedUpTicket &&
+                  config.plant.flower.speedUpTicketMode === 'remainingMinutes'
+                "
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.flower.speedUpTicketReserve"
+                  :min="0"
+                  :max="99999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="保留水滴"
                 name="plant.flower.waterThreshold"
@@ -655,25 +606,24 @@
               >
                 <Switch v-model:checked="config.plant.flower.strictLayout" />
               </CustomFormItem>
-              <div v-if="config.plant.flower.strictLayout" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="单花占地数量"
-                  name="plant.flower.landGroupSize"
-                  tooltip="指一种花占几块地，可实现土地规整，若选择了指定种类，则单花占地数量不生效，跟着设置了多少种进行种植"
-                >
-                  <Radio.Group v-model:value="config.plant.flower.landGroupSize">
-                    <Space>
-                      <Radio
-                        v-for="option in landGroupSizeOptions"
-                        :key="option.value"
-                        :value="option.value"
-                      >
-                        {{ option.label }}
-                      </Radio>
-                    </Space>
-                  </Radio.Group>
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                label="单花占地数量"
+                name="plant.flower.landGroupSize"
+                tooltip="指一种花占几块地，可实现土地规整，若选择了指定种类，则单花占地数量不生效，跟着设置了多少种进行种植"
+                v-if="config.plant.flower.strictLayout"
+              >
+                <Radio.Group v-model:value="config.plant.flower.landGroupSize">
+                  <Space>
+                    <Radio
+                      v-for="option in landGroupSizeOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+              </CustomFormItem>
               <CustomFormItem
                 label="分组浇水"
                 name="plant.flower.groupWaterEnabled"
@@ -688,20 +638,21 @@
               >
                 <Switch v-model:checked="config.plant.flower.taskMode" />
               </CustomFormItem>
-              <div v-if="config.plant.flower.taskMode" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="任务日志"
-                  name="plant.flower.taskLogEnabled"
-                  tooltip="是否显示种植任务队列日志"
-                >
-                  <Switch v-model:checked="config.plant.flower.taskLogEnabled" />
-                </CustomFormItem>
-                <CustomFormItem
-                  label="任务优先级"
-                  name="plant.flower.taskPriorityConfig"
-                  tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
-                >
-                  <div class="w-full max-w-[420px] flex flex-col gap-2">
+              <CustomFormItem
+                label="任务日志"
+                name="plant.flower.taskLogEnabled"
+                tooltip="是否显示种植任务队列日志"
+                v-if="config.plant.flower.taskMode"
+              >
+                <Switch v-model:checked="config.plant.flower.taskLogEnabled" />
+              </CustomFormItem>
+              <CustomFormItem
+                label="任务优先级"
+                name="plant.flower.taskPriorityConfig"
+                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
+                v-if="config.plant.flower.taskMode"
+              >
+                <div class="w-full max-w-[420px] flex flex-col gap-2">
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm">顾客订单</span>
                     <CustomInputNumber
@@ -756,9 +707,8 @@
                       class="w-24!"
                     />
                   </div>
-                  </div>
-                </CustomFormItem>
-              </div>
+                </div>
+              </CustomFormItem>
               <CustomFormItem
                 label="种植模式"
                 name="plant.flower.plantingMode"
@@ -774,9 +724,8 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
-                <!-- 指定品质模式 -->
-                <CustomFormItem
+              <!-- 指定品质模式 -->
+              <CustomFormItem
                 label="选择品质"
                 name="plant.flower.qualities"
                 tooltip="选择要种植的花朵品质，可多选，库存少的优先种植。"
@@ -788,16 +737,16 @@
                   :options="flowerQualityOptions"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.qualityExcludeEnabled"
                 tooltip="设置了排除的花朵就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'quality'"
               >
                 <Switch v-model:checked="config.plant.flower.qualityExcludeEnabled" />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.qualityExcludeFlowerIds"
                 v-if="
@@ -815,9 +764,9 @@
                   option-filter-prop="label"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <!-- 指定种类模式 -->
-                <CustomFormItem
+              </CustomFormItem>
+              <!-- 指定种类模式 -->
+              <CustomFormItem
                 label="选择数量"
                 name="plant.flower.flowerCount"
                 tooltip="选择要种植几种花，库存少的优先种植。"
@@ -828,16 +777,16 @@
                   :options="flowerCountOptions"
                   class="w-42! sm:w-48!"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.countExcludeEnabled"
                 tooltip="设置了排除的花朵就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'count'"
               >
                 <Switch v-model:checked="config.plant.flower.countExcludeEnabled" />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.countExcludeFlowerIds"
                 v-if="
@@ -855,9 +804,9 @@
                   option-filter-prop="label"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <!-- 指定花朵模式 -->
-                <CustomFormItem
+              </CustomFormItem>
+              <!-- 指定花朵模式 -->
+              <CustomFormItem
                 label="选择花朵"
                 name="plant.flower.specificFlowerIds"
                 tooltip="选择要种植的花朵，可多选，库存少的优先种植。"
@@ -870,9 +819,9 @@
                   :options="getFlowerPickerOptions(config.plant.flower.specificFlowerIds)"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <!-- 库存模式 -->
-                <CustomFormItem
+              </CustomFormItem>
+              <!-- 库存模式 -->
+              <CustomFormItem
                 label="最低库存"
                 name="plant.flower.lowStockThreshold"
                 tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，适合小号存水。"
@@ -884,16 +833,16 @@
                   :max="999999"
                   class="w-42! sm:w-48!"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.lowStockExcludeEnabled"
                 tooltip="设置了排除的花朵就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'lowStock'"
               >
                 <Switch v-model:checked="config.plant.flower.lowStockExcludeEnabled" />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.flower.lowStockExcludeFlowerIds"
                 v-if="
@@ -911,9 +860,9 @@
                   option-filter-prop="label"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <!-- 64块地模式 -->
-                <CustomFormItem
+              </CustomFormItem>
+              <!-- 64块地模式 -->
+              <CustomFormItem
                 label="设置每块土地"
                 name="plant.flower.freeStyleList"
                 tooltip="这个模式可以设置每块土地种什么花，无视限制花朵等级，所有任务做完才会进入这个种植模式。设置好后需要点保存才生效哦"
@@ -922,8 +871,8 @@
                 <a-button type="primary" @click="openFreeStylePage">
                   设置每块土地
                 </a-button>
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="限制花朵等级"
                 name="plant.flower.minFlowerLevel"
                 tooltip="限制种植的最低花朵等级，0则不限制，此项的设置只针对补库存，做订单和公会竞赛之类的不受此设置影响"
@@ -935,20 +884,18 @@
                   :max="21"
                   class="w-42! sm:w-48!"
                 />
-                </CustomFormItem>
-              </div>
-            </div>
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">好友偷花</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动偷花"
               name="plant.friendSteal.enabled"
               tooltip="默认不会偷取花灵，但在好友种植花灵时会偷取花朵，需要在偷花模式里设置排除花朵，排除花灵主花"
             >
               <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
-            <div v-if="config.plant.friendSteal.enabled" class="guild-child-panel">
+            <template v-if="config.plant.friendSteal.enabled">
               <CustomFormItem
                 label="不摸花灵"
                 tooltip="若好友地块中某花朵是花灵书册的副花品种、且该好友同时种了对应主花，则判定为花灵副花并跳过不偷，需偷花灵请把偷取花灵开关打开即可"
@@ -962,51 +909,51 @@
               >
                 <Switch v-model:checked="config.plant.friendSteal.stealElves" />
               </CustomFormItem>
-              <div v-if="config.plant.friendSteal.stealElves" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="只偷指定好友"
-                  name="plant.friendSteal.onlyStealSpecifiedFriends"
-                  tooltip="开启后，去设置的好友的地里就只会偷取花灵，就算设置的好友的地里有普通花，每天没偷完4次花灵之前也不会偷取"
-                >
-                  <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedFriends" />
-                </CustomFormItem>
-                <CustomFormItem
-                  v-if="config.plant.friendSteal.onlyStealSpecifiedFriends"
-                  label="好友名字"
-                  name="plant.friendSteal.specifiedFriendNames"
-                  tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.friendSteal.specifiedFriendNames"
-                    mode="tags"
-                    placeholder="例如：s1047.曼冬,s1047.酷暑"
-                    :token-separators="[',', '，']"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  label="只偷指定花灵"
-                  name="plant.friendSteal.onlyStealSpecifiedElves"
-                  tooltip="开启后只偷选中的花灵种类"
-                >
-                  <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedElves" />
-                </CustomFormItem>
-                <CustomFormItem
-                  v-if="config.plant.friendSteal.onlyStealSpecifiedElves"
-                  label="指定花灵"
-                  name="plant.friendSteal.specifiedElvesIds"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.friendSteal.specifiedElvesIds"
-                    mode="multiple"
-                    placeholder="请选择花灵"
-                    :options="elfOptions"
-                    show-search
-                    option-filter-prop="label"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves"
+                label="只偷指定好友"
+                name="plant.friendSteal.onlyStealSpecifiedFriends"
+                tooltip="开启后，去设置的好友的地里就只会偷取花灵，就算设置的好友的地里有普通花，每天没偷完4次花灵之前也不会偷取"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedFriends" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedFriends"
+                label="好友名字"
+                name="plant.friendSteal.specifiedFriendNames"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.specifiedFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  :token-separators="[',', '，']"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves"
+                label="只偷指定花灵"
+                name="plant.friendSteal.onlyStealSpecifiedElves"
+                tooltip="开启后只偷选中的花灵种类"
+              >
+                <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedElves" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedElves"
+                label="指定花灵"
+                name="plant.friendSteal.specifiedElvesIds"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.specifiedElvesIds"
+                  mode="multiple"
+                  placeholder="请选择花灵"
+                  :options="elfOptions"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="偷花模式"
                 name="plant.friendSteal.stealMode"
@@ -1021,11 +968,7 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div
-                v-if="['quality', 'specific', 'exclude'].includes(config.plant.friendSteal.stealMode)"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
+              <CustomFormItem
                 label="指定品质"
                 name="plant.friendSteal.stealQualities"
                 tooltip="只偷取指定品质的花朵"
@@ -1037,8 +980,8 @@
                   :options="flowerQualityOptions"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="指定花朵"
                 name="plant.friendSteal.stealFlowerIds"
                 tooltip="只偷取指定的花朵"
@@ -1051,8 +994,8 @@
                   :options="getFlowerPickerOptions(config.plant.friendSteal.stealFlowerIds)"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.friendSteal.excludeFlowerIds"
                 tooltip="不偷取指定的花朵，不想影响好友种植花灵的话，建议把所有花灵主花设置上，排除掉"
@@ -1065,8 +1008,7 @@
                   :options="getFlowerPickerOptions(config.plant.friendSteal.excludeFlowerIds)"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-              </div>
+              </CustomFormItem>
               <CustomFormItem
                 label="购买偷取次数"
                 name="plant.friendSteal.buyStealEnabled"
@@ -1074,20 +1016,19 @@
               >
                 <Switch v-model:checked="config.plant.friendSteal.buyStealEnabled" />
               </CustomFormItem>
-              <div v-if="config.plant.friendSteal.buyStealEnabled" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="购买次数"
-                  name="plant.friendSteal.buyStealCount"
-                  tooltip="每个好友购买多少次偷取次数"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.friendSteal.buyStealCount"
-                    :min="1"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                label="购买次数"
+                name="plant.friendSteal.buyStealCount"
+                tooltip="每个好友购买多少次偷取次数"
+                v-if="config.plant.friendSteal.buyStealEnabled"
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.friendSteal.buyStealCount"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="禁止偷花时段"
                 name="plant.friendSteal.noStealEnabled"
@@ -1095,29 +1036,28 @@
               >
                 <Switch v-model:checked="config.plant.friendSteal.noStealEnabled" />
               </CustomFormItem>
-              <div v-if="config.plant.friendSteal.noStealEnabled" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="禁止时段"
-                  name="plant.friendSteal.noStealStart"
-                  tooltip="格式 HH:mm，前面时间需小于后面时间时为白天段；前大于后为跨午夜夜间段（推荐 22:00 至 07:00）"
-                >
-                  <Space align="center">
-                    <Input
-                      v-model:value="config.plant.friendSteal.noStealStart"
-                      placeholder="开始时间"
-                      style="width: 100px"
-                      maxlength="5"
-                    />
-                    <span class="text-gray-400">至</span>
-                    <Input
-                      v-model:value="config.plant.friendSteal.noStealEnd"
-                      placeholder="结束时间"
-                      style="width: 100px"
-                      maxlength="5"
-                    />
-                  </Space>
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                v-if="config.plant.friendSteal.noStealEnabled"
+                label="禁止时段"
+                name="plant.friendSteal.noStealStart"
+                tooltip="格式 HH:mm，前面时间需小于后面时间时为白天段；前大于后为跨午夜夜间段（推荐 22:00 至 07:00）"
+              >
+                <Space align="center">
+                  <Input
+                    v-model:value="config.plant.friendSteal.noStealStart"
+                    placeholder="开始时间"
+                    style="width: 100px"
+                    maxlength="5"
+                  />
+                  <span class="text-gray-400">至</span>
+                  <Input
+                    v-model:value="config.plant.friendSteal.noStealEnd"
+                    placeholder="结束时间"
+                    style="width: 100px"
+                    maxlength="5"
+                  />
+                </Space>
+              </CustomFormItem>
               <CustomFormItem
                 label="晚上用完剩余次数"
                 name="plant.friendSteal.lateNightConsumeEnabled"
@@ -1132,72 +1072,66 @@
               >
                 <Switch v-model:checked="config.plant.friendSteal.excludeFriendsEnabled" />
               </CustomFormItem>
-              <div
+              <CustomFormItem
                 v-if="config.plant.friendSteal.excludeFriendsEnabled"
-                class="guild-grandchild-panel"
+                label="好友名字"
+                name="plant.friendSteal.excludedFriendNames"
+                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
               >
-                <CustomFormItem
-                  label="好友名字"
-                  name="plant.friendSteal.excludedFriendNames"
-                  tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.friendSteal.excludedFriendNames"
-                    mode="tags"
-                    placeholder="例如：s1047.曼冬,s1047.酷暑"
-                    :token-separators="[',', '，']"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+                <CustomSelect
+                  v-model:value="config.plant.friendSteal.excludedFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  :token-separators="[',', '，']"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">花灵</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动种花灵"
               name="plant.elves.enabled"
               tooltip="优先种植指定花灵，否则选择当期双倍加成花灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日花灵达到收获上限后恢复到原有种植模式"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
-            <div v-if="config.plant.elves.enabled" class="guild-child-panel">
-              <CustomFormItem label="指定花灵" name="plant.elves.selectedElvesIds">
-                <CustomSelect
-                  v-model:value="config.plant.elves.selectedElvesIds"
-                  mode="multiple"
-                  placeholder="请选择花灵"
-                  :options="elfOptions"
-                  show-search
-                  option-filter-prop="label"
-                  style="width: 100%"
-                />
-              </CustomFormItem>
-              <CustomFormItem
-                label="延迟收获"
-                name="plant.elves.delayedHarvestEnabled"
-                tooltip="浇水/加速后等待指定分钟数再收获，让花灵在地里待一会儿供好友偷取"
-              >
-                <Switch v-model:checked="config.plant.elves.delayedHarvestEnabled" />
-              </CustomFormItem>
-              <div
-                v-if="config.plant.elves.delayedHarvestEnabled"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  label="延迟时间（分）"
-                  name="plant.elves.delayedHarvestMinutes"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.elves.delayedHarvestMinutes"
-                    :min="10"
-                    :max="999"
-                    :step="1"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+            <CustomFormItem
+              label="指定花灵"
+              name="plant.elves.selectedElvesIds"
+              v-if="config.plant.elves.enabled"
+            >
+              <CustomSelect
+                v-model:value="config.plant.elves.selectedElvesIds"
+                mode="multiple"
+                placeholder="请选择花灵"
+                :options="elfOptions"
+                show-search
+                option-filter-prop="label"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.enabled"
+              label="延迟收获"
+              name="plant.elves.delayedHarvestEnabled"
+              tooltip="浇水/加速后等待指定分钟数再收获，让花灵在地里待一会儿供好友偷取"
+            >
+              <Switch v-model:checked="config.plant.elves.delayedHarvestEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.enabled && config.plant.elves.delayedHarvestEnabled"
+              label="延迟时间（分）"
+              name="plant.elves.delayedHarvestMinutes"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.elves.delayedHarvestMinutes"
+                :min="10"
+                :max="999"
+                :step="1"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <CustomFormItem
               label="自动申请协助"
               name="plant.elves.requestAid"
@@ -1219,38 +1153,37 @@
               <Switch v-model:checked="config.plant.elves.helpFrd" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动派遣花灵"
               name="plant.elves.dispatch"
               tooltip="自动将背包中的花灵派遣到空闲位置"
             >
               <Switch v-model:checked="config.plant.elves.dispatch" />
             </CustomFormItem>
-            <div v-if="config.plant.elves.dispatch" class="guild-child-panel">
-              <CustomFormItem
-                label="派遣模式"
-                name="plant.elves.dispatchMode"
-                tooltip="先双倍后普通：优先派遣双倍花灵，无双倍花灵时派遣普通花灵；只派遣双倍：无双倍花灵时跳过派遣"
-              >
-                <Radio.Group v-model:value="config.plant.elves.dispatchMode">
-                  <Space direction="vertical">
-                    <Radio value="doubleFirst">先双倍后普通</Radio>
-                    <Radio value="doubleOnly">只派遣双倍</Radio>
-                  </Space>
-                </Radio.Group>
-              </CustomFormItem>
-              <CustomFormItem
-                label="派遣数量"
-                name="plant.elves.dispatchCount"
-                tooltip="每个槽位每次派遣几个花灵（1-12）"
-              >
-                <CustomInputNumber
-                  v-model:value="config.plant.elves.dispatchCount"
-                  :min="1"
-                  :max="12"
-                />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              v-if="config.plant.elves.dispatch"
+              label="派遣模式"
+              name="plant.elves.dispatchMode"
+              tooltip="先双倍后普通：优先派遣双倍花灵，无双倍花灵时派遣普通花灵；只派遣双倍：无双倍花灵时跳过派遣"
+            >
+              <Radio.Group v-model:value="config.plant.elves.dispatchMode">
+                <Space direction="vertical">
+                  <Radio value="doubleFirst">先双倍后普通</Radio>
+                  <Radio value="doubleOnly">只派遣双倍</Radio>
+                </Space>
+              </Radio.Group>
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.dispatch"
+              label="派遣数量"
+              name="plant.elves.dispatchCount"
+              tooltip="每个槽位每次派遣几个花灵（1-12）"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.elves.dispatchCount"
+                :min="1"
+                :max="12"
+              />
+            </CustomFormItem>
             <CustomFormItem
               label="自动加速派遣"
               name="plant.elves.speedUpDispatch"
@@ -1311,14 +1244,13 @@
             </CustomFormItem>
 
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动上架"
               name="plant.artSell.autoSellArt"
               tooltip="自动上架花艺，自动领取金币收益"
             >
               <Switch v-model:checked="config.plant.artSell.autoSellArt" />
             </CustomFormItem>
-            <div v-if="config.plant.artSell.autoSellArt" class="guild-child-panel">
+            <template v-if="config.plant.artSell.autoSellArt">
               <CustomFormItem
                 label="上架模式"
                 name="plant.artSell.artSellMode"
@@ -1330,36 +1262,34 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="指定花瓶"
-                  name="plant.artSell.specifiedArts"
-                  tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
-                  v-if="config.plant.artSell.artSellMode === 'vase'"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.artSell.specifiedArts"
-                    mode="multiple"
-                    :options="flowerArtOptions"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="form-item--stack-mobile"
-                  label="指定花艺"
-                  name="plant.artSell.specifiedArtsFull"
-                  tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
-                  v-if="config.plant.artSell.artSellMode === 'full'"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.artSell.specifiedArtsFull"
-                    mode="multiple"
-                    wide
-                    placeholder="请选择花艺"
-                    :options="getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)"
-                  />
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                label="指定花瓶"
+                name="plant.artSell.specifiedArts"
+                tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                v-if="config.plant.artSell.artSellMode === 'vase'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.artSell.specifiedArts"
+                  mode="multiple"
+                  :options="flowerArtOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                class="form-item--stack-mobile"
+                label="指定花艺"
+                name="plant.artSell.specifiedArtsFull"
+                tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                v-if="config.plant.artSell.artSellMode === 'full'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.artSell.specifiedArtsFull"
+                  mode="multiple"
+                  wide
+                  placeholder="请选择花艺"
+                  :options="getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)"
+                />
+              </CustomFormItem>
               <CustomFormItem
                 label="上架数量"
                 name="plant.artSell.flowerArtPerRack"
@@ -1386,7 +1316,7 @@
               >
                 <Switch v-model:checked="config.plant.artSell.stockFirst" />
               </CustomFormItem>
-            </div>
+            </template>
             <CustomFormItem
               label="花艺经验"
               name="plant.artSell.recvArtCreateRwd"
@@ -1418,14 +1348,13 @@
               <Switch v-model:checked="config.plant.market.autoUnlockShelf" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动上架"
               name="plant.market.putEnabled"
               tooltip="自动领取花贸市场收益并上架花朵，注意上架会消耗元宝，请谨慎开启！"
             >
               <Switch v-model:checked="config.plant.market.putEnabled" />
             </CustomFormItem>
-            <div v-if="config.plant.market.putEnabled" class="guild-child-panel">
+            <template v-if="config.plant.market.putEnabled">
               <CustomFormItem label="上架策略" name="plant.market.putMode">
                 <Radio.Group v-model:value="config.plant.market.putMode">
                   <Space >
@@ -1434,23 +1363,22 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div v-if="config.plant.market.putMode === 'specific'" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="选择花朵"
-                  name="plant.market.specificFlowerIds"
-                  tooltip="选择要上架的花朵，可多选，库存多的优先上架"
-                >
-                  <CustomSelect
-                    v-model:value="config.plant.market.specificFlowerIds"
-                    mode="multiple"
-                    placeholder="请选择花朵"
-                    :options="getFlowerPickerOptions(config.plant.market.specificFlowerIds)"
-                    show-search
-                    option-filter-prop="label"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
+              <CustomFormItem
+                label="选择花朵"
+                name="plant.market.specificFlowerIds"
+                tooltip="选择要上架的花朵，可多选，库存多的优先上架"
+                v-if="config.plant.market.putMode === 'specific'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.market.specificFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择花朵"
+                  :options="getFlowerPickerOptions(config.plant.market.specificFlowerIds)"
+                  show-search
+                  option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
               <CustomFormItem label="上架价格" name="plant.market.priceIndex">
                 <Radio.Group v-model:value="config.plant.market.priceIndex">
                   <Space >
@@ -1489,30 +1417,28 @@
                   @change="handleDiamondCostSwitchChange('plant.market.autoBuyPutCount', $event)"
                 />
               </CustomFormItem>
-              <div v-if="config.plant.market.autoBuyPutCount" class="guild-grandchild-panel">
-                <CustomFormItem
-                  label="购买次数"
-                  name="plant.market.buyPutCount"
-                  tooltip="购买多少上架次数"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.plant.market.buyPutCount"
-                    :min="1"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+              <CustomFormItem
+                label="购买次数"
+                name="plant.market.buyPutCount"
+                tooltip="购买多少上架次数"
+                v-if="config.plant.market.autoBuyPutCount"
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.market.buyPutCount"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+            </template>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="好友摊位扫货"
               name="plant.market.autoBuyFromFriend"
               tooltip="自动购买好友货架的花朵"
             >
               <Switch v-model:checked="config.plant.market.autoBuyFromFriend" />
             </CustomFormItem>
-            <div v-if="config.plant.market.autoBuyFromFriend" class="guild-child-panel">
+            <template v-if="config.plant.market.autoBuyFromFriend">
               <CustomFormItem label="扫货策略" name="plant.market.buyMode">
                 <Radio.Group v-model:value="config.plant.market.buyMode">
                   <Space direction="vertical">
@@ -1526,15 +1452,7 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div
-                v-if="
-                  ['friend', 'excludeFriend', 'specific', 'quality', 'exclude'].includes(
-                    config.plant.market.buyMode
-                  )
-                "
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
+              <CustomFormItem
                 v-if="config.plant.market.buyMode === 'friend' || config.plant.market.buyMode === 'excludeFriend'"
                 label="好友名字"
                 name="plant.market.buyFriendNames"
@@ -1546,8 +1464,8 @@
                   placeholder="例如：s1047.曼冬"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="指定花朵"
                 name="plant.market.buySpecificFlowerIds"
                 tooltip="选择要从好友处购买的花朵，可多选"
@@ -1562,8 +1480,8 @@
                   option-filter-prop="label"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="指定品质"
                 name="plant.market.buyQualities"
                 tooltip="选择要从好友处购买的花朵品质，可多选"
@@ -1576,8 +1494,8 @@
                   placeholder="请选择品质"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-                <CustomFormItem
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除花朵"
                 name="plant.market.excludeFlowerIds"
                 tooltip="选择不要购买的花朵，可多选"
@@ -1592,8 +1510,7 @@
                   option-filter-prop="label"
                   style="width: 100%"
                 />
-                </CustomFormItem>
-              </div>
+              </CustomFormItem>
               <CustomFormItem
                 label="最小上架时长"
                 name="plant.market.minPutTimeDiff"
@@ -1605,61 +1522,85 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
           </div>
           <!-- 订单配置 -->
-          <div v-if="activeTab === '订单'" class="config-section hierarchy-config-section">
+          <div v-if="activeTab === '订单'" class="config-section">
             <Divider orientation="left">居民订单</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="居民订单"
               name="order.resident.normalEnabled"
               tooltip="自动提交居民订单，不包括建材和绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
               <Switch v-model:checked="config.order.resident.normalEnabled" />
             </CustomFormItem>
-            <div v-if="config.order.resident.normalEnabled" class="guild-child-panel">
-              <CustomFormItem label="居民订单上限" name="order.resident.normalMaxNum" tooltip="居民订单单日最大完成次数">
-                <CustomInputNumber v-model:value="config.order.resident.normalMaxNum" :min="0" :max="1200" class="w-42! sm:w-48!" />
-              </CustomFormItem>
-            </div>
             <CustomFormItem
-              class="guild-hierarchy-parent"
+              label="居民订单上限"
+              name="order.resident.normalMaxNum"
+              tooltip="居民订单单日最大完成次数"
+              v-if="config.order.resident.normalEnabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.order.resident.normalMaxNum"
+                :min="0"
+                :max="1200"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="绸缎订单"
               name="order.resident.satinEnabled"
               tooltip="自动提交绸缎订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
               <Switch v-model:checked="config.order.resident.satinEnabled" />
             </CustomFormItem>
-            <div v-if="config.order.resident.satinEnabled" class="guild-child-panel">
-              <CustomFormItem label="绸缎订单上限" name="order.resident.satinMaxNum" tooltip="绸缎订单单日最大完成次数">
-                <CustomInputNumber v-model:value="config.order.resident.satinMaxNum" :min="0" :max="120" class="w-42! sm:w-48!" />
-              </CustomFormItem>
-            </div>
             <CustomFormItem
-              class="guild-hierarchy-parent"
+              label="绸缎订单上限"
+              name="order.resident.satinMaxNum"
+              tooltip="绸缎订单单日最大完成次数"
+              v-if="config.order.resident.satinEnabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.order.resident.satinMaxNum"
+                :min="0"
+                :max="120"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="建材订单"
               name="order.resident.decorateEnabled"
               tooltip="自动提交建材订单，如果花库存不足，需要配合种植开启任务优先使用"
             >
               <Switch v-model:checked="config.order.resident.decorateEnabled" />
             </CustomFormItem>
-            <div v-if="config.order.resident.decorateEnabled" class="guild-child-panel">
-              <CustomFormItem label="建材订单上限" name="order.resident.decorateMaxNum" tooltip="建材订单单日最大完成次数">
-                <CustomInputNumber v-model:value="config.order.resident.decorateMaxNum" :min="0" :max="120" class="w-42! sm:w-48!" />
-              </CustomFormItem>
-            </div>
             <CustomFormItem
-              class="guild-hierarchy-parent"
+              label="建材订单上限"
+              name="order.resident.decorateMaxNum"
+              tooltip="建材订单单日最大完成次数"
+              v-if="config.order.resident.decorateEnabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.order.resident.decorateMaxNum"
+                :min="0"
+                :max="120"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="自定义订单时间"
               name="order.resident.timedEnabled"
               tooltip="开启后，居民、绸缎和建材订单仅在设置的每日时段内执行；支持跨午夜，开始与结束相同则视为全天"
             >
               <Switch v-model:checked="config.order.resident.timedEnabled" />
             </CustomFormItem>
-            <div v-if="config.order.resident.timedEnabled" class="guild-child-panel">
-              <CustomFormItem label="设置时间" name="order.resident.startTime" tooltip="每日允许执行居民、绸缎和建材订单的开始与结束时间">
-                <Space align="center" wrap>
+            <CustomFormItem
+              v-if="config.order.resident.timedEnabled"
+              label="设置时间"
+              name="order.resident.startTime"
+              tooltip="每日允许执行居民、绸缎和建材订单的开始与结束时间"
+            >
+              <Space align="center" wrap>
                 <Select v-model:value="residentOrderStartHour" class="w-24!">
                   <Select.Option v-for="h in residentOrderHourOptions" :key="`start-${h}`" :value="h">
                     {{ h }}时
@@ -1681,9 +1622,8 @@
                     {{ String(m).padStart(2, '0') }}分
                   </Select.Option>
                 </Select>
-                </Space>
-              </CustomFormItem>
-            </div>
+              </Space>
+            </CustomFormItem>
             <!-- <CustomFormItem
               label="仅已培育"
               name="basic.hasSeparation"
@@ -1711,41 +1651,64 @@
 
             <Divider orientation="left">顾客订单</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动完成"
               name="order.customer.enabled"
               tooltip="自动完成顾客订单"
             >
               <Switch v-model:checked="config.order.customer.enabled" />
             </CustomFormItem>
-            <div v-if="config.order.customer.enabled" class="guild-child-panel">
-              <CustomFormItem label="花坊币数量" name="order.customer.floralCoinEnabled" tooltip="开启后会按设置达到花坊币的数量才接，否则都拒绝，若设置3个花坊币可能会导致顾客订单偏少，谨慎设置">
-                <Switch :checked="config.order.customer.floralCoinEnabled" @change="handleCustomerFloralCoinEnabledChange" />
-              </CustomFormItem>
-              <div v-if="config.order.customer.floralCoinEnabled" class="guild-grandchild-panel">
-                <CustomFormItem label="花坊币" name="order.customer.floralCoinCount">
-                  <Radio.Group v-model:value="config.order.customer.floralCoinCount" button-style="solid">
-                    <Radio.Button :value="1">1</Radio.Button><Radio.Button :value="2">2</Radio.Button><Radio.Button :value="3">3</Radio.Button>
-                  </Radio.Group>
-                </CustomFormItem>
-              </div>
-              <CustomFormItem label="自动拒绝" name="order.customer.rejectEnabled" tooltip="自动拒绝无法培育且库存不足的订单">
-                <Switch v-model:checked="config.order.customer.rejectEnabled" />
-              </CustomFormItem>
-              <CustomFormItem label="顾客订单上限" name="order.customer.customerMaxNum" tooltip="今日累计完成顾客订单达到此数量后停止完成，且不再为顾客订单种植花卉（1-9999）">
-                <CustomInputNumber v-model:value="config.order.customer.customerMaxNum" :min="1" :max="9999" />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              label="花坊币数量"
+              name="order.customer.floralCoinEnabled"
+              tooltip="开启后会按设置达到花坊币的数量才接，否则都拒绝，若设置3个花坊币可能会导致顾客订单偏少，谨慎设置"
+              v-if="config.order.customer.enabled"
+            >
+              <Switch
+                :checked="config.order.customer.floralCoinEnabled"
+                @change="handleCustomerFloralCoinEnabledChange"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="花坊币"
+              name="order.customer.floralCoinCount"
+              v-if="config.order.customer.enabled && config.order.customer.floralCoinEnabled"
+            >
+              <Radio.Group v-model:value="config.order.customer.floralCoinCount" button-style="solid">
+                <Radio.Button :value="1">1</Radio.Button>
+                <Radio.Button :value="2">2</Radio.Button>
+                <Radio.Button :value="3">3</Radio.Button>
+              </Radio.Group>
+            </CustomFormItem>
+            <CustomFormItem
+              label="自动拒绝"
+              name="order.customer.rejectEnabled"
+              tooltip="自动拒绝无法培育且库存不足的订单"
+              v-if="config.order.customer.enabled"
+            >
+              <Switch v-model:checked="config.order.customer.rejectEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="顾客订单上限"
+              name="order.customer.customerMaxNum"
+              tooltip="今日累计完成顾客订单达到此数量后停止完成，且不再为顾客订单种植花卉（1-9999）"
+              v-if="config.order.customer.enabled"
+            >
+              <CustomInputNumber
+                v-model:value="config.order.customer.customerMaxNum"
+                :min="1"
+                :max="9999"
+              />
+            </CustomFormItem>
 
             <Divider orientation="left">宫廷订单</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动完成" name="order.palace.enabled">
+            <CustomFormItem label="自动完成" name="order.palace.enabled">
               <Switch v-model:checked="config.order.palace.enabled" />
             </CustomFormItem>
-            <div v-if="config.order.palace.enabled" class="guild-child-panel">
             <CustomFormItem
               label="品质限定"
               name="order.palace.qualities"
               tooltip="仅接受指定品质的宫廷订单，不符合时自动免费刷新一次（每天限1次），刷新后仍不符合则跳过"
+              v-if="config.order.palace.enabled"
             >
               <CustomSelect
                 v-model:value="config.order.palace.qualities"
@@ -1758,10 +1721,12 @@
               label="不论品质"
               name="order.palace.ignoreQuality"
               tooltip="开启后，若没有用户设置的品质，且没有免费刷新了，则会无视品质做完这个宫廷订单"
+              v-if="config.order.palace.enabled"
             >
               <Switch v-model:checked="palaceIgnoreQuality" />
             </CustomFormItem>
             <CustomFormItem
+              v-if="config.order.palace.enabled"
               label="持续元宝刷新"
               name="order.palace.diamondRefresh"
               tooltip="开启后，品质不符合时先使用免费刷新；免费次数耗尽后继续消耗元宝刷新，直到出现已选品质"
@@ -1774,20 +1739,19 @@
               />
             </CustomFormItem>
             <Alert
-              v-if="config.order.palace.diamondRefresh"
+              v-if="config.order.palace.enabled && config.order.palace.diamondRefresh"
               type="warning"
               show-icon
               message="已开启持续元宝刷新"
               description="免费刷新次数耗尽后仍会持续消耗元宝，直到刷出符合品质限定的宫廷订单；开启后将自动关闭“不论品质”。"
               class="mb-6"
             />
-            </div>
 
             <Divider orientation="left">组团订单</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动完成" name="order.team.enabled" tooltip="自动完成团单">
+            <CustomFormItem label="自动完成" name="order.team.enabled" tooltip="自动完成团单">
               <Switch v-model:checked="config.order.team.enabled" />
             </CustomFormItem>
-            <div v-if="config.order.team.enabled" class="guild-child-panel">
+            <template v-if="config.order.team.enabled">
               <CustomFormItem label="再来一单" name="order.team.oneMore" tooltip="花费元宝再来一单">
                 <Switch
                   :checked="config.order.team.oneMore"
@@ -1813,7 +1777,6 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
               <!-- 品质限定模式 -->
               <CustomFormItem
                 label="选择品质"
@@ -1843,29 +1806,23 @@
                   style="width: 100%"
                 />
               </CustomFormItem>
-              </div>
-            </div>
+            </template>
           </div>
           <!-- 公会配置 -->
-          <div
-            v-if="activeTab === '公会'"
-            class="config-section guild-config-section hierarchy-config-section"
-          >
+          <div v-if="activeTab === '公会'" class="config-section">
             <Divider orientation="left">公会土地</Divider>
             <CustomFormItem label="自动收获" name="union.land.harvest">
               <Switch v-model:checked="config.union.land.harvest" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动种植"
               name="union.land.autoPlant"
               tooltip="自动种植空闲土地，自动将不符合限定条件的已种土地替换为目标花朵"
             >
               <Switch v-model:checked="config.union.land.autoPlant" />
             </CustomFormItem>
-            <div v-if="config.union.land.autoPlant" class="guild-child-panel">
+            <template v-if="config.union.land.autoPlant">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="种植策略"
                 name="union.land.plantMode"
                 tooltip="三种模式均为低等级优先"
@@ -1878,65 +1835,59 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定品质"
-                  name="union.land.flowers"
-                  tooltip="留空则不限制品质"
-                  v-if="config.union.land.plantMode === 'quality'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.land.flowers"
-                    mode="multiple"
-                    :options="flowerQualityOptions"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定花朵"
-                  name="union.land.specificFlowerIds"
-                  tooltip="会种植指定的花朵"
-                  v-if="config.union.land.plantMode === 'specific'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.land.specificFlowerIds"
-                    mode="multiple"
-                    placeholder="请选择花朵"
-                    :options="getFlowerPickerOptions(config.union.land.specificFlowerIds)"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="最低库存"
-                  name="union.land.lowStockThreshold"
-                  tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，请注意设置"
-                  v-if="config.union.land.plantMode === 'lowStock'"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.land.lowStockThreshold"
-                    :min="1"
-                    :max="9999999"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="最高等级限制"
-                  name="union.land.maxFlowerLevel"
-                  tooltip="花朵等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
-                  v-if="config.union.land.plantMode === 'quality'"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.land.maxFlowerLevel"
-                    :min="0"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+              <CustomFormItem
+                label="指定品质"
+                name="union.land.flowers"
+                tooltip="留空则不限制品质"
+                v-if="config.union.land.plantMode === 'quality'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.land.flowers"
+                  mode="multiple"
+                  :options="flowerQualityOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花朵"
+                name="union.land.specificFlowerIds"
+                tooltip="会种植指定的花朵"
+                v-if="config.union.land.plantMode === 'specific'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.land.specificFlowerIds"
+                  mode="multiple"
+                  placeholder="请选择花朵"
+                  :options="getFlowerPickerOptions(config.union.land.specificFlowerIds)"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="最低库存"
+                name="union.land.lowStockThreshold"
+                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，请注意设置"
+                v-if="config.union.land.plantMode === 'lowStock'"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.land.lowStockThreshold"
+                  :min="1"
+                  :max="9999999"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="最高等级限制"
+                name="union.land.maxFlowerLevel"
+                tooltip="花朵等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
+                v-if="config.union.land.plantMode === 'quality'"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.land.maxFlowerLevel"
+                  :min="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">公会建设</Divider>
             <CustomFormItem
@@ -1966,16 +1917,14 @@
 
             <Divider orientation="left">公会分享</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动分享"
               name="union.flower.share"
               tooltip="自动分享花到公会分享栏"
             >
               <Switch v-model:checked="config.union.flower.share" />
             </CustomFormItem>
-            <div v-if="config.union.flower.share" class="guild-child-panel">
+            <template v-if="config.union.flower.share">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="分享模式"
                 name="union.flower.shareMode"
                 tooltip="选择分享模式：品质模式或指定花模式"
@@ -1987,51 +1936,45 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="品质限定"
-                  name="union.flower.shareQualities"
-                  tooltip="限定要分享到公会的花朵品质"
-                  v-if="config.union.flower.shareMode === 'quality'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.flower.shareQualities"
-                    mode="multiple"
-                    :options="flowerQualityOptions"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定花朵"
-                  name="union.flower.shareFlowerIds"
-                  tooltip="选择要分享到公会的具体花朵"
-                  v-if="config.union.flower.shareMode === 'specific'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.flower.shareFlowerIds"
-                    mode="multiple"
-                    placeholder="选择要分享的花朵"
-                    :options="getFlowerPickerOptions(config.union.flower.shareFlowerIds)"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+              <CustomFormItem
+                label="品质限定"
+                name="union.flower.shareQualities"
+                tooltip="限定要分享到公会的花朵品质"
+                v-if="config.union.flower.shareMode === 'quality'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.flower.shareQualities"
+                  mode="multiple"
+                  :options="flowerQualityOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花朵"
+                name="union.flower.shareFlowerIds"
+                tooltip="选择要分享到公会的具体花朵"
+                v-if="config.union.flower.shareMode === 'specific'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.flower.shareFlowerIds"
+                  mode="multiple"
+                  placeholder="选择要分享的花朵"
+                  :options="getFlowerPickerOptions(config.union.flower.shareFlowerIds)"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">公会摸花</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动摸花"
               name="union.flower.take"
               tooltip="自动摸取别人分享的花"
             >
               <Switch v-model:checked="config.union.flower.take" />
             </CustomFormItem>
-            <div v-if="config.union.flower.take" class="guild-child-panel">
+            <template v-if="config.union.flower.take">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="摸花模式"
                 name="union.flower.takeMode"
                 tooltip="选择摸花模式：品质模式或指定花模式"
@@ -2043,38 +1986,34 @@
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <div class="guild-grandchild-panel">
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="品质限定"
-                  name="union.flower.takeQualities"
-                  tooltip="限定要从公会拿取的花朵品质"
-                  v-if="config.union.flower.takeMode === 'quality'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.flower.takeQualities"
-                    mode="multiple"
-                    :options="flowerQualityOptions"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定花朵"
-                  name="union.flower.takeFlowerIds"
-                  tooltip="选择要从公会摸取的具体花朵"
-                  v-if="config.union.flower.takeMode === 'specific'"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.flower.takeFlowerIds"
-                    mode="multiple"
-                    placeholder="选择要摸取的花朵"
-                    :options="getFlowerPickerOptions(config.union.flower.takeFlowerIds)"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
+              <CustomFormItem
+                label="品质限定"
+                name="union.flower.takeQualities"
+                tooltip="限定要从公会拿取的花朵品质"
+                v-if="config.union.flower.takeMode === 'quality'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.flower.takeQualities"
+                  mode="multiple"
+                  :options="flowerQualityOptions"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="指定花朵"
+                name="union.flower.takeFlowerIds"
+                tooltip="选择要从公会摸取的具体花朵"
+                v-if="config.union.flower.takeMode === 'specific'"
+              >
+                <CustomSelect
+                  v-model:value="config.union.flower.takeFlowerIds"
+                  mode="multiple"
+                  placeholder="选择要摸取的花朵"
+                  :options="getFlowerPickerOptions(config.union.flower.takeFlowerIds)"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">公会竞赛</Divider>
             <div class="preset-button-container mb-4">
@@ -2107,9 +2046,10 @@
               tooltip="接分数不低于此值的普通任务，0 表示不限制。"
             >
               <CustomInputNumber
-                v-model:value="config.union.fmlRace.minTaskScore"
+                :value="config.union.fmlRace.minTaskScore"
                 :min="0"
                 :max="40"
+                @update:value="handleMinTaskScoreChange"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -2119,9 +2059,10 @@
               tooltip="接分数不低于此值的玩家升级后任务/原金任务（双倍分数），0 表示不限制，举例：「限制分数-未升级」设置20，「限制分数-升级后」设置50，则接20分以上普通任务，50分以上升级后任务。注意！若要开启【自动升级任务】，需要设置「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值。否则会出现元宝升级后把这个任务放弃的情况"
             >
               <CustomInputNumber
-                v-model:value="config.union.fmlRace.minUpgradeTaskScore"
-                :min="0"
-                :max="80"
+                :value="config.union.fmlRace.minUpgradeTaskScore"
+                :min="upgradeTaskScoreMin"
+                :max="upgradeTaskScoreMax"
+                @update:value="handleMinUpgradeTaskScoreChange"
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
@@ -2140,127 +2081,116 @@
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="接指定花朵"
               name="union.fmlRace.harvestTaskFlowerFilterEnabled"
               tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵，若同时开启了排除他人升级任务，就算设置的花朵满足接取条件也不会接取"
             >
               <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
             </CustomFormItem>
-            <div
-              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
-              class="guild-child-panel"
-            >
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="指定花朵"
-                name="union.fmlRace.harvestTaskFlowerIds"
-              >
-                <CustomSelect
-                  v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
-                  mode="multiple"
-                  placeholder="请选择花朵"
-                  :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
-                  style="width: 100%"
-                />
-              </CustomFormItem>
-            </div>
             <CustomFormItem
-              class="guild-hierarchy-parent"
+              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
+              label="指定花朵"
+              name="union.fmlRace.harvestTaskFlowerIds"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
+                mode="multiple"
+                placeholder="请选择花朵"
+                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="他人升级任务设置"
               name="union.fmlRace.othersUpgradeTaskMode"
               tooltip="根据用户设置接不接元宝升级任务"
             >
               <Switch v-model:checked="config.union.fmlRace.othersUpgradeTaskMode" />
             </CustomFormItem>
-            <div v-if="config.union.fmlRace.othersUpgradeTaskMode" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="排除他人升级任务"
-                name="union.fmlRace.excludeOthersUpgradeTask"
-                tooltip="基于礼貌的开关，开启后，公会其他玩家用元宝升级的任务就不会去接了"
-              >
-                <Radio
-                  :checked="othersUpgradeTaskChoice === 'exclude'"
-                  @change="othersUpgradeTaskChoice = 'exclude'"
+            <CustomFormItem
+              label="排除他人升级任务"
+              name="union.fmlRace.excludeOthersUpgradeTask"
+              tooltip="基于礼貌的开关，开启后，公会其他玩家用元宝升级的任务就不会去接了"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode"
+            >
+              <Radio
+                :checked="othersUpgradeTaskChoice === 'exclude'"
+                @change="othersUpgradeTaskChoice = 'exclude'"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="只接指定玩家和系统升级任务"
+              name="union.fmlRace.onlySpecifiedUpgradeTask"
+              tooltip="选择他就只会接指定玩家的升级任务，和系统升级的任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode"
+            >
+              <Radio
+                :checked="othersUpgradeTaskChoice === 'specified'"
+                @change="othersUpgradeTaskChoice = 'specified'"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="接达到分数的未升级任务"
+              name="union.fmlRace.acceptQualifiedNormalTask"
+              tooltip="开启后，即使勾选“只接指定玩家和系统升级任务”，也会接达到“限制分数-未升级”设置分数的未升级任务"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.acceptQualifiedNormalTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="指定用户名"
+              name="union.fmlRace.specifiedUpgradePlayers"
+              tooltip="可填写多个玩家名，按回车添加下一个；系统原金升级任务无需填写"
+              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.specifiedUpgradePlayers"
+                mode="tags"
+                placeholder="输入玩家名后按回车"
+                :token-separators="[',', '，']"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="公会玩家"
+              tooltip="点一下读取公会所有玩家名字，支持输入名字搜索；选择名字后会自动添加到指定用户名里"
+              v-if="
+                config.union.fmlRace.othersUpgradeTaskMode &&
+                config.union.fmlRace.onlySpecifiedUpgradeTask
+              "
+            >
+              <div class="w-full max-w-[480px] flex flex-col gap-2">
+                <a-button
+                  :loading="guildMembersLoading"
+                  :disabled="guildMembersLoading"
+                  @click="fetchGuildMemberNames"
+                >
+                  读取公会所有玩家名字
+                </a-button>
+                <Select
+                  v-if="guildMemberOptions.length"
+                  v-model:value="selectedGuildMember"
+                  :options="guildMemberOptions"
+                  placeholder="输入玩家名搜索，选择后自动添加"
+                  show-search
+                  allow-clear
+                  :filter-option="filterGuildMemberOption"
+                  @select="addSpecifiedUpgradePlayer"
                 />
-              </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="只接指定玩家和系统升级任务"
-                name="union.fmlRace.onlySpecifiedUpgradeTask"
-                tooltip="选择他就只会接指定玩家的升级任务，和系统升级的任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
-              >
-                <Radio
-                  :checked="othersUpgradeTaskChoice === 'specified'"
-                  @change="othersUpgradeTaskChoice = 'specified'"
-                />
-              </CustomFormItem>
-              <div
-                v-if="config.union.fmlRace.onlySpecifiedUpgradeTask"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="接达到分数的未升级任务"
-                  name="union.fmlRace.acceptQualifiedNormalTask"
-                  tooltip="开启后，即使勾选“只接指定玩家和系统升级任务”，也会接达到“限制分数-未升级”设置分数的未升级任务"
-                >
-                  <Switch v-model:checked="config.union.fmlRace.acceptQualifiedNormalTask" />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定用户名"
-                  name="union.fmlRace.specifiedUpgradePlayers"
-                  tooltip="可填写多个玩家名，按回车添加下一个；系统原金升级任务无需填写"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.fmlRace.specifiedUpgradePlayers"
-                    mode="tags"
-                    placeholder="输入玩家名后按回车"
-                    :token-separators="[',', '，']"
-                    style="width: 100%"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="公会玩家"
-                  tooltip="点一下读取公会所有玩家名字，支持输入名字搜索；选择名字后会自动添加到指定用户名里"
-                >
-                  <div class="w-full max-w-[480px] flex flex-col gap-2">
-                    <a-button
-                      :loading="guildMembersLoading"
-                      :disabled="guildMembersLoading"
-                      @click="fetchGuildMemberNames"
-                    >
-                      读取公会所有玩家名字
-                    </a-button>
-                    <Select
-                      v-if="guildMemberOptions.length"
-                      v-model:value="selectedGuildMember"
-                      :options="guildMemberOptions"
-                      placeholder="输入玩家名搜索，选择后自动添加"
-                      show-search
-                      allow-clear
-                      :filter-option="filterGuildMemberOption"
-                      @select="addSpecifiedUpgradePlayer"
-                    />
-                  </div>
-                </CustomFormItem>
               </div>
-            </div>
+            </CustomFormItem>
             <CustomFormItem
               label="任务优先级"
               name="union.fmlRace.taskTypePriority"
               tooltip="设置每种任务类型的接取优先级。数字越小越优先；填 0 表示不接此类任务。优先级相同时分数高优先。"
             >
-              <div class="guild-task-priority-list w-full max-w-[420px] flex flex-col gap-2">
+              <div class="w-full max-w-[420px] flex flex-col gap-2">
                 <div
                   v-for="item in fmlRaceTaskTypes"
                   :key="item.key"
                   class="flex items-center justify-between gap-2"
                 >
-                  <span class="guild-task-priority-name text-sm min-w-[100px]">{{ item.label }}</span>
+                  <span class="text-sm min-w-[100px]">{{ item.label }}</span>
                   <CustomInputNumber
                     v-model:value="config.union.fmlRace.taskTypePriority[item.key]"
                     :min="0"
@@ -2281,71 +2211,62 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="删除低分任务"
               name="union.fmlRace.deleteTask"
               tooltip="会长/副会长专属：自动删除低于指定分数的任务"
             >
               <Switch v-model:checked="config.union.fmlRace.deleteTask" />
             </CustomFormItem>
-            <div v-if="config.union.fmlRace.deleteTask" class="guild-child-panel">
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="删除分数上限"
-                name="union.fmlRace.deleteTaskMaxScore"
-                tooltip="低于此分数的未领取任务将被自动删除"
-              >
-                <CustomInputNumber
-                  v-model:value="config.union.fmlRace.deleteTaskMaxScore"
-                  :min="0"
-                  :max="60"
-                  class="w-42! sm:w-48!"
-                />
-              </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="保留原金"
-                name="union.fmlRace.keepSystemUpgrade"
-                tooltip="开启后会保留系统自动出的原金任务，不判断分数"
-              >
-                <Switch v-model:checked="config.union.fmlRace.keepSystemUpgrade" />
-              </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="保留已升级"
-                name="union.fmlRace.keepPlayerUpgrade"
-                tooltip="开启后会保留玩家用元宝升级过的任务，不判断分数"
-              >
-                <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
-              </CustomFormItem>
-              <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
-                label="多少分钟无人认领删除"
-                name="union.fmlRace.deleteUnclaimedTask"
-                tooltip="会根据设置删除多少分钟内无人领取的任务，不判断分数。保留原金、保留已升级开启则这两种就不删除，删除其他的。"
-              >
-                <Switch v-model:checked="config.union.fmlRace.deleteUnclaimedTask" />
-              </CustomFormItem>
-              <div
-                v-if="config.union.fmlRace.deleteUnclaimedTask"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="分钟"
-                  name="union.fmlRace.deleteUnclaimedMinutes"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.fmlRace.deleteUnclaimedMinutes"
-                    :min="1"
-                    :max="999"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
-            </div>
             <CustomFormItem
-              class="guild-hierarchy-parent"
+              label="删除分数上限"
+              name="union.fmlRace.deleteTaskMaxScore"
+              tooltip="低于此分数的未领取任务将被自动删除"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.deleteTaskMaxScore"
+                :min="0"
+                :max="60"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="保留原金"
+              name="union.fmlRace.keepSystemUpgrade"
+              tooltip="开启后会保留系统自动出的原金任务，不判断分数"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.keepSystemUpgrade" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="保留已升级"
+              name="union.fmlRace.keepPlayerUpgrade"
+              tooltip="开启后会保留玩家用元宝升级过的任务，不判断分数"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="多少分钟无人认领删除"
+              name="union.fmlRace.deleteUnclaimedTask"
+              tooltip="会根据设置删除多少分钟内无人领取的任务，不判断分数。保留原金、保留已升级开启则这两种就不删除，删除其他的。"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.deleteUnclaimedTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="分钟"
+              name="union.fmlRace.deleteUnclaimedMinutes"
+              v-if="config.union.fmlRace.deleteTask && config.union.fmlRace.deleteUnclaimedTask"
+            >
+              <CustomInputNumber
+                v-model:value="config.union.fmlRace.deleteUnclaimedMinutes"
+                :min="1"
+                :max="999"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="小号专属"
               name="union.fmlRace.smallAccountExclusiveEnabled"
               tooltip="本功能为小号专用，大号勿开，会消耗大量元宝，开启本功能里的任意一个功能后，都不会做公会任务了，只会升级或者刷新公会任务。开启后按需设置功能，可达到小号升级指定分数任务，刷新到指定分数任务"
@@ -2355,12 +2276,8 @@
                 @change="handleSmallAccountExclusiveChange"
               />
             </CustomFormItem>
-            <div
-              v-if="config.union.fmlRace.smallAccountExclusiveEnabled"
-              class="guild-child-panel"
-            >
+            <template v-if="config.union.fmlRace.smallAccountExclusiveEnabled">
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
                 label="元宝升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
                 tooltip="独立开关：接取达到升级最低积分且任务优先级大于等于1的任务，执行元宝升级后放弃；可与元宝刷新任务同时开启。例：设置升级最低积分为24分，则会升级所有达到24分的任务；想只升级指定花，请开启种植收获细化设置。"
@@ -2370,26 +2287,20 @@
                   @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)"
                 />
               </CustomFormItem>
-              <div
-                v-if="config.union.fmlRace.onlyDiamondUpgradeTask"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="升级最低积分"
-                  name="union.fmlRace.minDiamondUpgradeScore"
-                  tooltip="只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
-                    :min="1"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
+                v-if="config.union.fmlRace.onlyDiamondUpgradeTask"
+                label="升级最低积分"
+                name="union.fmlRace.minDiamondUpgradeScore"
+                tooltip="只升级达到该分数且任务优先级大于等于1的任务，默认24，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.minDiamondUpgradeScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="元宝刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
                 tooltip="独立开关：接取积分小于等于低分阈值的任务并持续刷新，达到刷新目标后放弃；仅当同时开启元宝升级且达到升级条件时才会升级。"
@@ -2399,68 +2310,56 @@
                   @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.diamondRefreshTask', checked)"
                 />
               </CustomFormItem>
-              <div
-                v-if="config.union.fmlRace.diamondRefreshTask"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="接取低分阈值"
-                  name="union.fmlRace.diamondRefreshBelowScore"
-                  tooltip="仅接取积分小于等于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.fmlRace.diamondRefreshBelowScore"
-                    :min="1"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="刷新目标积分"
-                  name="union.fmlRace.diamondRefreshTargetScore"
-                  tooltip="刷新达到该分数后停止并放弃；若同时开启元宝升级任务，只有达到独立升级最低分且优先级大于等于1时才升级。默认24，范围1-99。"
-                >
-                  <CustomInputNumber
-                    v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
-                    :min="1"
-                    :max="99"
-                    class="w-42! sm:w-48!"
-                  />
-                </CustomFormItem>
-              </div>
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
+                v-if="config.union.fmlRace.diamondRefreshTask"
+                label="接取低分阈值"
+                name="union.fmlRace.diamondRefreshBelowScore"
+                tooltip="仅接取积分小于等于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.diamondRefreshBelowScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.union.fmlRace.diamondRefreshTask"
+                label="刷新目标积分"
+                name="union.fmlRace.diamondRefreshTargetScore"
+                tooltip="刷新达到该分数后停止并放弃；若同时开启元宝升级任务，只有达到独立升级最低分且优先级大于等于1时才升级。默认24，范围1-99。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
+                  :min="1"
+                  :max="99"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="种植收获细化"
                 name="union.fmlRace.harvestUpgradeRefine"
                 tooltip="仅约束元宝升级条件：种植收获任务只有包含指定花朵、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
               >
                 <Switch v-model:checked="config.union.fmlRace.harvestUpgradeRefine" />
               </CustomFormItem>
-              <div
-                v-if="config.union.fmlRace.harvestUpgradeRefine"
-                class="guild-grandchild-panel"
-              >
-                <CustomFormItem
-                  class="guild-hierarchy-item guild-hierarchy-item--level-2"
-                  label="指定花朵"
-                  name="union.fmlRace.harvestUpgradeFlowerIds"
-                  tooltip="未选择花朵时，不会升级任何种植收获任务。"
-                >
-                  <CustomSelect
-                    v-model:value="config.union.fmlRace.harvestUpgradeFlowerIds"
-                    mode="multiple"
-                    show-search
-                    option-filter-prop="label"
-                    :options="getFlowerPickerOptions(config.union.fmlRace.harvestUpgradeFlowerIds)"
-                    class="w-full sm:w-80"
-                    placeholder="请选择指定花朵"
-                  />
-                </CustomFormItem>
-              </div>
               <CustomFormItem
-                class="guild-hierarchy-item guild-hierarchy-item--level-1"
+                v-if="config.union.fmlRace.harvestUpgradeRefine"
+                label="指定花朵"
+                name="union.fmlRace.harvestUpgradeFlowerIds"
+                tooltip="未选择花朵时，不会升级任何种植收获任务。"
+              >
+                <CustomSelect
+                  v-model:value="config.union.fmlRace.harvestUpgradeFlowerIds"
+                  mode="multiple"
+                  show-search
+                  option-filter-prop="label"
+                  :options="getFlowerPickerOptions(config.union.fmlRace.harvestUpgradeFlowerIds)"
+                  class="w-full sm:w-80"
+                  placeholder="请选择指定花朵"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="保留元宝"
                 name="union.fmlRace.diamondUpgradeReserve"
                 tooltip="刷新和升级共用该保留值，任一步操作后元宝低于此值都将停止；填0则不保留。"
@@ -2472,7 +2371,7 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
             <Divider orientation="left">公会竞赛积分兑换</Divider>
             <CustomFormItem
               label="自动领取"
@@ -2490,17 +2389,16 @@
           </div>
 
           <!-- 活动设置 -->
-          <div v-if="activeTab === '活动'" class="config-section hierarchy-config-section">
+          <div v-if="activeTab === '活动'" class="config-section">
             <Divider orientation="left">花笺集芳</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="领取奖励"
               name="activity.cyclicNote.enabled"
               tooltip="领取已完成的任务奖励，领取阶段宝箱奖励，花笺所需任务都是基本的日常任务，没有写专门去做这个任务，只需把基础页种植页订单页那些功能开起来，就能完成花笺的任务，会帮你把完成的领取"
             >
               <Switch v-model:checked="config.activity.cyclicNote.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.cyclicNote.enabled" class="guild-child-panel">
+            <template v-if="config.activity.cyclicNote.enabled">
               <CustomFormItem
                 label="解锁槽位"
                 name="activity.cyclicNote.unlockSlot"
@@ -2515,9 +2413,13 @@
               >
                 <Switch v-model:checked="config.activity.cyclicNote.orderGuard.enabled" />
               </CustomFormItem>
-              <div v-if="config.activity.cyclicNote.orderGuard.enabled" class="guild-grandchild-panel">
-                <CustomFormItem label="设置时间" name="activity.cyclicNote.orderGuard.timeRanges" tooltip="守护生效的截止时间点。例如设置 21:00，则 00:00-21:00 期间等待花笺居民订单任务，21:00 后正常做居民订单">
-                  <Space>
+              <CustomFormItem
+                v-if="config.activity.cyclicNote.orderGuard.enabled"
+                label="设置时间"
+                name="activity.cyclicNote.orderGuard.timeRanges"
+                tooltip="守护生效的截止时间点。例如设置 21:00，则 00:00-21:00 期间等待花笺居民订单任务，21:00 后正常做居民订单"
+              >
+                <Space>
                   <Select v-model:value="cyclicNoteOrderGuardHour" class="w-24!">
                     <Select.Option v-for="h in cyclicNoteOrderGuardHourOptions" :key="h" :value="h">
                       {{ h }}时
@@ -2532,21 +2434,19 @@
                       {{ String(m).padStart(2, '0') }}分
                     </Select.Option>
                   </Select>
-                  </Space>
-                </CustomFormItem>
-              </div>
-            </div>
+                </Space>
+              </CustomFormItem>
+            </template>
 
             <Divider orientation="left">莳花纪闻</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动完成"
               name="activity.actCyclicStory.enabled"
               tooltip="自动完成莳花纪闻订单任务，如果花库存不足，需要配合种植开启任务优先使用"
             >
               <Switch v-model:checked="config.activity.actCyclicStory.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actCyclicStory.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actCyclicStory.enabled">
               <CustomFormItem
                 label="元宝刷新"
                 name="activity.actCyclicStory.refreshEnabled"
@@ -2565,21 +2465,21 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">丰仓鱼干</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动参与" name="activity.fishMerge.enabled">
+            <CustomFormItem label="自动参与" name="activity.fishMerge.enabled">
               <Switch v-model:checked="config.activity.fishMerge.enabled" />
             </CustomFormItem>
 
-            <div v-if="config.activity.fishMerge.enabled" class="guild-child-panel">
+            <template v-if="config.activity.fishMerge.enabled">
               <CustomFormItem label="显示结果" name="activity.fishMerge.showResult">
                 <Switch v-model:checked="config.activity.fishMerge.showResult" />
               </CustomFormItem>
               <CustomFormItem label="失败重启" name="activity.fishMerge.autoRestart">
                 <Switch v-model:checked="config.activity.fishMerge.autoRestart" />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">奇妙泡泡</Divider>
             <CustomFormItem label="自动参与" name="activity.magicBubble.enabled">
@@ -2587,10 +2487,10 @@
             </CustomFormItem>
 
             <Divider orientation="left">鱼乐无穷</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动参与" name="activity.fishFun.enabled">
+            <CustomFormItem label="自动参与" name="activity.fishFun.enabled">
               <Switch v-model:checked="config.activity.fishFun.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.fishFun.enabled" class="guild-child-panel">
+            <template v-if="config.activity.fishFun.enabled">
               <CustomFormItem
                 label="体力领取"
                 name="activity.fishFun.autoClaimEnergy"
@@ -2615,13 +2515,13 @@
               <CustomFormItem label="失败重启" name="activity.fishFun.autoRestart">
                 <Switch v-model:checked="config.activity.fishFun.autoRestart" />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">花漾物语</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动参与" name="activity.actElim.enabled">
+            <CustomFormItem label="自动参与" name="activity.actElim.enabled">
               <Switch v-model:checked="config.activity.actElim.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actElim.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actElim.enabled">
               <CustomFormItem
                 label="体力领取"
                 name="activity.actElim.autoClaimEnergy"
@@ -2640,7 +2540,7 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">红包雨</Divider>
             <CustomFormItem label="自动参与" name="activity.redPacket.enabled" tooltip="自动抢红包">
@@ -2667,14 +2567,13 @@
 
             <Divider orientation="left">为家业助力</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="自动助力"
               name="activity.actJYCALL.enabled"
               tooltip="自动为家业助力"
             >
               <Switch v-model:checked="config.activity.actJYCALL.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actJYCALL.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actJYCALL.enabled">
               <CustomFormItem
                 label="领取助力奖励"
                 name="activity.actJYCALL.recvBoxes"
@@ -2682,7 +2581,7 @@
               >
                 <Switch v-model:checked="config.activity.actJYCALL.recvBoxes" />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">摇钱树</Divider>
             <CustomFormItem label="自动摇钱" name="activity.moneyTree.enabled">
@@ -2708,10 +2607,10 @@
             </CustomFormItem>
 
             <Divider orientation="left">香卉甜糕</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动投放" name="activity.actDessert.enabled">
+            <CustomFormItem label="自动投放" name="activity.actDessert.enabled">
               <Switch v-model:checked="config.activity.actDessert.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actDessert.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actDessert.enabled">
               <CustomFormItem
                 label="体力领取"
                 name="activity.actDessert.autoClaimEnergy"
@@ -2746,13 +2645,13 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">田园奇趣</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动合并" name="activity.actMerge2.enabled">
+            <CustomFormItem label="自动合并" name="activity.actMerge2.enabled">
               <Switch v-model:checked="config.activity.actMerge2.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actMerge2.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actMerge2.enabled">
               <CustomFormItem
                 label="体力领取"
                 name="activity.actMerge2.autoClaimEnergy"
@@ -2771,13 +2670,13 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">梳丝引线</Divider>
-            <CustomFormItem class="guild-hierarchy-parent" label="自动玩" name="activity.actSpool.enabled">
+            <CustomFormItem label="自动玩" name="activity.actSpool.enabled">
               <Switch v-model:checked="config.activity.actSpool.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actSpool.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actSpool.enabled">
               <CustomFormItem
                 label="体力领取"
                 name="activity.actSpool.autoClaimReward"
@@ -2810,18 +2709,17 @@
                   class="w-42! sm:w-48!"
                 />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">龙舟竞渡</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="参赛"
               name="activity.actDuanWu.enabled"
               tooltip="开启后会玩龙舟"
             >
               <Switch v-model:checked="config.activity.actDuanWu.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actDuanWu.enabled" class="guild-child-panel">
+            <template v-if="config.activity.actDuanWu.enabled">
               <CustomFormItem
                 label="签到"
                 name="activity.actDuanWu.autoSign"
@@ -2843,7 +2741,7 @@
               >
                 <Switch v-model:checked="config.activity.actDuanWu.giftBuy" />
               </CustomFormItem>
-            </div>
+            </template>
 
             <Divider orientation="left">百花成蜜</Divider>
             <CustomFormItem
@@ -2872,18 +2770,20 @@
 
             <Divider orientation="left">彩翼星绽</Divider>
             <CustomFormItem
-              class="guild-hierarchy-parent"
               label="灿若繁星"
               name="activity.actAnniv26Star.enabled"
               tooltip="开启后会领取奖励"
             >
               <Switch v-model:checked="config.activity.actAnniv26Star.enabled" />
             </CustomFormItem>
-            <div v-if="config.activity.actAnniv26Star.enabled" class="guild-child-panel">
-              <CustomFormItem label="点亮星辰" name="activity.actAnniv26Star.lightStarsEnabled" tooltip="开启后星石袋就会去点亮星辰">
-                <Switch v-model:checked="config.activity.actAnniv26Star.lightStarsEnabled" />
-              </CustomFormItem>
-            </div>
+            <CustomFormItem
+              v-if="config.activity.actAnniv26Star.enabled"
+              label="点亮星辰"
+              name="activity.actAnniv26Star.lightStarsEnabled"
+              tooltip="开启后星石袋就会去点亮星辰"
+            >
+              <Switch v-model:checked="config.activity.actAnniv26Star.lightStarsEnabled" />
+            </CustomFormItem>
 
             <Divider orientation="left">比翼连枝</Divider>
             <CustomFormItem
@@ -2982,7 +2882,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h, watch } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Form,
@@ -3064,29 +2964,48 @@ const formRules = {
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
 
-const enforceUpgradeTaskScores = (target: GameConfig) => {
+const clampInteger = (value: unknown, min: number, max: number) =>
+  Math.max(min, Math.min(max, Math.floor(Number(value) || 0)))
+
+const enforceUpgradeTaskScores = (target: GameConfig, resetToLimit = false) => {
   const fmlRace = target.union.fmlRace
+  const minTaskScore = clampInteger(fmlRace.minTaskScore, 0, 40)
+  if (fmlRace.minTaskScore !== minTaskScore) fmlRace.minTaskScore = minTaskScore
   if (!fmlRace.upgradeTask) return
 
-  const minTaskScore = Math.max(0, Math.min(40, Math.floor(Number(fmlRace.minTaskScore) || 0)))
-  const minUpgradeTaskScore = minTaskScore * 2
-  if (fmlRace.minTaskScore !== minTaskScore) fmlRace.minTaskScore = minTaskScore
-  if (fmlRace.minUpgradeTaskScore !== minUpgradeTaskScore) {
-    fmlRace.minUpgradeTaskScore = minUpgradeTaskScore
-  }
+  const maxUpgradeTaskScore = minTaskScore * 2
+  const minUpgradeTaskScore = maxUpgradeTaskScore > 0 ? 1 : 0
+  const nextUpgradeTaskScore = resetToLimit
+    ? maxUpgradeTaskScore
+    : clampInteger(fmlRace.minUpgradeTaskScore, minUpgradeTaskScore, maxUpgradeTaskScore)
+  if (fmlRace.minUpgradeTaskScore !== nextUpgradeTaskScore)
+    fmlRace.minUpgradeTaskScore = nextUpgradeTaskScore
 }
 
 const syncUpgradeTaskScores = () => enforceUpgradeTaskScores(config.value)
 
-watch(
-  () => [
-    config.value.union.fmlRace.upgradeTask,
-    config.value.union.fmlRace.minTaskScore,
-    config.value.union.fmlRace.minUpgradeTaskScore,
-  ],
-  syncUpgradeTaskScores,
-  { immediate: true },
+const upgradeTaskScoreLimit = computed(
+  () => clampInteger(config.value.union.fmlRace.minTaskScore, 0, 40) * 2,
 )
+const upgradeTaskScoreMin = computed(() =>
+  config.value.union.fmlRace.upgradeTask && upgradeTaskScoreLimit.value > 0 ? 1 : 0,
+)
+const upgradeTaskScoreMax = computed(() =>
+  config.value.union.fmlRace.upgradeTask ? upgradeTaskScoreLimit.value : 80,
+)
+
+const handleMinTaskScoreChange = (value: number | null | undefined) => {
+  config.value.union.fmlRace.minTaskScore = clampInteger(value, 0, 40)
+  enforceUpgradeTaskScores(config.value, config.value.union.fmlRace.upgradeTask)
+}
+
+const handleMinUpgradeTaskScoreChange = (value: number | null | undefined) => {
+  config.value.union.fmlRace.minUpgradeTaskScore = clampInteger(
+    value,
+    upgradeTaskScoreMin.value,
+    upgradeTaskScoreMax.value,
+  )
+}
 
 const handleCultivateEnabledChange = (enabled: boolean) => {
   config.value.plant.cultivate.autoHarvestEnabled = enabled
@@ -3133,6 +3052,9 @@ const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boole
     target = target[keys[index]] as Record<string, any>
   }
   target[keys[keys.length - 1]] = enabled
+  if (path === 'union.fmlRace.upgradeTask' && enabled) {
+    enforceUpgradeTaskScores(config.value, true)
+  }
 }
 
 const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boolean) => {
@@ -3505,6 +3427,7 @@ const fetchConfig = async () => {
         // 使用深度合并确保所有默认字段都存在
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig)
+        enforceUpgradeTaskScores(mergedConfig)
         config.value = mergedConfig
         console.log('✅ 配置加载成功')
       } else {
@@ -3755,182 +3678,6 @@ onMounted(() => {
 
 .config-section {
   width: 100%;
-}
-
-/* 公会配置父子层级：标签建立固定起点，右侧控件仍沿用原表单控件列。 */
-:global(.ant-form-item.guild-hierarchy-item .ant-form-item-label) {
-  overflow: visible;
-}
-
-:global(.ant-form-item.guild-hierarchy-item .ant-form-item-label > label) {
-  display: flex;
-  height: auto;
-  min-height: 32px;
-  margin-left: auto;
-  justify-content: flex-start;
-  overflow: visible;
-  white-space: normal;
-}
-
-:global(.ant-form-item.guild-hierarchy-item .ant-form-item-label > label::after) {
-  display: none;
-  content: none;
-}
-
-:global(.ant-form-item.guild-hierarchy-item--level-1 .ant-form-item-label > label) {
-  width: 240px;
-  max-width: 240px;
-  padding-left: 0;
-  transform: translateX(32px);
-}
-
-:global(.ant-form-item.guild-hierarchy-item--level-2 .ant-form-item-label > label) {
-  width: 240px;
-  max-width: 240px;
-  padding-left: 0;
-  transform: translateX(64px);
-}
-
-:global(.ant-form-item.guild-hierarchy-item .custom-label-wrapper) {
-  display: inline-flex;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  justify-content: flex-start;
-  text-align: left;
-  white-space: normal;
-  overflow: visible;
-}
-
-:global(.ant-form-item.guild-hierarchy-item .label-text) {
-  flex: 0 1 auto;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-:global(.ant-form-item.guild-hierarchy-item .tooltip-icon) {
-  flex: none;
-  align-self: center;
-}
-
-/* 配置栏目父项使用统一标签起点，子项在此基础上逐级缩进。 */
-.hierarchy-config-section :deep(.ant-form-item-label > label) {
-  width: 240px;
-  max-width: 240px;
-  margin-left: auto;
-  justify-content: flex-start;
-  text-align: left;
-  white-space: normal;
-  overflow: visible;
-}
-
-.hierarchy-config-section :deep(.ant-form-item-label > label::after) {
-  display: none;
-  content: none;
-}
-
-.hierarchy-config-section :deep(.ant-form-item-label) {
-  flex: 0 0 33.333333% !important;
-  max-width: 33.333333% !important;
-  overflow: visible;
-}
-
-.hierarchy-config-section :deep(.ant-form-item-control) {
-  flex: 0 0 35% !important;
-  max-width: 35% !important;
-  margin-left: 31.666667%;
-  padding-left: 72px;
-  box-sizing: border-box;
-}
-
-/* 父子层级视觉示例：父项保持表单原位，展开内容收进轻量分组面板。 */
-.guild-hierarchy-parent {
-  margin-bottom: 10px;
-}
-
-.guild-hierarchy-parent :deep(.label-text) {
-  font-weight: 500;
-}
-
-.guild-child-panel {
-  position: relative;
-  width: calc(100% - 64px);
-  margin: 0 32px 18px;
-  padding: 14px 0 4px;
-  box-sizing: border-box;
-}
-
-/* 视觉边框放在父标签与一级子标签之间，不参与表单内容定位。 */
-.guild-child-panel::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0 0 0 104px;
-  box-sizing: border-box;
-  border: 1px solid #edf1f7;
-  border-left: 3px solid #1677ff;
-  border-radius: 8px;
-  background: #f7f9fc;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 3%);
-  content: '';
-  pointer-events: none;
-}
-
-.guild-child-panel :deep(.ant-form-item) {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 12px;
-}
-
-.guild-child-panel :deep(.ant-form-item:last-child) {
-  margin-bottom: 8px;
-}
-
-/* 未显式标记 class 的分组项，按其所在视觉容器自动应用层级缩进。 */
-.guild-child-panel > :deep(.ant-form-item .ant-form-item-label > label) {
-  width: 240px;
-  max-width: 240px;
-  transform: translateX(32px);
-}
-
-.guild-grandchild-panel > :deep(.ant-form-item .ant-form-item-label > label) {
-  width: 240px;
-  max-width: 240px;
-  transform: translateX(64px);
-}
-
-/* 二级子项使用绿色左边线；其余三边保持浅色，且不改变控件列位置。 */
-.guild-grandchild-panel {
-  position: relative;
-  margin: 2px 0 8px;
-  padding: 10px 0 2px;
-}
-
-.guild-grandchild-panel::before {
-  position: absolute;
-  inset: 2px 16px 0 136px;
-  box-sizing: border-box;
-  border: 1px solid #edf1f7;
-  border-left: 3px solid #22a559;
-  border-radius: 6px;
-  background: rgb(255 255 255 / 46%);
-  content: '';
-  pointer-events: none;
-}
-
-.guild-grandchild-panel :deep(.ant-form-item) {
-  position: relative;
-  z-index: 1;
-}
-
-/* 任务优先级自带任务名称列，向左让出名称空间后，输入框与其余控件同列。 */
-.guild-task-priority-list {
-  transform: translateX(-108px);
-}
-
-.guild-task-priority-name {
-  position: relative;
-  left: -160px;
 }
 
 .wish-pets-container {
@@ -4194,7 +3941,7 @@ onMounted(() => {
   }
 
   .config-main {
-    padding: 0 16px 16px;
+    padding: 0 16px 16 16px;
   }
 
   :deep(.ant-form-item) {
@@ -4205,83 +3952,6 @@ onMounted(() => {
   :deep(.ant-form-item-control-input),
   :deep(.ant-form-item-control-input-content) {
     max-width: 100%;
-    min-width: 0;
-  }
-
-  /*
-   * H5 不沿用桌面的固定标签宽度、控件列回推和大幅层级缩进。
-   * 标签/控件保持 40% / 60% 的稳定两列；各级控件仍处在同一列，
-   * 只通过标签的小幅缩进和贴近标签的边线表达父子关系。
-   */
-  .hierarchy-config-section :deep(.ant-form-item-label) {
-    flex: 0 0 40% !important;
-    max-width: 40% !important;
-    padding-right: 8px;
-  }
-
-  .hierarchy-config-section :deep(.ant-form-item-label > label) {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    line-height: 1.45;
-  }
-
-  .hierarchy-config-section :deep(.ant-form-item-control) {
-    flex: 0 0 60% !important;
-    max-width: 60% !important;
-    margin-left: 0;
-    padding-left: 8px;
-  }
-
-  :global(.ant-form-item.guild-hierarchy-item--level-1 .ant-form-item-label > label),
-  .guild-child-panel > :deep(.ant-form-item .ant-form-item-label > label) {
-    width: calc(100% - 12px);
-    max-width: calc(100% - 12px);
-    transform: translateX(12px);
-  }
-
-  :global(.ant-form-item.guild-hierarchy-item--level-2 .ant-form-item-label > label),
-  .guild-grandchild-panel > :deep(.ant-form-item .ant-form-item-label > label) {
-    width: calc(100% - 24px);
-    max-width: calc(100% - 24px);
-    transform: translateX(24px);
-  }
-
-  .guild-child-panel {
-    width: 100%;
-    margin: 0 0 14px;
-    padding: 12px 0 3px;
-  }
-
-  .guild-child-panel::before {
-    inset: 0 0 0 4px;
-    border-radius: 6px;
-  }
-
-  .guild-grandchild-panel {
-    margin: 2px 0 6px;
-    padding: 8px 0 2px;
-  }
-
-  .guild-grandchild-panel::before {
-    inset: 2px 0 0 16px;
-    border-radius: 5px;
-  }
-
-  /* 桌面端为任务名称预留的负向位移在窄屏会造成横向溢出。 */
-  .guild-task-priority-list,
-  .guild-task-priority-name {
-    transform: none;
-  }
-
-  .guild-task-priority-name {
-    position: static;
-    left: auto;
-    min-width: 0 !important;
-    flex: 1;
-  }
-
-  .guild-task-priority-list > div {
     min-width: 0;
   }
 
@@ -4297,14 +3967,6 @@ onMounted(() => {
 
   .form-item--stack-mobile :deep(.ant-form-item-label) {
     padding-bottom: 4px;
-  }
-
-  .hierarchy-config-section .form-item--stack-mobile :deep(.ant-form-item-label),
-  .hierarchy-config-section .form-item--stack-mobile :deep(.ant-form-item-control) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    margin-left: 0;
-    padding-left: 0;
   }
 }
 </style>
