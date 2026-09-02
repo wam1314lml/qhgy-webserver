@@ -8,8 +8,8 @@
           <!-- 品牌标题 -->
           <div class="login-brand">
             <h1 class="login-brand-title">
-              <span class="brand-icon">🌸</span>
-              花园助手
+              <span class="brand-icon">🍎</span>
+              奇幻果园助手
             </h1>
           </div>
 
@@ -141,7 +141,7 @@
       <!-- 右侧：游戏动态展示区 -->
       <div class="login-showcase-panel">
         <div class="showcase-title">
-          <h2>🌺 花园世界</h2>
+          <h2>🍎 奇幻果园</h2>
           <p>自动培育 · 托管 · 轻松收获</p>
         </div>
 
@@ -168,7 +168,7 @@
             }"
           ></div>
 
-          <!-- 花朵 -->
+          <!-- 果实 -->
           <div v-for="flower in flowers" :key="'flower'+flower.id" class="flower"
             :style="{ left: flower.x + '%', bottom: flower.bottom + 'px', '--dur': flower.dur + 's', '--delay': flower.delay + 's' }"
           >{{ flower.emoji }}</div>
@@ -320,13 +320,13 @@ const fireflies = Array.from({ length: 8 }, (_, i) => ({
 }))
 
 const flowers = [
-  { id: 1, emoji: '🌸', x: 8, bottom: 78, dur: 3.2, delay: 0 },
-  { id: 2, emoji: '🌺', x: 20, bottom: 80, dur: 2.8, delay: 0.5 },
-  { id: 3, emoji: '🌼', x: 35, bottom: 79, dur: 3.5, delay: 1 },
-  { id: 4, emoji: '🌻', x: 50, bottom: 82, dur: 3.0, delay: 0.3 },
-  { id: 5, emoji: '🌷', x: 65, bottom: 78, dur: 2.6, delay: 0.8 },
-  { id: 6, emoji: '🌹', x: 80, bottom: 81, dur: 3.3, delay: 1.5 },
-  { id: 7, emoji: '💐', x: 92, bottom: 80, dur: 2.9, delay: 0.2 },
+  { id: 1, emoji: '🍎', x: 8, bottom: 78, dur: 3.2, delay: 0 },
+  { id: 2, emoji: '🍊', x: 20, bottom: 80, dur: 2.8, delay: 0.5 },
+  { id: 3, emoji: '🍐', x: 35, bottom: 79, dur: 3.5, delay: 1 },
+  { id: 4, emoji: '🍑', x: 50, bottom: 82, dur: 3.0, delay: 0.3 },
+  { id: 5, emoji: '🍓', x: 65, bottom: 78, dur: 2.6, delay: 0.8 },
+  { id: 6, emoji: '🍉', x: 80, bottom: 81, dur: 3.3, delay: 1.5 },
+  { id: 7, emoji: '🍇', x: 92, bottom: 80, dur: 2.9, delay: 0.2 },
 ]
 
 const butterflies = [
