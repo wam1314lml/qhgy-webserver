@@ -176,7 +176,7 @@
             <CustomFormItem
               label="分享奖励"
               name="basic.benefit.shareRwd"
-              tooltip="当制作了新花艺、培育了新花朵或升级时自动分享，领取分享奖励"
+              tooltip="当制作了新果艺、培育了新水果或升级时自动分享，领取分享奖励"
             >
               <Switch v-model:checked="config.basic.benefit.shareRwd" />
             </CustomFormItem>
@@ -299,19 +299,26 @@
               />
             </CustomFormItem>
 
-            <Divider orientation="left">花坊</Divider>
+            <Divider orientation="left">百果园</Divider>
             <CustomFormItem
-              label="花坊兑换"
+              label="百果园"
               name="basic.shop.floralShop.enabled"
-              tooltip="开启后会根据用户设置兑换未拥有的鲜花/花瓶（花坊商店 tempId=6，每种限购一件，已购过的自动跳过）"
+              tooltip="开启后自动领取已完成的百果园悬赏，并按设置兑换水果或赏味拍档"
             >
               <Switch v-model:checked="config.basic.shop.floralShop.enabled" />
             </CustomFormItem>
             <template v-if="config.basic.shop.floralShop.enabled">
               <CustomFormItem
+                label="领取悬赏"
+                name="basic.shop.floralShop.claimTasks"
+                tooltip="自动领取所有已经达成的百果园悬赏奖励"
+              >
+                <Switch v-model:checked="config.basic.shop.floralShop.claimTasks" />
+              </CustomFormItem>
+              <CustomFormItem
                 label="兑换商品"
                 name="basic.shop.floralShop.itemIds"
-                tooltip="选择花坊商店要兑换的鲜花/花瓶，已购过的自动跳过"
+                tooltip="选择要用百果券兑换的水果或赏味拍档，已经兑换过的商品自动跳过"
               >
                 <a-select
                   v-model:value="config.basic.shop.floralShop.itemIds"
@@ -380,9 +387,9 @@
             </CustomFormItem>
 
             <CustomFormItem
-              label="鲜花升级"
+              label="水果升级"
               name="plant.cultivate.upgradeEnabled"
-              tooltip="自动花费金币进行鲜花升级"
+              tooltip="自动花费金币进行水果升级"
             >
               <Switch v-model:checked="config.plant.cultivate.upgradeEnabled" />
             </CustomFormItem>
@@ -397,8 +404,11 @@
             <CustomFormItem
               label="选择品质"
               name="plant.cultivate.upgradeQualities"
-              tooltip="选择要升级的花朵品质，可多选"
-              v-if="config.plant.cultivate.upgradeEnabled && config.plant.cultivate.upgradeQualityEnabled"
+              tooltip="选择要升级的水果品质，可多选"
+              v-if="
+                config.plant.cultivate.upgradeEnabled &&
+                config.plant.cultivate.upgradeQualityEnabled
+              "
             >
               <CustomSelect
                 v-model:value="config.plant.cultivate.upgradeQualities"
@@ -410,7 +420,7 @@
             <CustomFormItem
               label="目标等级"
               name="plant.cultivate.tagetLevel"
-              tooltip="鲜花升级到目标等级"
+              tooltip="水果升级到目标等级"
               v-if="config.plant.cultivate.upgradeEnabled"
             >
               <CustomInputNumber
@@ -468,11 +478,7 @@
                     </Select.Option>
                   </Select>
                   <Select v-model:value="forceCollectMinute" class="w-24!">
-                    <Select.Option
-                      v-for="m in forceCollectMinuteOptions"
-                      :key="m"
-                      :value="m"
-                    >
+                    <Select.Option v-for="m in forceCollectMinuteOptions" :key="m" :value="m">
                       {{ String(m).padStart(2, '0') }}分
                     </Select.Option>
                   </Select>
@@ -525,7 +531,7 @@
                 <Checkbox.Group v-model:value="config.plant.flower.speedUpTicketScenes">
                   <Space direction="vertical">
                     <Checkbox value="normal">普通种花</Checkbox>
-                    <Checkbox value="elves">种植花灵</Checkbox>
+                    <Checkbox value="elves">种植果灵</Checkbox>
                   </Space>
                 </Checkbox.Group>
               </CustomFormItem>
@@ -602,7 +608,7 @@
               <CustomFormItem
                 label="严格模式"
                 name="plant.flower.strictLayout"
-                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低，效率低体现在做任务方面，如居民订单，顾客订单之类的。生效的模式：指定品质-指定花朵-指定库存"
+                tooltip="严格按照单花占地数量种植，地块不足时等待满足条件再种，美观但效率较低，效率低体现在做任务方面，如居民订单，顾客订单之类的。生效的模式：指定品质-指定水果-指定库存"
               >
                 <Switch v-model:checked="config.plant.flower.strictLayout" />
               </CustomFormItem>
@@ -634,7 +640,7 @@
               <CustomFormItem
                 label="任务优先"
                 name="plant.flower.taskMode"
-                tooltip="开启后：如果订单里缺花，系统会先种订单需要的花；发现有空地时，会直接插队用来种这些花；花种完以后，会自动恢复到原来设置的模式（指定品质 / 指定种类 / 指定花朵）"
+                tooltip="开启后：如果订单里缺花，系统会先种订单需要的花；发现有空地时，会直接插队用来种这些花；花种完以后，会自动恢复到原来设置的模式（指定品质 / 指定种类 / 指定水果）"
               >
                 <Switch v-model:checked="config.plant.flower.taskMode" />
               </CustomFormItem>
@@ -649,7 +655,7 @@
               <CustomFormItem
                 label="任务优先级"
                 name="plant.flower.taskPriorityConfig"
-                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，花艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
+                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，果艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
                 v-if="config.plant.flower.taskMode"
               >
                 <div class="w-full max-w-[420px] flex flex-col gap-2">
@@ -672,7 +678,7 @@
                     />
                   </div>
                   <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm">花艺售卖</span>
+                    <span class="text-sm">果艺售卖</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['花艺售卖']"
                       :min="0"
@@ -718,7 +724,7 @@
                   <Space direction="vertical">
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="count">指定种类 </Radio>
-                    <Radio value="specific">指定花朵 </Radio>
+                    <Radio value="specific">指定水果 </Radio>
                     <Radio value="lowStock">库存模式 </Radio>
                     <Radio value="freeStyle">64块地模式 </Radio>
                   </Space>
@@ -728,7 +734,7 @@
               <CustomFormItem
                 label="选择品质"
                 name="plant.flower.qualities"
-                tooltip="选择要种植的花朵品质，可多选，库存少的优先种植。"
+                tooltip="选择要种植的水果品质，可多选，库存少的优先种植。"
                 v-if="config.plant.flower.plantingMode === 'quality'"
               >
                 <CustomSelect
@@ -739,15 +745,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.qualityExcludeEnabled"
-                tooltip="设置了排除的花朵就算库存0也不会种"
+                tooltip="设置了排除的水果就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'quality'"
               >
                 <Switch v-model:checked="config.plant.flower.qualityExcludeEnabled" />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.qualityExcludeFlowerIds"
                 v-if="
                   config.plant.flower.plantingMode === 'quality' &&
@@ -758,7 +764,7 @@
                   v-model:value="config.plant.flower.qualityExcludeFlowerIds"
                   mode="multiple"
                   allow-empty
-                  placeholder="请选择排除花朵"
+                  placeholder="请选择排除水果"
                   :options="getFlowerPickerOptions(config.plant.flower.qualityExcludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
@@ -779,15 +785,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.countExcludeEnabled"
-                tooltip="设置了排除的花朵就算库存0也不会种"
+                tooltip="设置了排除的水果就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'count'"
               >
                 <Switch v-model:checked="config.plant.flower.countExcludeEnabled" />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.countExcludeFlowerIds"
                 v-if="
                   config.plant.flower.plantingMode === 'count' &&
@@ -798,24 +804,24 @@
                   v-model:value="config.plant.flower.countExcludeFlowerIds"
                   mode="multiple"
                   allow-empty
-                  placeholder="请选择排除花朵"
+                  placeholder="请选择排除水果"
                   :options="getFlowerPickerOptions(config.plant.flower.countExcludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
                   style="width: 100%"
                 />
               </CustomFormItem>
-              <!-- 指定花朵模式 -->
+              <!-- 指定水果模式 -->
               <CustomFormItem
-                label="选择花朵"
+                label="选择水果"
                 name="plant.flower.specificFlowerIds"
-                tooltip="选择要种植的花朵，可多选，库存少的优先种植。"
+                tooltip="选择要种植的水果，可多选，库存少的优先种植。"
                 v-if="config.plant.flower.plantingMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.plant.flower.specificFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="请选择水果"
                   :options="getFlowerPickerOptions(config.plant.flower.specificFlowerIds)"
                   style="width: 100%"
                 />
@@ -824,7 +830,7 @@
               <CustomFormItem
                 label="最低库存"
                 name="plant.flower.lowStockThreshold"
-                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，适合小号存水。"
+                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制水果等级，所有花库存都有500了就不会种植了，适合小号存水。"
                 v-if="config.plant.flower.plantingMode === 'lowStock'"
               >
                 <CustomInputNumber
@@ -835,15 +841,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.lowStockExcludeEnabled"
-                tooltip="设置了排除的花朵就算库存0也不会种"
+                tooltip="设置了排除的水果就算库存0也不会种"
                 v-if="config.plant.flower.plantingMode === 'lowStock'"
               >
                 <Switch v-model:checked="config.plant.flower.lowStockExcludeEnabled" />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.flower.lowStockExcludeFlowerIds"
                 v-if="
                   config.plant.flower.plantingMode === 'lowStock' &&
@@ -854,7 +860,7 @@
                   v-model:value="config.plant.flower.lowStockExcludeFlowerIds"
                   mode="multiple"
                   allow-empty
-                  placeholder="请选择排除花朵"
+                  placeholder="请选择排除水果"
                   :options="getFlowerPickerOptions(config.plant.flower.lowStockExcludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
@@ -865,17 +871,15 @@
               <CustomFormItem
                 label="设置每块土地"
                 name="plant.flower.freeStyleList"
-                tooltip="这个模式可以设置每块土地种什么花，无视限制花朵等级，所有任务做完才会进入这个种植模式。设置好后需要点保存才生效哦"
+                tooltip="这个模式可以设置每块土地种什么花，无视限制水果等级，所有任务做完才会进入这个种植模式。设置好后需要点保存才生效哦"
                 v-if="config.plant.flower.plantingMode === 'freeStyle'"
               >
-                <a-button type="primary" @click="openFreeStylePage">
-                  设置每块土地
-                </a-button>
+                <a-button type="primary" @click="openFreeStylePage"> 设置每块土地 </a-button>
               </CustomFormItem>
               <CustomFormItem
-                label="限制花朵等级"
+                label="限制水果等级"
                 name="plant.flower.minFlowerLevel"
-                tooltip="限制种植的最低花朵等级，0则不限制，此项的设置只针对补库存，做订单和公会竞赛之类的不受此设置影响"
+                tooltip="限制种植的最低水果等级，0则不限制，此项的设置只针对补库存，做订单和公会竞赛之类的不受此设置影响"
                 v-if="!['lowStock', 'freeStyle'].includes(config.plant.flower.plantingMode)"
               >
                 <CustomInputNumber
@@ -891,21 +895,21 @@
             <CustomFormItem
               label="自动偷花"
               name="plant.friendSteal.enabled"
-              tooltip="默认不会偷取花灵，但在好友种植花灵时会偷取花朵，需要在偷花模式里设置排除花朵，排除花灵主花"
+              tooltip="默认不会偷取果灵，但在好友种植果灵时会偷取水果，需要在偷花模式里设置排除水果，排除果灵主花"
             >
               <Switch v-model:checked="config.plant.friendSteal.enabled" />
             </CustomFormItem>
             <template v-if="config.plant.friendSteal.enabled">
               <CustomFormItem
-                label="不摸花灵"
-                tooltip="若好友地块中某花朵是花灵书册的副花品种、且该好友同时种了对应主花，则判定为花灵副花并跳过不偷，需偷花灵请把偷取花灵开关打开即可"
+                label="不摸果灵"
+                tooltip="若好友地块中某水果是果灵书册的副花品种、且该好友同时种了对应主花，则判定为果灵副花并跳过不偷，需偷果灵请把偷取果灵开关打开即可"
               >
                 <Switch :checked="true" disabled class="locked-on-switch" />
               </CustomFormItem>
               <CustomFormItem
-                label="偷取花灵"
+                label="偷取果灵"
                 name="plant.friendSteal.stealElves"
-                tooltip="开启后偷取有花灵的地块，关闭则跳过有花灵的地块"
+                tooltip="开启后偷取有果灵的地块，关闭则跳过有果灵的地块"
               >
                 <Switch v-model:checked="config.plant.friendSteal.stealElves" />
               </CustomFormItem>
@@ -913,12 +917,15 @@
                 v-if="config.plant.friendSteal.stealElves"
                 label="只偷指定好友"
                 name="plant.friendSteal.onlyStealSpecifiedFriends"
-                tooltip="开启后，去设置的好友的地里就只会偷取花灵，就算设置的好友的地里有普通花，每天没偷完4次花灵之前也不会偷取"
+                tooltip="开启后，去设置的好友的地里就只会偷取果灵，就算设置的好友的地里有普通花，每天没偷完4次果灵之前也不会偷取"
               >
                 <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedFriends" />
               </CustomFormItem>
               <CustomFormItem
-                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedFriends"
+                v-if="
+                  config.plant.friendSteal.stealElves &&
+                  config.plant.friendSteal.onlyStealSpecifiedFriends
+                "
                 label="好友名字"
                 name="plant.friendSteal.specifiedFriendNames"
                 tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
@@ -933,21 +940,24 @@
               </CustomFormItem>
               <CustomFormItem
                 v-if="config.plant.friendSteal.stealElves"
-                label="只偷指定花灵"
+                label="只偷指定果灵"
                 name="plant.friendSteal.onlyStealSpecifiedElves"
-                tooltip="开启后只偷选中的花灵种类"
+                tooltip="开启后只偷选中的果灵种类"
               >
                 <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedElves" />
               </CustomFormItem>
               <CustomFormItem
-                v-if="config.plant.friendSteal.stealElves && config.plant.friendSteal.onlyStealSpecifiedElves"
-                label="指定花灵"
+                v-if="
+                  config.plant.friendSteal.stealElves &&
+                  config.plant.friendSteal.onlyStealSpecifiedElves
+                "
+                label="指定果灵"
                 name="plant.friendSteal.specifiedElvesIds"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.specifiedElvesIds"
                   mode="multiple"
-                  placeholder="请选择花灵"
+                  placeholder="请选择果灵"
                   :options="elfOptions"
                   show-search
                   option-filter-prop="label"
@@ -957,13 +967,13 @@
               <CustomFormItem
                 label="偷花模式"
                 name="plant.friendSteal.stealMode"
-                tooltip="排除已有种子：选择此项就会不偷自己可以种的花朵，只偷不能种的"
+                tooltip="排除已有种子：选择此项就会不偷自己可以种的水果，只偷不能种的"
               >
                 <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
-                  <Space >
+                  <Space>
                     <Radio value="quality">指定品质 </Radio>
-                    <Radio value="specific">指定花朵 </Radio>
-                    <Radio value="exclude">排除花朵 </Radio>
+                    <Radio value="specific">指定水果 </Radio>
+                    <Radio value="exclude">排除水果 </Radio>
                     <Radio value="excludeCultivating">排除已有种子</Radio>
                   </Space>
                 </Radio.Group>
@@ -971,7 +981,7 @@
               <CustomFormItem
                 label="指定品质"
                 name="plant.friendSteal.stealQualities"
-                tooltip="只偷取指定品质的花朵"
+                tooltip="只偷取指定品质的水果"
                 v-if="config.plant.friendSteal.stealMode === 'quality'"
               >
                 <CustomSelect
@@ -982,29 +992,29 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="指定花朵"
+                label="指定水果"
                 name="plant.friendSteal.stealFlowerIds"
-                tooltip="只偷取指定的花朵"
+                tooltip="只偷取指定的水果"
                 v-if="config.plant.friendSteal.stealMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.stealFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="请选择水果"
                   :options="getFlowerPickerOptions(config.plant.friendSteal.stealFlowerIds)"
                   style="width: 100%"
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.friendSteal.excludeFlowerIds"
-                tooltip="不偷取指定的花朵，不想影响好友种植花灵的话，建议把所有花灵主花设置上，排除掉"
+                tooltip="不偷取指定的水果，不想影响好友种植果灵的话，建议把所有果灵主花设置上，排除掉"
                 v-if="config.plant.friendSteal.stealMode === 'exclude'"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.excludeFlowerIds"
                   mode="multiple"
-                  placeholder="请选择要排除的花朵"
+                  placeholder="请选择要排除的水果"
                   :options="getFlowerPickerOptions(config.plant.friendSteal.excludeFlowerIds)"
                   style="width: 100%"
                 />
@@ -1061,14 +1071,14 @@
               <CustomFormItem
                 label="晚上用完剩余次数"
                 name="plant.friendSteal.lateNightConsumeEnabled"
-                tooltip="23:00 后忽略所有偷花筛选条件（品质、指定花朵、排除花朵等），直接偷任何普通花耗光免费次数，不自动购买；注意：避开花灵土地此配置仍然生效"
+                tooltip="23:00 后忽略所有偷花筛选条件（品质、指定水果、排除水果等），直接偷任何普通花耗光免费次数，不自动购买；注意：避开果灵土地此配置仍然生效"
               >
                 <Switch v-model:checked="config.plant.friendSteal.lateNightConsumeEnabled" />
               </CustomFormItem>
               <CustomFormItem
                 label="排除好友"
                 name="plant.friendSteal.excludeFriendsEnabled"
-                tooltip="开启后，就不会再偷设置的好友地里的任意花朵，若在偷取花灵里设置了好友A，又在排除好友里设置了好友A，也是不会去偷好友A的"
+                tooltip="开启后，就不会再偷设置的好友地里的任意水果，若在偷取果灵里设置了好友A，又在排除好友里设置了好友A，也是不会去偷好友A的"
               >
                 <Switch v-model:checked="config.plant.friendSteal.excludeFriendsEnabled" />
               </CustomFormItem>
@@ -1088,23 +1098,23 @@
               </CustomFormItem>
             </template>
 
-            <Divider orientation="left">花灵</Divider>
+            <Divider orientation="left">果灵</Divider>
             <CustomFormItem
-              label="自动种花灵"
+              label="自动种果灵"
               name="plant.elves.enabled"
-              tooltip="优先种植指定花灵，否则选择当期双倍加成花灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日花灵达到收获上限后恢复到原有种植模式"
+              tooltip="优先种植指定果灵，否则选择当期双倍加成果灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日果灵达到收获上限后恢复到原有种植模式"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
             <CustomFormItem
-              label="指定花灵"
+              label="指定果灵"
               name="plant.elves.selectedElvesIds"
               v-if="config.plant.elves.enabled"
             >
               <CustomSelect
                 v-model:value="config.plant.elves.selectedElvesIds"
                 mode="multiple"
-                placeholder="请选择花灵"
+                placeholder="请选择果灵"
                 :options="elfOptions"
                 show-search
                 option-filter-prop="label"
@@ -1115,7 +1125,7 @@
               v-if="config.plant.elves.enabled"
               label="延迟收获"
               name="plant.elves.delayedHarvestEnabled"
-              tooltip="浇水/加速后等待指定分钟数再收获，让花灵在地里待一会儿供好友偷取"
+              tooltip="浇水/加速后等待指定分钟数再收获，让果灵在地里待一会儿供好友偷取"
             >
               <Switch v-model:checked="config.plant.elves.delayedHarvestEnabled" />
             </CustomFormItem>
@@ -1132,10 +1142,7 @@
                 class="w-42! sm:w-48!"
               />
             </CustomFormItem>
-            <CustomFormItem
-              label="自动申请协助"
-              name="plant.elves.requestAid"
-            >
+            <CustomFormItem label="自动申请协助" name="plant.elves.requestAid">
               <Switch v-model:checked="config.plant.elves.requestAid" />
             </CustomFormItem>
             <CustomFormItem
@@ -1153,9 +1160,9 @@
               <Switch v-model:checked="config.plant.elves.helpFrd" />
             </CustomFormItem>
             <CustomFormItem
-              label="自动派遣花灵"
+              label="自动派遣果灵"
               name="plant.elves.dispatch"
-              tooltip="自动将背包中的花灵派遣到空闲位置"
+              tooltip="自动将背包中的果灵派遣到空闲位置"
             >
               <Switch v-model:checked="config.plant.elves.dispatch" />
             </CustomFormItem>
@@ -1163,7 +1170,7 @@
               v-if="config.plant.elves.dispatch"
               label="派遣模式"
               name="plant.elves.dispatchMode"
-              tooltip="先双倍后普通：优先派遣双倍花灵，无双倍花灵时派遣普通花灵；只派遣双倍：无双倍花灵时跳过派遣"
+              tooltip="先双倍后普通：优先派遣双倍果灵，无双倍果灵时派遣普通果灵；只派遣双倍：无双倍果灵时跳过派遣"
             >
               <Radio.Group v-model:value="config.plant.elves.dispatchMode">
                 <Space direction="vertical">
@@ -1176,7 +1183,7 @@
               v-if="config.plant.elves.dispatch"
               label="派遣数量"
               name="plant.elves.dispatchCount"
-              tooltip="每个槽位每次派遣几个花灵（1-12）"
+              tooltip="每个槽位每次派遣几个果灵（1-12）"
             >
               <CustomInputNumber
                 v-model:value="config.plant.elves.dispatchCount"
@@ -1187,11 +1194,13 @@
             <CustomFormItem
               label="自动加速派遣"
               name="plant.elves.speedUpDispatch"
-              tooltip="花费元宝加速派遣中的花灵"
+              tooltip="花费元宝加速派遣中的果灵"
             >
               <Switch
                 :checked="config.plant.elves.speedUpDispatch"
-                @change="(checked) => handleDiamondCostSwitchChange('plant.elves.speedUpDispatch', checked)"
+                @change="
+                  (checked) => handleDiamondCostSwitchChange('plant.elves.speedUpDispatch', checked)
+                "
               />
             </CustomFormItem>
             <CustomFormItem
@@ -1202,39 +1211,39 @@
               <Switch v-model:checked="config.plant.elves.recvDispatch" />
             </CustomFormItem>
 
-            <Divider orientation="left">花灵密令</Divider>
+            <Divider orientation="left">果灵密令</Divider>
             <CustomFormItem
               label="等级奖励"
               name="plant.elves.recvPass"
-              tooltip="自动领取花灵密令等级奖励，不会做针对性做花灵密令任务哦，日常做其他任务会有顺带做到花灵密令的部分任务，做完了就会顺便领取"
+              tooltip="自动领取果灵密令等级奖励，不会做针对性做果灵密令任务哦，日常做其他任务会有顺带做到果灵密令的部分任务，做完了就会顺便领取"
             >
               <Switch v-model:checked="config.plant.elves.recvPass" />
             </CustomFormItem>
             <CustomFormItem
               label="任务奖励"
               name="plant.elves.recvPassTask"
-              tooltip="自动领取花灵密令任务奖励，不会做针对性做花灵密令任务哦，日常做其他任务会有顺带做到花灵密令的部分任务，做完了就会顺便领取"
+              tooltip="自动领取果灵密令任务奖励，不会做针对性做果灵密令任务哦，日常做其他任务会有顺带做到果灵密令的部分任务，做完了就会顺便领取"
             >
               <Switch v-model:checked="config.plant.elves.recvPassTask" />
             </CustomFormItem>
 
-            <Divider orientation="left">花之密令</Divider>
+            <Divider orientation="left">水果密令</Divider>
             <CustomFormItem
               label="等级奖励"
               name="plant.elves.recvFlowerPass"
-              tooltip="自动领取花之密令等级奖励"
+              tooltip="自动领取水果密令等级奖励"
             >
               <Switch v-model:checked="config.plant.elves.recvFlowerPass" />
             </CustomFormItem>
             <CustomFormItem
               label="任务奖励"
               name="plant.elves.recvFlowerPassTask"
-              tooltip="自动领取花之密令任务奖励"
+              tooltip="自动领取水果密令任务奖励"
             >
               <Switch v-model:checked="config.plant.elves.recvFlowerPassTask" />
             </CustomFormItem>
 
-            <Divider orientation="left">花艺上架</Divider>
+            <Divider orientation="left">果艺上架</Divider>
             <CustomFormItem
               label="自动解锁花架"
               name="plant.artSell.autoUnlockStand"
@@ -1246,26 +1255,23 @@
             <CustomFormItem
               label="自动上架"
               name="plant.artSell.autoSellArt"
-              tooltip="自动上架花艺，自动领取金币收益"
+              tooltip="自动上架果艺，自动领取金币收益"
             >
               <Switch v-model:checked="config.plant.artSell.autoSellArt" />
             </CustomFormItem>
             <template v-if="config.plant.artSell.autoSellArt">
-              <CustomFormItem
-                label="上架模式"
-                name="plant.artSell.artSellMode"
-              >
+              <CustomFormItem label="上架模式" name="plant.artSell.artSellMode">
                 <Radio.Group v-model:value="config.plant.artSell.artSellMode">
                   <Space direction="vertical">
                     <Radio value="vase">指定花瓶</Radio>
-                    <Radio value="full">指定花艺</Radio>
+                    <Radio value="full">指定果艺</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
                 label="指定花瓶"
                 name="plant.artSell.specifiedArts"
-                tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果水果库存不足需要配合种植开启任务优先进行使用。"
                 v-if="config.plant.artSell.artSellMode === 'vase'"
               >
                 <CustomSelect
@@ -1277,23 +1283,25 @@
               </CustomFormItem>
               <CustomFormItem
                 class="form-item--stack-mobile"
-                label="指定花艺"
+                label="指定果艺"
                 name="plant.artSell.specifiedArtsFull"
-                tooltip="指定花艺，优先选择有库存的上架，否则进行制作，如果花朵库存不足需要配合种植开启任务优先进行使用。"
+                tooltip="指定果艺，优先选择有库存的上架，否则进行制作，如果水果库存不足需要配合种植开启任务优先进行使用。"
                 v-if="config.plant.artSell.artSellMode === 'full'"
               >
                 <CustomSelect
                   v-model:value="config.plant.artSell.specifiedArtsFull"
                   mode="multiple"
                   wide
-                  placeholder="请选择花艺"
-                  :options="getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)"
+                  placeholder="请选择果艺"
+                  :options="
+                    getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull)
+                  "
                 />
               </CustomFormItem>
               <CustomFormItem
                 label="上架数量"
                 name="plant.artSell.flowerArtPerRack"
-                tooltip="每个花架上架多少花艺"
+                tooltip="每个花架上架多少果艺"
               >
                 <CustomInputNumber
                   v-model:value="config.plant.artSell.flowerArtPerRack"
@@ -1303,7 +1311,7 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="花艺4分钟下架"
+                label="果艺4分钟下架"
                 name="plant.artSell.rackAutoRefresh"
                 tooltip="上架后4分钟能下架了马上下架，适合做一些任务"
               >
@@ -1312,29 +1320,29 @@
               <CustomFormItem
                 label="库存优先"
                 name="plant.artSell.stockFirst"
-                tooltip="开启后会优先上架已有的花艺(从多到少排序)，全部没有后才会再根据上架模式上架设置的花艺"
+                tooltip="开启后会优先上架已有的果艺(从多到少排序)，全部没有后才会再根据上架模式上架设置的果艺"
               >
                 <Switch v-model:checked="config.plant.artSell.stockFirst" />
               </CustomFormItem>
             </template>
             <CustomFormItem
-              label="花艺经验"
+              label="果艺经验"
               name="plant.artSell.recvArtCreateRwd"
-              tooltip="自动领取花艺制作经验"
+              tooltip="自动领取果艺制作经验"
             >
               <Switch v-model:checked="config.plant.artSell.recvArtCreateRwd" />
             </CustomFormItem>
             <CustomFormItem
               label="图鉴奖励"
               name="plant.artSell.recvCollectRwd"
-              tooltip="自动领取鲜花收藏，花瓶收藏，花艺收藏奖励"
+              tooltip="自动领取水果收藏，花瓶收藏，果艺收藏奖励"
             >
               <Switch v-model:checked="config.plant.artSell.recvCollectRwd" />
             </CustomFormItem>
             <CustomFormItem
-              label="花艺首做"
+              label="果艺首做"
               name="plant.artSell.artFirstMake"
-              tooltip="自动制作所有未首次制作过的花艺，制作效率和任务优先级里的花艺售卖优先级挂钩"
+              tooltip="自动制作所有未首次制作过的果艺，制作效率和任务优先级里的果艺售卖优先级挂钩"
             >
               <Switch v-model:checked="config.plant.artSell.artFirstMake" />
             </CustomFormItem>
@@ -1350,29 +1358,29 @@
             <CustomFormItem
               label="自动上架"
               name="plant.market.putEnabled"
-              tooltip="自动领取花贸市场收益并上架花朵，注意上架会消耗元宝，请谨慎开启！"
+              tooltip="自动领取花贸市场收益并上架水果，注意上架会消耗元宝，请谨慎开启！"
             >
               <Switch v-model:checked="config.plant.market.putEnabled" />
             </CustomFormItem>
             <template v-if="config.plant.market.putEnabled">
               <CustomFormItem label="上架策略" name="plant.market.putMode">
                 <Radio.Group v-model:value="config.plant.market.putMode">
-                  <Space >
+                  <Space>
                     <Radio value="inventory">库存最多</Radio>
-                    <Radio value="specific">指定花朵</Radio>
+                    <Radio value="specific">指定水果</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
-                label="选择花朵"
+                label="选择水果"
                 name="plant.market.specificFlowerIds"
-                tooltip="选择要上架的花朵，可多选，库存多的优先上架"
+                tooltip="选择要上架的水果，可多选，库存多的优先上架"
                 v-if="config.plant.market.putMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.specificFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="请选择水果"
                   :options="getFlowerPickerOptions(config.plant.market.specificFlowerIds)"
                   show-search
                   option-filter-prop="label"
@@ -1381,7 +1389,7 @@
               </CustomFormItem>
               <CustomFormItem label="上架价格" name="plant.market.priceIndex">
                 <Radio.Group v-model:value="config.plant.market.priceIndex">
-                  <Space >
+                  <Space>
                     <Radio :value="0">最低</Radio>
                     <Radio :value="1">中等</Radio>
                     <Radio :value="2">最高</Radio>
@@ -1399,7 +1407,7 @@
               <CustomFormItem
                 label="上架密码"
                 name="plant.market.putFlowerPassword"
-                tooltip="保护自己上架的花朵，防止被他人购买（4位数字）"
+                tooltip="保护自己上架的水果，防止被他人购买（4位数字）"
               >
                 <Input.Password
                   v-model:value="config.plant.market.putFlowerPassword"
@@ -1434,7 +1442,7 @@
             <CustomFormItem
               label="好友摊位扫货"
               name="plant.market.autoBuyFromFriend"
-              tooltip="自动购买好友货架的花朵"
+              tooltip="自动购买好友货架的水果"
             >
               <Switch v-model:checked="config.plant.market.autoBuyFromFriend" />
             </CustomFormItem>
@@ -1443,9 +1451,9 @@
                 <Radio.Group v-model:value="config.plant.market.buyMode">
                   <Space direction="vertical">
                     <Radio value="all">全部</Radio>
-                    <Radio value="specific">指定花朵</Radio>
+                    <Radio value="specific">指定水果</Radio>
                     <Radio value="quality">指定品质</Radio>
-                    <Radio value="exclude">排除花朵</Radio>
+                    <Radio value="exclude">排除水果</Radio>
                     <Radio value="friend">指定好友</Radio>
                     <Radio value="excludeFriend">排除好友</Radio>
                     <Radio value="uncultivated">只扫没有的种子</Radio>
@@ -1453,7 +1461,10 @@
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
-                v-if="config.plant.market.buyMode === 'friend' || config.plant.market.buyMode === 'excludeFriend'"
+                v-if="
+                  config.plant.market.buyMode === 'friend' ||
+                  config.plant.market.buyMode === 'excludeFriend'
+                "
                 label="好友名字"
                 name="plant.market.buyFriendNames"
                 tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
@@ -1466,15 +1477,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="指定花朵"
+                label="指定水果"
                 name="plant.market.buySpecificFlowerIds"
-                tooltip="选择要从好友处购买的花朵，可多选"
+                tooltip="选择要从好友处购买的水果，可多选"
                 v-if="config.plant.market.buyMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.buySpecificFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="请选择水果"
                   :options="getFlowerPickerOptions(config.plant.market.buySpecificFlowerIds)"
                   show-search
                   option-filter-prop="label"
@@ -1484,7 +1495,7 @@
               <CustomFormItem
                 label="指定品质"
                 name="plant.market.buyQualities"
-                tooltip="选择要从好友处购买的花朵品质，可多选"
+                tooltip="选择要从好友处购买的水果品质，可多选"
                 v-if="config.plant.market.buyMode === 'quality'"
               >
                 <CustomSelect
@@ -1496,15 +1507,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="plant.market.excludeFlowerIds"
-                tooltip="选择不要购买的花朵，可多选"
+                tooltip="选择不要购买的水果，可多选"
                 v-if="config.plant.market.buyMode === 'exclude'"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.excludeFlowerIds"
                   mode="multiple"
-                  placeholder="请选择不要购买的花朵"
+                  placeholder="请选择不要购买的水果"
                   :options="getFlowerPickerOptions(config.plant.market.excludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
@@ -1514,7 +1525,7 @@
               <CustomFormItem
                 label="最小上架时长"
                 name="plant.market.minPutTimeDiff"
-                tooltip="只购买上架时间超过此时长的花朵，0表示不限制。单位：秒"
+                tooltip="只购买上架时间超过此时长的水果，0表示不限制。单位：秒"
               >
                 <CustomInputNumber
                   v-model:value="config.plant.market.minPutTimeDiff"
@@ -1602,12 +1613,20 @@
             >
               <Space align="center" wrap>
                 <Select v-model:value="residentOrderStartHour" class="w-24!">
-                  <Select.Option v-for="h in residentOrderHourOptions" :key="`start-${h}`" :value="h">
+                  <Select.Option
+                    v-for="h in residentOrderHourOptions"
+                    :key="`start-${h}`"
+                    :value="h"
+                  >
                     {{ h }}时
                   </Select.Option>
                 </Select>
                 <Select v-model:value="residentOrderStartMinute" class="w-24!">
-                  <Select.Option v-for="m in residentOrderMinuteOptions" :key="`start-${m}`" :value="m">
+                  <Select.Option
+                    v-for="m in residentOrderMinuteOptions"
+                    :key="`start-${m}`"
+                    :value="m"
+                  >
                     {{ String(m).padStart(2, '0') }}分
                   </Select.Option>
                 </Select>
@@ -1618,23 +1637,27 @@
                   </Select.Option>
                 </Select>
                 <Select v-model:value="residentOrderEndMinute" class="w-24!">
-                  <Select.Option v-for="m in residentOrderMinuteOptions" :key="`end-${m}`" :value="m">
+                  <Select.Option
+                    v-for="m in residentOrderMinuteOptions"
+                    :key="`end-${m}`"
+                    :value="m"
+                  >
                     {{ String(m).padStart(2, '0') }}分
                   </Select.Option>
                 </Select>
               </Space>
             </CustomFormItem>
             <!-- <CustomFormItem
-              label="仅已培育"
-              name="basic.hasSeparation"
-              tooltip="仅提交已培育的花朵"
-            >
-              <Switch v-model:checked="config.basic.hasSeparation" />
+             label="仅已培育"
+             name="basic.hasSeparation"
+              tooltip="仅提交已培育的水果"
+           >
+             <Switch v-model:checked="config.basic.hasSeparation" />
             </CustomFormItem> -->
             <CustomFormItem
               label="品质限定"
               name="order.resident.qualities"
-              tooltip="仅提交指定品质的花朵到居民订单"
+              tooltip="仅提交指定品质的水果到居民订单"
               v-if="
                 config.order.resident.normalEnabled ||
                 config.order.resident.satinEnabled ||
@@ -1673,7 +1696,10 @@
               name="order.customer.floralCoinCount"
               v-if="config.order.customer.enabled && config.order.customer.floralCoinEnabled"
             >
-              <Radio.Group v-model:value="config.order.customer.floralCoinCount" button-style="solid">
+              <Radio.Group
+                v-model:value="config.order.customer.floralCoinCount"
+                button-style="solid"
+              >
                 <Radio.Button :value="1">1</Radio.Button>
                 <Radio.Button :value="2">2</Radio.Button>
                 <Radio.Button :value="3">3</Radio.Button>
@@ -1733,7 +1759,9 @@
             >
               <Switch
                 :checked="palaceDiamondRefresh"
-                @change="(checked) => handleDiamondCostSwitchChange('order.palace.diamondRefresh', checked)"
+                @change="
+                  (checked) => handleDiamondCostSwitchChange('order.palace.diamondRefresh', checked)
+                "
                 checked-children="已开启"
                 un-checked-children="已关闭"
               />
@@ -1755,13 +1783,15 @@
               <CustomFormItem label="再来一单" name="order.team.oneMore" tooltip="花费元宝再来一单">
                 <Switch
                   :checked="config.order.team.oneMore"
-                  @change="(checked) => handleDiamondCostSwitchChange('order.team.oneMore', checked)"
+                  @change="
+                    (checked) => handleDiamondCostSwitchChange('order.team.oneMore', checked)
+                  "
                 />
               </CustomFormItem>
               <CustomFormItem
                 label="仅已培育"
                 name="order.team.submitOnlyCultivatedFlowers"
-                tooltip="仅提交已培育的花朵"
+                tooltip="仅提交已培育的水果"
               >
                 <Switch v-model:checked="config.order.team.submitOnlyCultivatedFlowers" />
               </CustomFormItem>
@@ -1780,12 +1810,12 @@
               <CustomFormItem
                 label="团单模式"
                 name="order.team.teamMode"
-                tooltip="品质限定：只提交指定品质的花朵；排除花朵：碰到排除的花朵就刷新，其余花朵均可提交"
+                tooltip="品质限定：只提交指定品质的水果；排除水果：碰到排除的水果就刷新，其余水果均可提交"
               >
                 <Radio.Group v-model:value="config.order.team.teamMode">
                   <Space>
                     <Radio value="quality">品质限定</Radio>
-                    <Radio value="exclude">排除花朵</Radio>
+                    <Radio value="exclude">排除水果</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
@@ -1793,7 +1823,7 @@
               <CustomFormItem
                 label="选择品质"
                 name="order.team.qualities"
-                tooltip="仅提交指定品质的花朵到团单"
+                tooltip="仅提交指定品质的水果到团单"
                 v-if="config.order.team.teamMode === 'quality'"
               >
                 <CustomSelect
@@ -1803,17 +1833,17 @@
                   style="width: 100%"
                 />
               </CustomFormItem>
-              <!-- 排除花朵模式 -->
+              <!-- 排除水果模式 -->
               <CustomFormItem
-                label="排除花朵"
+                label="排除水果"
                 name="order.team.excludeFlowerIds"
-                tooltip="请选择排除的花朵，团单碰到排除的花朵就会跳过（刷新）"
+                tooltip="请选择排除的水果，团单碰到排除的水果就会跳过（刷新）"
                 v-if="config.order.team.teamMode === 'exclude'"
               >
                 <CustomSelect
                   v-model:value="config.order.team.excludeFlowerIds"
                   mode="multiple"
-                  placeholder="请选择排除的花朵"
+                  placeholder="请选择排除的水果"
                   :options="getFlowerPickerOptions(config.order.team.excludeFlowerIds)"
                   style="width: 100%"
                 />
@@ -1829,7 +1859,7 @@
             <CustomFormItem
               label="自动种植"
               name="union.land.autoPlant"
-              tooltip="自动种植空闲土地，自动将不符合限定条件的已种土地替换为目标花朵"
+              tooltip="自动种植空闲土地，自动将不符合限定条件的已种土地替换为目标水果"
             >
               <Switch v-model:checked="config.union.land.autoPlant" />
             </CustomFormItem>
@@ -1842,7 +1872,7 @@
                 <Radio.Group v-model:value="config.union.land.plantMode">
                   <Space direction="vertical">
                     <Radio value="quality">指定品质</Radio>
-                    <Radio value="specific">指定花朵</Radio>
+                    <Radio value="specific">指定水果</Radio>
                     <Radio value="lowStock">库存模式</Radio>
                   </Space>
                 </Radio.Group>
@@ -1861,15 +1891,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="指定花朵"
+                label="指定水果"
                 name="union.land.specificFlowerIds"
-                tooltip="会种植指定的花朵"
+                tooltip="会种植指定的水果"
                 v-if="config.union.land.plantMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.union.land.specificFlowerIds"
                   mode="multiple"
-                  placeholder="请选择花朵"
+                  placeholder="请选择水果"
                   :options="getFlowerPickerOptions(config.union.land.specificFlowerIds)"
                   style="width: 100%"
                 />
@@ -1877,7 +1907,7 @@
               <CustomFormItem
                 label="最低库存"
                 name="union.land.lowStockThreshold"
-                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制花朵等级，所有花库存都有500了就不会种植了，请注意设置"
+                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制水果等级，所有花库存都有500了就不会种植了，请注意设置"
                 v-if="config.union.land.plantMode === 'lowStock'"
               >
                 <CustomInputNumber
@@ -1890,7 +1920,7 @@
               <CustomFormItem
                 label="最高等级限制"
                 name="union.land.maxFlowerLevel"
-                tooltip="花朵等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
+                tooltip="水果等级高于该值的不种，0表示不限制，比如设置了13，就会种植低于13级且为你所有花里最低等级的花"
                 v-if="config.union.land.plantMode === 'quality'"
               >
                 <CustomInputNumber
@@ -1942,16 +1972,16 @@
                 tooltip="选择分享模式：品质模式或指定花模式"
               >
                 <Radio.Group v-model:value="config.union.flower.shareMode">
-                  <Space >
+                  <Space>
                     <Radio value="quality">指定品质</Radio>
-                    <Radio value="specific">指定花朵</Radio>
+                    <Radio value="specific">指定水果</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
                 label="品质限定"
                 name="union.flower.shareQualities"
-                tooltip="限定要分享到公会的花朵品质"
+                tooltip="限定要分享到公会的水果品质"
                 v-if="config.union.flower.shareMode === 'quality'"
               >
                 <CustomSelect
@@ -1962,15 +1992,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="指定花朵"
+                label="指定水果"
                 name="union.flower.shareFlowerIds"
-                tooltip="选择要分享到公会的具体花朵"
+                tooltip="选择要分享到公会的具体水果"
                 v-if="config.union.flower.shareMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.union.flower.shareFlowerIds"
                   mode="multiple"
-                  placeholder="选择要分享的花朵"
+                  placeholder="选择要分享的水果"
                   :options="getFlowerPickerOptions(config.union.flower.shareFlowerIds)"
                   style="width: 100%"
                 />
@@ -1992,16 +2022,16 @@
                 tooltip="选择摸花模式：品质模式或指定花模式"
               >
                 <Radio.Group v-model:value="config.union.flower.takeMode">
-                  <Space >
+                  <Space>
                     <Radio value="quality">指定品质</Radio>
-                    <Radio value="specific">指定花朵</Radio>
+                    <Radio value="specific">指定水果</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
                 label="品质限定"
                 name="union.flower.takeQualities"
-                tooltip="限定要从公会拿取的花朵品质"
+                tooltip="限定要从公会拿取的水果品质"
                 v-if="config.union.flower.takeMode === 'quality'"
               >
                 <CustomSelect
@@ -2012,15 +2042,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="指定花朵"
+                label="指定水果"
                 name="union.flower.takeFlowerIds"
-                tooltip="选择要从公会摸取的具体花朵"
+                tooltip="选择要从公会摸取的具体水果"
                 v-if="config.union.flower.takeMode === 'specific'"
               >
                 <CustomSelect
                   v-model:value="config.union.flower.takeFlowerIds"
                   mode="multiple"
-                  placeholder="选择要摸取的花朵"
+                  placeholder="选择要摸取的水果"
                   :options="getFlowerPickerOptions(config.union.flower.takeFlowerIds)"
                   style="width: 100%"
                 />
@@ -2093,21 +2123,21 @@
               <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
             </CustomFormItem>
             <CustomFormItem
-              label="接指定花朵"
+              label="接指定水果"
               name="union.fmlRace.harvestTaskFlowerFilterEnabled"
-              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的花朵，若同时开启了排除他人升级任务，就算设置的花朵满足接取条件也不会接取"
+              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的水果，若同时开启了排除他人升级任务，就算设置的水果满足接取条件也不会接取"
             >
               <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
             </CustomFormItem>
             <CustomFormItem
               v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
-              label="指定花朵"
+              label="指定水果"
               name="union.fmlRace.harvestTaskFlowerIds"
             >
               <CustomSelect
                 v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
                 mode="multiple"
-                placeholder="请选择花朵"
+                placeholder="请选择水果"
                 :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
                 style="width: 100%"
               />
@@ -2145,7 +2175,10 @@
               label="接达到分数的未升级任务"
               name="union.fmlRace.acceptQualifiedNormalTask"
               tooltip="开启后，即使勾选“只接指定玩家和系统升级任务”，也会接达到“限制分数-未升级”设置分数的未升级任务"
-              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+              v-if="
+                config.union.fmlRace.othersUpgradeTaskMode &&
+                config.union.fmlRace.onlySpecifiedUpgradeTask
+              "
             >
               <Switch v-model:checked="config.union.fmlRace.acceptQualifiedNormalTask" />
             </CustomFormItem>
@@ -2153,7 +2186,10 @@
               label="指定用户名"
               name="union.fmlRace.specifiedUpgradePlayers"
               tooltip="可填写多个玩家名，按回车添加下一个；系统原金升级任务无需填写"
-              v-if="config.union.fmlRace.othersUpgradeTaskMode && config.union.fmlRace.onlySpecifiedUpgradeTask"
+              v-if="
+                config.union.fmlRace.othersUpgradeTaskMode &&
+                config.union.fmlRace.onlySpecifiedUpgradeTask
+              "
             >
               <CustomSelect
                 v-model:value="config.union.fmlRace.specifiedUpgradePlayers"
@@ -2219,7 +2255,9 @@
             >
               <Switch
                 :checked="config.union.fmlRace.upgradeTask"
-                @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.upgradeTask', checked)"
+                @change="
+                  (checked) => handleDiamondCostSwitchChange('union.fmlRace.upgradeTask', checked)
+                "
               />
             </CustomFormItem>
             <CustomFormItem
@@ -2296,7 +2334,10 @@
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
-                  @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)"
+                  @change="
+                    (checked) =>
+                      handleDiamondCostSwitchChange('union.fmlRace.onlyDiamondUpgradeTask', checked)
+                  "
                 />
               </CustomFormItem>
               <CustomFormItem
@@ -2319,7 +2360,10 @@
               >
                 <Switch
                   :checked="config.union.fmlRace.diamondRefreshTask"
-                  @change="(checked) => handleDiamondCostSwitchChange('union.fmlRace.diamondRefreshTask', checked)"
+                  @change="
+                    (checked) =>
+                      handleDiamondCostSwitchChange('union.fmlRace.diamondRefreshTask', checked)
+                  "
                 />
               </CustomFormItem>
               <CustomFormItem
@@ -2351,15 +2395,15 @@
               <CustomFormItem
                 label="种植收获细化"
                 name="union.fmlRace.harvestUpgradeRefine"
-                tooltip="仅约束元宝升级条件：种植收获任务只有包含指定花朵、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
+                tooltip="仅约束元宝升级条件：种植收获任务只有包含指定水果、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
               >
                 <Switch v-model:checked="config.union.fmlRace.harvestUpgradeRefine" />
               </CustomFormItem>
               <CustomFormItem
                 v-if="config.union.fmlRace.harvestUpgradeRefine"
-                label="指定花朵"
+                label="指定水果"
                 name="union.fmlRace.harvestUpgradeFlowerIds"
-                tooltip="未选择花朵时，不会升级任何种植收获任务。"
+                tooltip="未选择水果时，不会升级任何种植收获任务。"
               >
                 <CustomSelect
                   v-model:value="config.union.fmlRace.harvestUpgradeFlowerIds"
@@ -2368,7 +2412,7 @@
                   option-filter-prop="label"
                   :options="getFlowerPickerOptions(config.union.fmlRace.harvestUpgradeFlowerIds)"
                   class="w-full sm:w-80"
-                  placeholder="请选择指定花朵"
+                  placeholder="请选择指定水果"
                 />
               </CustomFormItem>
               <CustomFormItem
@@ -2397,7 +2441,6 @@
             <CustomFormItem label="自动收集能量" name="union.fmlForest.enabled">
               <Switch v-model:checked="config.union.fmlForest.enabled" />
             </CustomFormItem>
-
           </div>
 
           <!-- 活动设置 -->
@@ -2724,11 +2767,7 @@
             </template>
 
             <Divider orientation="left">龙舟竞渡</Divider>
-            <CustomFormItem
-              label="参赛"
-              name="activity.actDuanWu.enabled"
-              tooltip="开启后会玩龙舟"
-            >
+            <CustomFormItem label="参赛" name="activity.actDuanWu.enabled" tooltip="开启后会玩龙舟">
               <Switch v-model:checked="config.activity.actDuanWu.enabled" />
             </CustomFormItem>
             <template v-if="config.activity.actDuanWu.enabled">
@@ -2858,11 +2897,7 @@
             <Radio :value="false">否</Radio>
           </Space>
         </Radio.Group>
-        <Alert
-          type="warning"
-          show-icon
-          message="注意！开启此项会消耗元宝"
-        />
+        <Alert type="warning" show-icon message="注意！开启此项会消耗元宝" />
       </div>
     </Modal>
 
@@ -2889,7 +2924,6 @@
         />
       </div>
     </Modal>
-
   </div>
 </template>
 
@@ -2920,6 +2954,7 @@ import {
   actElimSpeedOptions,
   actMerge2SpeedOptions,
   actSpoolSpeedOptions,
+  defaultFmlRaceTaskTypePriority,
   elfOptions,
   fishFunSpeedOptions,
   flowerArtOptions,
@@ -2933,7 +2968,11 @@ import {
 } from './game-config/options'
 import { floralShopAllOptions } from './game-config/shopItem6Options'
 import { deepMerge } from './game-config/utils'
-import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
+import {
+  migrateLegacyFloralShopCatalog,
+  migrateLegacyFmlRaceTaskPriority,
+  normalizeGameConfigSelects,
+} from './game-config/normalizeConfigSelects'
 import type { GameConfig } from './game-config/types'
 
 // 路由相关
@@ -3153,9 +3192,7 @@ const applyFmlRaceQuickSetup = async () => {
   fmlRace.excludeOthersUpgradeTask = !fmlRaceQuickSetupAcceptOthersUpgrade.value
   fmlRace.onlySpecifiedUpgradeTask = false
   fmlRace.acceptQualifiedNormalTask = false
-  fmlRaceTaskTypes.forEach((item) => {
-    fmlRace.taskTypePriority[item.key] = item.key === '3036' ? 1 : 0
-  })
+  fmlRace.taskTypePriority = { ...defaultFmlRaceTaskTypePriority }
   fmlRace.upgradeTask = fmlRaceQuickSetupUseDiamondUpgrade.value
 
   const flower = config.value.plant.flower
@@ -3187,8 +3224,7 @@ const handleFmlRaceQuickSetupConfirm = async () => {
 }
 
 const othersUpgradeTaskChoice = computed({
-  get: () =>
-    config.value.union.fmlRace.onlySpecifiedUpgradeTask ? 'specified' : 'exclude',
+  get: () => (config.value.union.fmlRace.onlySpecifiedUpgradeTask ? 'specified' : 'exclude'),
   set: (value: 'exclude' | 'specified') => {
     const onlySpecified = value === 'specified'
     config.value.union.fmlRace.onlySpecifiedUpgradeTask = onlySpecified
@@ -3437,6 +3473,8 @@ const fetchConfig = async () => {
     if (response.status === 200) {
       if (response.data && !response.data['未找到账号']) {
         // 使用深度合并确保所有默认字段都存在
+        migrateLegacyFmlRaceTaskPriority(response.data.data)
+        migrateLegacyFloralShopCatalog(response.data.data)
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig)
         enforceUpgradeTaskScores(mergedConfig)
@@ -3502,10 +3540,7 @@ const saveConfig = async () => {
     console.log('📨 服务器响应:', response.data)
 
     if (response.data.success) {
-      showConfigNoticeModal(
-        '配置保存成功',
-        '请注意：保存配置后，需要先停止再启动才能生效。',
-      )
+      showConfigNoticeModal('配置保存成功', '请注意：保存配置后，需要先停止再启动才能生效。')
     } else {
       console.error('❌ 保存失败 - 服务器返回:', response.data)
       message.error(response.data.message || '保存失败')
@@ -3551,7 +3586,7 @@ const fetchImportAccountOptions = async () => {
         }) => ({
           value: account.id,
           label: formatImportAccountLabel(account),
-        })
+        }),
       )
   } catch (error) {
     console.error('获取账号列表失败:', error)
@@ -3584,7 +3619,7 @@ const importConfigFromSelectedAccount = async () => {
   importConfigLoading.value = true
   try {
     const sourceResponse = await axios.get(
-      `/api/game-accounts/${importSourceAccountId.value}/setting`
+      `/api/game-accounts/${importSourceAccountId.value}/setting`,
     )
 
     if (
@@ -3596,6 +3631,8 @@ const importConfigFromSelectedAccount = async () => {
       return
     }
 
+    migrateLegacyFmlRaceTaskPriority(sourceResponse.data.data)
+    migrateLegacyFloralShopCatalog(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload)
     enforceUpgradeTaskScores(payload)
@@ -3609,10 +3646,7 @@ const importConfigFromSelectedAccount = async () => {
     config.value = payload
     normalizeGameConfigSelects(config.value)
     importConfigModalVisible.value = false
-    showConfigNoticeModal(
-      '配置导入成功',
-      '请注意：导入配置后，需要先停止再启动才能生效。',
-    )
+    showConfigNoticeModal('配置导入成功', '请注意：导入配置后，需要先停止再启动才能生效。')
   } catch (error) {
     console.error('导入配置失败:', error)
     message.error('导入配置失败')

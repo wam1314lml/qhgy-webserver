@@ -501,7 +501,7 @@
                     <a-select-option :value="0">普通(0)</a-select-option>
                     <a-select-option :value="1">支付宝(1)</a-select-option>
                     <a-select-option :value="2">抖音(2)</a-select-option>
-                    <a-select-option :value="3">华为(3)</a-select-option>
+                    <a-select-option :value="3">微信(3)</a-select-option>
                   </a-select>
                   <a-button type="primary" @click="loadExpiredAccounts" :loading="expiredAccountsLoading">
                     <SearchOutlined />
@@ -599,7 +599,7 @@
                     <a-select-option :value="0">普通(0)</a-select-option>
                     <a-select-option :value="1">支付宝(1)</a-select-option>
                     <a-select-option :value="2">抖音(2)</a-select-option>
-                    <a-select-option :value="3">华为(3)</a-select-option>
+                    <a-select-option :value="3">微信(3)</a-select-option>
                   </a-select>
                   <a-button type="primary" @click="loadNeverRenewedAccounts" :loading="neverRenewedAccountsLoading">
                     <SearchOutlined />
@@ -746,7 +746,7 @@
                 <template v-if="column.key === 'allowed_platforms'">
                   <template v-if="record.allowed_platforms">
                     <a-tag v-for="p in (() => { try { return JSON.parse(record.allowed_platforms) } catch { return [] } })()" :key="p" color="blue" style="margin:2px">
-                      {{ p === 0 ? '普通' : p === 1 ? '支付宝' : p === 2 ? '抖音' : p === 3 ? '华为' : p }}
+                      {{ p === 0 ? '普通' : p === 1 ? '支付宝' : p === 2 ? '抖音' : p === 3 ? '微信' : p }}
                     </a-tag>
                   </template>
                   <span v-else style="color:#999">不限制</span>
@@ -972,10 +972,10 @@
                   style="width: 150px"
                   allow-clear
                 >
-                  <a-select-option :value="0">微信</a-select-option>
+                  <a-select-option :value="0">账号密码</a-select-option>
                   <a-select-option :value="1">支付宝</a-select-option>
-                  <a-select-option :value="2">QQ</a-select-option>
-                  <a-select-option :value="3">华为</a-select-option>
+                  <a-select-option :value="2">抖音</a-select-option>
+                  <a-select-option :value="3">微信</a-select-option>
                 </a-select>
                 <a-select
                   v-model:value="gameAccountsFilter.is_online"
@@ -1160,7 +1160,7 @@
                   <a-select-option :value="0">普通(0)</a-select-option>
                   <a-select-option :value="1">支付宝(1)</a-select-option>
                   <a-select-option :value="2">抖音(2)</a-select-option>
-                  <a-select-option :value="3">华为(3)</a-select-option>
+                  <a-select-option :value="3">微信(3)</a-select-option>
                 </a-select>
               </a-form-item>
               <a-form-item label="排除IP">
@@ -1267,7 +1267,7 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'platform'">
                   <a-tag :color="['default','blue','purple','orange'][record.platform] || 'default'">
-                    {{ ['普通','支付宝','抖音','华为'][record.platform] || record.platform }}
+                    {{ ['普通','支付宝','抖音','微信'][record.platform] || record.platform }}
                   </a-tag>
                 </template>
                 <template v-if="column.key === 'expire_time'">
@@ -1620,7 +1620,7 @@
                 { label: '0 - 普通', value: 0 },
                 { label: '1 - 支付宝', value: 1 },
                 { label: '2 - 抖音', value: 2 },
-                { label: '3 - 华为', value: 3 },
+                { label: '3 - 微信', value: 3 },
               ]"
               allow-clear
             />
@@ -3903,10 +3903,10 @@ const formatDate = (dateStr: string): string => {
 // 获取平台名称
 const getPlatformName = (platform: number): string => {
   const platformMap: Record<number, string> = {
-    0: '微信',
+    0: '账号密码',
     1: '支付宝',
-    2: 'QQ',
-    3: '华为',
+    2: '抖音',
+    3: '微信',
   }
   return platformMap[platform] || '未知'
 }
@@ -4618,50 +4618,51 @@ const executeBatchPointsOperation = async () => {
     const operation = batchOperationType.value === 'add' ? 'add' : 'subtract'
     const skipIfTodayAdded = operation === 'add' ? batchPointsForm.value.skipIfTodayAdded : false
 
-    // 分批串行处理，每批 10 个，避免并发过多耗尽数据库连接池
-    const BATCH_SIZE = 10
-    const users = filteredBatchUsers.value
-    let successCount = 0
-    let failCount = 0
-    let skippedCount = 0
+    // 一次请求提交全部用户，由后端在同一连接中逐个执行独立事务。
+    const response = await fetch('/api/admin/batch-points', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${props.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userIds: filteredBatchUsers.value.map((user: any) => user.id),
+        points: batchPointsForm.value.points,
+        operation,
+        reason: batchPointsForm.value.reason,
+        skipIfTodayAdded,
+      }),
+    })
 
-    for (let i = 0; i < users.length; i += BATCH_SIZE) {
-      const batch = users.slice(i, i + BATCH_SIZE)
-      const batchResults = await Promise.all(
-        batch.map((user: any) =>
-          fetch('/api/admin/batch-points', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${props.token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              points: batchPointsForm.value.points,
-              operation: operation,
-              reason: batchPointsForm.value.reason,
-              skipIfTodayAdded,
-            }),
-          }).then((res: any) => res.json()),
-        ),
-      )
-      for (const result of batchResults) {
-        if (result.skipped) skippedCount++
-        else if (result.success) successCount++
-        else failCount++
-      }
+    const result = await response.json().catch(() => null)
+    if (!response.ok || !result) {
+      throw new Error(result?.message || `请求失败（HTTP ${response.status}）`)
     }
 
+    const successCount = Number(result.data?.successCount || 0)
+    const skippedCount = Number(result.data?.skippedCount || 0)
+    const failCount = Number(result.data?.failCount || 0)
     const skippedTip = skippedCount > 0 ? `，跳过 ${skippedCount} 个（今日已加过）` : ''
     const failTip = failCount > 0 ? `，失败 ${failCount} 个` : ''
+
     if (successCount > 0 || skippedCount > 0) {
       message.success(`成功处理 ${successCount} 个用户${skippedTip}${failTip}`)
+      if (failCount > 0) {
+        const userById = new Map(filteredBatchUsers.value.map((user: any) => [Number(user.id), user]))
+        const failedDetails = (result.data?.results || [])
+          .filter((item: any) => !item.success)
+          .slice(0, 10)
+          .map((item: any) => `${userById.get(Number(item.userId))?.username || item.userId}：${item.message}`)
+          .join('；')
+        message.warning(`失败明细${failCount > 10 ? '（前10条）' : ''}：${failedDetails}`)
+      }
       batchPointsModalOpen.value = false
       batchPointsForm.value.points = 0
       batchPointsForm.value.reason = ''
       batchPointsForm.value.skipIfTodayAdded = false
     } else {
-      message.error('批量操作失败')
+      const firstFailure = result.data?.results?.find((item: any) => !item.success)
+      message.error(firstFailure?.message || result.message || '批量操作失败')
     }
   } catch (error) {
     console.error('批量点数操作失败:', error)

@@ -53,7 +53,9 @@ export interface GameConfig {
       }
       floralShop: {
         enabled: boolean
+        claimTasks: boolean
         itemIds: number[]
+        catalogVersion: string
       }
     }
   }
@@ -219,7 +221,7 @@ export interface GameConfig {
       submitOnlyCultivatedFlowers: boolean
       teamMode: 'quality' | 'exclude'
       qualities: number[]
-      excludeFlowerIds: number[]
+      excludeFlowerIds: Array<number | string>
       reserveStock: number
     }
   }

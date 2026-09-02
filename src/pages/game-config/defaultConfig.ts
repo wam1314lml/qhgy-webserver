@@ -1,4 +1,6 @@
 import type { GameConfig } from './types'
+import { defaultFmlRaceTaskTypePriority } from './fmlRaceTaskTypes'
+import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
 
 export const createDefaultGameConfig = (): GameConfig =>
   ({
@@ -53,7 +55,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         },
         floralShop: {
           enabled: false,
+          claimTasks: true,
           itemIds: [],
+          catalogVersion: QHGY_FLORAL_SHOP_CATALOG_VERSION,
         },
       },
     },
@@ -285,21 +289,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         specifiedUpgradePlayers: [],
         harvestTaskFlowerFilterEnabled: false,
         harvestTaskFlowerIds: [],
-        taskTypePriority: {
-          '2004': 0,
-          '3006': 0,
-          '3016': 0,
-          '3017': 0,
-          '3018': 0,
-          '3023': 0,
-          '3024': 0,
-          '3030': 0,
-          '3034': 0,
-          '3035': 0,
-          '3036': 0,
-          '3044': 0,
-          '3052': 0,
-        },
+        taskTypePriority: { ...defaultFmlRaceTaskTypePriority },
         upgradeTask: false,
         deleteTask: false,
         deleteTaskMaxScore: 0,

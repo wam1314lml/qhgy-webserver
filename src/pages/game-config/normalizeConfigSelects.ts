@@ -6,11 +6,13 @@ import {
   actSpoolSpeedOptions,
   artSellModeOptions,
   buyModeOptions,
+  defaultFmlRaceTaskTypePriority,
   elfOptions,
   fishFunSpeedOptions,
   flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
+  fmlRaceTaskTypes,
   landGroupSizeOptions,
   getFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions,
@@ -22,6 +24,8 @@ import {
   unionLandPlantModeOptions,
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
+import { floralShopAllOptions } from './shopItem6Options'
+import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
 const DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD = 1000
@@ -34,6 +38,118 @@ const FIXED_FREE_STYLE_TEMPLATE_NAMES = [
   '我的方案D',
   '我的方案E',
 ]
+const QHGY_FLOWER_OPTIONS = getFlowerPickerOptions()
+const QHGY_FLOWER_ID_SET = new Set(QHGY_FLOWER_OPTIONS.map((option) => String(option.value)))
+const QHGY_ELF_ID_SET = new Set(elfOptions.map((option) => String(option.value)))
+const QHGY_VASE_ID_SET = new Set(flowerArtOptions.map((option) => String(option.value)))
+const QHGY_ART_OPTIONS = getSpecifiedArtsFullPickerOptions()
+const QHGY_ART_ID_SET = new Set(QHGY_ART_OPTIONS.map((option) => String(option.value)))
+const QHGY_FLORAL_SHOP_ID_SET = new Set(
+  floralShopAllOptions.flatMap((group) => group.options).map((option) => String(option.value)),
+)
+const QHGY_FREE_STYLE_LAND_ID_SET = new Set(
+  Array.from({ length: 64 }, (_, index) => String(1001 + index)),
+)
+
+const LEGACY_FML_RACE_TASK_TYPE_MAP: Record<string, string> = {
+  '2004': '20036',
+  '3006': '20009',
+  '3016': '20007',
+  '3017': '20005',
+  '3018': '20011',
+  '3023': '20010',
+  '3030': '20019',
+  '3034': '20045',
+  '3035': '20015',
+  '3036': '20046',
+  '3044': '20003',
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null
+}
+
+/** 在默认配置参与深度合并前迁移旧花园世界任务 type，避免默认新键掩盖旧自定义值。 */
+export function migrateLegacyFmlRaceTaskPriority(config: unknown): void {
+  const root = asRecord(config)
+  const union = asRecord(root?.union)
+  const fmlRace = asRecord(union?.fmlRace)
+  const priority = asRecord(fmlRace?.taskTypePriority)
+  if (!fmlRace || !priority) return
+
+  for (const [legacyKey, qhgyKey] of Object.entries(LEGACY_FML_RACE_TASK_TYPE_MAP)) {
+    if (priority[qhgyKey] === undefined && priority[legacyKey] !== undefined) {
+      priority[qhgyKey] = priority[legacyKey]
+    }
+  }
+}
+
+/**
+ * 必须在默认配置深度合并前调用：旧花园世界 Shop6 与奇幻果园百果园存在重叠 ID，
+ * 未带本目录标记的 itemIds 无法安全判别，只能清空后让用户重新选择。
+ */
+export function migrateLegacyFloralShopCatalog(config: unknown): void {
+  const root = asRecord(config)
+  const basic = asRecord(root?.basic)
+  const shop = asRecord(basic?.shop)
+  const floralShop = asRecord(shop?.floralShop)
+  if (!floralShop) return
+
+  if (floralShop.catalogVersion !== QHGY_FLORAL_SHOP_CATALOG_VERSION) {
+    floralShop.itemIds = []
+  }
+  floralShop.catalogVersion = QHGY_FLORAL_SHOP_CATALOG_VERSION
+}
+
+function normalizeAllowedStringIds(value: unknown, allowedValues: Set<string>): string[] {
+  if (!Array.isArray(value)) return []
+  return Array.from(new Set(
+    value
+      .map((item) => String(item).trim())
+      .filter((item) => item && allowedValues.has(item)),
+  ))
+}
+
+function normalizeAllowedNumberIds(value: unknown, allowedValues: Set<string>): number[] {
+  return normalizeAllowedStringIds(value, allowedValues).map(Number)
+}
+
+function normalizeAllowedMultiSelect(
+  value: unknown,
+  options: Array<{ value: string | number; disabled?: boolean }>,
+  allowedValues: Set<string>,
+): string[] {
+  return ensureMultiSelectValue(normalizeAllowedStringIds(value, allowedValues), options)
+}
+
+function normalizeFreeStyleLands(value: unknown): Record<string, number | string> {
+  const source = asRecord(value)
+  if (!source) return {}
+
+  const lands: Record<string, number | string> = {}
+  for (const [landId, flowerId] of Object.entries(source)) {
+    const normalizedFlowerId = String(flowerId ?? '').trim()
+    if (!QHGY_FREE_STYLE_LAND_ID_SET.has(landId) || !QHGY_FLOWER_ID_SET.has(normalizedFlowerId)) {
+      continue
+    }
+    lands[landId] = Number(normalizedFlowerId)
+  }
+  return lands
+}
+
+function normalizeFmlRaceTaskTypePriority(value: unknown): Record<string, number> {
+  const source = asRecord(value) ?? {}
+  return Object.fromEntries(fmlRaceTaskTypes.map(({ key }) => {
+    const numberValue = Number(source[key])
+    const fallback = Number(defaultFmlRaceTaskTypePriority[key] ?? 0)
+    const priority = Number.isFinite(numberValue)
+      ? Math.min(99, Math.max(0, Math.floor(numberValue)))
+      : fallback
+    return [key, priority]
+  }))
+}
 
 function normalizeThreshold(value: unknown): number {
   const numberValue = Number(value)
@@ -123,8 +239,15 @@ function normalizeArtOptionValues(
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
+  migrateLegacyFmlRaceTaskPriority(config)
+  migrateLegacyFloralShopCatalog(config)
+
   // VIP 商店功能已下线，清理服务端遗留字段，避免旧配置继续生效。
   delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
+  const floralShop = config.basic.shop.floralShop
+  floralShop.claimTasks = !!floralShop.claimTasks
+  floralShop.itemIds = normalizeAllowedNumberIds(floralShop.itemIds, QHGY_FLORAL_SHOP_ID_SET)
+  floralShop.catalogVersion = QHGY_FLORAL_SHOP_CATALOG_VERSION
 
   const cultivate = config.plant.cultivate
   cultivate.autoHarvestEnabled = cultivate.enabled && !!cultivate.autoHarvestEnabled
@@ -145,14 +268,13 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     99999,
   )
   flower.qualities = normalizeFlowerQualities(flower.qualities)
-  flower.specificFlowerIds = ensureMultiSelectValue(
+  flower.specificFlowerIds = normalizeAllowedMultiSelect(
     flower.specificFlowerIds,
-    getFlowerPickerOptions(flower.specificFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
   const normalizePlantExcludeIds = (value: unknown): Array<number | string> =>
-    Array.isArray(value)
-      ? Array.from(new Set(value.map((item) => String(item)).filter(Boolean)))
-      : []
+    normalizeAllowedStringIds(value, QHGY_FLOWER_ID_SET)
   const legacyPlantExcludeFlowerIds = normalizePlantExcludeIds(flower.plantExcludeFlowerIds)
   flower.qualityExcludeFlowerIds = normalizePlantExcludeIds(flower.qualityExcludeFlowerIds)
   flower.countExcludeFlowerIds = normalizePlantExcludeIds(flower.countExcludeFlowerIds)
@@ -202,7 +324,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     .slice(0, MAX_FREE_STYLE_TEMPLATES)
     .map((item, index) => ({
       name: String(item?.name || FIXED_FREE_STYLE_TEMPLATE_NAMES[index]),
-      lands: item?.lands && typeof item.lands === 'object' ? item.lands : {},
+      lands: normalizeFreeStyleLands(item?.lands),
     }))
   while (flower.freeStyleList.length < MAX_FREE_STYLE_TEMPLATES) {
     const index = flower.freeStyleList.length
@@ -217,13 +339,15 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
 
   const friendSteal = config.plant.friendSteal
   friendSteal.stealQualities = normalizeFlowerQualities(friendSteal.stealQualities)
-  friendSteal.stealFlowerIds = ensureMultiSelectValue(
+  friendSteal.stealFlowerIds = normalizeAllowedMultiSelect(
     friendSteal.stealFlowerIds,
-    getFlowerPickerOptions(friendSteal.stealFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
-  friendSteal.excludeFlowerIds = ensureMultiSelectValue(
+  friendSteal.excludeFlowerIds = normalizeAllowedMultiSelect(
     friendSteal.excludeFlowerIds,
-    getFlowerPickerOptions(friendSteal.excludeFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
   const rawSpecifiedFriendNames = Array.isArray(friendSteal.specifiedFriendNames)
     ? friendSteal.specifiedFriendNames
@@ -240,9 +364,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     .flatMap((name: unknown) => String(name || '').split(/[,，]/))
     .map((name: string) => name.trim().replace(/[。．]/g, '.'))
     .filter(Boolean)
-  friendSteal.specifiedElvesIds = ensureMultiSelectValue(
+  friendSteal.specifiedElvesIds = normalizeAllowedMultiSelect(
     friendSteal.specifiedElvesIds,
     elfOptions,
+    QHGY_ELF_ID_SET,
   )
   friendSteal.stealMode = ensureSingleSelectValue(friendSteal.stealMode, stealModeOptions)
   const buyStealCount = Number(friendSteal.buyStealCount)
@@ -255,9 +380,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   if (!HHmmRegex.test(friendSteal.noStealStart as string)) friendSteal.noStealStart = '01:00'
   if (!HHmmRegex.test(friendSteal.noStealEnd as string))   friendSteal.noStealEnd   = '07:00'
 
-  config.plant.elves.selectedElvesIds = ensureMultiSelectValue(
+  config.plant.elves.selectedElvesIds = normalizeAllowedMultiSelect(
     config.plant.elves.selectedElvesIds,
     elfOptions,
+    QHGY_ELF_ID_SET,
   )
   const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)
   config.plant.elves.delayedHarvestMinutes = Number.isFinite(delayedHarvestMinutes)
@@ -272,11 +398,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
   config.plant.artSell.specifiedArts = normalizeArtOptionValues(
     config.plant.artSell.specifiedArts,
-    flowerArtOptions,
+    flowerArtOptions.filter((option) => QHGY_VASE_ID_SET.has(String(option.value))),
   )
   config.plant.artSell.specifiedArtsFull = normalizeArtOptionValues(
     config.plant.artSell.specifiedArtsFull,
-    getSpecifiedArtsFullPickerOptions(config.plant.artSell.specifiedArtsFull),
+    QHGY_ART_OPTIONS.filter((option) => QHGY_ART_ID_SET.has(String(option.value))),
   )
   config.plant.artSell.artFirstMake = !!config.plant.artSell.artFirstMake
 
@@ -284,18 +410,21 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   market.putMode = ensureSingleSelectValue(market.putMode, putModeOptions)
   market.priceIndex = ensureSingleSelectValue(market.priceIndex, priceIndexOptions)
   market.buyMode = ensureSingleSelectValue(market.buyMode, buyModeOptions)
-  market.specificFlowerIds = ensureMultiSelectValue(
+  market.specificFlowerIds = normalizeAllowedMultiSelect(
     market.specificFlowerIds,
-    getFlowerPickerOptions(market.specificFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
-  market.buySpecificFlowerIds = ensureMultiSelectValue(
+  market.buySpecificFlowerIds = normalizeAllowedMultiSelect(
     market.buySpecificFlowerIds,
-    getFlowerPickerOptions(market.buySpecificFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
   market.buyQualities = normalizeFlowerQualities(market.buyQualities)
-  market.excludeFlowerIds = Array.isArray(market.excludeFlowerIds)
-    ? market.excludeFlowerIds
-    : []
+  market.excludeFlowerIds = normalizeAllowedStringIds(
+    market.excludeFlowerIds,
+    QHGY_FLOWER_ID_SET,
+  )
   const rawBuyFriendNames = Array.isArray(market.buyFriendNames)
     ? market.buyFriendNames
     : String(market.buyFriendNames || '').split(/[,，]/)
@@ -323,29 +452,36 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     ? false
     : !!config.order.palace.ignoreQuality
   config.order.team.qualities = normalizeFlowerQualities(config.order.team.qualities)
+  config.order.team.excludeFlowerIds = normalizeAllowedStringIds(
+    config.order.team.excludeFlowerIds,
+    QHGY_FLOWER_ID_SET,
+  )
   config.order.team.reserveStock = normalizeDiamondUpgradeReserve(config.order.team.reserveStock)
 
   const land = config.union.land
   land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)
   land.lowStockThreshold = normalizeUnionLandLowStockThreshold(land.lowStockThreshold)
   land.flowers = normalizeFlowerQualities(land.flowers)
-  land.specificFlowerIds = ensureMultiSelectValue(
+  land.specificFlowerIds = normalizeAllowedMultiSelect(
     land.specificFlowerIds,
-    getFlowerPickerOptions(land.specificFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
 
   const unionFlower = config.union.flower
   unionFlower.shareMode = ensureSingleSelectValue(unionFlower.shareMode, qualitySpecificModeOptions)
   unionFlower.takeMode = ensureSingleSelectValue(unionFlower.takeMode, qualitySpecificModeOptions)
   unionFlower.shareQualities = normalizeFlowerQualities(unionFlower.shareQualities)
-  unionFlower.shareFlowerIds = ensureMultiSelectValue(
+  unionFlower.shareFlowerIds = normalizeAllowedMultiSelect(
     unionFlower.shareFlowerIds,
-    getFlowerPickerOptions(unionFlower.shareFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
   unionFlower.takeQualities = normalizeFlowerQualities(unionFlower.takeQualities)
-  unionFlower.takeFlowerIds = ensureMultiSelectValue(
+  unionFlower.takeFlowerIds = normalizeAllowedMultiSelect(
     unionFlower.takeFlowerIds,
-    getFlowerPickerOptions(unionFlower.takeFlowerIds),
+    QHGY_FLOWER_OPTIONS,
+    QHGY_FLOWER_ID_SET,
   )
 
   config.activity.fishFun.speed = ensureSingleSelectValue(
@@ -378,10 +514,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.acceptQualifiedNormalTask = !!fmlRace.acceptQualifiedNormalTask
   fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
+  fmlRace.taskTypePriority = normalizeFmlRaceTaskTypePriority(fmlRace.taskTypePriority)
   fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled
-  fmlRace.harvestTaskFlowerIds = Array.isArray(fmlRace.harvestTaskFlowerIds)
-    ? fmlRace.harvestTaskFlowerIds
-    : []
+  fmlRace.harvestTaskFlowerIds = normalizeAllowedStringIds(
+    fmlRace.harvestTaskFlowerIds,
+    QHGY_FLOWER_ID_SET,
+  )
   fmlRace.deleteUnclaimedTask = !!fmlRace.deleteUnclaimedTask
   fmlRace.deleteUnclaimedMinutes = normalizeDeleteUnclaimedMinutes(
     fmlRace.deleteUnclaimedMinutes,
@@ -409,9 +547,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     Math.max(1, Math.floor(Number(fmlRace.minDiamondUpgradeScore) || 24)),
   )
   fmlRace.harvestUpgradeRefine = !!fmlRace.harvestUpgradeRefine
-  fmlRace.harvestUpgradeFlowerIds = Array.isArray(fmlRace.harvestUpgradeFlowerIds)
-    ? fmlRace.harvestUpgradeFlowerIds
-    : []
+  fmlRace.harvestUpgradeFlowerIds = normalizeAllowedStringIds(
+    fmlRace.harvestUpgradeFlowerIds,
+    QHGY_FLOWER_ID_SET,
+  )
   fmlRace.diamondUpgradeReserve = normalizeDiamondUpgradeReserve(
     fmlRace.diamondUpgradeReserve,
   )

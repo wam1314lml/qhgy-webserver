@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
+    "generate:qhgy-options": "node scripts/generate-qhgy-game-config-options.mjs",
     "lint": "eslint . --ext ts,vue --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

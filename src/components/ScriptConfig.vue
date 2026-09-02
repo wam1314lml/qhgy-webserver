@@ -26,9 +26,24 @@
             </div>
             <div class="account-header-right">
               <div class="server-line">
-                <img v-if="account.platform === 1" src="/icons/alipay.svg" width="18" class="v-sub" />
-                <img v-if="account.platform === 2" src="/icons/douyin.svg" width="18" class="v-sub" />
-                <img v-if="account.platform === 3" src="/icons/huawei.svg" width="18" class="v-sub" />
+                <img
+                  v-if="account.platform === 1"
+                  src="/icons/alipay.svg"
+                  width="18"
+                  class="v-sub"
+                />
+                <img
+                  v-if="account.platform === 2"
+                  src="/icons/douyin.svg"
+                  width="18"
+                  class="v-sub"
+                />
+                <img
+                  v-if="account.platform === 3"
+                  src="/icons/wechat.svg"
+                  width="18"
+                  class="v-sub"
+                />
                 {{ account.server_name || account.server_id }}
               </div>
               <div class="account-menu">
@@ -124,9 +139,7 @@
             </div>
           </div>
 
-          <div class="game-account-line">
-            游戏账号：{{ formatGameAccountName(account) }}
-          </div>
+          <div class="game-account-line">游戏账号：{{ formatGameAccountName(account) }}</div>
 
           <div class="account-info">
             <div class="stats-grid resource-stats">
@@ -144,7 +157,9 @@
               </div>
               <div class="stat-item compact">
                 <span class="stat-label">金币</span>
-                <span class="stat-value">{{ formatGoldAmount(getAccountGameData(account).gold) }}</span>
+                <span class="stat-value">{{
+                  formatGoldAmount(getAccountGameData(account).gold)
+                }}</span>
               </div>
             </div>
             <div class="stats-grid task-stats">
@@ -204,7 +219,9 @@
               </div>
               <div class="stat-item compact">
                 <span class="stat-label">团单今日经验</span>
-                <span class="stat-value">{{ formatTeamOrderExp(getAccountGameData(account).teamOrderExp) }}</span>
+                <span class="stat-value">{{
+                  formatTeamOrderExp(getAccountGameData(account).teamOrderExp)
+                }}</span>
               </div>
             </div>
             <div class="flex justify-end items-baseline info-line expire-line">
@@ -478,7 +495,8 @@
         </p>
         <div v-if="deleteCountdown > 0" class="countdown-info">
           <p>
-            请等待 <span class="countdown">{{ deleteCountdown }}</span> 秒后确认删除
+            请等待
+            <span class="countdown">{{ deleteCountdown }}</span> 秒后确认删除
           </p>
           <div class="countdown-bar">
             <div
@@ -518,6 +536,28 @@
         :scan-status="douyinReauthScanStatus"
         :sid="douyinReauthSid"
         :on-submit-sms="handleDouyinReauthSubmitSms"
+      />
+    </a-modal>
+
+    <!-- 微信重认证弹窗 -->
+    <a-modal
+      v-model:open="wxReauthVisible"
+      title="微信重新认证"
+      :width="400"
+      :footer="null"
+      :closable="false"
+      :keyboard="false"
+      :mask-closable="false"
+      @cancel="handleWxReauthCancel"
+    >
+      <WxReauthModal
+        :phase="wxReauthPhase"
+        :qr-image="wxReauthQrImage"
+        :scan-status="wxReauthScanStatus"
+        :error-message="wxReauthErrorMessage"
+        :canceling="wxReauthCanceling"
+        @start="handleWxReauthStart"
+        @cancel="handleWxReauthCancel"
       />
     </a-modal>
 
@@ -676,8 +716,8 @@ import LogViewModal from './LogViewModal.vue'
 import RechargeModal from './RechargeModal.vue'
 import UpdatePasswordModal from './UpdatePasswordModal.vue'
 import AlipayReauthModal from './AlipayReauthModal.vue'
-import HuaweiReauthModal from './HuaweiReauthModal.vue'
 import DouyinReauthModal from './DouyinReauthModal.vue'
+import WxReauthModal from './WxReauthModal.vue'
 import { updateUserBalance } from '../utils/userUtils'
 
 // 基础账户信息接口
@@ -1004,7 +1044,7 @@ watch(
   (visible) => {
     emit('expiry-banner-change', visible)
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 配额管理相关状态
@@ -1151,7 +1191,7 @@ const fetchPlayerRecords = async (accountIds: number[]) => {
     // 限制单次最多查询100个账号
     const limitedIds = accountIds.slice(0, 100)
     const response = await axios.get(
-      '/api/game-accounts/player_records?ids=' + limitedIds.map((id) => id.toString())
+      '/api/game-accounts/player_records?ids=' + limitedIds.map((id) => id.toString()),
     )
 
     if (response.data.code === 200 && response.data.data) {
@@ -1245,7 +1285,7 @@ const fetchGameAccounts = async () => {
         // 3. 合并账号列表和状态数据
         if (recordsResult.success && recordsResult.records) {
           const recordsMap = new Map(
-            recordsResult.records.map((record: any) => [parseInt(record.id), record])
+            recordsResult.records.map((record: any) => [parseInt(record.id), record]),
           )
 
           accounts.value = newAccounts.map((account: GameAccount) => {
@@ -1258,13 +1298,17 @@ const fetchGameAccounts = async () => {
             }
             // 如果有 record 且包含玩家昵称，更新账号昵称
             if (record?.record?.player?.nickName) {
-              return { ...account, nickname: record.record.player.nickName, record }
+              return {
+                ...account,
+                nickname: record.record.player.nickName,
+                record,
+              }
             }
             return { ...account, record: record || undefined }
           })
 
           console.log(
-            `✅ 获取账号列表及状态成功: ${newAccounts.length} 个账号, ${recordsResult.successCount} 个状态`
+            `✅ 获取账号列表及状态成功: ${newAccounts.length} 个账号, ${recordsResult.successCount} 个状态`,
           )
         } else {
           // 如果获取状态失败，也要设置账号列表（只是没有状态数据）
@@ -1464,7 +1508,7 @@ const confirmExtendQuota = () => {
 
   // 找到选中的配额选项
   const selectedOption = quotaOptions.value.find(
-    (option: any) => option.days === selectedQuotaDays.value
+    (option: any) => option.days === selectedQuotaDays.value,
   )
   if (!selectedOption) {
     message.error('无效的配额选项')
@@ -1503,7 +1547,7 @@ const executeExtendQuota = async () => {
   }
 
   const selectedOption = quotaOptions.value.find(
-    (option: any) => option.days === selectedQuotaDays.value
+    (option: any) => option.days === selectedQuotaDays.value,
   )
   if (!selectedOption) {
     message.error('无效的配额选项')
@@ -1535,7 +1579,7 @@ const executeExtendQuota = async () => {
         days: selectedQuotaDays.value,
         additionalPoints: additionalPoints.value,
       },
-      {}
+      {},
     )
 
     console.log('📥 收到响应:', response.data)
@@ -1629,12 +1673,44 @@ let douyinReauthPollTimer: ReturnType<typeof setInterval> | null = null
 let douyinReauthPollInFlight = false
 const douyinReauthHandled = ref(false)
 
+// 微信重认证相关状态
+type WxReauthPhase = 'prompt' | 'starting' | 'scanning' | 'expired' | 'error'
+type WxReauthCancelResult =
+  | { outcome: 'cancelled'; message: string }
+  | { outcome: 'completed'; message: string }
+  | { outcome: 'recovery'; message: string }
+  | { outcome: 'failed'; message: string }
+const wxReauthVisible = ref(false)
+const wxReauthAccountId = ref(0)
+const wxReauthFlowId = ref('')
+const wxReauthQrImage = ref('')
+const wxReauthScanStatus = ref('')
+const wxReauthErrorMessage = ref('')
+const wxReauthPhase = ref<WxReauthPhase>('prompt')
+const wxReauthCanceling = ref(false)
+let wxReauthPollTimer: ReturnType<typeof setInterval> | null = null
+let wxReauthPollController: AbortController | null = null
+let wxReauthStartController: AbortController | null = null
+let wxReauthPollInFlight = false
+let wxReauthPollErrors = 0
+let wxReauthDeadlineAt = 0
+let wxReauthHandled = false
+const WX_REAUTH_WINDOW_MS = 5 * 60 * 1000
+const WX_REAUTH_START_TIMEOUT_MS = 100 * 1000
+const WX_REAUTH_REQUEST_TIMEOUT_MS = 50 * 1000
+const WX_REAUTH_SCAN_STATUSES = ['SCAN_REQUIRED', 'PENDING', 'WAITING', 'SCANNED']
+const WX_REAUTH_PROCESSING_STATUSES = ['PROCESSING', 'EXCHANGING', 'REBINDING', 'CONFIRMED']
+const WX_REAUTH_POLL_ACTIVE_STATUSES = [
+  ...WX_REAUTH_SCAN_STATUSES,
+  ...WX_REAUTH_PROCESSING_STATUSES,
+]
+
 // Tour 漫游引导相关状态
 const tourOpen = ref(false)
 const tourCurrentStep = ref(0)
 const isFirstAccountTour = ref(false)
 const isFloatMenuExpanded = computed(
-  () => floatButtonOpen.value || (tourOpen.value && !isFirstAccountTour.value)
+  () => floatButtonOpen.value || (tourOpen.value && !isFirstAccountTour.value),
 )
 const expiredTooltipAccountId = ref<number | null>(null)
 const expiredTooltipOpen = ref(false)
@@ -1717,7 +1793,7 @@ const firstAccountTourSteps = ref<TourProps['steps']>([
     target: () => {
       // 等待下拉菜单渲染后再查找元素
       return document.querySelector(
-        '.ant-dropdown-menu .ant-dropdown-menu-item:first-child'
+        '.ant-dropdown-menu .ant-dropdown-menu-item:first-child',
       ) as HTMLElement
     },
     placement: 'bottom',
@@ -1795,7 +1871,7 @@ const runExpiredTooltipLoop = async () => {
   await nextTick()
 
   const targetButton = document.querySelector(
-    `.menu-button[data-account-id="${targetAccount.id}"]`
+    `.menu-button[data-account-id="${targetAccount.id}"]`,
   ) as HTMLElement | null
   if (!targetButton) {
     expiredTooltipAccountId.value = null
@@ -1988,8 +2064,8 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
         await handleDouyinReauth(accountId)
       } else if (response.data.code === 'ALIPAY_REAUTH_REQUIRED') {
         await handleAlipayReauth(accountId)
-      } else if (response.data.code === 'HUAWEI_REAUTH_REQUIRED') {
-        await handleHuaweiReauth(accountId)
+      } else if (response.data.code === 'WX_REAUTH_REQUIRED') {
+        openWxReauthPrompt(accountId)
       } else {
         let errorMsg = response.data.message || '操作失败'
         if (response.data.data && response.data.data.msg) {
@@ -2006,8 +2082,8 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
       await handleDouyinReauth(accountId)
     } else if (error.response?.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
       await handleAlipayReauth(accountId)
-    } else if (error.response?.data?.code === 'HUAWEI_REAUTH_REQUIRED') {
-      await handleHuaweiReauth(accountId)
+    } else if (error.response?.data?.code === 'WX_REAUTH_REQUIRED') {
+      openWxReauthPrompt(accountId)
     } else {
       let errorMsg = error.response?.data?.message || '操作失败'
       if (error.response?.data?.data && error.response.data.data.msg) {
@@ -2102,7 +2178,9 @@ const handleAlipayRescan = async (account: GameAccount) => {
 
   try {
     // ① 获取二维码（accountId 传给后端用于会话绑定）
-    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', { accountId })
+    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', {
+      accountId,
+    })
     if (!resp.data.success) {
       message.error(resp.data.message || '获取支付宝二维码失败')
       return
@@ -2194,7 +2272,9 @@ const handleAlipayReauth = async (accountId: number) => {
     return
   }
   try {
-    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', { accountId })
+    const resp = await axios.post('/api/game-accounts/alipay_get_qrcode', {
+      accountId,
+    })
     if (!resp.data.success) {
       message.error(resp.data.message || '获取支付宝二维码失败')
       return
@@ -2276,104 +2356,6 @@ const handleAlipayReauth = async (accountId: number) => {
   }
 }
 
-// 华为重新认证相关函数
-const handleHuaweiReauth = async (accountId: number) => {
-  try {
-    // 调用后端生成华为二维码
-    const response = await axios.post('/api/game-accounts/huawei/qrcode2', {
-      accountId: accountId,
-    })
-
-    if (response.data.success) {
-      const { qrcodeUrl } = response.data.data
-
-      // 显示华为二维码模态框
-      showHuaweiReauthModal(accountId, qrcodeUrl)
-    } else {
-      message.error(response.data.message || '生成华为二维码失败')
-    }
-  } catch (error: any) {
-    console.error('华为重新认证失败:', error)
-    const errorMsg =
-      error.response?.data?.error || error.response?.data?.message || '华为重新认证失败'
-
-    message.error(errorMsg)
-  }
-}
-
-const showHuaweiReauthModal = (accountId: number, qrcodeUrl: string) => {
-  // 使用专门的Vue组件来显示二维码
-  Modal.info({
-    title: '🔐 华为重新认证',
-    content: h(HuaweiReauthModal, {
-      qrcodeUrl: qrcodeUrl,
-    }),
-    width: 400,
-    okText: '取消认证',
-    okButtonProps: {
-      danger: true,
-    },
-    async onOk() {
-      try {
-        // 调用后端取消接口
-        await axios.post('/api/game-accounts/huawei/cancel2')
-        message.info('已取消华为重新认证')
-      } catch (error) {
-        console.error('取消华为认证失败:', error)
-        message.info('已取消华为重新认证')
-      }
-    },
-  })
-
-  // 开始轮询认证状态
-  startHuaweiReauthPolling(accountId)
-}
-
-const startHuaweiReauthPolling = async (accountId: number) => {
-  const maxAttempts = 160
-  let attempt = 0
-
-  while (attempt < maxAttempts) {
-    attempt++
-    try {
-      const response = await axios.get('/api/game-accounts/huawei/poll2', { timeout: 10000 })
-
-      if (response.data.code === 'COMPLETED') {
-        Modal.destroyAll()
-        message.success('🎉 华为重新认证成功！正在启动账号...')
-        setTimeout(async () => {
-          await handleToggleAccount(accountId, 'inactive')
-        }, 500)
-        return
-      }
-
-      if (response.data.code === 'EXPIRED' || response.data.code === 'CANCELLED') {
-        message.error(response.data.message || '华为认证已过期，请重试')
-        Modal.destroyAll()
-        return
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        message.error('会话不存在，请重新认证')
-        Modal.destroyAll()
-        return
-      }
-      if (error.response?.status === 408) {
-        message.error(error.response?.data?.message || '华为认证超时，请重试')
-        Modal.destroyAll()
-        return
-      }
-      console.error('华为认证轮询请求失败:', error.message)
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-    }
-  }
-
-  message.error('华为认证超时，请重试')
-  Modal.destroyAll()
-}
-
 // ── 抖音重认证 ────────────────────────────────────────────────────
 const isAccountAlreadyRunningError = (payload: any): boolean => {
   const text = [payload?.message, payload?.data?.msg, payload?.data?.message]
@@ -2382,20 +2364,25 @@ const isAccountAlreadyRunningError = (payload: any): boolean => {
   return /已在运行|already running/i.test(text)
 }
 
-const completeDouyinReauthAfterScan = async (accountId: number) => {
+const completeReauthAfterScan = async (
+  accountId: number,
+  providerLabel: string,
+  reauthCode: string,
+  reopenReauth: (targetAccountId: number) => void | Promise<void>,
+) => {
   await fetchAndUpdateSingleAccountRecord(accountId)
   const account = accounts.value.find((a: GameAccount) => a.id === accountId)
   if (account && getAccountStartedStatus(account)) {
-    message.success('🎉 抖音重认证成功！')
+    message.success(`🎉 ${providerLabel}重认证成功！`)
     return
   }
 
   if (operatingAccounts.value.has(accountId)) {
-    message.success('🎉 抖音重认证成功！')
+    message.success(`🎉 ${providerLabel}重认证成功！`)
     return
   }
 
-  message.success('🎉 抖音重认证成功！正在启动账号...')
+  message.success(`🎉 ${providerLabel}重认证成功！正在启动账号...`)
   operatingAccounts.value = new Set([...operatingAccounts.value, accountId])
 
   try {
@@ -2405,9 +2392,7 @@ const completeDouyinReauthAfterScan = async (accountId: number) => {
       message.success('游戏账号启动成功')
       accounts.value = accounts.value.map((item: GameAccount) => {
         if (item.id === accountId) {
-          const updatedRecord = item.record
-            ? { ...item.record, isStarted: true }
-            : undefined
+          const updatedRecord = item.record ? { ...item.record, isStarted: true } : undefined
           return { ...item, record: updatedRecord }
         }
         return item
@@ -2421,8 +2406,8 @@ const completeDouyinReauthAfterScan = async (accountId: number) => {
       return
     }
 
-    if (response.data.code === 'DOUYIN_REAUTH_REQUIRED') {
-      await handleDouyinReauth(accountId)
+    if (response.data.code === reauthCode) {
+      await reopenReauth(accountId)
       return
     }
 
@@ -2437,8 +2422,8 @@ const completeDouyinReauthAfterScan = async (accountId: number) => {
       return
     }
 
-    if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
-      await handleDouyinReauth(accountId)
+    if (error.response?.data?.code === reauthCode) {
+      await reopenReauth(accountId)
       return
     }
 
@@ -2457,21 +2442,26 @@ const completeDouyinReauthAfterScan = async (accountId: number) => {
 const handleDouyinReauth = async (accountId: number) => {
   try {
     douyinReauthHandled.value = false
-    const resp = await axios.post('/api/douyin/scan/reauth/start', { accountId })
+    const resp = await axios.post('/api/douyin/scan/reauth/start', {
+      accountId,
+    })
     if (!resp.data.ok) {
       message.error(resp.data.err || '生成抖音二维码失败')
       return
     }
     douyinReauthAccountId.value = accountId
-    douyinReauthSid.value       = resp.data.sid || ''
-    douyinReauthQrB64.value     = resp.data.qr_png_b64 || ''
+    douyinReauthSid.value = resp.data.sid || ''
+    douyinReauthQrB64.value = resp.data.qr_png_b64 || ''
     douyinReauthScanStatus.value = 'waiting'
-    douyinReauthVisible.value   = true
+    douyinReauthVisible.value = true
     startDouyinReauthPolling(accountId, resp.data.sid)
   } catch (err: any) {
     message.error(err.response?.data?.err || '抖音重认证失败')
   }
 }
+
+const completeDouyinReauthAfterScan = (accountId: number) =>
+  completeReauthAfterScan(accountId, '抖音', 'DOUYIN_REAUTH_REQUIRED', handleDouyinReauth)
 
 const stopDouyinReauthPolling = () => {
   if (douyinReauthPollTimer) {
@@ -2481,15 +2471,18 @@ const stopDouyinReauthPolling = () => {
 }
 
 const handleDouyinReauthCancel = () => {
-  douyinReauthVisible.value    = false
+  douyinReauthVisible.value = false
   douyinReauthScanStatus.value = ''
-  douyinReauthQrB64.value      = ''
-  douyinReauthHandled.value    = false
+  douyinReauthQrB64.value = ''
+  douyinReauthHandled.value = false
   stopDouyinReauthPolling()
   message.info('已取消抖音重认证')
 }
 
-const handleDouyinReauthSubmitSms = async (sid: string, code: string): Promise<{ ok: boolean; msg?: string }> => {
+const handleDouyinReauthSubmitSms = async (
+  sid: string,
+  code: string,
+): Promise<{ ok: boolean; msg?: string }> => {
   try {
     const res = await axios.post('/api/douyin/scan/verify', { sid, code })
     if (res.data.ok) {
@@ -2556,6 +2549,404 @@ const startDouyinReauthPolling = (accountId: number, sid: string) => {
       douyinReauthPollInFlight = false
     }
   }, 2000)
+}
+
+// ── 微信重认证 ────────────────────────────────────────────────────
+const getWxReauthData = (body: any): Record<string, any> =>
+  body?.data && typeof body.data === 'object' ? body.data : {}
+
+const getWxReauthStatus = (body: any): string => {
+  const data = getWxReauthData(body)
+  return String(data.status ?? body?.status ?? '')
+    .trim()
+    .toUpperCase()
+}
+
+const getWxReauthError = (body: any, fallback: string): string => {
+  const data = getWxReauthData(body)
+  return String(
+    body?.message ?? body?.msg ?? body?.error ?? data.message ?? data.msg ?? data.error ?? fallback,
+  )
+}
+
+const getWxReauthQrImage = (data: Record<string, any>): string =>
+  String(data.image_base64 ?? data.qrcode_image ?? data.qr_image ?? data.qrcode ?? '').trim()
+
+const cancelWxReauthRemote = async (
+  flowId: string,
+  accountId: number,
+): Promise<WxReauthCancelResult> => {
+  if (!accountId) {
+    return { outcome: 'failed', message: '缺少微信重认证账号信息' }
+  }
+  try {
+    const response = await axios.post(
+      '/api/game-accounts/wx/reauth/cancel',
+      { flow_id: flowId, accountId },
+      { timeout: 15000 },
+    )
+    const body = response.data || {}
+    const status = getWxReauthStatus(body)
+    const resultMessage = getWxReauthError(body, '微信重认证取消结果无效')
+    if (status === 'REAUTH_DONE') {
+      return { outcome: 'completed', message: resultMessage }
+    }
+    if (body.success !== false && status === 'CANCELLED') {
+      return { outcome: 'cancelled', message: resultMessage }
+    }
+    return { outcome: 'failed', message: resultMessage }
+  } catch (error: any) {
+    const body = error.response?.data || {}
+    const errorCode = String(body.code ?? '')
+      .trim()
+      .toUpperCase()
+    const errorMessage = getWxReauthError(body, error?.message || '取消微信重认证失败')
+    if (errorCode === 'WX_REAUTH_RECOVERY_REQUIRED') {
+      return { outcome: 'recovery', message: errorMessage }
+    }
+    if (error?.code !== 'ERR_CANCELED') {
+      console.warn('[wxReauth] 取消远端扫码会话失败:', errorMessage)
+    }
+    return { outcome: 'failed', message: errorMessage }
+  }
+}
+
+const resumeWxReauthRecovery = (accountId: number, flowId: string, recoveryMessage: string) => {
+  wxReauthHandled = false
+  wxReauthVisible.value = true
+  wxReauthScanStatus.value = 'REBINDING'
+  if (flowId) {
+    wxReauthPhase.value = 'starting'
+    wxReauthErrorMessage.value = ''
+    startWxReauthPolling(accountId, flowId)
+    message.warning(`${recoveryMessage}，已继续查询认证结果`, 5)
+    return
+  }
+
+  wxReauthPhase.value = 'error'
+  wxReauthErrorMessage.value = `${recoveryMessage}。当前会话号尚未返回，请稍后点击“重新获取”继续恢复。`
+  message.warning(recoveryMessage, 5)
+}
+
+const stopWxReauthPolling = () => {
+  if (wxReauthPollTimer) {
+    clearInterval(wxReauthPollTimer)
+    wxReauthPollTimer = null
+  }
+  if (wxReauthPollController) {
+    wxReauthPollController.abort()
+    wxReauthPollController = null
+  }
+  wxReauthPollInFlight = false
+  wxReauthDeadlineAt = 0
+}
+
+const resetWxReauthView = () => {
+  wxReauthAccountId.value = 0
+  wxReauthFlowId.value = ''
+  wxReauthQrImage.value = ''
+  wxReauthScanStatus.value = ''
+  wxReauthErrorMessage.value = ''
+  wxReauthPhase.value = 'prompt'
+  wxReauthPollErrors = 0
+}
+
+const openWxReauthPrompt = async (accountId: number) => {
+  const previousFlowId = wxReauthFlowId.value
+  const previousAccountId = wxReauthAccountId.value
+  wxReauthStartController?.abort()
+  wxReauthStartController = null
+  stopWxReauthPolling()
+  if (previousFlowId && previousAccountId) {
+    const cancelResult = await cancelWxReauthRemote(previousFlowId, previousAccountId)
+    if (cancelResult.outcome === 'completed') {
+      await completeWxReauth(previousAccountId)
+      return
+    }
+    if (cancelResult.outcome === 'recovery') {
+      resumeWxReauthRecovery(previousAccountId, previousFlowId, cancelResult.message)
+      return
+    }
+    if (cancelResult.outcome === 'failed') {
+      wxReauthVisible.value = true
+      failWxReauth('error', cancelResult.message)
+      message.error(cancelResult.message, 5)
+      return
+    }
+  }
+  resetWxReauthView()
+  wxReauthAccountId.value = accountId
+  wxReauthHandled = false
+  wxReauthVisible.value = true
+}
+
+const failWxReauth = (phase: 'expired' | 'error', errorMessage: string) => {
+  stopWxReauthPolling()
+  wxReauthPhase.value = phase
+  wxReauthScanStatus.value = phase.toUpperCase()
+  wxReauthErrorMessage.value = errorMessage
+}
+
+const completeWxReauth = async (accountId: number) => {
+  wxReauthHandled = true
+  stopWxReauthPolling()
+  wxReauthStartController?.abort()
+  wxReauthStartController = null
+  wxReauthVisible.value = false
+  resetWxReauthView()
+  await completeReauthAfterScan(accountId, '微信', 'WX_REAUTH_REQUIRED', openWxReauthPrompt)
+}
+
+const pollWxReauth = async (accountId: number, flowId: string) => {
+  if (
+    !wxReauthVisible.value ||
+    wxReauthHandled ||
+    wxReauthPollInFlight ||
+    wxReauthFlowId.value !== flowId ||
+    wxReauthAccountId.value !== accountId
+  ) {
+    return
+  }
+
+  const remainingMs = wxReauthDeadlineAt - Date.now()
+  if (remainingMs <= 0) {
+    failWxReauth('expired', '微信二维码已超时，请重新获取')
+    return
+  }
+
+  const controller = new AbortController()
+  wxReauthPollController = controller
+  wxReauthPollInFlight = true
+  try {
+    const response = await axios.get('/api/game-accounts/wx/reauth/poll', {
+      params: { flow_id: flowId, accountId },
+      timeout: Math.max(1, Math.min(WX_REAUTH_REQUEST_TIMEOUT_MS, remainingMs)),
+      signal: controller.signal,
+    })
+    if (
+      wxReauthHandled ||
+      !wxReauthVisible.value ||
+      wxReauthFlowId.value !== flowId ||
+      wxReauthAccountId.value !== accountId
+    ) {
+      return
+    }
+
+    const body = response.data || {}
+    const data = getWxReauthData(body)
+    const status = getWxReauthStatus(body)
+    const nextQrImage = getWxReauthQrImage(data)
+    const hasValidQrImage = nextQrImage.startsWith('data:image/')
+    if (hasValidQrImage) {
+      wxReauthQrImage.value = nextQrImage
+    }
+    wxReauthPollErrors = 0
+
+    if (status === 'REAUTH_DONE') {
+      await completeWxReauth(accountId)
+      return
+    }
+
+    if (['EXPIRED', 'CANCELLED', 'NOT_FOUND'].includes(status)) {
+      failWxReauth('expired', getWxReauthError(body, '微信二维码已过期，请重新获取'))
+      return
+    }
+
+    if (['ERROR', 'FAILED'].includes(status)) {
+      failWxReauth('error', getWxReauthError(body, '微信扫码失败，请重新获取'))
+      return
+    }
+
+    if (body.success === false && !WX_REAUTH_POLL_ACTIVE_STATUSES.includes(status)) {
+      failWxReauth('error', getWxReauthError(body, '微信扫码失败，请重新获取'))
+      return
+    }
+
+    if (WX_REAUTH_PROCESSING_STATUSES.includes(status)) {
+      wxReauthPhase.value = 'starting'
+    } else if (hasValidQrImage || WX_REAUTH_SCAN_STATUSES.includes(status)) {
+      wxReauthPhase.value = 'scanning'
+    }
+
+    wxReauthScanStatus.value = status || 'SCAN_REQUIRED'
+    if (Date.now() >= wxReauthDeadlineAt) {
+      failWxReauth('expired', '微信二维码已超时，请重新获取')
+    }
+  } catch (error: any) {
+    if (error?.code === 'ERR_CANCELED' || controller.signal.aborted) return
+    if (
+      wxReauthHandled ||
+      !wxReauthVisible.value ||
+      wxReauthFlowId.value !== flowId ||
+      wxReauthAccountId.value !== accountId
+    ) {
+      return
+    }
+    if (Date.now() >= wxReauthDeadlineAt) {
+      failWxReauth('expired', '微信二维码已超时，请重新获取')
+      return
+    }
+    wxReauthPollErrors += 1
+    if (wxReauthPollErrors >= 3) {
+      failWxReauth(
+        'error',
+        getWxReauthError(error.response?.data, '微信扫码状态查询失败，请重新获取'),
+      )
+    }
+  } finally {
+    if (wxReauthPollController === controller) {
+      wxReauthPollController = null
+      wxReauthPollInFlight = false
+    }
+  }
+}
+
+const startWxReauthPolling = (accountId: number, flowId: string) => {
+  stopWxReauthPolling()
+  wxReauthPollErrors = 0
+  wxReauthDeadlineAt = Date.now() + WX_REAUTH_WINDOW_MS
+  void pollWxReauth(accountId, flowId)
+  wxReauthPollTimer = setInterval(() => void pollWxReauth(accountId, flowId), 2000)
+}
+
+const handleWxReauthStart = async () => {
+  const accountId = wxReauthAccountId.value
+  if (!accountId || wxReauthPhase.value === 'starting') return
+
+  const previousFlowId = wxReauthFlowId.value
+  wxReauthPhase.value = 'starting'
+  stopWxReauthPolling()
+  if (previousFlowId) {
+    const cancelResult = await cancelWxReauthRemote(previousFlowId, accountId)
+    if (cancelResult.outcome === 'completed') {
+      await completeWxReauth(accountId)
+      return
+    }
+    if (cancelResult.outcome === 'recovery') {
+      resumeWxReauthRecovery(accountId, previousFlowId, cancelResult.message)
+      return
+    }
+    if (cancelResult.outcome === 'failed') {
+      failWxReauth('error', cancelResult.message)
+      return
+    }
+  }
+  if (!wxReauthVisible.value || wxReauthAccountId.value !== accountId) return
+
+  wxReauthStartController?.abort()
+  const controller = new AbortController()
+  wxReauthStartController = controller
+  wxReauthHandled = false
+  wxReauthScanStatus.value = ''
+  wxReauthErrorMessage.value = ''
+  wxReauthFlowId.value = ''
+  wxReauthQrImage.value = ''
+
+  try {
+    const response = await axios.post(
+      '/api/game-accounts/wx/reauth/start',
+      { accountId },
+      { timeout: WX_REAUTH_START_TIMEOUT_MS, signal: controller.signal },
+    )
+    if (
+      controller.signal.aborted ||
+      wxReauthStartController !== controller ||
+      !wxReauthVisible.value ||
+      wxReauthAccountId.value !== accountId
+    ) {
+      return
+    }
+
+    const body = response.data || {}
+    const data = getWxReauthData(body)
+    const status = getWxReauthStatus(body)
+    const flowId = String(data.flow_id ?? data.flowId ?? body.flow_id ?? body.flowId ?? '').trim()
+    if (status === 'REAUTH_DONE') {
+      await completeWxReauth(accountId)
+      return
+    }
+
+    if (status === 'PROCESSING') {
+      if (!flowId) {
+        throw new Error('微信重认证处理中，但缺少可恢复的 flow_id')
+      }
+      wxReauthFlowId.value = flowId
+      wxReauthScanStatus.value = status
+      wxReauthPhase.value = 'starting'
+      wxReauthStartController = null
+      startWxReauthPolling(accountId, flowId)
+      return
+    }
+
+    if (status !== 'SCAN_REQUIRED') {
+      throw new Error(getWxReauthError(body, '微信重认证返回状态无效'))
+    }
+
+    const qrImage = getWxReauthQrImage(data)
+    if (!flowId || !qrImage.startsWith('data:image/')) {
+      throw new Error('微信重认证二维码响应不完整')
+    }
+
+    wxReauthFlowId.value = flowId
+    wxReauthQrImage.value = qrImage
+    wxReauthScanStatus.value = status
+    wxReauthPhase.value = 'scanning'
+    wxReauthStartController = null
+    startWxReauthPolling(accountId, flowId)
+  } catch (error: any) {
+    if (error?.code === 'ERR_CANCELED' || controller.signal.aborted) return
+    if (!wxReauthVisible.value || wxReauthAccountId.value !== accountId) return
+    failWxReauth(
+      'error',
+      getWxReauthError(error.response?.data, error.message || '微信重认证启动失败'),
+    )
+  } finally {
+    if (wxReauthStartController === controller) {
+      wxReauthStartController = null
+    }
+  }
+}
+
+const handleWxReauthCancel = async () => {
+  if (wxReauthCanceling.value) return
+  const flowId = wxReauthFlowId.value
+  const accountId = wxReauthAccountId.value
+  if (!accountId) {
+    message.error('缺少微信重认证账号信息，无法取消')
+    return
+  }
+
+  wxReauthCanceling.value = true
+  wxReauthStartController?.abort()
+  wxReauthStartController = null
+  try {
+    const cancelResult = await cancelWxReauthRemote(flowId, accountId)
+    if (cancelResult.outcome === 'completed') {
+      await completeWxReauth(accountId)
+      return
+    }
+    if (cancelResult.outcome === 'recovery') {
+      resumeWxReauthRecovery(accountId, flowId, cancelResult.message)
+      return
+    }
+    if (cancelResult.outcome === 'failed') {
+      wxReauthVisible.value = true
+      if (!flowId) {
+        wxReauthPhase.value = 'error'
+        wxReauthErrorMessage.value = cancelResult.message
+      }
+      message.error(cancelResult.message, 5)
+      return
+    }
+
+    wxReauthHandled = true
+    stopWxReauthPolling()
+    wxReauthVisible.value = false
+    resetWxReauthView()
+    message.info(cancelResult.message || '已取消微信重认证')
+  } finally {
+    wxReauthCanceling.value = false
+  }
 }
 
 // 更新密码相关函数
@@ -2637,7 +3028,7 @@ const onShowLink = () => {
       h(
         'p',
         { style: 'margin-bottom: 12px; font-size: 14px; color: #666;' },
-        '点击下方链接查看详细的辅助教程：'
+        '点击下方链接查看详细的辅助教程：',
       ),
       h(
         'a',
@@ -2648,7 +3039,7 @@ const onShowLink = () => {
           style:
             'font-size: 15px; color: #1890ff; text-decoration: underline; word-break: break-all;',
         },
-        'https://www.kdocs.cn/l/ctNasBUS3vcG'
+        'https://www.kdocs.cn/l/ctNasBUS3vcG',
       ),
     ]),
     okText: '关闭',
@@ -2723,6 +3114,16 @@ onUnmounted(() => {
   if (alipayReauthPolling.value) {
     clearInterval(alipayReauthPolling.value)
   }
+  const wxFlowId = wxReauthFlowId.value
+  const wxAccountId = wxReauthAccountId.value
+  const wxShouldCancel = wxReauthVisible.value && wxAccountId > 0
+  wxReauthHandled = true
+  wxReauthStartController?.abort()
+  wxReauthStartController = null
+  stopWxReauthPolling()
+  if (wxShouldCancel) {
+    void cancelWxReauthRemote(wxFlowId, wxAccountId)
+  }
   if (expiringBannerTimer) {
     clearTimeout(expiringBannerTimer)
     expiringBannerTimer = null
@@ -2744,7 +3145,7 @@ watch(
       scheduleGroupChatTooltipLoop(GROUP_CHAT_TOOLTIP_INITIAL_DELAY_MS)
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 自动刷新定时器
@@ -2769,7 +3170,7 @@ watch(
     //   refreshAllAccountsData()
     // }, 10000) // 10秒
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 watch(
@@ -2794,7 +3195,7 @@ watch(
       scheduleExpiredTooltipLoop(0)
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 )
 
 watch(
@@ -2816,7 +3217,7 @@ watch(
       showExpiringBanner()
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 )
 
 // 组件卸载时清理定时器
@@ -2905,11 +3306,11 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 /* 所有 primary 浮动按钮的 body */
 .ant-float-btn-primary .ant-float-btn-body {
   background-color: var(--theme-primary, #22c55e) !important;
-  box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb, 34,197,94), 0.45) !important;
+  box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.45) !important;
 }
 .ant-float-btn-primary .ant-float-btn-body:hover {
   background-color: var(--theme-primary-dark, #16a34a) !important;
-  box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb, 34,197,94), 0.6) !important;
+  box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.6) !important;
 }
 
 /* 按钮组触发主按钮（shape=square 时也要覆盖） */
@@ -2940,7 +3341,7 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 /* 非 primary 的子浮动按钮（展开后的图标按钮）也跟主题走 */
 .ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-body {
   background: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid rgba(var(--theme-primary-rgb, 34,197,94), 0.25) !important;
+  border: 1px solid rgba(var(--theme-primary-rgb, 34, 197, 94), 0.25) !important;
 }
 .ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-body:hover {
   background: rgba(255, 255, 255, 1) !important;
@@ -2949,7 +3350,6 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 .ant-float-btn-group-wrap .ant-float-btn-default .ant-float-btn-icon {
   color: var(--theme-primary, #22c55e) !important;
 }
-
 
 /* 账号卡片操作按钮 - 用实色确保覆盖 Ant Design */
 /* 启动 / 查看日志：浅灰实色 */

@@ -92,7 +92,11 @@ import CustomSelect from '../components/CustomSelect.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
 import { getFlowerPickerOptions } from './game-config/options'
 import { deepMerge } from './game-config/utils'
-import { normalizeGameConfigSelects } from './game-config/normalizeConfigSelects'
+import {
+  migrateLegacyFloralShopCatalog,
+  migrateLegacyFmlRaceTaskPriority,
+  normalizeGameConfigSelects,
+} from './game-config/normalizeConfigSelects'
 import type { GameConfig } from './game-config/types'
 
 const route = useRoute()
@@ -100,7 +104,7 @@ const router = useRouter()
 const accountId = computed(() => Number(route.params.accountId))
 const config = ref<GameConfig>(createDefaultGameConfig())
 const loading = ref(false)
-const selectedFlowerId = ref<string | number>('23001')
+const selectedFlowerId = ref<string | number>(getFlowerPickerOptions()[0]?.value ?? '50001')
 const savedSnapshot = ref('')
 
 type FreeStylePlan = GameConfig['plant']['flower']['freeStyleList'][number]
@@ -248,6 +252,8 @@ async function fetchConfig() {
   try {
     const response = await axios.get(`/api/game-accounts/${accountId.value}/setting`)
     if (response.status === 200 && response.data && !response.data['未找到账号']) {
+      migrateLegacyFmlRaceTaskPriority(response.data.data)
+      migrateLegacyFloralShopCatalog(response.data.data)
       const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
       normalizeGameConfigSelects(mergedConfig)
       config.value = mergedConfig

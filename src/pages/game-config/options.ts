@@ -2,6 +2,7 @@ export { flowerOptions } from './flowerOptions'
 export { flowerArtOptions } from './flowerArtOptions'
 export { specifiedArtsFullOptions } from './specifiedArtsFullOptions'
 export { elfOptions } from './elfOptions'
+export { defaultFmlRaceTaskTypePriority, fmlRaceTaskTypes } from './fmlRaceTaskTypes'
 export { getFlowerPickerOptions } from './optionPickerUtils'
 export { getSpecifiedArtsFullPickerOptions } from './optionPickerUtils'
 
@@ -19,7 +20,7 @@ export const landGroupSizeOptions = [
   { value: 64, label: '64' },
 ]
 
-// —— 种植花朵数量（1/2/4/8/16） ——
+// —— 种植水果数量（1/2/4/8/16） ——
 export const flowerCountOptions = [
   { value: 1, label: '1' },
   { value: 2, label: '2' },
@@ -32,7 +33,7 @@ export const flowerCountOptions = [
 export const plantingModeOptions = [
   { value: 'quality', label: '指定品质' },
   { value: 'count', label: '指定种类' },
-  { value: 'specific', label: '指定花朵' },
+  { value: 'specific', label: '指定水果' },
   { value: 'lowStock', label: '库存模式' },
   { value: 'freeStyle', label: '64块地模式' },
 ]
@@ -40,15 +41,15 @@ export const plantingModeOptions = [
 // —— 偷花模式 ——
 export const stealModeOptions = [
   { value: 'quality', label: '指定品质' },
-  { value: 'specific', label: '指定花朵' },
-  { value: 'exclude', label: '排除花朵' },
+  { value: 'specific', label: '指定水果' },
+  { value: 'exclude', label: '排除水果' },
   { value: 'excludeCultivating', label: '排除已有种子' },
 ]
 
 // —— 花贸市场上架策略 ——
 export const putModeOptions = [
   { value: 'inventory', label: '库存最多' },
-  { value: 'specific', label: '指定花朵' },
+  { value: 'specific', label: '指定水果' },
 ]
 
 // —— 花贸市场上架价格 ——
@@ -61,30 +62,30 @@ export const priceIndexOptions = [
 // —— 花贸市场扫货策略 ——
 export const buyModeOptions = [
   { value: 'all', label: '全部' },
-  { value: 'specific', label: '指定花朵' },
+  { value: 'specific', label: '指定水果' },
   { value: 'quality', label: '指定品质' },
-  { value: 'exclude', label: '排除花朵' },
+  { value: 'exclude', label: '排除水果' },
   { value: 'friend', label: '指定好友' },
   { value: 'excludeFriend', label: '排除好友' },
   { value: 'uncultivated', label: '只扫没有的种子' },
 ]
 
-// —— 花艺上架模式 ——
+// —— 果艺上架模式 ——
 export const artSellModeOptions = [
   { value: 'vase', label: '指定花瓶' },
-  { value: 'full', label: '指定花艺' },
+  { value: 'full', label: '指定果艺' },
 ]
 
-// —— 公会土地种植策略 / 分享/摸花模式（只有品质、指定花朵两种） ——
+// —— 公会土地种植策略 / 分享/摸花模式（只有品质、指定水果两种） ——
 export const qualitySpecificModeOptions = [
   { value: 'quality', label: '指定品质' },
-  { value: 'specific', label: '指定花朵' },
+  { value: 'specific', label: '指定水果' },
 ]
 
-// —— 公会土地种植策略（品质 / 指定花朵 / 库存模式） ——
+// —— 公会土地种植策略（品质 / 指定水果 / 库存模式） ——
 export const unionLandPlantModeOptions = [
   { value: 'quality', label: '指定品质' },
-  { value: 'specific', label: '指定花朵' },
+  { value: 'specific', label: '指定水果' },
   { value: 'lowStock', label: '库存模式' },
 ]
 
@@ -131,24 +132,6 @@ export const actSpoolSpeedOptions = [
   { value: 3, label: '高速' },
   { value: 4, label: '极速' },
   { value: 5, label: '神速' },
-]
-
-// —— 公会竞赛任务类型 ——
-// key 为任务类型 ID（字符串），label 为显示名
-export const fmlRaceTaskTypes: Array<{ key: string; label: string }> = [
-  { key: '2004', label: 'vip商店购买' },
-  { key: '3006', label: '居民订单' },
-  { key: '3016', label: '顾客订单' },
-  { key: '3017', label: '材料商店购买' },
-  { key: '3018', label: '宫廷订单' },
-  { key: '3023', label: '珍珠采集雇佣' },
-  { key: '3024', label: '好友偷花' },
-  { key: '3030', label: '花艺售卖' },
-  { key: '3034', label: '花艺制作' },
-  { key: '3035', label: '鲜花升级' },
-  { key: '3036', label: '种植收获' },
-  { key: '3044', label: '花种培育' },
-  { key: '3052', label: '动物互动' },
 ]
 
 // —— 种植任务优先级字段列表 ——

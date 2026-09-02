@@ -24,9 +24,7 @@
             <a-radio :value="0" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper channel-icon-app">
-                  <span class="official-text">官服</span>
-                  <span class="app-badge">APP</span>
-                  <img src="/icons/wechat.svg" alt="微信" class="wechat-badge" />
+                  <span class="account-password-text">账号密码</span>
                 </div>
               </div>
             </a-radio>
@@ -45,15 +43,13 @@
                 </div>
               </div>
             </a-radio>
-            <!-- 华为渠道：暂时关闭
             <a-radio :value="3" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper">
-                  <img src="/icons/huawei.svg" alt="华为" class="channel-icon" />
+                  <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
                 </div>
               </div>
             </a-radio>
-            -->
           </a-radio-group>
         </div>
 
@@ -86,21 +82,44 @@
               <div class="qrcode-display">
                 <div class="qrcode-wrapper">
                   <div class="qrcode-content">
-                    <img :src="`data:image/png;base64,${douyinQrB64}`" alt="抖音二维码" style="width:200px;height:200px;border-radius:8px;" />
+                    <img
+                      :src="`data:image/png;base64,${douyinQrB64}`"
+                      alt="抖音二维码"
+                      style="width: 200px; height: 200px; border-radius: 8px"
+                    />
                     <p class="qrcode-status-text">
                       <span v-if="douyinScanStatus === 'waiting'">⏳ 等待扫码中...</span>
-                      <span v-else-if="douyinScanStatus === 'scanned'">✅ 已扫码，请在手机上确认</span>
-                      <span v-else-if="douyinScanStatus === 'finalizing'">⏳ 已确认，正在换取登录态...</span>
+                      <span v-else-if="douyinScanStatus === 'scanned'"
+                        >✅ 已扫码，请在手机上确认</span
+                      >
+                      <span v-else-if="douyinScanStatus === 'finalizing'"
+                        >⏳ 已确认，正在换取登录态...</span
+                      >
                       <span v-else-if="douyinScanStatus === 'confirmed'">🎉 扫码成功！</span>
-                      <span v-else-if="douyinScanStatus === 'expired'" style="color:#ff4d4f">⚠️ 二维码已过期，请重新获取</span>
-                      <span v-else-if="douyinScanStatus === 'error'" style="color:#ff4d4f">❌ 扫码失败，请重试</span>
+                      <span v-else-if="douyinScanStatus === 'expired'" style="color: #ff4d4f"
+                        >⚠️ 二维码已过期，请重新获取</span
+                      >
+                      <span v-else-if="douyinScanStatus === 'error'" style="color: #ff4d4f"
+                        >❌ 扫码失败，请重试</span
+                      >
                     </p>
                     <!-- 短信验证码 -->
-                    <div v-if="douyinScanStatus === 'verify_sms'" class="sms-verify-box" style="margin-top:12px">
-                      <p style="color:#faad14">{{ douyinSmsMsg || '请输入短信验证码' }}</p>
-                      <div style="display:flex;gap:8px;margin-top:8px">
-                        <a-input v-model:value="douyinSmsCode" placeholder="短信验证码" maxlength="6" style="flex:1" />
-                        <a-button :loading="douyinSmsSubmitting" @click="handleDouyinSmsVerify">提交</a-button>
+                    <div
+                      v-if="douyinScanStatus === 'verify_sms'"
+                      class="sms-verify-box"
+                      style="margin-top: 12px"
+                    >
+                      <p style="color: #faad14">{{ douyinSmsMsg || '请输入短信验证码' }}</p>
+                      <div style="display: flex; gap: 8px; margin-top: 8px">
+                        <a-input
+                          v-model:value="douyinSmsCode"
+                          placeholder="短信验证码"
+                          maxlength="6"
+                          style="flex: 1"
+                        />
+                        <a-button :loading="douyinSmsSubmitting" @click="handleDouyinSmsVerify"
+                          >提交</a-button
+                        >
                       </div>
                     </div>
                   </div>
@@ -156,33 +175,47 @@
             </div>
           </div>
 
-          <!-- 华为扫码登录界面：暂时关闭
-          <div v-else-if="selectedChannel === 3" class="huawei-login">
-            <div v-if="!huaweiQrcodeUrl" class="qrcode-placeholder">
-              <p>点击"获取二维码"开始华为扫码登录</p>
+          <!-- 微信扫码登录界面 -->
+          <div v-else-if="selectedChannel === 3" class="alipay-login">
+            <div v-if="isWxQrLoading" class="scan-qrcode-loading">
+              <p class="scan-qrcode-loading-text">正在获取微信二维码...</p>
+            </div>
+            <div v-else-if="!wxQrcodeImage" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始微信扫码登录</p>
             </div>
             <div v-else class="qrcode-container">
-              <h5>请使用华为账号登陆花瓣轻游、或者微信扫二维码后输入华为账号</h5>
+              <h5>请使用微信扫描二维码并在手机上确认</h5>
               <div class="qrcode-display">
                 <div class="qrcode-wrapper">
-                  <div v-if="huaweiQrcodeImage" class="qrcode-content">
-                    <a-qrcode :value="huaweiQrcodeImage" :size="200" />
+                  <div class="qrcode-content">
+                    <img
+                      :src="wxQrcodeImage"
+                      alt="微信登录二维码"
+                      style="width: 200px; height: 200px; border-radius: 8px"
+                    />
                     <p class="qrcode-status-text">
-                      {{ isHuaweiPolling ? '⏳ 等待扫码中...' : '📱 请使用华为账号扫描二维码' }}
+                      <span v-if="wxScanStatus === 'pending'">⏳ 等待微信扫码...</span>
+                      <span v-else-if="wxScanStatus === 'scanned'"
+                        >✅ 已扫码，正在获取角色信息...</span
+                      >
+                      <span v-else-if="wxScanStatus === 'completed'">🎉 扫码成功！</span>
+                      <span v-else-if="wxScanStatus === 'expired'" style="color: #ff4d4f"
+                        >⚠️ 二维码已过期，请重新获取</span
+                      >
+                      <span v-else-if="wxScanStatus === 'error'" style="color: #ff4d4f"
+                        >❌ 扫码失败，请重试</span
+                      >
                     </p>
                   </div>
-                  <div v-else class="qrcode-loading">二维码加载中...</div>
                 </div>
               </div>
 
               <div class="qrcode-status">
-                <p v-if="isHuaweiPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
-                <p v-else-if="huaweiLoginData" style="color: #52c41a">✅ 扫码登录成功！</p>
-                <p v-else style="color: #faad14">📱 请使用华为账号扫描上方二维码</p>
+                <p v-if="isWxPolling" style="color: #1890ff">请在5分钟内完成扫码...</p>
+                <p v-else-if="wxLoginData" style="color: #52c41a">✅ 已取得角色区服，请继续</p>
               </div>
             </div>
           </div>
-          -->
 
           <!-- 账号密码登录界面 -->
           <div v-else class="password-login">
@@ -215,8 +248,6 @@
 
         <!-- 选择区服 -->
         <div v-if="currentStep === 'server'" class="step-panel">
-  
-
           <a-form
             ref="serverFormRef"
             :model="serverForm"
@@ -238,10 +269,13 @@
                   v-for="(server, index) in serverList"
                   :key="index"
                   :value="server.serverId"
-                  :label="`${server.serverName} (ID: ${server.serverId})`"
+                  :label="`${server.serverName} ${server.roleName || ''} (ID: ${server.serverId})`"
                 >
                   <div class="server-option">
                     <span class="server-name text-4!">{{ server.serverName }}</span>
+                    <span v-if="server.roleName" style="margin-left: 10px; color: #52c41a">
+                      {{ server.roleName }}
+                    </span>
                   </div>
                 </a-select-option>
               </a-select>
@@ -252,7 +286,7 @@
             </div>
           </a-form>
 
-          <div class="script-server-info">
+          <div v-if="selectedChannel !== 3" class="script-server-info">
             <p>自动为您分配最优的服务器</p>
             <div v-if="selectedScriptServer" class="selected-server">
               <span>已选择: {{ selectedScriptServer.name }}</span>
@@ -291,7 +325,15 @@
 
         <a-button
           @click="handleMainButton"
-          :disabled="loading || isDouyinQrLoading || isAlipayQrLoading || (isPolling && !alipayLoginData) || (isHuaweiPolling && !huaweiLoginData) || (isDouyinPolling && !douyinLoginDone)"
+          :disabled="
+            loading ||
+            isDouyinQrLoading ||
+            isAlipayQrLoading ||
+            isWxQrLoading ||
+            (isPolling && !alipayLoginData) ||
+            (isWxPolling && !wxLoginData) ||
+            (isDouyinPolling && !douyinLoginDone)
+          "
           type="primary"
           size="large"
         >
@@ -301,34 +343,34 @@
               : currentStep === 'login' && selectedChannel === 1 && isAlipayQrLoading
                 ? '正在获取二维码...'
                 : loading
-              ? '处理中...'
-              : currentStep === 'server'
-                ? '确认绑定'
-                : currentStep === 'login' && selectedChannel === 1
-                  ? qrcodeUrl
-                    ? alipayLoginData
-                      ? '进入服务器选择'
-                      : isPolling
-                        ? '等待扫码中...'
-                        : '重新扫码'
-                    : '获取二维码'
-                  : currentStep === 'login' && selectedChannel === 2
-                    ? douyinQrB64
-                      ? douyinLoginDone
-                        ? '进入服务器选择'
-                        : isDouyinPolling
-                          ? '等待扫码中...'
-                          : '重新扫码'
-                      : '获取二维码'
-                    : currentStep === 'login' && selectedChannel === 3
-                      ? huaweiQrcodeUrl
-                        ? huaweiLoginData
+                  ? '处理中...'
+                  : currentStep === 'server'
+                    ? '确认绑定'
+                    : currentStep === 'login' && selectedChannel === 1
+                      ? qrcodeUrl
+                        ? alipayLoginData
                           ? '进入服务器选择'
-                          : isHuaweiPolling
+                          : isPolling
                             ? '等待扫码中...'
                             : '重新扫码'
                         : '获取二维码'
-                      : '下一步'
+                      : currentStep === 'login' && selectedChannel === 2
+                        ? douyinQrB64
+                          ? douyinLoginDone
+                            ? '进入服务器选择'
+                            : isDouyinPolling
+                              ? '等待扫码中...'
+                              : '重新扫码'
+                          : '获取二维码'
+                        : currentStep === 'login' && selectedChannel === 3
+                          ? wxQrcodeImage
+                            ? wxLoginData
+                              ? '进入服务器选择'
+                              : isWxPolling
+                                ? '等待扫码中...'
+                                : '重新扫码'
+                            : '获取二维码'
+                          : '下一步'
           }}
         </a-button>
       </div>
@@ -357,7 +399,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import axios from '../utils/axios'
 import { message, type FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
@@ -599,6 +641,14 @@ interface ScriptServer {
 interface ServerInfo {
   serverId: string
   serverName: string
+  roleName?: string
+  roleUpdatedAt?: number
+}
+
+interface WxLoginData {
+  flowId: string
+  servers: ServerInfo[]
+  nickname?: string
 }
 
 interface Props {
@@ -695,11 +745,19 @@ let alipayQrRevealTimer: ReturnType<typeof setTimeout> | null = null
 let alipayQrLoadingStartedAt = 0
 const QR_MIN_LOADING_MS = 1400
 
-// 华为扫码相关状态
-const huaweiQrcodeUrl = ref<string>('')
-const huaweiQrcodeImage = ref<string>('')
-const isHuaweiPolling = ref(false)
-const huaweiLoginData = ref<any>(null)
+// 微信扫码只在浏览器保存后端签发的短期 flowId；敏感登录凭据始终留在服务端。
+const wxFlowId = ref<string>('')
+const wxQrcodeImage = ref<string>('')
+const wxScanStatus = ref<'pending' | 'scanned' | 'completed' | 'expired' | 'error' | ''>('')
+const isWxQrLoading = ref(false)
+const isWxPolling = ref(false)
+const wxLoginData = ref<WxLoginData | null>(null)
+let wxPollTimer: ReturnType<typeof setInterval> | null = null
+let wxPollInFlight = false
+let wxPollErrors = 0
+let wxPollDeadlineAt = 0
+const WX_POLL_WINDOW_MS = 5 * 60 * 1000
+const WX_POLL_REQUEST_TIMEOUT_MS = 50 * 1000
 
 // 抖音扫码相关状态
 const douyinSid = ref<string>('')
@@ -712,11 +770,11 @@ const douyinSmsCode = ref<string>('')
 const douyinSmsSubmitting = ref(false)
 const isDouyinPolling = ref(false)
 const douyinLoginDone = ref(false)
-const douyinDyToken = ref<string>('')   // 续期后的 dyToken
-const douyinServers = ref<any[]>([])    // 扫码后拿到的服务器列表
-const douyinUid = ref<string>('')       // 抖音稳定 uid
+const douyinDyToken = ref<string>('') // 续期后的 dyToken
+const douyinServers = ref<any[]>([]) // 扫码后拿到的服务器列表
+const douyinUid = ref<string>('') // 抖音稳定 uid
 let douyinPollTimer: ReturnType<typeof setInterval> | null = null
-let douyinBindingInProgress = false  // 防重：确保 handleDouyinAfterScan 只触发一次
+let douyinBindingInProgress = false // 防重：确保 handleDouyinAfterScan 只触发一次
 let douyinQrProgressTimer: ReturnType<typeof setInterval> | null = null
 let douyinQrRevealTimer: ReturnType<typeof setTimeout> | null = null
 let douyinQrLoadingStartedAt = 0
@@ -758,7 +816,7 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if (selectedChannel.value === 0 || selectedChannel.value === 1 || selectedChannel.value === 2) {
+      if ([0, 1, 2, 3].includes(selectedChannel.value)) {
         currentStep.value = 'login'
       } else {
         alert('请选择游戏渠道')
@@ -783,8 +841,8 @@ const handleNextStep = async () => {
         }
         await handleLogin()
       } else if (selectedChannel.value === 3) {
-        // 如果是华为渠道，使用扫码登录
-        if (huaweiLoginData.value) {
+        // 微信扫码完成后可进入角色区服选择。
+        if (wxLoginData.value) {
           currentStep.value = 'server'
           return
         }
@@ -807,12 +865,17 @@ const handleNextStep = async () => {
           message.error('请选择游戏区服')
           return
         }
-        if (!selectedScriptServer.value) {
+        if (selectedChannel.value !== 3 && !selectedScriptServer.value) {
           message.error('请等待服务器加载完成')
           return
         }
-        // 支付宝(1)、抖音(2)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-        if (selectedChannel.value !== 1 && selectedChannel.value !== 2 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+        // 支付宝(1)、抖音(2)和微信(3)扫码登录不需要检查uid和gameToken，其他渠道需要
+        if (
+          selectedChannel.value !== 1 &&
+          selectedChannel.value !== 2 &&
+          selectedChannel.value !== 3 &&
+          (!uid.value || !gameToken.value)
+        ) {
           message.error('游戏账号信息不完整，请重新登录')
           return
         }
@@ -888,9 +951,9 @@ const handleLogin = async () => {
     return
   }
 
-  // 如果是华为渠道，使用扫码登录
+  // 微信渠道使用服务端状态化扫码流程。
   if (selectedChannel.value === 3) {
-    await handleHuaweiLogin()
+    await handleWxLogin()
     return
   }
 
@@ -1094,7 +1157,7 @@ const startAlipayPolling = () => {
       // code === 'PENDING' 继续等待
     } catch (error: any) {
       const errCode = error.response?.data?.code
-      const errMsg  = error.response?.data?.message
+      const errMsg = error.response?.data?.message
       if (errCode === 'EXPIRED' || errCode === 'NOT_FOUND') {
         // 二维码过期或会话不存在，停止轮询
         clearInterval((window as any)._alipayPollTimer)
@@ -1242,24 +1305,24 @@ const handleDouyinAfterScan = async (scanResult: any) => {
     // game_token/game_open_id/game_content 只有约5分钟有效期，不再传递
     // 只传永久有效的 code/anonymousCode/sessionid
     const resp = await axios.post('/api/douyin/scan/bind', {
-      dy_code:          scanResult.dy_code          || scanResult.code          || '',
+      dy_code: scanResult.dy_code || scanResult.code || '',
       dy_anonymous_code: scanResult.dy_anonymous_code || scanResult.anonymousCode || '',
-      dy_is_login:      scanResult.dy_is_login ?? scanResult.isLogin ?? true,
-      sessionid:        scanResult.sessionid         || '',
-      douyin_uid:       scanResult.douyin_uid        || scanResult.game_open_id  || '',
+      dy_is_login: scanResult.dy_is_login ?? scanResult.isLogin ?? true,
+      sessionid: scanResult.sessionid || '',
+      douyin_uid: scanResult.douyin_uid || scanResult.game_open_id || '',
     })
     if (!resp.data.ok) {
       message.error(resp.data.err || '获取服务器列表失败')
       return
     }
-    douyinDyToken.value  = resp.data.dyToken
-    douyinServers.value  = resp.data.servers || []
-    douyinUid.value      = resp.data.douyin_uid || scanResult.douyin_uid || ''
+    douyinDyToken.value = resp.data.dyToken
+    douyinServers.value = resp.data.servers || []
+    douyinUid.value = resp.data.douyin_uid || scanResult.douyin_uid || ''
     douyinLoginDone.value = true
 
     // 把抖音服务器列表推进 serverList 供选择
     serverList.value = douyinServers.value.map((s: any) => ({
-      serverId:   s.grpId || s.serverId,
+      serverId: s.grpId || s.serverId,
       serverName: s.serverName || `s${s.grpId || s.serverId}区`,
     }))
 
@@ -1280,7 +1343,7 @@ const handleDouyinSmsVerify = async () => {
   douyinSmsSubmitting.value = true
   try {
     const res = await axios.post('/api/douyin/scan/verify', {
-      sid:  douyinSid.value,
+      sid: douyinSid.value,
       code: douyinSmsCode.value.trim(),
     })
     if (res.data.ok) {
@@ -1296,106 +1359,191 @@ const handleDouyinSmsVerify = async () => {
   }
 }
 
-// 华为扫码登录
-const handleHuaweiLogin = async () => {
-  loading.value = true
-  try {
-    // 获取华为二维码
-    const qrcodeResponse = await axios.post('/api/game-accounts/huawei/qrcode', {})
+const normalizeWxQrcodeImage = (raw: unknown) => {
+  const value = String(raw || '').trim()
+  if (!value || value.startsWith('data:image/') || /^https?:\/\//i.test(value)) return value
+  return `data:image/jpeg;base64,${value}`
+}
 
-    if (qrcodeResponse.data.success) {
-      const { qrcodeUrl: qrUrl } = qrcodeResponse.data.data
-      huaweiQrcodeUrl.value = qrUrl
-
-      // 直接设置二维码URL，使用Ant Design的QRCode组件来渲染
-      huaweiQrcodeImage.value = qrUrl
-
-      message.success('二维码生成成功，请使用华为账号扫码')
-
-      // 开始轮询
-      await startHuaweiPolling()
-    } else {
-      message.error('获取华为二维码失败')
-    }
-  } catch (error: any) {
-    console.error('获取华为二维码失败:', error)
-    message.error(error.response?.data?.message || '获取二维码失败')
-  } finally {
-    loading.value = false
+const normalizeWxServer = (raw: any): ServerInfo | null => {
+  const serverId = String(raw?.serverId ?? raw?.id ?? '').trim()
+  if (!serverId) return null
+  return {
+    serverId,
+    // 奇幻果园的角色列表没有权威区服名称，统一按协议服 ID 组合。
+    serverName: `s${serverId}区`,
+    roleName: String(raw?.roleName ?? '').trim(),
+    roleUpdatedAt: Number(raw?.roleUpdatedAt || 0),
   }
 }
 
-// 开始华为轮询
-const startHuaweiPolling = async () => {
-  isHuaweiPolling.value = true
-  huaweiLoginData.value = null
+const stopWxPolling = () => {
+  if (wxPollTimer) {
+    clearInterval(wxPollTimer)
+    wxPollTimer = null
+  }
+  isWxPolling.value = false
+  wxPollInFlight = false
+  wxPollDeadlineAt = 0
+}
 
+const clearWxState = () => {
+  stopWxPolling()
+  wxFlowId.value = ''
+  wxQrcodeImage.value = ''
+  wxScanStatus.value = ''
+  wxLoginData.value = null
+  wxPollErrors = 0
+}
+
+const cancelWxFlow = async () => {
+  const flowId = wxFlowId.value
+  stopWxPolling()
+  if (!flowId) return
   try {
-    message.loading('等待扫码中...', 2)
+    await axios.post('/api/game-accounts/wx/cancel', { flow_id: flowId })
+  } catch {
+    // 关闭弹窗和重新扫码时取消失败不影响本地清理，服务端会按 TTL 回收。
+  }
+}
 
-    const response = await axios.get('/api/game-accounts/huawei/poll', {
-      timeout: 130000, // 2分钟超时 + 10秒缓冲
+const finishWxLogin = async (data: any) => {
+  const rawServers = Array.isArray(data?.servers)
+    ? data.servers
+    : Array.isArray(data?.server_list?.servers)
+      ? data.server_list.servers
+      : []
+  const servers = rawServers
+    .map(normalizeWxServer)
+    .filter((server: ServerInfo | null): server is ServerInfo => server !== null)
+
+  if (servers.length === 0) {
+    stopWxPolling()
+    wxScanStatus.value = 'error'
+    message.warning('微信登录成功，但该账号没有可绑定的角色区服')
+    return
+  }
+
+  stopWxPolling()
+  wxScanStatus.value = 'completed'
+  serverList.value = servers
+  selectedServer.value = null
+  serverForm.value.server = undefined
+  wxLoginData.value = {
+    flowId: wxFlowId.value,
+    servers,
+    nickname: String(data?.nickname ?? data?.server_list?.nickname ?? '').trim(),
+  }
+
+  message.success(`微信扫码成功，已加载 ${servers.length} 个角色区服`)
+  currentStep.value = 'server'
+}
+
+const expireWxPolling = () => {
+  stopWxPolling()
+  wxScanStatus.value = 'expired'
+  message.warning('微信二维码已超时，请重新获取')
+}
+
+const pollWxLogin = async () => {
+  if (!wxFlowId.value || wxPollInFlight || !isWxPolling.value) return
+  const remainingMs = wxPollDeadlineAt - Date.now()
+  if (remainingMs <= 0) {
+    expireWxPolling()
+    return
+  }
+
+  wxPollInFlight = true
+  const pollingFlowId = wxFlowId.value
+  try {
+    const response = await axios.get('/api/game-accounts/wx/poll', {
+      params: { flow_id: pollingFlowId },
+      // wxcode-go 单次 poll 最长约 35 秒；同时不允许请求越过本轮 5 分钟截止时间。
+      timeout: Math.max(1, Math.min(WX_POLL_REQUEST_TIMEOUT_MS, remainingMs)),
     })
+    // 用户取消或重新生成二维码后，丢弃旧 flow 的迟到响应。
+    if (pollingFlowId !== wxFlowId.value || !isWxPolling.value) return
+    const body = response.data || {}
+    const data = body.data || {}
+    const status = String(
+      data.status ?? body.status ?? (typeof body.code === 'string' ? body.code : ''),
+    ).toUpperCase()
+    wxPollErrors = 0
 
-    if (response.data.success && response.data.code === 'COMPLETED') {
-      const loginInfo = response.data.data
-      huaweiLoginData.value = loginInfo
-
-      // 设置从后端获取的真实服务器列表
-      if (loginInfo.serverList && Array.isArray(loginInfo.serverList)) {
-        serverList.value = loginInfo.serverList.map((server: any) => ({
-          serverId: server.serverId.toString(),
-          serverName: server.serverName,
-        }))
-        message.success(`已加载${serverList.value.length}个服务器`)
-      } else {
-        serverList.value = []
-        message.warning('未获取到服务器列表，请稍后再试')
-      }
-
-      // 确保脚本服务器也已加载
-      if (!selectedScriptServer.value) {
-        await fetchScriptServers()
-      }
-
-      message.success('华为扫码登录成功！正在跳转...')
-
-      // 添加延迟确保UI更新
-      setTimeout(() => {
-        currentStep.value = 'server'
-        if (serverList.value.length === 0) {
-          message.warning('服务器列表加载中，请稍候...')
-        }
-      }, 500)
-    } else if (response.data.success && response.data.code === 'PENDING') {
-      message.warning('扫码超时，请重试')
+    const responseServers = Array.isArray(data.servers) ? data.servers : data.server_list?.servers
+    const hasServers = Array.isArray(responseServers) && responseServers.length > 0
+    const isReady = status === 'COMPLETED' || status === 'SUCCESS'
+    if (isReady || (!status && hasServers)) {
+      await finishWxLogin(data)
+    } else if (['SCANNED', 'AUTHORIZED', 'PROCESSING', 'FINALIZING'].includes(status)) {
+      wxScanStatus.value = 'scanned'
+    } else if (['EXPIRED', 'CANCELLED', 'NOT_FOUND'].includes(status)) {
+      stopWxPolling()
+      wxScanStatus.value = 'expired'
+      message.warning(body.message || body.msg || '微信二维码已过期，请重新获取')
+    } else if (body.success === false && !['PENDING', 'WAITING', ''].includes(status)) {
+      stopWxPolling()
+      wxScanStatus.value = 'error'
+      message.error(body.message || body.msg || '微信扫码登录失败')
+    } else if (Date.now() >= wxPollDeadlineAt) {
+      expireWxPolling()
     } else {
-      message.error(response.data?.message || '扫码失败')
+      wxScanStatus.value = 'pending'
     }
   } catch (error: any) {
-    console.error('华为轮询失败:', error.message)
-    
-    if (error.code === 'ECONNABORTED') {
-      message.error('⏰ 请求超时，请检查网络连接', 5)
-    } else if (error.response) {
-      const status = error.response.status
-      
-      // 特别处理504 Gateway Timeout
-      if (status === 504) {
-        console.error('504 Gateway Timeout - Nginx超时错误')
-        message.error('⏰ 服务器网关超时(504)，请联系管理员检查Nginx配置', 8)
-        message.warning('可能原因：Nginx proxy_read_timeout配置过短', 6)
-      } else {
-        const errMsg = error.response?.data?.message || error.response?.data?.technicalDetails || `服务器错误 ${status}`
-        message.error(errMsg, 5)
-      }
-    } else if (error.request) {
-      message.error('网络错误，请求未收到响应', 5)
-    } else {
-      message.error(error.message || '扫码检查失败', 5)
+    if (pollingFlowId !== wxFlowId.value || !isWxPolling.value) return
+    if (Date.now() >= wxPollDeadlineAt) {
+      expireWxPolling()
+      return
+    }
+    wxPollErrors += 1
+    if (wxPollErrors >= 3) {
+      stopWxPolling()
+      wxScanStatus.value = 'error'
+      message.error(error.response?.data?.message || '微信扫码状态查询失败，请重试')
     }
   } finally {
-    isHuaweiPolling.value = false
+    if (pollingFlowId === wxFlowId.value) wxPollInFlight = false
+  }
+}
+
+const startWxPolling = () => {
+  stopWxPolling()
+  wxPollErrors = 0
+  wxPollDeadlineAt = Date.now() + WX_POLL_WINDOW_MS
+  isWxPolling.value = true
+  wxScanStatus.value = 'pending'
+  void pollWxLogin()
+  wxPollTimer = setInterval(() => void pollWxLogin(), 2000)
+}
+
+const handleWxLogin = async () => {
+  if (wxFlowId.value) await cancelWxFlow()
+  clearWxState()
+  isWxQrLoading.value = true
+  try {
+    const response = await axios.post('/api/game-accounts/wx/qrcode', {})
+    const body = response.data || {}
+    const data = body.data || {}
+    const flowId = String(data.flow_id ?? data.flowId ?? '').trim()
+    const qrcodeImage = normalizeWxQrcodeImage(
+      data.image_base64 ?? data.qrcodeImage ?? data.qrcode_image ?? data.qrcode,
+    )
+    const success = body.success === true || body.code === 200
+    if (!success || !flowId || !qrcodeImage) {
+      throw new Error(body.message || body.msg || '微信二维码响应不完整')
+    }
+
+    wxFlowId.value = flowId
+    wxQrcodeImage.value = qrcodeImage
+    message.success('微信二维码已生成，请扫码确认')
+    startWxPolling()
+  } catch (error: any) {
+    clearWxState()
+    wxScanStatus.value = 'error'
+    message.error(error.response?.data?.message || error.message || '获取微信二维码失败')
+  } finally {
+    isWxQrLoading.value = false
   }
 }
 
@@ -1408,12 +1556,17 @@ const handleBind = async () => {
     message.error('请选择游戏区服')
     return
   }
-  if (!selectedScriptServer.value) {
+  if (selectedChannel.value !== 3 && !selectedScriptServer.value) {
     message.error('服务器未加载完成')
     return
   }
-  // 支付宝(1)、抖音(2)和华为(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-  if (selectedChannel.value !== 1 && selectedChannel.value !== 2 && selectedChannel.value !== 3 && (!uid.value || !gameToken.value)) {
+  // 支付宝(1)、抖音(2)和微信(3)扫码登录不需要检查uid和gameToken，其他渠道需要
+  if (
+    selectedChannel.value !== 1 &&
+    selectedChannel.value !== 2 &&
+    selectedChannel.value !== 3 &&
+    (!uid.value || !gameToken.value)
+  ) {
     message.error('游戏账号信息不完整，请重新登录')
     return
   }
@@ -1424,11 +1577,13 @@ const handleBind = async () => {
     if (selectedChannel.value === 2 && douyinLoginDone.value) {
       console.log('🎮 使用抖音扫码登录绑定流程')
       const bindPayload = {
-        dyToken:     douyinDyToken.value,
-        server_id:   selectedServer.value.serverId ?? selectedServer.value.grpId,
-        server_name: selectedServer.value.serverName || `s${selectedServer.value.serverId ?? selectedServer.value.grpId}区`,
-        douyin_uid:  douyinUid.value,
-        nickname:    douyinUid.value ? `DY_${douyinUid.value}` : '抖音用户',
+        dyToken: douyinDyToken.value,
+        server_id: selectedServer.value.serverId ?? selectedServer.value.grpId,
+        server_name:
+          selectedServer.value.serverName ||
+          `s${selectedServer.value.serverId ?? selectedServer.value.grpId}区`,
+        douyin_uid: douyinUid.value,
+        nickname: douyinUid.value ? `DY_${douyinUid.value}` : '抖音用户',
       }
       console.log('📦 抖音绑定请求数据:', bindPayload)
       const resp = await axios.post('/api/douyin/scan/bind_confirm', bindPayload)
@@ -1477,31 +1632,25 @@ const handleBind = async () => {
       } else {
         message.error(response.data.message || '支付宝绑定失败')
       }
-    } else if (selectedChannel.value === 3 && huaweiLoginData.value) {
-      // 华为扫码登录绑定流程
-      const huaweiUid = huaweiLoginData.value.wanData?.uid || ''
-      const parentIdInput = `${huaweiUid}${selectedServer.value.serverId}`
-      const parentId = generateMD5Hash(parentIdInput)
-
-      const huaweiBindPayload = {
-        huawei_data: {
-          serviceToken: huaweiLoginData.value.serviceToken,
-          wanData: huaweiLoginData.value.wanData,
-        },
-        server_id: selectedServer.value.serverId,
-        server_name: selectedServer.value.serverName,
-        parent_id: parentId,
+    } else if (selectedChannel.value === 3) {
+      if (!wxLoginData.value || !wxFlowId.value) {
+        message.error('微信扫码状态已失效，请重新扫码')
+        return
       }
 
-      const response = await axios.post('/api/game-accounts/bind_huawei_qrcode', huaweiBindPayload)
+      // flow_id 是网页后端生成的短期句柄；前端不接触游戏 token、OpenID 或脚本 bind_token。
+      const response = await axios.post('/api/game-accounts/bind_wx', {
+        flow_id: wxFlowId.value,
+        server_id: selectedServer.value.serverId,
+      })
 
-      if (response.data.success) {
-        message.success('华为账号绑定成功！')
+      if (response.data.success || response.data.code === 200) {
+        message.success('微信账号绑定成功！')
         resetForm()
         emit('success')
         emit('close')
       } else {
-        message.error(response.data.message || '华为绑定失败')
+        message.error(response.data.message || response.data.msg || '微信绑定失败')
       }
     } else {
       // 普通账号密码绑定流程
@@ -1531,6 +1680,9 @@ const handleBind = async () => {
         message.error(response.data.message || '绑定失败')
       }
     }
+  } catch (error: any) {
+    const errorBody = error.response?.data
+    message.error(errorBody?.message || errorBody?.msg || '绑定失败，请重试')
   } finally {
     loading.value = false
   }
@@ -1568,11 +1720,9 @@ const resetForm = () => {
     ;(window as any)._alipayPollTimer = null
   }
 
-  // 清理华为相关状态
-  huaweiQrcodeUrl.value = ''
-  huaweiQrcodeImage.value = ''
-  isHuaweiPolling.value = false
-  huaweiLoginData.value = null
+  // 清理微信扫码状态（服务端流程由成功绑定、显式取消或 TTL 回收）。
+  clearWxState()
+  isWxQrLoading.value = false
 
   // 清理抖音相关状态
   stopDouyinPoll()
@@ -1606,18 +1756,19 @@ const filterServerOption = (input: string, option: any) => {
 }
 
 const handleClose = () => {
-  // 如果获取了华为二维码，调用取消接口
-  if (huaweiQrcodeUrl.value || isHuaweiPolling.value) {
-    axios.post('/api/game-accounts/huawei/cancel').catch(() => {})
-  }
-
+  void cancelWxFlow()
   resetForm()
   emit('close')
 }
 
 const handlePreviousStep = () => {
-  if (currentStep.value === 'login') currentStep.value = 'channel'
-  else if (currentStep.value === 'server') currentStep.value = 'login'
+  if (currentStep.value === 'login') {
+    if (selectedChannel.value === 3) {
+      void cancelWxFlow()
+      clearWxState()
+    }
+    currentStep.value = 'channel'
+  } else if (currentStep.value === 'server') currentStep.value = 'login'
 }
 
 const handleMainButton = () => {
@@ -1638,6 +1789,11 @@ watch(
     }
   },
 )
+
+onBeforeUnmount(() => {
+  void cancelWxFlow()
+  stopWxPolling()
+})
 </script>
 
 <style scoped>
@@ -1659,6 +1815,14 @@ watch(
 .add-account-modal-antd .ant-radio-wrapper-checked .channel-icon-app {
   background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%) !important;
   transform: scale(1.05);
+}
+
+.account-password-text {
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .add-account-modal-antd .ant-radio-wrapper-checked .app-text {
