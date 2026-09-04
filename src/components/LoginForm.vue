@@ -137,9 +137,6 @@
         <div class="game-scene">
           <div class="game-scene-bg"></div>
 
-          <!-- 梦幻七彩虹 -->
-          <div class="rainbow" aria-hidden="true"></div>
-
           <!-- 元气太阳 -->
           <div class="game-sun" aria-hidden="true">
             <span class="sun-eye sun-eye-left"></span>
@@ -165,38 +162,37 @@
             </div>
           </div>
 
-          <!-- 错落分布的花朵角色 -->
+          <!-- 随风飘动的树叶与花瓣 -->
           <div
-            v-for="flower in flowers"
-            :key="'flower' + flower.id"
-            class="flower-character"
-            :class="'flower-' + flower.kind"
+            v-for="drifter in drifters"
+            :key="'drifter' + drifter.id"
+            class="drifter"
             :style="{
-              left: flower.x + '%',
-              bottom: flower.bottom + 'px',
-              '--petal-color': flower.petalColor,
-              '--petal-light': flower.petalLight,
-              '--face-color': flower.faceColor,
-              '--dur': flower.dur + 's',
-              '--delay': flower.delay + 's',
-              '--blink-dur': flower.blinkDur + 's',
-              '--blink-delay': flower.blinkDelay + 's',
+              left: drifter.x + '%',
+              top: drifter.y + '%',
+              '--dur': drifter.dur + 's',
+              '--delay': drifter.delay + 's',
+              '--tx': drifter.tx + 'px',
+              '--ty': drifter.ty + 'px',
+              '--turn': drifter.turn + 'deg',
             }"
           >
-            <span class="flower-bloom">
-              <span
-                v-for="petalIndex in 8"
-                :key="petalIndex"
-                class="flower-petal"
-                :style="{ '--petal-index': petalIndex - 1 }"
-              ></span>
-              <span class="flower-face">
-                <span class="flower-eye flower-eye-left"></span>
-                <span class="flower-eye flower-eye-right"></span>
-                <span class="flower-mouth"></span>
-              </span>
-            </span>
-            <span class="flower-stem"><span class="flower-leaf"></span></span>
+            {{ drifter.emoji }}
+          </div>
+
+          <!-- 十种水果 -->
+          <div
+            v-for="fruit in fruits"
+            :key="'fruit' + fruit.id"
+            class="fruit"
+            :style="{
+              left: fruit.x + '%',
+              bottom: fruit.bottom + 'px',
+              '--dur': fruit.dur + 's',
+              '--delay': fruit.delay + 's',
+            }"
+          >
+            {{ fruit.emoji }}
           </div>
 
           <!-- 飞鸟 -->
@@ -214,13 +210,8 @@
             {{ bird.emoji }}
           </div>
 
-          <!-- 缓慢滚动的蕾丝花边 -->
-          <div class="lace-border" aria-hidden="true">
-            <div class="lace-track">
-              <span class="lace-piece"></span>
-              <span class="lace-piece"></span>
-            </div>
-          </div>
+          <!-- 草地 -->
+          <div class="grass-line"></div>
           <div class="game-ground"></div>
         </div>
       </div>
@@ -302,9 +293,9 @@ const { currentTheme, setTheme } = useTheme()
 
 // 主题选项列表
 const themeList = [
-  { key: 'dream' as const, label: '梦幻紫', emoji: '🔮', dotColor: '#a78bfa' },
-  { key: 'fresh' as const, label: '清新黄', emoji: '🌼', dotColor: '#facc15' },
-  { key: 'water' as const, label: '清水蓝', emoji: '💧', dotColor: '#7dd3fc' },
+  { key: 'lemon' as const, label: '柠檬黄', emoji: '🍋', dotColor: '#facc15' },
+  { key: 'mint' as const, label: '薄荷绿', emoji: '🌱', dotColor: '#6ee7b7' },
+  { key: 'sky' as const, label: '浅蓝', emoji: '☁️', dotColor: '#7dd3fc' },
 ]
 
 interface LoginFormData {
@@ -346,85 +337,26 @@ const clouds = [
   { id: 3, x: 68, y: 9, size: 34, dur: 13, delay: 1.2 },
 ]
 
-const flowers = [
-  {
-    id: 1,
-    kind: 'sakura',
-    x: 7,
-    bottom: 91,
-    petalColor: '#ff8fbd',
-    petalLight: '#ffc4dc',
-    faceColor: '#ffd76a',
-    dur: 3.4,
-    delay: 0,
-    blinkDur: 6.8,
-    blinkDelay: 0.4,
-  },
-  {
-    id: 2,
-    kind: 'daisy',
-    x: 22,
-    bottom: 80,
-    petalColor: '#fffdf4',
-    petalLight: '#ffffff',
-    faceColor: '#ffc94f',
-    dur: 3.8,
-    delay: 0.7,
-    blinkDur: 7.6,
-    blinkDelay: 1.6,
-  },
-  {
-    id: 3,
-    kind: 'violet',
-    x: 37,
-    bottom: 96,
-    petalColor: '#a78bfa',
-    petalLight: '#d8c7ff',
-    faceColor: '#ffe47a',
-    dur: 3.2,
-    delay: 1.2,
-    blinkDur: 6.2,
-    blinkDelay: 2.5,
-  },
-  {
-    id: 4,
-    kind: 'sunflower',
-    x: 52,
-    bottom: 82,
-    petalColor: '#ffd43b',
-    petalLight: '#ffec8a',
-    faceColor: '#a65d24',
-    dur: 3.6,
-    delay: 0.3,
-    blinkDur: 8.1,
-    blinkDelay: 3.1,
-  },
-  {
-    id: 5,
-    kind: 'bluebell',
-    x: 67,
-    bottom: 94,
-    petalColor: '#66c7ff',
-    petalLight: '#b6e7ff',
-    faceColor: '#ffe37a',
-    dur: 4,
-    delay: 1,
-    blinkDur: 7.2,
-    blinkDelay: 0.9,
-  },
-  {
-    id: 6,
-    kind: 'peach',
-    x: 82,
-    bottom: 81,
-    petalColor: '#ff9b86',
-    petalLight: '#ffd0c6',
-    faceColor: '#ffe27a',
-    dur: 3.3,
-    delay: 1.5,
-    blinkDur: 6.6,
-    blinkDelay: 4.2,
-  },
+const drifters = [
+  { id: 1, emoji: '🍃', x: 10, y: 33, dur: 7.5, delay: 0, tx: 54, ty: 32, turn: 180 },
+  { id: 2, emoji: '🌸', x: 24, y: 51, dur: 8.5, delay: 1.7, tx: 46, ty: 42, turn: 240 },
+  { id: 3, emoji: '🍃', x: 39, y: 39, dur: 7, delay: 3.1, tx: -34, ty: 38, turn: -190 },
+  { id: 4, emoji: '🌼', x: 53, y: 57, dur: 9, delay: 0.8, tx: 40, ty: 27, turn: 210 },
+  { id: 5, emoji: '🍃', x: 68, y: 35, dur: 8, delay: 2.2, tx: -42, ty: 36, turn: -230 },
+  { id: 6, emoji: '🌸', x: 82, y: 48, dur: 7.8, delay: 4, tx: 34, ty: 31, turn: 260 },
+]
+
+const fruits = [
+  { id: 1, emoji: '🍎', x: 4, bottom: 78, dur: 3.2, delay: 0 },
+  { id: 2, emoji: '🍊', x: 13.5, bottom: 80, dur: 2.8, delay: 0.5 },
+  { id: 3, emoji: '🍐', x: 23, bottom: 79, dur: 3.5, delay: 1 },
+  { id: 4, emoji: '🍑', x: 32.5, bottom: 82, dur: 3, delay: 0.3 },
+  { id: 5, emoji: '🍓', x: 42, bottom: 78, dur: 2.6, delay: 0.8 },
+  { id: 6, emoji: '🍉', x: 51.5, bottom: 81, dur: 3.3, delay: 1.5 },
+  { id: 7, emoji: '🍇', x: 61, bottom: 80, dur: 2.9, delay: 0.2 },
+  { id: 8, emoji: '🍒', x: 70.5, bottom: 79, dur: 3.1, delay: 1.1 },
+  { id: 9, emoji: '🍍', x: 80, bottom: 81, dur: 3.4, delay: 0.6 },
+  { id: 10, emoji: '🥝', x: 89.5, bottom: 78, dur: 2.7, delay: 1.3 },
 ]
 
 const birds = [
