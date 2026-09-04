@@ -114,21 +114,9 @@
             </a-form>
 
             <div class="login-footer">
-              <a-button
-                type="button"
-                class="forgot-password"
-                @click="showForgotPasswordModal"
-              >
+              <a-button type="button" class="forgot-password" @click="showForgotPasswordModal">
                 忘记密码？
               </a-button>
-              <!-- <a-button
-                type="button"
-                class="register-link"
-                :disabled="shouldDisableFeatures"
-                @click="handleSwitchToRegister"
-              >
-                注册新账号
-              </a-button> -->
             </div>
           </div>
 
@@ -149,41 +137,83 @@
         <div class="game-scene">
           <div class="game-scene-bg"></div>
 
-          <!-- 月亮 -->
-          <div class="game-moon"></div>
-
-          <!-- 星星 -->
-          <div class="stars">
-            <div v-for="star in stars" :key="star.id" class="star"
-              :style="{ left: star.x + '%', top: star.y + '%', '--dur': star.dur + 's', '--delay': star.delay + 's' }"
-            ></div>
+          <!-- 元气太阳 -->
+          <div class="game-sun" aria-hidden="true">
+            <span class="sun-eye sun-eye-left"></span>
+            <span class="sun-eye sun-eye-right"></span>
+            <span class="sun-smile"></span>
           </div>
 
-          <!-- 萤火虫 -->
-          <div v-for="fly in fireflies" :key="'fly'+fly.id" class="firefly"
+          <!-- 白云 -->
+          <div class="clouds" aria-hidden="true">
+            <div
+              v-for="cloud in clouds"
+              :key="cloud.id"
+              class="cloud"
+              :style="{
+                left: cloud.x + '%',
+                top: cloud.y + '%',
+                '--size': cloud.size + 'px',
+                '--dur': cloud.dur + 's',
+                '--delay': cloud.delay + 's',
+              }"
+            >
+              ☁️
+            </div>
+          </div>
+
+          <!-- 随风飘动的树叶与花瓣 -->
+          <div
+            v-for="drifter in drifters"
+            :key="'drifter' + drifter.id"
+            class="drifter"
             :style="{
-              left: fly.x + '%', top: fly.y + '%',
-              '--dur': fly.dur + 's', '--delay': fly.delay + 's',
-              '--tx': fly.tx + 'px', '--ty': fly.ty + 'px'
+              left: drifter.x + '%',
+              top: drifter.y + '%',
+              '--dur': drifter.dur + 's',
+              '--delay': drifter.delay + 's',
+              '--tx': drifter.tx + 'px',
+              '--ty': drifter.ty + 'px',
+              '--turn': drifter.turn + 'deg',
             }"
-          ></div>
+          >
+            {{ drifter.emoji }}
+          </div>
 
-          <!-- 果实 -->
-          <div v-for="flower in flowers" :key="'flower'+flower.id" class="flower"
-            :style="{ left: flower.x + '%', bottom: flower.bottom + 'px', '--dur': flower.dur + 's', '--delay': flower.delay + 's' }"
-          >{{ flower.emoji }}</div>
+          <!-- 十种水果 -->
+          <div
+            v-for="fruit in fruits"
+            :key="'fruit' + fruit.id"
+            class="fruit"
+            :style="{
+              left: fruit.x + '%',
+              bottom: fruit.bottom + 'px',
+              '--dur': fruit.dur + 's',
+              '--delay': fruit.delay + 's',
+            }"
+          >
+            {{ fruit.emoji }}
+          </div>
 
-          <!-- 蝴蝶 -->
-          <div v-for="butterfly in butterflies" :key="'bt'+butterfly.id" class="butterfly"
-            :style="{ left: butterfly.x + '%', top: butterfly.y + '%', '--dur': butterfly.dur + 's', '--delay': butterfly.delay + 's' }"
-          >{{ butterfly.emoji }}</div>
+          <!-- 飞鸟 -->
+          <div
+            v-for="bird in birds"
+            :key="'bird' + bird.id"
+            class="bird"
+            :style="{
+              left: bird.x + '%',
+              top: bird.y + '%',
+              '--dur': bird.dur + 's',
+              '--delay': bird.delay + 's',
+            }"
+          >
+            {{ bird.emoji }}
+          </div>
 
           <!-- 草地 -->
           <div class="grass-line"></div>
           <div class="game-ground"></div>
         </div>
-
-
       </div>
     </div>
 
@@ -263,9 +293,9 @@ const { currentTheme, setTheme } = useTheme()
 
 // 主题选项列表
 const themeList = [
-  { key: 'sakura' as const, label: '樱花粉', emoji: '🌸', dotColor: '#f472b6' },
-  { key: 'garden' as const, label: '翠绿', emoji: '🌿', dotColor: '#22c55e' },
-  { key: 'ocean' as const, label: '海蓝', emoji: '🌊', dotColor: '#38bdf8' },
+  { key: 'lemon' as const, label: '柠檬黄', emoji: '🍋', dotColor: '#facc15' },
+  { key: 'mint' as const, label: '薄荷绿', emoji: '🌱', dotColor: '#6ee7b7' },
+  { key: 'sky' as const, label: '浅蓝', emoji: '☁️', dotColor: '#7dd3fc' },
 ]
 
 interface LoginFormData {
@@ -301,37 +331,38 @@ const loginFormRef = ref<FormInstance>()
 // ============================
 // 右侧游戏场景动画数据
 // ============================
-const stars = Array.from({ length: 30 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 60,
-  dur: 1.5 + Math.random() * 2.5,
-  delay: Math.random() * 3,
-}))
-
-const fireflies = Array.from({ length: 8 }, (_, i) => ({
-  id: i,
-  x: 10 + Math.random() * 80,
-  y: 30 + Math.random() * 40,
-  dur: 4 + Math.random() * 4,
-  delay: Math.random() * 5,
-  tx: (Math.random() - 0.5) * 60,
-  ty: (Math.random() - 0.5) * 40,
-}))
-
-const flowers = [
-  { id: 1, emoji: '🍎', x: 8, bottom: 78, dur: 3.2, delay: 0 },
-  { id: 2, emoji: '🍊', x: 20, bottom: 80, dur: 2.8, delay: 0.5 },
-  { id: 3, emoji: '🍐', x: 35, bottom: 79, dur: 3.5, delay: 1 },
-  { id: 4, emoji: '🍑', x: 50, bottom: 82, dur: 3.0, delay: 0.3 },
-  { id: 5, emoji: '🍓', x: 65, bottom: 78, dur: 2.6, delay: 0.8 },
-  { id: 6, emoji: '🍉', x: 80, bottom: 81, dur: 3.3, delay: 1.5 },
-  { id: 7, emoji: '🍇', x: 92, bottom: 80, dur: 2.9, delay: 0.2 },
+const clouds = [
+  { id: 1, x: 7, y: 12, size: 42, dur: 12, delay: 0 },
+  { id: 2, x: 38, y: 23, size: 28, dur: 15, delay: 2.5 },
+  { id: 3, x: 68, y: 9, size: 34, dur: 13, delay: 1.2 },
 ]
 
-const butterflies = [
-  { id: 1, emoji: '🦋', x: 15, y: 35, dur: 9, delay: 0 },
-  { id: 2, emoji: '🦋', x: 60, y: 20, dur: 11, delay: 3 },
+const drifters = [
+  { id: 1, emoji: '🍃', x: 10, y: 33, dur: 7.5, delay: 0, tx: 54, ty: 32, turn: 180 },
+  { id: 2, emoji: '🌸', x: 24, y: 51, dur: 8.5, delay: 1.7, tx: 46, ty: 42, turn: 240 },
+  { id: 3, emoji: '🍃', x: 39, y: 39, dur: 7, delay: 3.1, tx: -34, ty: 38, turn: -190 },
+  { id: 4, emoji: '🌼', x: 53, y: 57, dur: 9, delay: 0.8, tx: 40, ty: 27, turn: 210 },
+  { id: 5, emoji: '🍃', x: 68, y: 35, dur: 8, delay: 2.2, tx: -42, ty: 36, turn: -230 },
+  { id: 6, emoji: '🌸', x: 82, y: 48, dur: 7.8, delay: 4, tx: 34, ty: 31, turn: 260 },
+]
+
+const fruits = [
+  { id: 1, emoji: '🍎', x: 4, bottom: 78, dur: 3.2, delay: 0 },
+  { id: 2, emoji: '🍊', x: 13.5, bottom: 80, dur: 2.8, delay: 0.5 },
+  { id: 3, emoji: '🍐', x: 23, bottom: 79, dur: 3.5, delay: 1 },
+  { id: 4, emoji: '🍑', x: 32.5, bottom: 82, dur: 3, delay: 0.3 },
+  { id: 5, emoji: '🍓', x: 42, bottom: 78, dur: 2.6, delay: 0.8 },
+  { id: 6, emoji: '🍉', x: 51.5, bottom: 81, dur: 3.3, delay: 1.5 },
+  { id: 7, emoji: '🍇', x: 61, bottom: 80, dur: 2.9, delay: 0.2 },
+  { id: 8, emoji: '🍒', x: 70.5, bottom: 79, dur: 3.1, delay: 1.1 },
+  { id: 9, emoji: '🍍', x: 80, bottom: 81, dur: 3.4, delay: 0.6 },
+  { id: 10, emoji: '🥝', x: 89.5, bottom: 78, dur: 2.7, delay: 1.3 },
+]
+
+const birds = [
+  { id: 1, emoji: '🐦', x: 12, y: 29, dur: 10, delay: 0 },
+  { id: 2, emoji: '🐦', x: 47, y: 18, dur: 12, delay: 2.5 },
+  { id: 3, emoji: '🐦', x: 72, y: 34, dur: 11, delay: 5 },
 ]
 
 // 计算属性 - 生成下拉选项
@@ -689,11 +720,6 @@ const closeAnnouncementModal = () => {
 // 自动超时计时器逻辑已移至 main.ts 进行全局管理
 // 通过 window.startGlobalAutoLogoutTimer() 和自定义事件来控制
 
-// 切换到注册页面
-const handleSwitchToRegister = () => {
-  activeAuthTab.value = 'register'
-}
-
 const handleRegisterSwitchToLogin = () => {
   activeAuthTab.value = 'login'
 }
@@ -751,41 +777,41 @@ onUnmounted(() => {
 .login-form .ant-input-affix-wrapper,
 .login-form .ant-select-selector,
 .login-form .ant-input-outlined {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(31, 64, 58, 0.18) !important;
   border-radius: 10px !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
 }
 
 .login-form .ant-input::placeholder,
 .login-form .ant-input-affix-wrapper input::placeholder,
 .login-form .ant-select-selection-placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(31, 64, 58, 0.46) !important;
 }
 
 .login-form .ant-input:focus,
 .login-form .ant-input-affix-wrapper-focused,
 .login-form .ant-input-affix-wrapper:focus-within,
 .login-form .ant-input-outlined:focus-within {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border-color: var(--theme-primary, #22c55e) !important;
-  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 34,197,94), 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--theme-primary, #047857) !important;
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.16) !important;
 }
 
 .login-form .ant-input-affix-wrapper .ant-input {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
 }
 
 .login-form .ant-input-suffix svg,
 .login-form .ant-input-clear-icon svg {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(31, 64, 58, 0.55) !important;
 }
 
 .login-form .ant-checkbox-wrapper {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(31, 64, 58, 0.72) !important;
 }
 
 .login-form .ant-checkbox-checked .ant-checkbox-inner {
@@ -796,30 +822,30 @@ onUnmounted(() => {
 .login-register-panel .register-form .ant-input,
 .login-register-panel .register-form .ant-input-affix-wrapper,
 .login-register-panel .register-form .ant-input-outlined {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(31, 64, 58, 0.18) !important;
   border-radius: 10px !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
 }
 
 .login-register-panel .register-form .ant-input::placeholder,
 .login-register-panel .register-form .ant-input-affix-wrapper input::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(31, 64, 58, 0.46) !important;
 }
 
 .login-register-panel .register-form .ant-input-affix-wrapper .ant-input {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
 }
 
 .login-register-panel .register-form .ant-input-suffix svg {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(31, 64, 58, 0.55) !important;
 }
 
 .login-register-panel .register-form .ant-form-item-label > label {
-  color: rgba(255, 255, 255, 0.62) !important;
+  color: rgba(31, 64, 58, 0.7) !important;
 }
 
 .login-register-panel .register-form .ant-form-item-explain-error {

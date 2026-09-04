@@ -14,7 +14,7 @@
 
 .theme-switcher-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(31, 64, 58, 0.62);
   white-space: nowrap;
   letter-spacing: 1px;
 }
@@ -30,9 +30,9 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 20px;
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(31, 64, 58, 0.16);
+  background: rgba(255, 255, 255, 0.46);
+  color: rgba(31, 64, 58, 0.72);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -40,16 +40,16 @@
 }
 
 .theme-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.76);
+  border-color: rgba(var(--theme-primary-rgb, 4, 120, 87), 0.35);
+  color: #24443e;
 }
 
 .theme-btn.active {
-  background: rgba(var(--theme-primary-rgb, 34, 197, 94), 0.2);
-  border-color: var(--theme-primary, #22c55e);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.3);
+  background: rgba(var(--theme-primary-rgb, 4, 120, 87), 0.12);
+  border-color: var(--theme-primary, #047857);
+  color: var(--theme-primary-dark, #065f46);
+  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.15);
 }
 
 .theme-btn-dot {
@@ -69,7 +69,7 @@
   display: flex;
   align-items: stretch;
   justify-content: center;
-  background: var(--theme-login-bg, linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%));
+  background: var(--theme-login-bg, linear-gradient(135deg, #effff9 0%, #c9f7e7 50%, #afead7 100%));
   position: relative;
   overflow: hidden;
   transition: background 0.5s ease;
@@ -81,8 +81,12 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(var(--theme-primary-rgb, 34, 197, 94), 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(var(--theme-primary-rgb, 34, 197, 94), 0.06) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.5) 0%, transparent 60%),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(var(--theme-primary-rgb, 4, 120, 87), 0.08) 0%,
+      transparent 50%
+    );
   pointer-events: none;
   transition: background 0.5s ease;
 }
@@ -113,15 +117,15 @@
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.64);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 24px;
   padding: 44px 40px 32px 40px;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 32px 64px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+    0 0 0 1px rgba(255, 255, 255, 0.48),
+    0 26px 58px rgba(42, 99, 84, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   animation: fadeInLeft 0.7s ease-out;
 }
 
@@ -132,7 +136,7 @@
 .login-brand-title {
   font-size: 26px;
   font-weight: 700;
-  color: #ffffff;
+  color: #183b35;
   letter-spacing: 1px;
   margin: 0 0 6px 0;
   display: flex;
@@ -146,7 +150,7 @@
 
 .login-brand-sub {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(31, 64, 58, 0.58);
   margin: 0;
   letter-spacing: 0.5px;
 }
@@ -160,8 +164,8 @@
   gap: 6px;
   padding: 4px;
   margin-bottom: 22px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(31, 64, 58, 0.1);
   border-radius: 14px;
 }
 
@@ -170,7 +174,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.56);
+  color: rgba(31, 64, 58, 0.64);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -178,8 +182,8 @@
 }
 
 .auth-tab:hover {
-  color: rgba(255, 255, 255, 0.86);
-  background: rgba(255, 255, 255, 0.08);
+  color: #24443e;
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .auth-tab.active {
@@ -198,10 +202,10 @@
 .login-form :deep(.ant-input),
 .login-form :deep(.ant-input-affix-wrapper),
 .login-form :deep(.ant-auto-complete .ant-select-selector) {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(31, 64, 58, 0.18) !important;
   border-radius: 10px !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
   height: 46px !important;
   font-size: 14px;
   transition: all 0.25s ease;
@@ -211,7 +215,7 @@
 /* auto-complete 内层 input */
 .login-form :deep(.ant-select-selection-search-input),
 .login-form :deep(.ant-auto-complete input) {
-  color: #ffffff !important;
+  color: #173d36 !important;
   /* height: 44px !important; */
   font-size: 14px !important;
 }
@@ -219,7 +223,7 @@
 /* placeholder */
 .login-form :deep(input::placeholder),
 .login-form :deep(.ant-select-selection-placeholder) {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(31, 64, 58, 0.46) !important;
 }
 
 /* password wrapper */
@@ -237,14 +241,14 @@
 .login-form :deep(.ant-input:focus),
 .login-form :deep(.ant-input-affix-wrapper-focused),
 .login-form :deep(.ant-input-affix-wrapper:focus-within) {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border-color: var(--theme-primary, #22c55e) !important;
-  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--theme-primary, #047857) !important;
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.16) !important;
 }
 
 .login-form :deep(.ant-input-suffix),
 .login-form :deep(.ant-input-suffix svg) {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(31, 64, 58, 0.55) !important;
 }
 
 .login-form :deep(.ant-form-item) {
@@ -283,33 +287,33 @@
 }
 
 .login-register-panel :deep(.register-form .ant-form-item-label > label) {
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(31, 64, 58, 0.7);
   font-size: 13px;
 }
 
 .login-register-panel :deep(.register-form .ant-input),
 .login-register-panel :deep(.register-form .ant-input-affix-wrapper),
 .login-register-panel :deep(.register-form .ant-input-outlined) {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(31, 64, 58, 0.18) !important;
   border-radius: 10px !important;
-  color: #ffffff !important;
+  color: #173d36 !important;
   height: 42px !important;
   box-shadow: none !important;
 }
 
 .login-register-panel :deep(.register-form .ant-input::placeholder),
 .login-register-panel :deep(.register-form .ant-input-affix-wrapper input::placeholder) {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(31, 64, 58, 0.46) !important;
 }
 
 .login-register-panel :deep(.register-form .ant-input:focus),
 .login-register-panel :deep(.register-form .ant-input-affix-wrapper-focused),
 .login-register-panel :deep(.register-form .ant-input-affix-wrapper:focus-within),
 .login-register-panel :deep(.register-form .ant-input-outlined:focus-within) {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border-color: var(--theme-primary, #22c55e) !important;
-  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--theme-primary, #047857) !important;
+  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.16) !important;
 }
 
 .login-register-panel :deep(.register-form .ant-input-affix-wrapper) {
@@ -323,7 +327,7 @@
 }
 
 .login-register-panel :deep(.register-form .ant-input-suffix svg) {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(31, 64, 58, 0.55) !important;
 }
 
 .login-register-panel :deep(.register-form .ant-form-item-explain-error) {
@@ -362,12 +366,15 @@
 }
 
 .login-register-panel :deep(.invite-help-text) {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(31, 64, 58, 0.52);
 }
 
 .login-register-panel :deep(.register-button) {
   height: 46px !important;
-  background: var(--theme-btn-gradient, linear-gradient(135deg, #22c55e 0%, #16a34a 100%)) !important;
+  background: var(
+    --theme-btn-gradient,
+    linear-gradient(135deg, #22c55e 0%, #16a34a 100%)
+  ) !important;
   border: none !important;
   border-radius: 12px !important;
   font-size: 15px !important;
@@ -381,7 +388,7 @@
 }
 
 .login-register-panel :deep(.register-footer .login-link) {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(31, 64, 58, 0.56) !important;
   padding: 0;
 }
 
@@ -391,7 +398,7 @@
 
 /* 复选框 */
 .login-form :deep(.ant-checkbox-wrapper) {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(31, 64, 58, 0.72);
   font-size: 13px;
 }
 
@@ -406,7 +413,10 @@
 .login-button {
   width: 100%;
   height: 46px !important;
-  background: var(--theme-btn-gradient, linear-gradient(135deg, #22c55e 0%, #16a34a 100%)) !important;
+  background: var(
+    --theme-btn-gradient,
+    linear-gradient(135deg, #22c55e 0%, #16a34a 100%)
+  ) !important;
   border: none !important;
   border-radius: 12px !important;
   font-size: 15px !important;
@@ -418,7 +428,10 @@
 }
 
 .login-button:hover:not(:disabled) {
-  background: var(--theme-btn-gradient-hover, linear-gradient(135deg, #16a34a 0%, #15803d 100%)) !important;
+  background: var(
+    --theme-btn-gradient-hover,
+    linear-gradient(135deg, #16a34a 0%, #15803d 100%)
+  ) !important;
   transform: translateY(-1px);
   box-shadow: var(--theme-btn-shadow, 0 8px 24px rgba(34, 197, 94, 0.4)) !important;
   filter: brightness(1.05);
@@ -437,7 +450,7 @@
 .login-footer a {
   background: none !important;
   border: none !important;
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(31, 64, 58, 0.58) !important;
   font-size: 13px;
   cursor: pointer;
   padding: 0 !important;
@@ -453,7 +466,7 @@
 .login-footer .forgot-password {
   background: none !important;
   border: none !important;
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(31, 64, 58, 0.58) !important;
   box-shadow: none !important;
 }
 
@@ -485,14 +498,14 @@
 .showcase-title h2 {
   font-size: 32px;
   font-weight: 800;
-  color: #ffffff;
+  color: #173d36;
   margin: 0 0 8px 0;
-  text-shadow: 0 0 30px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.5);
+  text-shadow: 0 6px 24px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.14);
   letter-spacing: 2px;
 }
 
 .showcase-title p {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(31, 64, 58, 0.62);
   font-size: 14px;
   margin: 0;
   letter-spacing: 1px;
@@ -505,13 +518,13 @@
   height: 340px;
   position: relative;
   border-radius: 24px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(var(--theme-primary-rgb, 34, 197, 94), 0.15);
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.76);
   overflow: hidden;
   box-shadow:
-    0 0 0 1px rgba(var(--theme-primary-rgb, 34, 197, 94), 0.08),
-    0 20px 60px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 0 0 1px rgba(var(--theme-primary-rgb, 4, 120, 87), 0.06),
+    0 20px 52px rgba(42, 99, 84, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
   transition: border-color 0.5s ease;
 }
 
@@ -519,8 +532,10 @@
 .game-scene-bg {
   position: absolute;
   inset: 0;
-  background: var(--theme-scene-sky,
-      linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a2e1a 80%, #0f3d1f 100%));
+  background: var(
+    --theme-scene-sky,
+    linear-gradient(180deg, #bcecff 0%, #e8fbff 55%, #d9f7ce 100%)
+  );
   transition: background 0.5s ease;
 }
 
@@ -531,8 +546,8 @@
   left: 0;
   right: 0;
   height: 80px;
-  background: var(--theme-scene-ground, linear-gradient(180deg, #1a4a2e 0%, #0f3320 100%));
-  border-top: 2px solid var(--theme-scene-ground-top, rgba(34, 197, 94, 0.25));
+  background: var(--theme-scene-ground, linear-gradient(180deg, #91dfa0 0%, #4dbd79 100%));
+  border-top: 2px solid var(--theme-scene-ground-top, rgba(35, 145, 88, 0.5));
   transition: background 0.5s ease;
 }
 
@@ -543,7 +558,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(var(--theme-primary-rgb, 34, 197, 94), 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.58), transparent);
 }
 
 /* 草地纹理 */
@@ -566,65 +581,107 @@
   animation: grassWave 8s linear infinite;
 }
 
-/* 星星粒子 */
-.stars {
+/* 白云 */
+.clouds {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60%;
+  inset: 0 0 80px;
+  overflow: hidden;
 }
 
-.star {
+.cloud {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  background: #ffffff;
+  font-size: var(--size, 36px);
+  line-height: 1;
+  opacity: 0.82;
+  filter: drop-shadow(0 6px 8px rgba(62, 137, 164, 0.14));
+  animation: cloudDrift var(--dur, 14s) ease-in-out infinite var(--delay, 0s);
+}
+
+/* 元气太阳 */
+.game-sun {
+  position: absolute;
+  top: 30px;
+  right: 50px;
+  width: 58px;
+  height: 58px;
+  background: radial-gradient(circle at 35% 30%, #fffbd1 0%, #ffd84c 55%, #ffb703 100%);
   border-radius: 50%;
-  animation: twinkle var(--dur, 2s) ease-in-out infinite var(--delay, 0s);
+  box-shadow:
+    0 0 24px rgba(255, 183, 3, 0.48),
+    0 0 64px rgba(255, 214, 71, 0.3);
+  animation: sunPulse 4s ease-in-out infinite;
+  z-index: 2;
 }
 
-/* 月亮 */
-.game-moon {
+.game-sun::before {
+  content: '';
   position: absolute;
-  top: 24px;
-  right: 48px;
-  width: 52px;
-  height: 52px;
-  background: radial-gradient(circle at 40% 40%, #fef9c3, #fbbf24);
+  inset: -15px;
   border-radius: 50%;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 60px rgba(251, 191, 36, 0.2);
-  animation: moonGlow 4s ease-in-out infinite;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 183, 3, 0.8) 0deg 7deg,
+    transparent 7deg 45deg
+  );
+  animation: sunRays 18s linear infinite;
+  z-index: -1;
 }
 
-/* 花朵们 */
-.flower {
+.sun-eye {
   position: absolute;
-  font-size: 28px;
-  animation: flowerBob var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  top: 21px;
+  width: 5px;
+  height: 7px;
+  background: #8c5a0a;
+  border-radius: 50%;
+}
+
+.sun-eye-left {
+  left: 16px;
+}
+
+.sun-eye-right {
+  right: 16px;
+}
+
+.sun-smile {
+  position: absolute;
+  left: 20px;
+  top: 31px;
+  width: 18px;
+  height: 10px;
+  border-bottom: 3px solid #8c5a0a;
+  border-radius: 0 0 18px 18px;
+}
+
+/* 水果 */
+.fruit {
+  position: absolute;
+  font-size: 26px;
+  animation: fruitBob var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+  filter: drop-shadow(0 4px 6px rgba(33, 89, 48, 0.26));
   cursor: default;
   user-select: none;
+  z-index: 3;
 }
 
-/* 蝴蝶 */
-.butterfly {
+/* 飞鸟 */
+.bird {
   position: absolute;
-  font-size: 20px;
-  animation: butterflyFly var(--dur, 8s) ease-in-out infinite var(--delay, 0s);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  font-size: 21px;
+  animation: birdFly var(--dur, 10s) ease-in-out infinite var(--delay, 0s);
+  filter: drop-shadow(0 3px 4px rgba(40, 91, 112, 0.2));
+  z-index: 2;
 }
 
-/* 发光粒子 */
-.firefly {
+/* 飘动的叶片和花瓣 */
+.drifter {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--theme-firefly-color, #22c55e);
-  box-shadow: 0 0 6px 2px var(--theme-firefly-glow, rgba(34, 197, 94, 0.8));
-  animation: fireflyFloat var(--dur, 5s) ease-in-out infinite var(--delay, 0s);
-  transition: background 0.5s ease, box-shadow 0.5s ease;
+  font-size: 15px;
+  opacity: 0;
+  animation: leafFloat var(--dur, 8s) ease-in-out infinite var(--delay, 0s);
+  filter: drop-shadow(0 2px 3px rgba(41, 100, 62, 0.16));
+  z-index: 2;
 }
 
 /* 状态指示卡片 */
@@ -688,7 +745,9 @@
   overflow: hidden;
   position: relative;
   z-index: 2;
-  transition: background 0.5s ease, border-color 0.5s ease;
+  transition:
+    background 0.5s ease,
+    border-color 0.5s ease;
 }
 
 .marquee-inner {
@@ -743,34 +802,41 @@
   }
 }
 
-@keyframes twinkle {
-
+@keyframes cloudDrift {
   0%,
   100% {
-    opacity: 0.2;
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(38px, 4px);
+  }
+}
+
+@keyframes sunPulse {
+  0%,
+  100% {
     transform: scale(1);
+    box-shadow:
+      0 0 24px rgba(255, 183, 3, 0.48),
+      0 0 64px rgba(255, 214, 71, 0.3);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1.5);
+    transform: scale(1.05);
+    box-shadow:
+      0 0 32px rgba(255, 183, 3, 0.62),
+      0 0 82px rgba(255, 214, 71, 0.38);
   }
 }
 
-@keyframes moonGlow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 60px rgba(251, 191, 36, 0.2);
-  }
-
-  50% {
-    box-shadow: 0 0 30px rgba(251, 191, 36, 0.7), 0 0 80px rgba(251, 191, 36, 0.3);
+@keyframes sunRays {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes flowerBob {
-
+@keyframes fruitBob {
   0%,
   100% {
     transform: translateY(0) rotate(-2deg);
@@ -781,52 +847,51 @@
   }
 }
 
-@keyframes butterflyFly {
+@keyframes birdFly {
   0% {
-    transform: translate(0, 0) rotate(0deg);
-    opacity: 0.8;
+    transform: translate(0, 0) rotate(-3deg);
+    opacity: 0.78;
   }
 
   25% {
-    transform: translate(40px, -30px) rotate(15deg);
+    transform: translate(36px, -16px) rotate(4deg);
     opacity: 1;
   }
 
   50% {
-    transform: translate(80px, 10px) rotate(-10deg);
-    opacity: 0.7;
+    transform: translate(78px, 7px) rotate(-5deg);
+    opacity: 0.9;
   }
 
   75% {
-    transform: translate(30px, -20px) rotate(5deg);
+    transform: translate(34px, -12px) rotate(3deg);
     opacity: 1;
   }
 
   100% {
-    transform: translate(0, 0) rotate(0deg);
-    opacity: 0.8;
+    transform: translate(0, 0) rotate(-3deg);
+    opacity: 0.78;
   }
 }
 
-@keyframes fireflyFloat {
-
-  0%,
-  100% {
-    transform: translate(0, 0);
+@keyframes leafFloat {
+  0% {
+    transform: translate(0, -12px) rotate(0deg);
     opacity: 0;
   }
 
-  20% {
-    opacity: 1;
+  18% {
+    opacity: 0.9;
   }
 
-  50% {
-    transform: translate(var(--tx, 20px), var(--ty, -30px));
-    opacity: 0.8;
+  58% {
+    transform: translate(var(--tx, 28px), var(--ty, 34px)) rotate(var(--turn, 200deg));
+    opacity: 0.85;
   }
 
-  80% {
-    opacity: 0.5;
+  100% {
+    transform: translate(12px, 68px) rotate(360deg);
+    opacity: 0;
   }
 }
 
@@ -841,7 +906,7 @@
 }
 
 /* ============================
-   公告警告样式（深色主题）
+   公告警告样式（明亮主题）
    ============================ */
 .login-card :deep(.ant-alert) {
   background: rgba(251, 191, 36, 0.08) !important;
@@ -851,15 +916,15 @@
 }
 
 .login-card :deep(.ant-alert-description) {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: rgba(67, 51, 18, 0.82) !important;
 }
 
 .login-card :deep(.ant-alert-description p) {
-  color: rgba(255, 255, 255, 0.65) !important;
+  color: rgba(67, 51, 18, 0.76) !important;
 }
 
 .login-card :deep(.ant-alert-description strong) {
-  color: #fbbf24 !important;
+  color: #92400e !important;
 }
 
 /* ============================

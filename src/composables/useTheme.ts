@@ -1,6 +1,6 @@
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
-export type ThemeKey = 'sakura' | 'garden' | 'ocean'
+export type ThemeKey = 'lemon' | 'mint' | 'sky'
 
 export interface ThemeConfig {
   key: ThemeKey
@@ -28,9 +28,6 @@ export interface ThemeConfig {
   pageBg: string
   // 卡片背景
   cardBg: string
-  // 萤火虫颜色
-  fireflyColor: string
-  fireflyGlow: string
   // 游戏场景背景
   sceneTopColor: string
   sceneMidColor: string
@@ -40,89 +37,93 @@ export interface ThemeConfig {
 }
 
 export const themes: Record<ThemeKey, ThemeConfig> = {
-  sakura: {
-    key: 'sakura',
-    label: '樱花粉',
-    emoji: '🌸',
-    loginBg: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #3d1a3a 100%)',
-    primary: '#f472b6',
-    primaryDark: '#ec4899',
-    primaryRgb: '244, 114, 182',
-    btnGradient: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)',
-    btnGradientHover: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-    btnShadow: '0 4px 16px rgba(244, 114, 182, 0.4)',
-    sceneSky: 'linear-gradient(180deg, #1a0530 0%, #2d1050 40%, #3d1a3a 80%, #4a1a35 100%)',
-    sceneGround: 'linear-gradient(180deg, #4a1535 0%, #2d0f22 100%)',
-    sceneGroundTop: 'rgba(244, 114, 182, 0.25)',
-    navBg: 'rgba(255, 235, 245, 0.88)',
-    navBgBlur: 'rgba(255, 225, 240, 0.92)',
-    navBorder: 'rgba(244, 114, 182, 0.25)',
-    pageBg: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd9 50%, #f3e5f5 100%)',
-    cardBg: 'rgba(255, 255, 255, 0.92)',
-    fireflyColor: '#f9a8d4',
-    fireflyGlow: 'rgba(249, 168, 212, 0.8)',
-    sceneTopColor: '#1a0530',
-    sceneMidColor: '#2d1050',
-    sceneBottomColor: '#4a1a35',
-    logoGradient: 'linear-gradient(135deg, #f472b6, #a855f7)',
+  lemon: {
+    key: 'lemon',
+    label: '柠檬黄',
+    emoji: '🍋',
+    loginBg: 'linear-gradient(135deg, #fffde7 0%, #fff3a6 52%, #eaf8c9 100%)',
+    primary: '#a16207',
+    primaryDark: '#854d0e',
+    primaryRgb: '161, 98, 7',
+    btnGradient: 'linear-gradient(135deg, #d49b08 0%, #a16207 100%)',
+    btnGradientHover: 'linear-gradient(135deg, #b77906 0%, #854d0e 100%)',
+    btnShadow: '0 6px 18px rgba(161, 98, 7, 0.28)',
+    sceneSky: 'linear-gradient(180deg, #bfe9ff 0%, #eaf8ff 52%, #fff6ad 100%)',
+    sceneGround: 'linear-gradient(180deg, #a9df71 0%, #6fbd51 100%)',
+    sceneGroundTop: 'rgba(91, 154, 54, 0.55)',
+    navBg: 'rgba(255, 251, 214, 0.9)',
+    navBgBlur: 'rgba(255, 248, 196, 0.94)',
+    navBorder: 'rgba(202, 138, 4, 0.24)',
+    pageBg: 'linear-gradient(135deg, #fffef0 0%, #fff8c5 52%, #f2fad7 100%)',
+    cardBg: 'rgba(255, 255, 255, 0.94)',
+    sceneTopColor: '#bfe9ff',
+    sceneMidColor: '#eaf8ff',
+    sceneBottomColor: '#fff6ad',
+    logoGradient: 'linear-gradient(135deg, #ca8a04, #65a30d)',
   },
-  garden: {
-    key: 'garden',
-    label: '翠绿',
-    emoji: '🌿',
-    loginBg: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
-    primary: '#22c55e',
-    primaryDark: '#16a34a',
-    primaryRgb: '34, 197, 94',
-    btnGradient: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-    btnGradientHover: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-    btnShadow: '0 4px 16px rgba(34, 197, 94, 0.3)',
-    sceneSky: 'linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a2e1a 80%, #0f3d1f 100%)',
-    sceneGround: 'linear-gradient(180deg, #1a4a2e 0%, #0f3320 100%)',
-    sceneGroundTop: 'rgba(34, 197, 94, 0.25)',
-    navBg: 'rgba(220, 252, 231, 0.88)',
-    navBgBlur: 'rgba(209, 250, 229, 0.92)',
-    navBorder: 'rgba(34, 197, 94, 0.25)',
-    pageBg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #d1fae5 100%)',
-    cardBg: 'rgba(255, 255, 255, 0.95)',
-    fireflyColor: '#22c55e',
-    fireflyGlow: 'rgba(34, 197, 94, 0.8)',
-    sceneTopColor: '#0a1628',
-    sceneMidColor: '#0d2137',
-    sceneBottomColor: '#0f3d1f',
-    logoGradient: 'linear-gradient(135deg, #22c55e, #059669)',
+  mint: {
+    key: 'mint',
+    label: '薄荷绿',
+    emoji: '🌱',
+    loginBg: 'linear-gradient(135deg, #effff9 0%, #c9f7e7 50%, #afead7 100%)',
+    primary: '#047857',
+    primaryDark: '#065f46',
+    primaryRgb: '4, 120, 87',
+    btnGradient: 'linear-gradient(135deg, #10a77b 0%, #047857 100%)',
+    btnGradientHover: 'linear-gradient(135deg, #078f69 0%, #065f46 100%)',
+    btnShadow: '0 6px 18px rgba(4, 120, 87, 0.25)',
+    sceneSky: 'linear-gradient(180deg, #bcecff 0%, #e8fbff 55%, #d9f7ce 100%)',
+    sceneGround: 'linear-gradient(180deg, #91dfa0 0%, #4dbd79 100%)',
+    sceneGroundTop: 'rgba(35, 145, 88, 0.5)',
+    navBg: 'rgba(220, 252, 239, 0.9)',
+    navBgBlur: 'rgba(204, 248, 230, 0.94)',
+    navBorder: 'rgba(4, 120, 87, 0.22)',
+    pageBg: 'linear-gradient(135deg, #f3fff9 0%, #ddfaed 50%, #ccf4e5 100%)',
+    cardBg: 'rgba(255, 255, 255, 0.94)',
+    sceneTopColor: '#bcecff',
+    sceneMidColor: '#e8fbff',
+    sceneBottomColor: '#d9f7ce',
+    logoGradient: 'linear-gradient(135deg, #0f9f76, #0e7490)',
   },
-  ocean: {
-    key: 'ocean',
-    label: '海蓝',
-    emoji: '🌊',
-    loginBg: 'linear-gradient(135deg, #0a0e27 0%, #0d1b3e 50%, #0a2540 100%)',
-    primary: '#38bdf8',
-    primaryDark: '#0ea5e9',
-    primaryRgb: '56, 189, 248',
-    btnGradient: 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)',
-    btnGradientHover: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-    btnShadow: '0 4px 16px rgba(56, 189, 248, 0.4)',
-    sceneSky: 'linear-gradient(180deg, #050d1a 0%, #091525 40%, #0a1e35 80%, #0d2545 100%)',
-    sceneGround: 'linear-gradient(180deg, #0a2540 0%, #061828 100%)',
-    sceneGroundTop: 'rgba(56, 189, 248, 0.25)',
-    navBg: 'rgba(186, 230, 253, 0.88)',
-    navBgBlur: 'rgba(186, 230, 253, 0.92)',
-    navBorder: 'rgba(56, 189, 248, 0.25)',
-    pageBg: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #e0f7fa 100%)',
-    cardBg: 'rgba(255, 255, 255, 0.95)',
-    fireflyColor: '#7dd3fc',
-    fireflyGlow: 'rgba(125, 211, 252, 0.8)',
-    sceneTopColor: '#050d1a',
-    sceneMidColor: '#091525',
-    sceneBottomColor: '#0d2545',
-    logoGradient: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+  sky: {
+    key: 'sky',
+    label: '浅蓝',
+    emoji: '☁️',
+    loginBg: 'linear-gradient(135deg, #f4fbff 0%, #d5efff 50%, #bcdfff 100%)',
+    primary: '#0369a1',
+    primaryDark: '#075985',
+    primaryRgb: '3, 105, 161',
+    btnGradient: 'linear-gradient(135deg, #168bc4 0%, #0369a1 100%)',
+    btnGradientHover: 'linear-gradient(135deg, #0878b2 0%, #075985 100%)',
+    btnShadow: '0 6px 18px rgba(3, 105, 161, 0.25)',
+    sceneSky: 'linear-gradient(180deg, #9edcff 0%, #d9f2ff 58%, #ecfbd9 100%)',
+    sceneGround: 'linear-gradient(180deg, #9bdc91 0%, #59b976 100%)',
+    sceneGroundTop: 'rgba(47, 142, 81, 0.48)',
+    navBg: 'rgba(224, 244, 255, 0.9)',
+    navBgBlur: 'rgba(207, 237, 255, 0.94)',
+    navBorder: 'rgba(3, 105, 161, 0.2)',
+    pageBg: 'linear-gradient(135deg, #f5fbff 0%, #e1f3ff 50%, #d4edff 100%)',
+    cardBg: 'rgba(255, 255, 255, 0.94)',
+    sceneTopColor: '#9edcff',
+    sceneMidColor: '#d9f2ff',
+    sceneBottomColor: '#ecfbd9',
+    logoGradient: 'linear-gradient(135deg, #0284c7, #0e7490)',
   },
 }
 
+const legacyThemeMap: Record<string, ThemeKey> = {
+  sakura: 'lemon',
+  garden: 'mint',
+  ocean: 'sky',
+}
+
+const savedTheme = localStorage.getItem('app-theme')
+
 // 全局单例 ref
 const currentTheme = ref<ThemeKey>(
-  (localStorage.getItem('app-theme') as ThemeKey) || 'garden'
+  savedTheme && savedTheme in themes
+    ? (savedTheme as ThemeKey)
+    : legacyThemeMap[savedTheme || ''] || 'mint',
 )
 
 // 将主题变量注入到 :root CSS 变量
@@ -144,8 +145,6 @@ function applyTheme(key: ThemeKey) {
   root.style.setProperty('--theme-nav-border', t.navBorder)
   root.style.setProperty('--theme-page-bg', t.pageBg)
   root.style.setProperty('--theme-card-bg', t.cardBg)
-  root.style.setProperty('--theme-firefly-color', t.fireflyColor)
-  root.style.setProperty('--theme-firefly-glow', t.fireflyGlow)
   root.style.setProperty('--theme-logo-gradient', t.logoGradient)
 }
 
