@@ -23,6 +23,8 @@ const bundle = await build({
 const {
   createDefaultFmlRaceAcceptRules,
   normalizeFmlRaceAcceptRules,
+  getFmlRaceScoreRangeError,
+  validateFmlRaceScoreRanges,
   createDefaultGameConfig,
   normalizeGameConfigSelects,
   deepMerge,
@@ -30,10 +32,10 @@ const {
 
 const defaults = createDefaultFmlRaceAcceptRules()
 assert.deepEqual(defaults, {
-  normal: { enabled: false, minScore: 23 },
-  systemUpgrade: { enabled: false, minScore: 46 },
-  selfUpgrade: { enabled: false, minScore: 46 },
-  otherUpgrade: { enabled: false, minScore: 46, memberMode: 'all' },
+  normal: { enabled: false, minScore: 23, maxScore: 99 },
+  systemUpgrade: { enabled: false, minScore: 46, maxScore: 99 },
+  selfUpgrade: { enabled: false, minScore: 46, maxScore: 99 },
+  otherUpgrade: { enabled: false, minScore: 46, maxScore: 99, memberMode: 'all' },
 })
 defaults.normal.enabled = true
 assert.equal(createDefaultFmlRaceAcceptRules().normal.enabled, false)
@@ -48,12 +50,24 @@ const normalized = normalizeFmlRaceAcceptRules({
   otherUpgrade: { enabled: true, minScore: null, memberMode: 'specified' },
 })
 assert.deepEqual(normalized, {
-  normal: { enabled: true, minScore: 1 },
-  systemUpgrade: { enabled: true, minScore: 99 },
-  selfUpgrade: { enabled: false, minScore: 47 },
-  otherUpgrade: { enabled: true, minScore: 46, memberMode: 'specified' },
+  normal: { enabled: true, minScore: 1, maxScore: 99 },
+  systemUpgrade: { enabled: true, minScore: 99, maxScore: 99 },
+  selfUpgrade: { enabled: false, minScore: 47, maxScore: 99 },
+  otherUpgrade: { enabled: true, minScore: 46, maxScore: 99, memberMode: 'specified' },
 })
 assert.equal(normalizeFmlRaceAcceptRules({ normal: { minScore: Infinity } }).normal.minScore, 23)
+assert.equal(normalizeFmlRaceAcceptRules({ normal: { minScore: 25 } }).normal.maxScore, 99)
+assert.equal(normalizeFmlRaceAcceptRules({ normal: { maxScore: 100 } }).normal.maxScore, 99)
+assert.equal(normalizeFmlRaceAcceptRules({ normal: { maxScore: 0 } }).normal.maxScore, 1)
+assert.equal(normalizeFmlRaceAcceptRules({ normal: { maxScore: '49' } }).normal.maxScore, 49)
+const reversed = normalizeFmlRaceAcceptRules({ normal: { enabled: true, minScore: 46, maxScore: 23 } })
+assert.equal(reversed.normal.maxScore, 23, '错误区间不得自动扩大')
+assert.match(validateFmlRaceScoreRanges(reversed), /普通任务未升级：最低分不能大于最高分/)
+assert.equal(getFmlRaceScoreRangeError({ enabled: true, minScore: 46, maxScore: 46 }), '')
+assert.equal(getFmlRaceScoreRangeError({ enabled: false, minScore: 46, maxScore: 23 }), '')
+for (const maximum of [null, '', undefined, 100, -1, 1.5]) {
+  assert.match(getFmlRaceScoreRangeError({ enabled: true, minScore: 1, maxScore: maximum }), /1–99/)
+}
 
 const oldKeys = [
   'minTaskScore', 'minUpgradeTaskScore', 'onlyUpgradeTask', 'othersUpgradeTaskMode',
@@ -103,5 +117,10 @@ assert.deepEqual(template.errors, [])
 assert.ok(source.indexOf('label="完成已接任务"') < source.indexOf('label="避开有进度任务"'))
 assert.ok(source.includes(':disabled="!config.union.fmlRace.acceptRules[rule.key].enabled"'))
 assert.ok(source.includes(':disabled="!fmlRaceQuickSetupRules[rule.key].enabled"'))
+assert.ok(source.includes('v-model:value="config.union.fmlRace.acceptRules[rule.key].maxScore"'))
+assert.ok(source.includes('v-model:value="fmlRaceQuickSetupRules[rule.key].maxScore"'))
+assert.ok(source.includes('validateFmlRaceScoreRanges(config.value.union.fmlRace.acceptRules)'))
+assert.ok(source.includes('validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)'))
+assert.ok(!source.includes('flex: 0 0 145px'), '桌面规则应继承父表单标签列')
 for (const key of oldKeys) assert.equal(source.includes(key), false, key)
 console.log('竞赛配置测试通过：四类默认关闭、1—99分、成员规则、旧配置清理、保存往返、Vue编译。')

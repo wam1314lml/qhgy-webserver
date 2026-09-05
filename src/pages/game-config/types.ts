@@ -1,7 +1,7 @@
 export type BodyAttributeGroup = { main: number[]; sub: number[] }
 export type BodyAttributes = Record<string, BodyAttributeGroup>
 
-export type FmlRaceAcceptRule = { enabled: boolean; minScore: number }
+export type FmlRaceAcceptRule = { enabled: boolean; minScore: number; maxScore: number }
 export type FmlRaceAcceptRules = {
   normal: FmlRaceAcceptRule
   systemUpgrade: FmlRaceAcceptRule

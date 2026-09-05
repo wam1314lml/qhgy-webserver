@@ -2084,7 +2084,7 @@
             </CustomFormItem>
             <Divider orientation="left">接取规则</Divider>
             <p class="fml-race-rule-help">
-              会接取大于等于设置分数的任务；以下开关未打开，就不接取对应类型的任务。
+              只接取最低分 ≤ 任务分数 ≤ 最高分的任务；未开启的类型不接取。
             </p>
             <CustomFormItem
               v-for="rule in fmlRaceAcceptRuleOptions"
@@ -2092,10 +2092,13 @@
               :label="rule.label"
               :name="`union.fmlRace.acceptRules.${rule.key}`"
               class="fml-race-accept-rule-item"
+              :validate-status="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) ? 'error' : undefined"
+              :help="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) || undefined"
             >
               <div class="fml-race-accept-rule-controls">
                 <Switch v-model:checked="config.union.fmlRace.acceptRules[rule.key].enabled" />
-                <span>分数</span>
+                <label class="fml-race-score-field">
+                  <span>最低分</span>
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.acceptRules[rule.key].minScore"
                   :disabled="!config.union.fmlRace.acceptRules[rule.key].enabled"
@@ -2105,6 +2108,20 @@
                   :aria-label="`${rule.label}最低分数`"
                   class="fml-race-rule-score"
                 />
+                </label>
+                <span class="fml-race-range-separator" aria-hidden="true">—</span>
+                <label class="fml-race-score-field">
+                  <span>最高分</span>
+                  <CustomInputNumber
+                    v-model:value="config.union.fmlRace.acceptRules[rule.key].maxScore"
+                    :disabled="!config.union.fmlRace.acceptRules[rule.key].enabled"
+                    :min="1"
+                    :max="99"
+                    :precision="0"
+                    :aria-label="`${rule.label}最高分数`"
+                    class="fml-race-rule-score"
+                  />
+                </label>
               </div>
             </CustomFormItem>
             <CustomFormItem
@@ -2178,7 +2195,7 @@
             <CustomFormItem
               label="接指定水果"
               name="union.fmlRace.harvestTaskFlowerFilterEnabled"
-              tooltip="开启后，只接指定水果的种植收获任务；仍须满足对应接取规则的开关、最低分数和任务优先级。"
+              tooltip="开启后，只接指定水果的种植收获任务；仍须满足对应接取规则的开关、分数区间和任务优先级。"
             >
               <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
             </CustomFormItem>
@@ -2829,7 +2846,7 @@
       @cancel="cancelFmlRaceQuickSetup"
     >
       <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
-        <p class="fml-race-rule-help">只接已开启且达到最低分数的任务，请选择需要接取的类型。</p>
+        <p class="fml-race-rule-help">只接已开启且分数位于最低分至最高分之间的任务（含上下限）。</p>
         <div
           v-for="rule in fmlRaceAcceptRuleOptions"
           :key="rule.key"
@@ -2838,7 +2855,8 @@
           <span>{{ rule.label }}</span>
           <div class="fml-race-accept-rule-controls">
             <Switch v-model:checked="fmlRaceQuickSetupRules[rule.key].enabled" />
-            <span>分数</span>
+            <label class="fml-race-score-field">
+              <span>最低分</span>
             <CustomInputNumber
               v-model:value="fmlRaceQuickSetupRules[rule.key].minScore"
               :disabled="!fmlRaceQuickSetupRules[rule.key].enabled"
@@ -2848,8 +2866,25 @@
               :aria-label="`${rule.label}最低分数`"
               class="fml-race-rule-score"
             />
+            </label>
+            <span class="fml-race-range-separator" aria-hidden="true">—</span>
+            <label class="fml-race-score-field">
+              <span>最高分</span>
+              <CustomInputNumber
+                v-model:value="fmlRaceQuickSetupRules[rule.key].maxScore"
+                :disabled="!fmlRaceQuickSetupRules[rule.key].enabled"
+                :min="1"
+                :max="99"
+                :precision="0"
+                :aria-label="`${rule.label}最高分数`"
+                class="fml-race-rule-score"
+              />
+            </label>
           </div>
         </div>
+        <p v-if="validateFmlRaceScoreRanges(fmlRaceQuickSetupRules)" class="fml-race-range-error" role="alert">
+          {{ validateFmlRaceScoreRanges(fmlRaceQuickSetupRules) }}
+        </p>
         <template v-if="fmlRaceQuickSetupRules.otherUpgrade.enabled">
           <Radio.Group v-model:value="fmlRaceQuickSetupRules.otherUpgrade.memberMode">
             <Space>
@@ -2956,6 +2991,8 @@ import {
   createDefaultFmlRaceAcceptRules,
   fmlRaceAcceptRuleOptions,
   normalizeFmlRaceAcceptRules,
+  getFmlRaceScoreRangeError,
+  validateFmlRaceScoreRanges,
 } from './game-config/fmlRaceAcceptRules'
 
 // 路由相关
@@ -3132,6 +3169,11 @@ const applyFmlRaceQuickSetup = async () => {
 }
 
 const handleFmlRaceQuickSetupConfirm = async () => {
+  const rangeError = validateFmlRaceScoreRanges(fmlRaceQuickSetupRules.value)
+  if (rangeError) {
+    message.warning(rangeError)
+    return
+  }
   if (fmlRaceQuickSetupStep.value === 1) {
     if (!Object.values(fmlRaceQuickSetupRules.value).some((rule) => rule.enabled)) {
       message.warning('请至少开启一种需要接取的任务类型')
@@ -3454,6 +3496,11 @@ function showConfigNoticeModal(title: string, contentHtml: string, okText = '确
 
 // 保存配置
 const saveConfig = async () => {
+  const rangeError = validateFmlRaceScoreRanges(config.value.union.fmlRace.acceptRules)
+  if (rangeError) {
+    message.warning(rangeError)
+    return
+  }
   loading.value = true
   try {
     console.log('🔄 开始保存配置:', {
@@ -3563,6 +3610,11 @@ const importConfigFromSelectedAccount = async () => {
     migrateLegacyFloralShopCatalog(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload)
+    const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
+    if (rangeError) {
+      message.warning(rangeError)
+      return
+    }
     const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
 
     if (!saveResponse.data?.success) {
@@ -3852,6 +3904,26 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.fml-race-score-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #666;
+  font-size: 12px;
+}
+
+.fml-race-range-separator {
+  align-self: flex-end;
+  line-height: 32px;
+  color: #999;
+}
+
+.fml-race-range-error {
+  margin: 0;
+  color: #ff4d4f;
+  font-size: 12px;
+}
+
 .fml-race-accept-rule-controls .fml-race-rule-score {
   width: 80px !important;
   min-width: 68px;
@@ -3860,10 +3932,41 @@ onMounted(() => {
 
 .fml-race-accept-rule-item :deep(.ant-form-item-row) {
   flex-wrap: nowrap;
+  align-items: center;
 }
 
-.fml-race-accept-rule-item :deep(.ant-form-item-label) {
-  flex: 0 0 145px;
+// 桌面继承父表单的 8/16 标签列，不能给规则单独固定 145px。
+@media (max-width: 575px) {
+  .fml-race-accept-rule-item :deep(.ant-form-item-label) {
+    flex: 0 0 110px;
+    max-width: 110px;
+    padding: 0 8px 0 0;
+    text-align: right;
+  }
+
+  .fml-race-accept-rule-item :deep(.ant-form-item-control) {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: calc(100% - 110px);
+  }
+
+  .fml-race-accept-rule-controls {
+    gap: 4px;
+  }
+
+  .fml-race-accept-rule-controls .fml-race-rule-score {
+    width: 48px !important;
+    min-width: 48px;
+  }
+
+  .fml-race-quick-setup-field {
+    gap: 4px;
+  }
+
+  .fml-race-quick-setup-field > span {
+    flex-shrink: 0;
+    font-size: 12px;
+  }
 }
 
 .fml-race-quick-setup-question {
