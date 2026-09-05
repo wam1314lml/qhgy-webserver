@@ -142,16 +142,6 @@ function normalizeFreeStyleLands(value: unknown): Record<string, number | string
 
 function normalizeFmlRaceTaskTypePriority(value: unknown): Record<string, number> {
   const source = asRecord(value) ?? {}
-  const currentKeys = fmlRaceTaskTypes.map(({ key }) => key)
-  // 旧版 QHGY 页面会把“仅收获指定水果”完整写入账号；该精确形状属于旧默认，
-  // 升级后迁移为当前“全部类型可接”。任何其他组合都视为用户自定义并保留。
-  const isLegacyHarvestOnlyDefault = Object.keys(source).length === currentKeys.length
-    && currentKeys.every((key) => {
-      const expected = key === '20046' ? 1 : 0
-      return Object.hasOwn(source, key) && Number(source[key]) === expected
-    })
-  if (isLegacyHarvestOnlyDefault) return { ...defaultFmlRaceTaskTypePriority }
-
   const normalized = Object.fromEntries(fmlRaceTaskTypes.map(({ key }) => {
     const numberValue = Number(source[key])
     const fallback = Number(defaultFmlRaceTaskTypePriority[key] ?? 0)

@@ -373,7 +373,7 @@ const handleEdit = (level: PermissionLevel) => {
     name: level.name,
     level: level.level,
     description: level.description,
-    commission_rate: parseFloat(level.commission_rate?.toString() || '0') * 100,
+    commission_rate: Number((Number(level.commission_rate || 0) * 100).toFixed(1)),
     invite_system: level.permissions.invite_system,
     admin_panel: level.permissions.admin_panel,
     performance_management: level.permissions.performance_management,

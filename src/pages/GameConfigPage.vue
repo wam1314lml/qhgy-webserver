@@ -257,9 +257,9 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="元宝上限"
+              label="勾玉上限"
               name="basic.pearl.maxSpendDmd"
-              tooltip="购买雇佣书消耗最大元宝"
+              tooltip="购买雇佣书消耗最大勾玉"
               v-if="config.basic.pearl.autoBuyHireTicket"
             >
               <CustomInputNumber
@@ -1194,7 +1194,7 @@
             <CustomFormItem
               label="自动加速派遣"
               name="plant.elves.speedUpDispatch"
-              tooltip="花费元宝加速派遣中的果灵"
+              tooltip="花费勾玉加速派遣中的果灵"
             >
               <Switch
                 :checked="config.plant.elves.speedUpDispatch"
@@ -1351,14 +1351,14 @@
             <CustomFormItem
               label="解锁货架"
               name="plant.market.autoUnlockShelf"
-              tooltip="自动花费元宝解锁花贸市场货架"
+              tooltip="自动花费勾玉解锁花贸市场货架"
             >
               <Switch v-model:checked="config.plant.market.autoUnlockShelf" />
             </CustomFormItem>
             <CustomFormItem
               label="自动上架"
               name="plant.market.putEnabled"
-              tooltip="自动领取花贸市场收益并上架水果，注意上架会消耗元宝，请谨慎开启！"
+              tooltip="自动领取花贸市场收益并上架水果，注意上架会消耗勾玉，请谨慎开启！"
             >
               <Switch v-model:checked="config.plant.market.putEnabled" />
             </CustomFormItem>
@@ -1418,7 +1418,7 @@
               <CustomFormItem
                 label="购买上架次数"
                 name="plant.market.autoBuyPutCount"
-                tooltip="当免费上架次数用完时，自动花费元宝购买上架次数"
+                tooltip="当免费上架次数用完时，自动花费勾玉购买上架次数"
               >
                 <Switch
                   :checked="config.plant.market.autoBuyPutCount"
@@ -1681,9 +1681,9 @@
               <Switch v-model:checked="config.order.customer.enabled" />
             </CustomFormItem>
             <CustomFormItem
-              label="花坊币数量"
+              label="果园币数量"
               name="order.customer.floralCoinEnabled"
-              tooltip="开启后会按设置达到花坊币的数量才接，否则都拒绝，若设置3个花坊币可能会导致顾客订单偏少，谨慎设置"
+              tooltip="开启后会按设置达到果园币的数量才接，否则都拒绝，若设置3个果园币可能会导致顾客订单偏少，谨慎设置"
               v-if="config.order.customer.enabled"
             >
               <Switch
@@ -1692,7 +1692,7 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="花坊币"
+              label="果园币"
               name="order.customer.floralCoinCount"
               v-if="config.order.customer.enabled && config.order.customer.floralCoinEnabled"
             >
@@ -1753,9 +1753,9 @@
             </CustomFormItem>
             <CustomFormItem
               v-if="config.order.palace.enabled"
-              label="持续元宝刷新"
+              label="持续勾玉刷新"
               name="order.palace.diamondRefresh"
-              tooltip="开启后，品质不符合时先使用免费刷新；免费次数耗尽后继续消耗元宝刷新，直到出现已选品质"
+              tooltip="开启后，品质不符合时先使用免费刷新；免费次数耗尽后继续消耗勾玉刷新，直到出现已选品质"
             >
               <Switch
                 :checked="palaceDiamondRefresh"
@@ -1770,8 +1770,8 @@
               v-if="config.order.palace.enabled && config.order.palace.diamondRefresh"
               type="warning"
               show-icon
-              message="已开启持续元宝刷新"
-              description="免费刷新次数耗尽后仍会持续消耗元宝，直到刷出符合品质限定的宫廷订单；开启后将自动关闭“不论品质”。"
+              message="已开启持续勾玉刷新"
+              description="免费刷新次数耗尽后仍会持续消耗勾玉，直到刷出符合品质限定的宫廷订单；开启后将自动关闭“不论品质”。"
               class="mb-6"
             />
 
@@ -1780,7 +1780,7 @@
               <Switch v-model:checked="config.order.team.enabled" />
             </CustomFormItem>
             <template v-if="config.order.team.enabled">
-              <CustomFormItem label="再来一单" name="order.team.oneMore" tooltip="花费元宝再来一单">
+              <CustomFormItem label="再来一单" name="order.team.oneMore" tooltip="花费勾玉再来一单">
                 <Switch
                   :checked="config.order.team.oneMore"
                   @change="
@@ -1947,9 +1947,9 @@
               <Switch v-model:checked="config.union.build.gld" />
             </CustomFormItem>
             <CustomFormItem
-              label="元宝建设"
+              label="勾玉建设"
               name="union.build.dmd"
-              tooltip="自动花费元宝进行公会建设"
+              tooltip="自动花费勾玉进行公会建设"
             >
               <Switch
                 :checked="config.union.build.dmd"
@@ -2236,7 +2236,7 @@
             <CustomFormItem
               label="自动升级任务"
               name="union.fmlRace.upgradeTask"
-              tooltip="领取任务后花费元宝自动升级。"
+              tooltip="领取任务后花费勾玉自动升级。"
             >
               <Switch
                 :checked="config.union.fmlRace.upgradeTask"
@@ -2276,7 +2276,7 @@
             <CustomFormItem
               label="保留已升级"
               name="union.fmlRace.keepPlayerUpgrade"
-              tooltip="开启后会保留玩家用元宝升级过的任务，不判断分数"
+              tooltip="开启后会保留玩家用勾玉升级过的任务，不判断分数"
               v-if="config.union.fmlRace.deleteTask"
             >
               <Switch v-model:checked="config.union.fmlRace.keepPlayerUpgrade" />
@@ -2304,7 +2304,7 @@
             <CustomFormItem
               label="小号专属"
               name="union.fmlRace.smallAccountExclusiveEnabled"
-              tooltip="本功能为小号专用，会消耗元宝。新接取任务仍需满足上方四类接取规则，再按下方条件刷新或升级后放弃；开启“完成已接任务”时会优先完成当前任务，不按小号模式放弃。"
+              tooltip="本功能为小号专用，会消耗勾玉。新接取任务仍需满足上方四类接取规则，再按下方条件刷新或升级后放弃；开启“完成已接任务”时会优先完成当前任务，不按小号模式放弃。"
             >
               <Switch
                 :checked="config.union.fmlRace.smallAccountExclusiveEnabled"
@@ -2313,9 +2313,9 @@
             </CustomFormItem>
             <template v-if="config.union.fmlRace.smallAccountExclusiveEnabled">
               <CustomFormItem
-                label="元宝升级任务"
+                label="勾玉升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
-                tooltip="付费模式：仍需满足上方四类接取规则，再按升级最低积分及任务优先级判断；执行元宝升级后放弃。可与元宝刷新同时开启；开启“完成已接任务”时优先完成当前任务。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再按升级最低积分及任务优先级判断；执行勾玉升级后放弃。可与勾玉刷新同时开启；开启“完成已接任务”时优先完成当前任务。"
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
@@ -2339,9 +2339,9 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="元宝刷新任务"
+                label="勾玉刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
-                tooltip="付费模式：仍需满足上方四类接取规则，再接取积分小于等于低分阈值的任务进行刷新，达到目标后放弃；同时开启元宝升级且达到条件时才升级。开启“完成已接任务”时优先完成当前任务。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再接取积分小于等于低分阈值的任务进行刷新，达到目标后放弃；同时开启勾玉升级且达到条件时才升级。开启“完成已接任务”时优先完成当前任务。"
               >
                 <Switch
                   :checked="config.union.fmlRace.diamondRefreshTask"
@@ -2355,7 +2355,7 @@
                 v-if="config.union.fmlRace.diamondRefreshTask"
                 label="接取低分阈值"
                 name="union.fmlRace.diamondRefreshBelowScore"
-                tooltip="仅接取积分小于等于该分数的未升级任务进行元宝刷新，默认14，范围1-99。"
+                tooltip="仅接取积分小于等于该分数的未升级任务进行勾玉刷新，默认14，范围1-99。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondRefreshBelowScore"
@@ -2368,7 +2368,7 @@
                 v-if="config.union.fmlRace.diamondRefreshTask"
                 label="刷新目标积分"
                 name="union.fmlRace.diamondRefreshTargetScore"
-                tooltip="刷新达到该分数后停止并放弃；若同时开启元宝升级任务，只有达到独立升级最低分且优先级大于等于1时才升级。默认24，范围1-99。"
+                tooltip="刷新达到该分数后停止并放弃；若同时开启勾玉升级任务，只有达到独立升级最低分且优先级大于等于1时才升级。默认24，范围1-99。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondRefreshTargetScore"
@@ -2380,7 +2380,7 @@
               <CustomFormItem
                 label="种植收获细化"
                 name="union.fmlRace.harvestUpgradeRefine"
-                tooltip="仅约束元宝升级条件：种植收获任务只有包含指定水果、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
+                tooltip="仅约束勾玉升级条件：种植收获任务只有包含指定水果、达到升级最低积分且优先级大于等于1时才升级；不影响独立的刷新目标判断。"
               >
                 <Switch v-model:checked="config.union.fmlRace.harvestUpgradeRefine" />
               </CustomFormItem>
@@ -2401,9 +2401,9 @@
                 />
               </CustomFormItem>
               <CustomFormItem
-                label="保留元宝"
+                label="保留勾玉"
                 name="union.fmlRace.diamondUpgradeReserve"
-                tooltip="刷新和升级共用该保留值，任一步操作后元宝低于此值都将停止；填0则不保留。"
+                tooltip="刷新和升级共用该保留值，任一步操作后勾玉低于此值都将停止；填0则不保留。"
               >
                 <CustomInputNumber
                   v-model:value="config.union.fmlRace.diamondUpgradeReserve"
@@ -2512,14 +2512,14 @@
         </template>
       </div>
       <div v-else class="fml-race-quick-setup">
-        <div class="fml-race-quick-setup-question">是否使用元宝升级</div>
+        <div class="fml-race-quick-setup-question">是否使用勾玉升级</div>
         <Radio.Group v-model:value="fmlRaceQuickSetupUseDiamondUpgrade">
           <Space>
             <Radio :value="true">是</Radio>
             <Radio :value="false">否</Radio>
           </Space>
         </Radio.Group>
-        <Alert type="warning" show-icon message="注意！开启此项会消耗元宝" />
+        <Alert type="warning" show-icon message="注意！开启此项会消耗勾玉" />
       </div>
     </Modal>
 
@@ -2625,7 +2625,7 @@ const fmlRaceQuickSetupMembers = ref<string[]>([])
 const fmlRaceQuickSetupUseDiamondUpgrade = ref(true)
 const fmlRaceQuickSetupTitle = computed(() => {
   if (fmlRaceQuickSetupStep.value === 1) return '接取规则'
-  return '使用元宝升级任务'
+  return '使用勾玉升级任务'
 })
 
 // 表单验证规则
@@ -2657,7 +2657,7 @@ const palaceDiamondRefresh = computed({
   },
 })
 
-const DIAMOND_COST_WARNING = '开启此项会消耗元宝，请谨慎开启，谢谢'
+const DIAMOND_COST_WARNING = '开启此项会消耗勾玉，请谨慎开启，谢谢'
 
 type DiamondCostSwitchPath =
   | 'basic.pearl.autoBuyHireTicket'

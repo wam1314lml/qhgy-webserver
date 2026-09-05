@@ -86,7 +86,6 @@
                         </template>
                         增加配额
                       </a-menu-item>
-                      <!-- 开通试用选项：暂时关闭入口
                       <a-menu-item
                         v-if="canActivateTrial(account)"
                         key="activateTrial"
@@ -97,7 +96,6 @@
                         </template>
                         开通试用
                       </a-menu-item>
-                      -->
                       <a-menu-item v-if="account.platform === 1" key="alipayRescan">
                         <template #icon>
                           <SyncOutlined />
@@ -152,7 +150,7 @@
                 <span class="stat-value">{{ getAccountGameData(account).water }}</span>
               </div>
               <div class="stat-item compact">
-                <span class="stat-label">元宝</span>
+                <span class="stat-label">勾玉</span>
                 <span class="stat-value">{{ getAccountGameData(account).diamond }}</span>
               </div>
               <div class="stat-item compact">
@@ -178,7 +176,7 @@
             </div>
             <div class="stats-grid task-stats">
               <div class="stat-item compact">
-                <span class="stat-label">花坊币</span>
+                <span class="stat-label">果园币</span>
                 <span class="stat-value">{{ getAccountGameData(account).floralCoin }}</span>
               </div>
               <div class="stat-item compact">
@@ -672,7 +670,11 @@
         </a-float-button>
       </a-tooltip>
 
-      <a-float-button tooltip="打开小程序" @click="onOpenWechatMiniProgram">
+      <a-float-button
+        v-if="SHOW_WECHAT_MINI_PROGRAM_BUTTON"
+        tooltip="打开小程序"
+        @click="onOpenWechatMiniProgram"
+      >
         <template #icon>
           <WechatOutlined />
         </template>
@@ -1642,6 +1644,7 @@ const handleViewLogs = (accountId: number) => {
 
 const router = useRouter()
 
+const SHOW_WECHAT_MINI_PROGRAM_BUTTON = false
 const WECHAT_MINI_PROGRAM_URL =
   'weixin://dl/business/?appid=wx596f42a36bddba9e&path=pages/login/login'
 
@@ -1714,7 +1717,7 @@ const isFloatMenuExpanded = computed(
 )
 const expiredTooltipAccountId = ref<number | null>(null)
 const expiredTooltipOpen = ref(false)
-const expiredTooltipText = '如需使用辅助，请点击三个点，开通增加配额'
+const expiredTooltipText = '如需试用、使用辅助，请点击三个点，开通试用/增加配额'
 const expiredTooltipOuterStyle = {
   width: 'min(360px, calc(100vw - 50px))',
 }
@@ -3013,7 +3016,6 @@ const onShowTour = () => {
   }, 100)
 }
 
-// 显示帮助文档链接
 const onOpenWechatMiniProgram = () => {
   floatButtonOpen.value = false
   window.location.href = WECHAT_MINI_PROGRAM_URL
@@ -3033,13 +3035,13 @@ const onShowLink = () => {
       h(
         'a',
         {
-          href: 'https://www.kdocs.cn/l/ctNasBUS3vcG',
+          href: 'https://www.kdocs.cn/l/cglzU54HkUHa',
           target: '_blank',
           rel: 'noopener noreferrer',
           style:
             'font-size: 15px; color: #1890ff; text-decoration: underline; word-break: break-all;',
         },
-        'https://www.kdocs.cn/l/ctNasBUS3vcG',
+        'https://www.kdocs.cn/l/cglzU54HkUHa',
       ),
     ]),
     okText: '关闭',

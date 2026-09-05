@@ -1,7 +1,11 @@
 <template>
   <div class="welfare-page">
     <div class="welfare-container">
-      <div v-if="activeTab === 'daily'" class="mini-program-notice" role="alert">
+      <div
+        v-if="SHOW_WELFARE_MINI_PROGRAM_PROMOTION && activeTab === 'daily'"
+        class="mini-program-notice"
+        role="alert"
+      >
         <img src="/icons/wechat.svg" alt="" class="mini-program-notice__icon" />
         <div class="mini-program-notice__content">
           <div class="mini-program-notice__title">日常福利已移到微信小程序</div>
@@ -45,14 +49,18 @@
               ref="dailyWheelRef"
               :prizes="dailyPrizes"
               :can-draw="lotteryInfo.canDailyDraw && !!selectedAccountId"
-              redirect-to-mini-program
+              :redirect-to-mini-program="SHOW_WELFARE_MINI_PROGRAM_PROMOTION"
               mini-program-name="花园龟龟"
               button-text="开始"
               @draw="handleDailyDraw"
               @confirm="handlePrizeConfirm"
             />
 
-            <div class="tab-mini-program-entry" aria-label="微信小程序福利">
+            <div
+              v-if="SHOW_WELFARE_MINI_PROGRAM_PROMOTION"
+              class="tab-mini-program-entry"
+              aria-label="微信小程序福利"
+            >
               <div class="tab-mini-program-entry__badge">
                 <img src="/icons/wechat.svg" alt="微信小程序" />
                 <span>3/3</span>
@@ -208,6 +216,7 @@ interface LotteryRecord {
 }
 
 const activeTab = ref('daily')
+const SHOW_WELFARE_MINI_PROGRAM_PROMOTION = false
 const dailyWheelRef = ref()
 const rechargeWheelRef = ref()
 

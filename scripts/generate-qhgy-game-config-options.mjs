@@ -106,7 +106,7 @@ writeFile('shopItem6Options.ts', [
 const raceOptionLines = guildRaceTaskTypes.map(row =>
   `  { key: ${quote(row.type)}, label: ${quote(row.name)} },`);
 const racePriorityLines = guildRaceTaskTypes.map(row =>
-  `  ${quote(row.type)}: 1,`);
+  `  ${quote(row.type)}: ${Number(row.type) === 20046 ? 1 : 0},`);
 writeFile('fmlRaceTaskTypes.ts', [
   '// 此文件由 scripts/generate-qhgy-game-config-options.mjs 从奇幻果园公会竞赛导出生成，请勿手工维护。',
   'export const fmlRaceTaskTypes: Array<{ key: string; label: string }> = [',
