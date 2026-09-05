@@ -1,5 +1,6 @@
 import type { GameConfig } from './types'
 import { defaultFmlRaceTaskTypePriority } from './fmlRaceTaskTypes'
+import { createDefaultFmlRaceAcceptRules } from './fmlRaceAcceptRules'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
 
 export const createDefaultGameConfig = (): GameConfig =>
@@ -278,14 +279,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         autoEnableModules: false,
         useSpeedUpTicketInTask: false,
-        minTaskScore: 25,
-        minUpgradeTaskScore: 50,
+        acceptRules: createDefaultFmlRaceAcceptRules(),
+        completeTakenTask: false,
         avoidProgressTask: false,
-        onlyUpgradeTask: false,
-        othersUpgradeTaskMode: true,
-        excludeOthersUpgradeTask: true,
-        onlySpecifiedUpgradeTask: false,
-        acceptQualifiedNormalTask: false,
         specifiedUpgradePlayers: [],
         harvestTaskFlowerFilterEnabled: false,
         harvestTaskFlowerIds: [],

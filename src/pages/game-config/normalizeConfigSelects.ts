@@ -26,6 +26,7 @@ import {
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
 import { floralShopAllOptions } from './shopItem6Options'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
+import { normalizeFmlRaceAcceptRules } from './fmlRaceAcceptRules'
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 500
 const DEFAULT_UNION_LAND_LOW_STOCK_THRESHOLD = 1000
@@ -141,7 +142,17 @@ function normalizeFreeStyleLands(value: unknown): Record<string, number | string
 
 function normalizeFmlRaceTaskTypePriority(value: unknown): Record<string, number> {
   const source = asRecord(value) ?? {}
-  return Object.fromEntries(fmlRaceTaskTypes.map(({ key }) => {
+  const currentKeys = fmlRaceTaskTypes.map(({ key }) => key)
+  // 旧版 QHGY 页面会把“仅收获指定水果”完整写入账号；该精确形状属于旧默认，
+  // 升级后迁移为当前“全部类型可接”。任何其他组合都视为用户自定义并保留。
+  const isLegacyHarvestOnlyDefault = Object.keys(source).length === currentKeys.length
+    && currentKeys.every((key) => {
+      const expected = key === '20046' ? 1 : 0
+      return Object.hasOwn(source, key) && Number(source[key]) === expected
+    })
+  if (isLegacyHarvestOnlyDefault) return { ...defaultFmlRaceTaskTypePriority }
+
+  const normalized = Object.fromEntries(fmlRaceTaskTypes.map(({ key }) => {
     const numberValue = Number(source[key])
     const fallback = Number(defaultFmlRaceTaskTypePriority[key] ?? 0)
     const priority = Number.isFinite(numberValue)
@@ -149,6 +160,18 @@ function normalizeFmlRaceTaskTypePriority(value: unknown): Record<string, number
       : fallback
     return [key, priority]
   }))
+
+  // 保留未来静态表 type 与 default 等用户自定义键；旧花园 type 已在前置迁移中
+  // 转换为 QHGY type，本身不再写回，避免继续污染配置。
+  for (const [key, rawValue] of Object.entries(source)) {
+    if (Object.hasOwn(LEGACY_FML_RACE_TASK_TYPE_MAP, key)) continue
+    if (Object.hasOwn(normalized, key)) continue
+    if (key !== 'default' && !/^\d+$/.test(key)) continue
+    const numberValue = Number(rawValue)
+    if (!Number.isFinite(numberValue)) continue
+    normalized[key] = Math.min(99, Math.max(0, Math.floor(numberValue)))
+  }
+  return normalized
 }
 
 function normalizeThreshold(value: unknown): number {
@@ -508,11 +531,15 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
 
   const fmlRace = config.union.fmlRace
   delete (fmlRace as unknown as Record<string, unknown>).giveuplowscoretask
+  for (const key of [
+    'minTaskScore', 'minUpgradeTaskScore', 'onlyUpgradeTask', 'othersUpgradeTaskMode',
+    'excludeOthersUpgradeTask', 'onlySpecifiedUpgradeTask', 'acceptQualifiedNormalTask',
+  ]) {
+    delete (fmlRace as unknown as Record<string, unknown>)[key]
+  }
+  fmlRace.acceptRules = normalizeFmlRaceAcceptRules(fmlRace.acceptRules)
+  fmlRace.completeTakenTask = fmlRace.completeTakenTask === true
   fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
-  fmlRace.othersUpgradeTaskMode = !!fmlRace.othersUpgradeTaskMode
-  fmlRace.onlySpecifiedUpgradeTask = !!fmlRace.onlySpecifiedUpgradeTask
-  fmlRace.acceptQualifiedNormalTask = !!fmlRace.acceptQualifiedNormalTask
-  fmlRace.excludeOthersUpgradeTask = !fmlRace.onlySpecifiedUpgradeTask
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
   fmlRace.taskTypePriority = normalizeFmlRaceTaskTypePriority(fmlRace.taskTypePriority)
   fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled

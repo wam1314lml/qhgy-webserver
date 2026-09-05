@@ -2082,130 +2082,61 @@
             >
               <Switch v-model:checked="config.union.fmlRace.useSpeedUpTicketInTask" />
             </CustomFormItem>
+            <Divider orientation="left">接取规则</Divider>
+            <p class="fml-race-rule-help">
+              会接取大于等于设置分数的任务；以下开关未打开，就不接取对应类型的任务。
+            </p>
             <CustomFormItem
-              label="限制分数-未升级"
-              name="union.fmlRace.minTaskScore"
-              tooltip="接分数不低于此值的普通任务，0 表示不限制。"
+              v-for="rule in fmlRaceAcceptRuleOptions"
+              :key="rule.key"
+              :label="rule.label"
+              :name="`union.fmlRace.acceptRules.${rule.key}`"
+              class="fml-race-accept-rule-item"
             >
-              <CustomInputNumber
-                :value="config.union.fmlRace.minTaskScore"
-                :min="0"
-                :max="40"
-                @update:value="handleMinTaskScoreChange"
-                class="w-42! sm:w-48!"
-              />
+              <div class="fml-race-accept-rule-controls">
+                <Switch v-model:checked="config.union.fmlRace.acceptRules[rule.key].enabled" />
+                <span>分数</span>
+                <CustomInputNumber
+                  v-model:value="config.union.fmlRace.acceptRules[rule.key].minScore"
+                  :disabled="!config.union.fmlRace.acceptRules[rule.key].enabled"
+                  :min="1"
+                  :max="99"
+                  :precision="0"
+                  :aria-label="`${rule.label}最低分数`"
+                  class="fml-race-rule-score"
+                />
+              </div>
             </CustomFormItem>
             <CustomFormItem
-              label="限制分数-升级后"
-              name="union.fmlRace.minUpgradeTaskScore"
-              tooltip="接分数不低于此值的玩家升级后任务/原金任务（双倍分数），0 表示不限制，举例：「限制分数-未升级」设置20，「限制分数-升级后」设置50，则接20分以上普通任务，50分以上升级后任务。注意！若要开启【自动升级任务】，需要设置「限制分数-未升级」的值乘以2大于等于「限制分数-升级后」的值。否则会出现元宝升级后把这个任务放弃的情况"
+              v-if="config.union.fmlRace.acceptRules.otherUpgrade.enabled"
+              label="他人升级任务成员"
+              name="union.fmlRace.acceptRules.otherUpgrade.memberMode"
             >
-              <CustomInputNumber
-                :value="config.union.fmlRace.minUpgradeTaskScore"
-                :min="upgradeTaskScoreMin"
-                :max="upgradeTaskScoreMax"
-                @update:value="handleMinUpgradeTaskScoreChange"
-                class="w-42! sm:w-48!"
-              />
+              <Radio.Group v-model:value="config.union.fmlRace.acceptRules.otherUpgrade.memberMode">
+                <Space>
+                  <Radio value="all">全部成员</Radio>
+                  <Radio value="specified">指定成员</Radio>
+                </Space>
+              </Radio.Group>
             </CustomFormItem>
             <CustomFormItem
-              label="避开有进度任务"
-              name="union.fmlRace.avoidProgressTask"
-              tooltip="开启后，只要任务已有进度（别人做了一半后放弃的任务），即使满足其他接取条件也不会接取。"
-            >
-              <Switch v-model:checked="config.union.fmlRace.avoidProgressTask" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="只接已升级任务"
-              name="union.fmlRace.onlyUpgradeTask"
-              tooltip="开启后就只会接已升级的任务，分数是根据你设置的“限制分数-升级后”来判断的，比如设置了46，那么就只会接升级后大于等于46的任务了(系统/玩家升级好的双倍任务比较少，捡漏的可能是比较小的哦)"
-            >
-              <Switch v-model:checked="config.union.fmlRace.onlyUpgradeTask" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="接指定水果"
-              name="union.fmlRace.harvestTaskFlowerFilterEnabled"
-              tooltip="开启后，种植收获优先级大于等于1的情况下，会根据设置的分数，只接达到设置分数的水果，若同时开启了排除他人升级任务，就算设置的水果满足接取条件也不会接取"
-            >
-              <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
-            </CustomFormItem>
-            <CustomFormItem
-              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
-              label="指定水果"
-              name="union.fmlRace.harvestTaskFlowerIds"
-            >
-              <CustomSelect
-                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
-                mode="multiple"
-                placeholder="请选择水果"
-                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
-                style="width: 100%"
-              />
-            </CustomFormItem>
-            <CustomFormItem
-              label="他人升级任务设置"
-              name="union.fmlRace.othersUpgradeTaskMode"
-              tooltip="根据用户设置接不接元宝升级任务"
-            >
-              <Switch v-model:checked="config.union.fmlRace.othersUpgradeTaskMode" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="排除他人升级任务"
-              name="union.fmlRace.excludeOthersUpgradeTask"
-              tooltip="基于礼貌的开关，开启后，公会其他玩家用元宝升级的任务就不会去接了"
-              v-if="config.union.fmlRace.othersUpgradeTaskMode"
-            >
-              <Radio
-                :checked="othersUpgradeTaskChoice === 'exclude'"
-                @change="othersUpgradeTaskChoice = 'exclude'"
-              />
-            </CustomFormItem>
-            <CustomFormItem
-              label="只接指定玩家和系统升级任务"
-              name="union.fmlRace.onlySpecifiedUpgradeTask"
-              tooltip="选择他就只会接指定玩家的升级任务，和系统升级的任务，其他玩家的升级任务不接，适合小号给大号刷任务用"
-              v-if="config.union.fmlRace.othersUpgradeTaskMode"
-            >
-              <Radio
-                :checked="othersUpgradeTaskChoice === 'specified'"
-                @change="othersUpgradeTaskChoice = 'specified'"
-              />
-            </CustomFormItem>
-            <CustomFormItem
-              label="接达到分数的未升级任务"
-              name="union.fmlRace.acceptQualifiedNormalTask"
-              tooltip="开启后，即使勾选“只接指定玩家和系统升级任务”，也会接达到“限制分数-未升级”设置分数的未升级任务"
-              v-if="
-                config.union.fmlRace.othersUpgradeTaskMode &&
-                config.union.fmlRace.onlySpecifiedUpgradeTask
-              "
-            >
-              <Switch v-model:checked="config.union.fmlRace.acceptQualifiedNormalTask" />
-            </CustomFormItem>
-            <CustomFormItem
-              label="指定用户名"
+              v-if="showSpecifiedUpgradeMembers"
+              label="指定成员名称"
               name="union.fmlRace.specifiedUpgradePlayers"
-              tooltip="可填写多个玩家名，按回车添加下一个；系统原金升级任务无需填写"
-              v-if="
-                config.union.fmlRace.othersUpgradeTaskMode &&
-                config.union.fmlRace.onlySpecifiedUpgradeTask
-              "
+              tooltip="可填写多个成员名称，按回车添加下一个；只接这些成员升级的任务"
             >
               <CustomSelect
                 v-model:value="config.union.fmlRace.specifiedUpgradePlayers"
                 mode="tags"
-                placeholder="输入玩家名后按回车"
+                placeholder="输入成员名称后按回车"
                 :token-separators="[',', '，']"
                 style="width: 100%"
               />
             </CustomFormItem>
             <CustomFormItem
+              v-if="showSpecifiedUpgradeMembers"
               label="公会玩家"
-              tooltip="点一下读取公会所有玩家名字，支持输入名字搜索；选择名字后会自动添加到指定用户名里"
-              v-if="
-                config.union.fmlRace.othersUpgradeTaskMode &&
-                config.union.fmlRace.onlySpecifiedUpgradeTask
-              "
+              tooltip="点一下读取公会所有玩家名字，支持输入名字搜索；选择名字后会自动添加到指定成员里"
             >
               <div class="w-full max-w-[480px] flex flex-col gap-2">
                 <a-button
@@ -2226,6 +2157,43 @@
                   @select="addSpecifiedUpgradePlayer"
                 />
               </div>
+            </CustomFormItem>
+            <CustomFormItem
+              label="完成已接任务"
+              name="union.fmlRace.completeTakenTask"
+              tooltip="开启后会完成已接取的任务，不判断优先级和分数；目标水果未培育或指定果艺无法制作时，会先输出事件再放弃。果艺缺少的水果已培育时，会安排补种。"
+            >
+              <Switch v-model:checked="config.union.fmlRace.completeTakenTask" />
+              <p class="fml-race-taken-task-help">
+                开启后会完成已接取的任务，不判断优先级和分数；未培育所需水果、无法完成时会放弃。
+              </p>
+            </CustomFormItem>
+            <CustomFormItem
+              label="避开有进度任务"
+              name="union.fmlRace.avoidProgressTask"
+              tooltip="开启后，只要任务已有进度（别人做了一半后放弃的任务），即使满足其他接取条件也不会接取。"
+            >
+              <Switch v-model:checked="config.union.fmlRace.avoidProgressTask" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="接指定水果"
+              name="union.fmlRace.harvestTaskFlowerFilterEnabled"
+              tooltip="开启后，只接指定水果的种植收获任务；仍须满足对应接取规则的开关、最低分数和任务优先级。"
+            >
+              <Switch v-model:checked="config.union.fmlRace.harvestTaskFlowerFilterEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.union.fmlRace.harvestTaskFlowerFilterEnabled"
+              label="指定水果"
+              name="union.fmlRace.harvestTaskFlowerIds"
+            >
+              <CustomSelect
+                v-model:value="config.union.fmlRace.harvestTaskFlowerIds"
+                mode="multiple"
+                placeholder="请选择水果"
+                :options="getFlowerPickerOptions(config.union.fmlRace.harvestTaskFlowerIds)"
+                style="width: 100%"
+              />
             </CustomFormItem>
             <CustomFormItem
               label="任务优先级"
@@ -2319,7 +2287,7 @@
             <CustomFormItem
               label="小号专属"
               name="union.fmlRace.smallAccountExclusiveEnabled"
-              tooltip="本功能为小号专用，大号勿开，会消耗大量元宝，开启本功能里的任意一个功能后，都不会做公会任务了，只会升级或者刷新公会任务。开启后按需设置功能，可达到小号升级指定分数任务，刷新到指定分数任务"
+              tooltip="本功能为小号专用，会消耗元宝。新接取任务仍需满足上方四类接取规则，再按下方条件刷新或升级后放弃；开启“完成已接任务”时会优先完成当前任务，不按小号模式放弃。"
             >
               <Switch
                 :checked="config.union.fmlRace.smallAccountExclusiveEnabled"
@@ -2330,7 +2298,7 @@
               <CustomFormItem
                 label="元宝升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
-                tooltip="独立开关：接取达到升级最低积分且任务优先级大于等于1的任务，执行元宝升级后放弃；可与元宝刷新任务同时开启。例：设置升级最低积分为24分，则会升级所有达到24分的任务；想只升级指定花，请开启种植收获细化设置。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再按升级最低积分及任务优先级判断；执行元宝升级后放弃。可与元宝刷新同时开启；开启“完成已接任务”时优先完成当前任务。"
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
@@ -2356,7 +2324,7 @@
               <CustomFormItem
                 label="元宝刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
-                tooltip="独立开关：接取积分小于等于低分阈值的任务并持续刷新，达到刷新目标后放弃；仅当同时开启元宝升级且达到升级条件时才会升级。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再接取积分小于等于低分阈值的任务进行刷新，达到目标后放弃；同时开启元宝升级且达到条件时才升级。开启“完成已接任务”时优先完成当前任务。"
               >
                 <Switch
                   :checked="config.union.fmlRace.diamondRefreshTask"
@@ -2861,33 +2829,43 @@
       @cancel="cancelFmlRaceQuickSetup"
     >
       <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
-        <div class="fml-race-quick-setup-field">
-          <span>普通任务接取分数</span>
-          <CustomInputNumber
-            v-model:value="fmlRaceQuickSetupNormalScore"
-            :min="0"
-            :max="40"
-            class="w-42! sm:w-48!"
-          />
+        <p class="fml-race-rule-help">只接已开启且达到最低分数的任务，请选择需要接取的类型。</p>
+        <div
+          v-for="rule in fmlRaceAcceptRuleOptions"
+          :key="rule.key"
+          class="fml-race-quick-setup-field"
+        >
+          <span>{{ rule.label }}</span>
+          <div class="fml-race-accept-rule-controls">
+            <Switch v-model:checked="fmlRaceQuickSetupRules[rule.key].enabled" />
+            <span>分数</span>
+            <CustomInputNumber
+              v-model:value="fmlRaceQuickSetupRules[rule.key].minScore"
+              :disabled="!fmlRaceQuickSetupRules[rule.key].enabled"
+              :min="1"
+              :max="99"
+              :precision="0"
+              :aria-label="`${rule.label}最低分数`"
+              class="fml-race-rule-score"
+            />
+          </div>
         </div>
-        <div class="fml-race-quick-setup-field">
-          <span>升级任务接取分数</span>
-          <CustomInputNumber
-            v-model:value="fmlRaceQuickSetupUpgradeScore"
-            :min="0"
-            :max="80"
-            class="w-42! sm:w-48!"
+        <template v-if="fmlRaceQuickSetupRules.otherUpgrade.enabled">
+          <Radio.Group v-model:value="fmlRaceQuickSetupRules.otherUpgrade.memberMode">
+            <Space>
+              <Radio value="all">全部成员</Radio>
+              <Radio value="specified">指定成员</Radio>
+            </Space>
+          </Radio.Group>
+          <CustomSelect
+            v-if="fmlRaceQuickSetupRules.otherUpgrade.memberMode === 'specified'"
+            v-model:value="fmlRaceQuickSetupMembers"
+            mode="tags"
+            placeholder="输入成员名称后按回车"
+            :token-separators="[',', '，']"
+            style="width: 100%"
           />
-        </div>
-      </div>
-      <div v-else-if="fmlRaceQuickSetupStep === 2" class="fml-race-quick-setup">
-        <div class="fml-race-quick-setup-question">接取他人升级任务</div>
-        <Radio.Group v-model:value="fmlRaceQuickSetupAcceptOthersUpgrade">
-          <Space>
-            <Radio :value="true">是</Radio>
-            <Radio :value="false">否</Radio>
-          </Space>
-        </Radio.Group>
+        </template>
       </div>
       <div v-else class="fml-race-quick-setup">
         <div class="fml-race-quick-setup-question">是否使用元宝升级</div>
@@ -2974,6 +2952,11 @@ import {
   normalizeGameConfigSelects,
 } from './game-config/normalizeConfigSelects'
 import type { GameConfig } from './game-config/types'
+import {
+  createDefaultFmlRaceAcceptRules,
+  fmlRaceAcceptRuleOptions,
+  normalizeFmlRaceAcceptRules,
+} from './game-config/fmlRaceAcceptRules'
 
 // 路由相关
 const route = useRoute()
@@ -2995,14 +2978,12 @@ const activeTab = ref('基础')
 const formRef = ref()
 const fmlRaceQuickSetupVisible = ref(false)
 const fmlRaceQuickSetupSaving = ref(false)
-const fmlRaceQuickSetupStep = ref<1 | 2 | 3>(1)
-const fmlRaceQuickSetupNormalScore = ref(23)
-const fmlRaceQuickSetupUpgradeScore = ref(46)
-const fmlRaceQuickSetupAcceptOthersUpgrade = ref(false)
+const fmlRaceQuickSetupStep = ref<1 | 2>(1)
+const fmlRaceQuickSetupRules = ref(createDefaultFmlRaceAcceptRules())
+const fmlRaceQuickSetupMembers = ref<string[]>([])
 const fmlRaceQuickSetupUseDiamondUpgrade = ref(true)
 const fmlRaceQuickSetupTitle = computed(() => {
-  if (fmlRaceQuickSetupStep.value === 1) return '设置分数'
-  if (fmlRaceQuickSetupStep.value === 2) return '他人升级任务设置'
+  if (fmlRaceQuickSetupStep.value === 1) return '接取规则'
   return '使用元宝升级任务'
 })
 
@@ -3014,49 +2995,6 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
-
-const clampInteger = (value: unknown, min: number, max: number) =>
-  Math.max(min, Math.min(max, Math.floor(Number(value) || 0)))
-
-const enforceUpgradeTaskScores = (target: GameConfig, resetToLimit = false) => {
-  const fmlRace = target.union.fmlRace
-  const minTaskScore = clampInteger(fmlRace.minTaskScore, 0, 40)
-  if (fmlRace.minTaskScore !== minTaskScore) fmlRace.minTaskScore = minTaskScore
-  if (!fmlRace.upgradeTask) return
-
-  const maxUpgradeTaskScore = minTaskScore * 2
-  const minUpgradeTaskScore = maxUpgradeTaskScore > 0 ? 1 : 0
-  const nextUpgradeTaskScore = resetToLimit
-    ? maxUpgradeTaskScore
-    : clampInteger(fmlRace.minUpgradeTaskScore, minUpgradeTaskScore, maxUpgradeTaskScore)
-  if (fmlRace.minUpgradeTaskScore !== nextUpgradeTaskScore)
-    fmlRace.minUpgradeTaskScore = nextUpgradeTaskScore
-}
-
-const syncUpgradeTaskScores = () => enforceUpgradeTaskScores(config.value)
-
-const upgradeTaskScoreLimit = computed(
-  () => clampInteger(config.value.union.fmlRace.minTaskScore, 0, 40) * 2,
-)
-const upgradeTaskScoreMin = computed(() =>
-  config.value.union.fmlRace.upgradeTask && upgradeTaskScoreLimit.value > 0 ? 1 : 0,
-)
-const upgradeTaskScoreMax = computed(() =>
-  config.value.union.fmlRace.upgradeTask ? upgradeTaskScoreLimit.value : 80,
-)
-
-const handleMinTaskScoreChange = (value: number | null | undefined) => {
-  config.value.union.fmlRace.minTaskScore = clampInteger(value, 0, 40)
-  enforceUpgradeTaskScores(config.value, config.value.union.fmlRace.upgradeTask)
-}
-
-const handleMinUpgradeTaskScoreChange = (value: number | null | undefined) => {
-  config.value.union.fmlRace.minUpgradeTaskScore = clampInteger(
-    value,
-    upgradeTaskScoreMin.value,
-    upgradeTaskScoreMax.value,
-  )
-}
 
 const handleCultivateEnabledChange = (enabled: boolean) => {
   config.value.plant.cultivate.autoHarvestEnabled = enabled
@@ -3103,9 +3041,6 @@ const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boole
     target = target[keys[index]] as Record<string, any>
   }
   target[keys[keys.length - 1]] = enabled
-  if (path === 'union.fmlRace.upgradeTask' && enabled) {
-    enforceUpgradeTaskScores(config.value, true)
-  }
 }
 
 const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boolean) => {
@@ -3155,9 +3090,8 @@ const handleSmallAccountExclusiveChange = (enabled: boolean) => {
 
 const resetFmlRaceQuickSetup = () => {
   fmlRaceQuickSetupStep.value = 1
-  fmlRaceQuickSetupNormalScore.value = 23
-  fmlRaceQuickSetupUpgradeScore.value = 46
-  fmlRaceQuickSetupAcceptOthersUpgrade.value = false
+  fmlRaceQuickSetupRules.value = createDefaultFmlRaceAcceptRules()
+  fmlRaceQuickSetupMembers.value = [...config.value.union.fmlRace.specifiedUpgradePlayers]
   fmlRaceQuickSetupUseDiamondUpgrade.value = true
 }
 
@@ -3173,25 +3107,14 @@ const cancelFmlRaceQuickSetup = () => {
 }
 
 const applyFmlRaceQuickSetup = async () => {
-  const normalScore = Math.max(
-    0,
-    Math.min(40, Math.floor(Number(fmlRaceQuickSetupNormalScore.value) || 0)),
-  )
-  const upgradeScore = fmlRaceQuickSetupUseDiamondUpgrade.value
-    ? normalScore * 2
-    : Math.max(0, Math.min(80, Math.floor(Number(fmlRaceQuickSetupUpgradeScore.value) || 0)))
   const fmlRace = config.value.union.fmlRace
 
   fmlRace.enabled = true
   fmlRace.autoEnableModules = true
   fmlRace.useSpeedUpTicketInTask = true
-  fmlRace.minTaskScore = normalScore
-  fmlRace.minUpgradeTaskScore = upgradeScore
+  fmlRace.acceptRules = normalizeFmlRaceAcceptRules(fmlRaceQuickSetupRules.value)
+  fmlRace.specifiedUpgradePlayers = [...fmlRaceQuickSetupMembers.value]
   fmlRace.avoidProgressTask = true
-  fmlRace.othersUpgradeTaskMode = !fmlRaceQuickSetupAcceptOthersUpgrade.value
-  fmlRace.excludeOthersUpgradeTask = !fmlRaceQuickSetupAcceptOthersUpgrade.value
-  fmlRace.onlySpecifiedUpgradeTask = false
-  fmlRace.acceptQualifiedNormalTask = false
   fmlRace.taskTypePriority = { ...defaultFmlRaceTaskTypePriority }
   fmlRace.upgradeTask = fmlRaceQuickSetupUseDiamondUpgrade.value
 
@@ -3203,15 +3126,26 @@ const applyFmlRaceQuickSetup = async () => {
   flower.taskMode = true
   flower.taskPriorityConfig['公会竞赛'] = 1
 
-  syncUpgradeTaskScores()
   fmlRaceQuickSetupVisible.value = false
   await saveConfig()
   resetFmlRaceQuickSetup()
 }
 
 const handleFmlRaceQuickSetupConfirm = async () => {
-  if (fmlRaceQuickSetupStep.value < 3) {
-    fmlRaceQuickSetupStep.value = (fmlRaceQuickSetupStep.value + 1) as 1 | 2 | 3
+  if (fmlRaceQuickSetupStep.value === 1) {
+    if (!Object.values(fmlRaceQuickSetupRules.value).some((rule) => rule.enabled)) {
+      message.warning('请至少开启一种需要接取的任务类型')
+      return
+    }
+    const other = fmlRaceQuickSetupRules.value.otherUpgrade
+    if (
+      other.enabled && other.memberMode === 'specified' &&
+      !fmlRaceQuickSetupMembers.value.some((name) => name.trim())
+    ) {
+      message.warning('请填写指定成员名称，或选择全部成员')
+      return
+    }
+    fmlRaceQuickSetupStep.value = 2
     return
   }
 
@@ -3223,14 +3157,10 @@ const handleFmlRaceQuickSetupConfirm = async () => {
   }
 }
 
-const othersUpgradeTaskChoice = computed({
-  get: () => (config.value.union.fmlRace.onlySpecifiedUpgradeTask ? 'specified' : 'exclude'),
-  set: (value: 'exclude' | 'specified') => {
-    const onlySpecified = value === 'specified'
-    config.value.union.fmlRace.onlySpecifiedUpgradeTask = onlySpecified
-    config.value.union.fmlRace.excludeOthersUpgradeTask = !onlySpecified
-  },
-})
+const showSpecifiedUpgradeMembers = computed(() =>
+  config.value.union.fmlRace.acceptRules.otherUpgrade.enabled &&
+  config.value.union.fmlRace.acceptRules.otherUpgrade.memberMode === 'specified',
+)
 
 const getGuildMemberName = (member: unknown): string => {
   if (typeof member === 'string') return member.trim()
@@ -3477,7 +3407,6 @@ const fetchConfig = async () => {
         migrateLegacyFloralShopCatalog(response.data.data)
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig)
-        enforceUpgradeTaskScores(mergedConfig)
         config.value = mergedConfig
         console.log('✅ 配置加载成功')
       } else {
@@ -3533,7 +3462,6 @@ const saveConfig = async () => {
     })
 
     normalizeGameConfigSelects(config.value)
-    syncUpgradeTaskScores()
 
     const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
 
@@ -3635,7 +3563,6 @@ const importConfigFromSelectedAccount = async () => {
     migrateLegacyFloralShopCatalog(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload)
-    enforceUpgradeTaskScores(payload)
     const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
 
     if (!saveResponse.data?.success) {
@@ -3904,6 +3831,39 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.fml-race-rule-help {
+  margin: 0 0 16px;
+  color: #666;
+  font-size: 13px;
+}
+
+.fml-race-taken-task-help {
+  margin: 8px 0 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.fml-race-accept-rule-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.fml-race-accept-rule-controls .fml-race-rule-score {
+  width: 80px !important;
+  min-width: 68px;
+  flex-shrink: 1;
+}
+
+.fml-race-accept-rule-item :deep(.ant-form-item-row) {
+  flex-wrap: nowrap;
+}
+
+.fml-race-accept-rule-item :deep(.ant-form-item-label) {
+  flex: 0 0 145px;
 }
 
 .fml-race-quick-setup-question {

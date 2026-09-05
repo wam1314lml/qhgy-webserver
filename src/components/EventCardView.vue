@@ -221,17 +221,30 @@
                 <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
               </div>
               <div v-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
-                <div
-                  v-for="(item, i) in tab.items"
-                  :key="`${tab.key}-${i}`"
-                  class="evt-rank-item"
-                  :class="{ 'evt-rank-item--highlight': item.highlight }"
-                >
-                  <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
-                  <span class="evt-rank-name">{{ item.name }}</span>
-                  <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
-                  <span class="evt-rank-value">{{ item.value }}</span>
-                </div>
+                <template v-for="(item, i) in tab.items" :key="`${tab.key}-${item.key ?? i}`">
+                  <div v-if="item.dividerBefore" class="evt-rank-divider"><span>{{ item.dividerBefore }}</span></div>
+                  <div
+                    class="evt-rank-item"
+                    :class="{
+                      'evt-rank-item--highlight': item.highlight,
+                      'evt-rank-item--demoted': item.demoted,
+                      'evt-rank-item--expandable': item.expandable,
+                    }"
+                    @click="item.expandable && toggleRankItem(card.module, tab.key, item, i)"
+                  >
+                    <span class="evt-rank-pos" :class="`evt-rank-pos--${i + 1}`">{{ i + 1 }}</span>
+                    <span class="evt-rank-name">{{ item.name }}</span>
+                    <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
+                    <span class="evt-rank-value">{{ item.value }}</span>
+                    <span v-if="item.expandable" class="evt-rank-chevron">{{ rankItemExpanded(card.module, tab.key, item, i) ? '▲' : '▼' }}</span>
+                  </div>
+                  <div v-if="item.expandable && rankItemExpanded(card.module, tab.key, item, i)" class="evt-rank-detail" :class="{ 'evt-rank-detail--demoted': item.demoted }">
+                    <span>公会等级 <b>{{ item.level ?? '—' }}</b></span>
+                    <span>成员 <b>{{ item.memberCount ?? '—' }}<template v-if="item.memberLimit">/{{ item.memberLimit }}</template></b></span>
+                    <span>距前一名 <b>{{ item.gapToPrevious == null ? '已是榜首' : `${item.gapToPrevious}分` }}</b></span>
+                    <span>领先后一名 <b>{{ item.gapToNext == null ? '已是末位' : `${item.gapToNext}分` }}</b></span>
+                  </div>
+                </template>
                 <div v-if="!tab.items.length" class="evt-rank-empty">暂无排名数据</div>
               </div>
             </template>
@@ -419,6 +432,8 @@ interface LayoutTable {
 
 /** 排行榜单行 */
 interface LayoutRankItem {
+  key?: string
+  fid?: string
   name: string
   value: string | number
   badge?: string
@@ -426,6 +441,14 @@ interface LayoutRankItem {
   highlight?: boolean
   quality?: number
   itemId?: number
+  expandable?: boolean
+  level?: number
+  memberCount?: number
+  memberLimit?: number
+  gapToPrevious?: number | null
+  gapToNext?: number | null
+  demoted?: boolean
+  dividerBefore?: string
 }
 interface LayoutRankTab { key: string; label: string; items: LayoutRankItem[] }
 
@@ -600,6 +623,17 @@ const activeRankTab = (card: EvtCard): LayoutRankTab | null => {
 }
 const setActiveRankTab = (module: string, tabKey: string) => {
   activeRankTabs.value = { ...activeRankTabs.value, [module]: tabKey }
+}
+
+const expandedRankItems = ref<Set<string>>(new Set())
+const rankItemKey = (module: string, tabKey: string, item: LayoutRankItem, index: number) =>
+  `${module}:${tabKey}:${item.key ?? item.fid ?? index}`
+const rankItemExpanded = (module: string, tabKey: string, item: LayoutRankItem, index: number) =>
+  expandedRankItems.value.has(rankItemKey(module, tabKey, item, index))
+const toggleRankItem = (module: string, tabKey: string, item: LayoutRankItem, index: number) => {
+  const key = rankItemKey(module, tabKey, item, index)
+  if (expandedRankItems.value.has(key)) expandedRankItems.value.delete(key)
+  else expandedRankItems.value.add(key)
 }
 
 // ── 解析 & 聚合 ─────────────────────────────────────────────────────────────
@@ -1006,6 +1040,16 @@ const formatTime = (ts: number) => {
 .evt-rank-list--tabs .evt-rank-item { min-height:34px; padding:5px 10px; border-radius:0; border-bottom:1px solid #f3e8ff; background:#fff; }
 .evt-rank-list--tabs .evt-rank-item:nth-child(even) { background:#fdf4ff; }
 .evt-rank-item--highlight { background:#fef9c3 !important; }
+.evt-rank-item--expandable { cursor:pointer; }
+.evt-rank-item--expandable:hover { background:#faf5ff; }
+.evt-rank-list--tabs .evt-rank-item--demoted { background:#fff1f2; border-bottom-color:#fecdd3; }
+.evt-rank-divider { display:flex; align-items:center; gap:8px; color:#dc2626; font-size:10px; font-weight:700; padding:4px 8px; background:#fff7ed; }
+.evt-rank-divider::before,.evt-rank-divider::after { content:''; height:1px; flex:1; background:#f87171; }
+.evt-rank-detail { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:8px 42px 9px; color:#6b7280; font-size:11px; background:#faf5ff; border-bottom:1px solid #f3e8ff; }
+.evt-rank-detail span { min-width:0; }
+.evt-rank-detail b { color:#374151; margin-left:3px; }
+.evt-rank-detail--demoted { background:#fff7f7; border-bottom-color:#fecdd3; }
+.evt-rank-chevron { color:#9ca3af; font-size:9px; flex-shrink:0; }
 .evt-rank-no { width:20px; height:20px; border-radius:50%; background:#e5e7eb; color:#6b7280; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .evt-rank-pos { width:24px; color:#9ca3af; font-weight:700; text-align:center; flex-shrink:0; }
 .evt-rank-pos--1 { color:#d97706; font-size:15px; }
@@ -1060,6 +1104,11 @@ const formatTime = (ts: number) => {
 
   .evt-section-toggle {
     padding: 7px 10px;
+  }
+
+  .evt-rank-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px 12px 9px 42px;
   }
 
   .evt-grid {

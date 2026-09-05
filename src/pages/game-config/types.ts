@@ -1,6 +1,14 @@
 export type BodyAttributeGroup = { main: number[]; sub: number[] }
 export type BodyAttributes = Record<string, BodyAttributeGroup>
 
+export type FmlRaceAcceptRule = { enabled: boolean; minScore: number }
+export type FmlRaceAcceptRules = {
+  normal: FmlRaceAcceptRule
+  systemUpgrade: FmlRaceAcceptRule
+  selfUpgrade: FmlRaceAcceptRule
+  otherUpgrade: FmlRaceAcceptRule & { memberMode: 'all' | 'specified' }
+}
+
 export interface GameConfig {
   basic: {
     reputation: {
@@ -255,14 +263,9 @@ export interface GameConfig {
       enabled: boolean
       autoEnableModules: boolean
       useSpeedUpTicketInTask: boolean
-      minTaskScore: number
-      minUpgradeTaskScore: number
+      acceptRules: FmlRaceAcceptRules
+      completeTakenTask: boolean
       avoidProgressTask: boolean
-      onlyUpgradeTask: boolean
-      othersUpgradeTaskMode: boolean
-      excludeOthersUpgradeTask: boolean
-      onlySpecifiedUpgradeTask: boolean
-      acceptQualifiedNormalTask: boolean
       specifiedUpgradePlayers: string[]
       harvestTaskFlowerFilterEnabled: boolean
       harvestTaskFlowerIds: Array<number | string>
