@@ -21,21 +21,8 @@
         <div v-if="currentStep === 'channel'" class="step-panel">
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
-            <a-radio :value="0" class="channel-option">
-              <div class="channel-content">
-                <div class="channel-icon-wrapper channel-icon-app">
-                  <span class="account-password-text">账号密码</span>
-                </div>
-              </div>
-            </a-radio>
-            <a-radio :value="1" class="channel-option">
-              <div class="channel-content">
-                <div class="channel-icon-wrapper">
-                  <img src="/icons/alipay.svg" alt="支付宝" class="channel-icon" />
-                </div>
-              </div>
-            </a-radio>
-            <a-radio :value="2" class="channel-option">
+            <!-- 暂时隐藏账号密码和支付宝入口；抖音保留展示但不可选择。 -->
+            <a-radio :value="2" disabled class="channel-option is-disabled" title="抖音暂未开放">
               <div class="channel-content">
                 <div class="channel-icon-wrapper channel-icon-douyin">
                   <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
@@ -718,7 +705,7 @@ const password = computed({
     loginForm.value.password = value
   },
 })
-const selectedChannel = ref<number>(0)
+const selectedChannel = ref<number>(3)
 const selectedServer = ref<ServerInfo | null>(null)
 const serverList = ref<ServerInfo[]>([])
 const loading = ref(false)
@@ -816,10 +803,10 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if ([0, 1, 2, 3].includes(selectedChannel.value)) {
+      if (selectedChannel.value === 3) {
         currentStep.value = 'login'
       } else {
-        alert('请选择游戏渠道')
+        message.warning('当前仅支持微信渠道，请选择微信')
         return
       }
       break
@@ -1700,7 +1687,7 @@ const resetForm = () => {
   }
   loginFormRef.value?.resetFields()
   serverFormRef.value?.resetFields()
-  selectedChannel.value = 0
+  selectedChannel.value = 3
   selectedServer.value = null
   serverList.value = []
   selectedScriptServer.value = null
@@ -1784,8 +1771,8 @@ watch(
   (isOpen) => {
     if (isOpen) {
       fetchScriptServers()
-      // 设置默认渠道选择为APP/微信
-      selectedChannel.value = 0
+      // 当前仅开放微信，新打开弹窗时保持默认选中微信。
+      selectedChannel.value = 3
     }
   },
 )
