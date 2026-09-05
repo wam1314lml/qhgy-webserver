@@ -2082,7 +2082,7 @@
             >
               <Switch v-model:checked="config.union.fmlRace.useSpeedUpTicketInTask" />
             </CustomFormItem>
-            <Divider orientation="left">接取规则</Divider>
+            <Divider orientation="left" :orientation-margin="0">接取规则</Divider>
             <p class="fml-race-rule-help">
               只接取最低分 ≤ 任务分数 ≤ 最高分的任务；未开启的类型不接取。
             </p>

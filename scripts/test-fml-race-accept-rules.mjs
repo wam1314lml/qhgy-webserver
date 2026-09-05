@@ -122,5 +122,6 @@ assert.ok(source.includes('v-model:value="fmlRaceQuickSetupRules[rule.key].maxSc
 assert.ok(source.includes('validateFmlRaceScoreRanges(config.value.union.fmlRace.acceptRules)'))
 assert.ok(source.includes('validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)'))
 assert.ok(!source.includes('flex: 0 0 145px'), '桌面规则应继承父表单标签列')
+assert.ok(source.includes('<Divider orientation="left" :orientation-margin="0">接取规则</Divider>'), '接取规则标题应取消默认留白，与说明文字左对齐')
 for (const key of oldKeys) assert.equal(source.includes(key), false, key)
 console.log('竞赛配置测试通过：四类默认关闭、1—99分、成员规则、旧配置清理、保存往返、Vue编译。')
