@@ -655,7 +655,7 @@
               <CustomFormItem
                 label="任务优先级"
                 name="plant.flower.taskPriorityConfig"
-                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做，果艺不做，莳花不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
+                tooltip="配置订单任务的优先级，数字越小优先级越高，0是不做此任务（公会竞赛最低为1，不能设置0），可以几个任务设置一样的数字，就会一起做这几个任务。有些玩家说居民订单不做、果艺不做，都跟您设置的数字有关，数字最大就会把任务排到最后，让您产生不做的错觉"
                 v-if="config.plant.flower.taskMode"
               >
                 <div class="w-full max-w-[420px] flex flex-col gap-2">
@@ -686,6 +686,7 @@
                       class="w-24!"
                     />
                   </div>
+                  <!-- 莳花纪闻任务优先级暂时隐藏，保留底层配置以便后续恢复。
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm">莳花纪闻</span>
                     <CustomInputNumber
@@ -695,6 +696,7 @@
                       class="w-24!"
                     />
                   </div>
+                  -->
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm">宫廷订单</span>
                     <CustomInputNumber
