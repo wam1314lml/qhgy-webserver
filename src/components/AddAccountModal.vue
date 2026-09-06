@@ -21,19 +21,19 @@
         <div v-if="currentStep === 'channel'" class="step-panel">
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
-            <!-- 暂时隐藏账号密码和支付宝入口；开放抖音和微信扫码。 -->
+            <!-- 暂时隐藏账号密码和支付宝入口；微信优先展示，同时开放抖音扫码。 -->
+            <a-radio :value="3" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
+                </div>
+              </div>
+            </a-radio>
             <a-radio :value="2" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper channel-icon-douyin">
                   <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
                   <span class="official-badge">官方</span>
-                </div>
-              </div>
-            </a-radio>
-            <a-radio :value="3" class="channel-option">
-              <div class="channel-content">
-                <div class="channel-icon-wrapper">
-                  <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
                 </div>
               </div>
             </a-radio>
@@ -94,19 +94,26 @@
                     <div
                       v-if="douyinScanStatus === 'verify_sms'"
                       class="sms-verify-box"
-                      style="margin-top: 12px"
                     >
-                      <p style="color: #faad14">{{ douyinSmsMsg || '请输入短信验证码' }}</p>
-                      <div style="display: flex; gap: 8px; margin-top: 8px">
+                      <p class="sms-verify-message">
+                        {{ douyinSmsMsg || '请输入短信验证码' }}
+                      </p>
+                      <div class="sms-verify-row">
                         <a-input
                           v-model:value="douyinSmsCode"
                           placeholder="短信验证码"
                           maxlength="6"
-                          style="flex: 1"
+                          inputmode="numeric"
+                          autocomplete="one-time-code"
+                          class="sms-verify-input"
                         />
-                        <a-button :loading="douyinSmsSubmitting" @click="handleDouyinSmsVerify"
-                          >提交</a-button
+                        <a-button
+                          class="sms-verify-submit"
+                          :loading="douyinSmsSubmitting"
+                          @click="handleDouyinSmsVerify"
                         >
+                          提交
+                        </a-button>
                       </div>
                     </div>
                   </div>

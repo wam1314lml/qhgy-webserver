@@ -75,6 +75,8 @@
   max-width: 600px;
   margin: 20px auto;
   padding: 0;
+  caret-color: transparent;
+  user-select: none;
 }
 
 /* 隐藏ant design radio的默认圆圈 */
@@ -383,7 +385,8 @@
 
 .qrcode-wrapper {
   width: 240px;
-  height: 240px;
+  max-width: 100%;
+  min-height: 240px;
 }
 
 .qrcode-content {
@@ -397,6 +400,37 @@
   margin-top: 10px;
   color: #1890ff;
   font-size: 0.9rem;
+}
+
+.sms-verify-box {
+  width: 220px;
+  max-width: 100%;
+  margin-top: 12px;
+}
+
+.sms-verify-message {
+  margin: 0;
+  color: #faad14;
+  overflow-wrap: anywhere;
+}
+
+.sms-verify-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.sms-verify-input {
+  flex: 0 1 140px;
+  width: 140px;
+  min-width: 0;
+}
+
+.sms-verify-submit {
+  flex: none;
 }
 
 .qrcode-loading {
@@ -476,6 +510,15 @@
   .channel-icon-wrapper {
     width: 70px;
     height: 70px;
+  }
+
+  .sms-verify-box {
+    width: 210px;
+  }
+
+  .sms-verify-input {
+    flex-basis: 130px;
+    width: 130px;
   }
 
   .modal-actions {

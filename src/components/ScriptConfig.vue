@@ -985,7 +985,7 @@ const formatGameAccountName = (account: GameAccount): string => {
   if (!accountName) return '--'
 
   const platform = Number(account.platform)
-  return platform === 1 || platform === 2 ? accountName : maskOfficialAccountName(accountName)
+  return [1, 2, 3].includes(platform) ? accountName : maskOfficialAccountName(accountName)
 }
 
 const isAccountExpired = (account: GameAccount): boolean => {
