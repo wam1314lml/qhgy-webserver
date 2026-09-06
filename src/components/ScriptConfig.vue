@@ -721,6 +721,7 @@ import AlipayReauthModal from './AlipayReauthModal.vue'
 import DouyinReauthModal from './DouyinReauthModal.vue'
 import WxReauthModal from './WxReauthModal.vue'
 import { updateUserBalance } from '../utils/userUtils'
+import { getTeamOrderDay, getNextTeamOrderDayDelay, getTodayTeamOrderStats } from '../utils/teamOrderStats'
 
 // 基础账户信息接口
 interface GameAccount {
@@ -776,6 +777,7 @@ interface GameRecordDetails {
     totalCount: number
   }
   teamOrder?: {
+    date?: string
     totalSubmit?: number
     totalExp?: number
   }
@@ -817,6 +819,17 @@ console.log('🚀 ScriptConfig 组件加载')
 
 // 所有状态管理
 const accounts = ref<GameAccount[]>([])
+const teamOrderDay = ref(getTeamOrderDay())
+let teamOrderDayTimer: number | null = null
+
+// 只在日切时刷新日期；即使账号离线、Redis 未更新，也不会继续显示昨日团单。
+const refreshTeamOrderDay = () => {
+  if (teamOrderDayTimer !== null) window.clearTimeout(teamOrderDayTimer)
+  const now = Date.now()
+  teamOrderDay.value = getTeamOrderDay(now)
+  teamOrderDayTimer = window.setTimeout(refreshTeamOrderDay, getNextTeamOrderDayDelay(now))
+}
+
 const MAX_GAME_ACCOUNTS = 10
 const canAddAccount = computed(() => accounts.value.length < MAX_GAME_ACCOUNTS)
 const showAddModal = ref(false)
@@ -887,8 +900,7 @@ const getAccountGameData = (account: GameAccount) => {
     decorateFinish: orders.decorateFinish ?? 0,
     satinFinish: orders.satinFinish ?? 0,
     customerFinish: orders.customerFinish ?? 0,
-    teamOrderSubmit: teamOrder.totalSubmit ?? 0,
-    teamOrderExp: teamOrder.totalExp ?? 0,
+    ...getTodayTeamOrderStats(teamOrder, teamOrderDay.value),
     isStarted,
     isOnline: gameRecordDetails.isOnline || isOnline,
   }
@@ -3085,6 +3097,9 @@ const startFirstAccountTour = () => {
 
 // 生命周期函数
 onMounted(async () => {
+  refreshTeamOrderDay()
+  document.addEventListener('visibilitychange', refreshTeamOrderDay)
+  window.addEventListener('pageshow', refreshTeamOrderDay)
   // 检测上一页是否为登录页，如果是则打开悬浮按钮组
   const previousRoute = sessionStorage.getItem('previousRoute')
 
@@ -3106,6 +3121,10 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (teamOrderDayTimer !== null) window.clearTimeout(teamOrderDayTimer)
+  teamOrderDayTimer = null
+  document.removeEventListener('visibilitychange', refreshTeamOrderDay)
+  window.removeEventListener('pageshow', refreshTeamOrderDay)
   // 清除所有定时器
   if (autoRefreshInterval) {
     clearInterval(autoRefreshInterval)
