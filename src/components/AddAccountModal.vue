@@ -21,8 +21,8 @@
         <div v-if="currentStep === 'channel'" class="step-panel">
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
-            <!-- 暂时隐藏账号密码和支付宝入口；抖音保留展示但不可选择。 -->
-            <a-radio :value="2" disabled class="channel-option is-disabled" title="抖音暂未开放">
+            <!-- 暂时隐藏账号密码和支付宝入口；开放抖音和微信扫码。 -->
+            <a-radio :value="2" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper channel-icon-douyin">
                   <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
@@ -803,10 +803,10 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if (selectedChannel.value === 3) {
+      if (selectedChannel.value === 2 || selectedChannel.value === 3) {
         currentStep.value = 'login'
       } else {
-        message.warning('当前仅支持微信渠道，请选择微信')
+        message.warning('请选择抖音或微信渠道')
         return
       }
       break
