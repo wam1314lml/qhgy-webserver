@@ -698,7 +698,7 @@
                   </div>
                   -->
                   <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm">宫廷订单</span>
+                    <span class="text-sm">特供订单</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['宫廷订单']"
                       :min="0"
@@ -1728,14 +1728,14 @@
               />
             </CustomFormItem>
 
-            <Divider orientation="left">宫廷订单</Divider>
+            <Divider orientation="left">特供订单</Divider>
             <CustomFormItem label="自动完成" name="order.palace.enabled">
               <Switch v-model:checked="config.order.palace.enabled" />
             </CustomFormItem>
             <CustomFormItem
               label="品质限定"
               name="order.palace.qualities"
-              tooltip="仅接受指定品质的宫廷订单，不符合时自动免费刷新一次（每天限1次），刷新后仍不符合则跳过"
+              tooltip="仅接受指定品质的特供订单，不符合时自动免费刷新一次（每天限1次），刷新后仍不符合则跳过"
               v-if="config.order.palace.enabled"
             >
               <CustomSelect
@@ -1748,7 +1748,7 @@
             <CustomFormItem
               label="不论品质"
               name="order.palace.ignoreQuality"
-              tooltip="开启后，若没有用户设置的品质，且没有免费刷新了，则会无视品质做完这个宫廷订单"
+              tooltip="开启后，若没有用户设置的品质，且没有免费刷新了，则会无视品质做完这个特供订单"
               v-if="config.order.palace.enabled"
             >
               <Switch v-model:checked="palaceIgnoreQuality" />
@@ -1773,7 +1773,7 @@
               type="warning"
               show-icon
               message="已开启持续勾玉刷新"
-              description="免费刷新次数耗尽后仍会持续消耗勾玉，直到刷出符合品质限定的宫廷订单；开启后将自动关闭“不论品质”。"
+              description="免费刷新次数耗尽后仍会持续消耗勾玉，直到刷出符合品质限定的特供订单；开启后将自动关闭“不论品质”。"
               class="mb-6"
             />
 
