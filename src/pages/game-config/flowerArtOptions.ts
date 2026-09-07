@@ -26,6 +26,7 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5303", label: "荷风载露" },
   { value: "5304", label: "葵光小筑" },
   { value: "5307", label: "闲趣萌宠" },
+  { value: "5309", label: "果乐园邀约" },
   { value: "5311", label: "椰风漫曲" },
   { value: "5401", label: "狐仙泽" },
   { value: "5402", label: "灵花幻域" },

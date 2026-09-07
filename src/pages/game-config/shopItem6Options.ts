@@ -20,6 +20,7 @@ export const orchardFruitOptions: ShopOption[] = [
   { value: 10140, label: "玄雾金鱼草(百果券×2880)" },
   { value: 10147, label: "奎尔特夫人(百果券×2880)" },
   { value: 10148, label: "粉叶奎尔特夫人(百果券×2880)" },
+  { value: 10177, label: "星红宝石柚(百果券×2880)" },
   { value: 10013, label: "大红甜(百果券×3880)" },
   { value: 10014, label: "红加仑(百果券×3880)" },
   { value: 10037, label: "黄叶芋(百果券×3880)" },
