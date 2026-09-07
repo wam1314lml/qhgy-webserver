@@ -1017,3 +1017,43 @@
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
+
+/* 登录历史账号：可单独删除记录，不触发账号选择。 */
+.saved-account-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.saved-account-option__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-account-option__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #8c8c8c;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.saved-account-option__remove:hover,
+.saved-account-option__remove:focus-visible {
+  color: #ff4d4f;
+  background: #fff1f0;
+  outline: none;
+}

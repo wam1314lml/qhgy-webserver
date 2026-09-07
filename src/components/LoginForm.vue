@@ -76,6 +76,21 @@
                   :dropdown-match-select-width="true"
                   :allow-clear="true"
                 >
+                  <template #option="{ value }">
+                    <div class="saved-account-option">
+                      <span class="saved-account-option__name">{{ value }}</span>
+                      <button
+                        type="button"
+                        class="saved-account-option__remove"
+                        :title="`删除账号记录 ${value}`"
+                        :aria-label="`删除账号记录 ${value}`"
+                        @mousedown.stop.prevent
+                        @click.stop.prevent="removeSavedAccount(value)"
+                      >
+                        <CloseOutlined />
+                      </button>
+                    </div>
+                  </template>
                 </a-auto-complete>
               </a-form-item>
 
@@ -286,6 +301,7 @@ import type { FormInstance } from 'ant-design-vue'
 import axios from '../utils/axios'
 import ForgotPasswordModal from './ForgotPasswordModal.vue'
 import { sanitizeHtml } from '../utils/sanitize'
+import { CloseOutlined } from '@ant-design/icons-vue'
 import { useTheme } from '../composables/useTheme'
 import RegisterForm from './RegisterForm.vue'
 
@@ -496,6 +512,38 @@ const onAccountSelect = (value: string) => {
     showAccountDropdown.value = false
     console.log('已选择账号并填充密码:', selectedAccount.username)
   }
+}
+
+const removeSavedAccount = (username: string) => {
+  savedAccounts.value = savedAccounts.value.filter((account) => account.username !== username)
+
+  if (savedAccounts.value.length > 0) {
+    localStorage.setItem('saved_accounts', JSON.stringify(savedAccounts.value))
+  } else {
+    localStorage.removeItem('saved_accounts')
+  }
+
+  // 删除对应的旧格式记录，避免最后一个历史账号在刷新后被重新迁移回来。
+  const legacyCredentials = localStorage.getItem('remembered_credentials')
+  if (legacyCredentials) {
+    try {
+      if (JSON.parse(legacyCredentials)?.username === username) {
+        localStorage.removeItem('remembered_credentials')
+      }
+    } catch {
+      localStorage.removeItem('remembered_credentials')
+    }
+  }
+
+  if (formData.username === username) {
+    formData.username = ''
+    formData.password = ''
+    rememberPassword.value = false
+    errors.username = ''
+    errors.password = ''
+  }
+
+  message.success('账号记录已删除')
 }
 
 // 加载已保存的账号密码
