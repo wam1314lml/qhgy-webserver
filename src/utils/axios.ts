@@ -4,6 +4,7 @@ import router from '../router'
 import { signRequest } from './hmac'
 import { generateBrowserFingerprint } from './fingerprint'
 import { d3 } from './enc'
+import { getSafeWxReauthError, isWxReauthRequired } from './wxReauth'
 
 // 防重复消息显示机制
 const messageCache = new Map<string, number>()
@@ -204,6 +205,7 @@ const isTokenInvalidError = (data: any): boolean => {
 // 响应拦截器 - 处理token过期和错误
 axiosInstance.interceptors.response.use(
   (response) => {
+    if (isWxReauthRequired(response.data)) return response
     // 检查成功响应中是否包含令牌无效信息
     if (response.data && isTokenInvalidError(response.data)) {
       // throttledErrorMessage('登录已过期，请重新登录')
@@ -218,6 +220,9 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response
 
+      // 即使接口以非 2xx 返回，也保留原响应让账号页弹出微信重扫，而非退出网站。
+      if (isWxReauthRequired(data)) return Promise.reject(error)
+
       // 优先检查响应数据中的令牌无效信息
       if (isTokenInvalidError(data)) {
         // console.log('🔐 错误响应数据显示令牌无效，执行退出登录')
@@ -227,7 +232,12 @@ axiosInstance.interceptors.response.use(
       }
 
       // 优先尝试使用通用错误信息，如果没有再根据状态码处理
-      const generalErrorMessage = data?.message || data?.error || data?.err
+      const isWxReauthRequest = /\/api\/game-accounts\/wx\/reauth\/(?:start|poll|cancel)(?:[?#]|$)/.test(
+        error.config?.url || '',
+      )
+      const generalErrorMessage = isWxReauthRequest
+        ? getSafeWxReauthError(data, '微信认证失败，请重新获取二维码后重试')
+        : data?.message || data?.error || data?.err
 
       if (generalErrorMessage) {
         // 如果服务器返回了错误信息，直接使用

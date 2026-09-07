@@ -720,6 +720,7 @@ import UpdatePasswordModal from './UpdatePasswordModal.vue'
 import AlipayReauthModal from './AlipayReauthModal.vue'
 import DouyinReauthModal from './DouyinReauthModal.vue'
 import WxReauthModal from './WxReauthModal.vue'
+import { getSafeWxReauthError, isWxReauthRequired } from '../utils/wxReauth'
 import { updateUserBalance } from '../utils/userUtils'
 import { getTeamOrderDay, getNextTeamOrderDayDelay, getTodayTeamOrderStats } from '../utils/teamOrderStats'
 
@@ -2079,8 +2080,8 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
         await handleDouyinReauth(accountId)
       } else if (response.data.code === 'ALIPAY_REAUTH_REQUIRED') {
         await handleAlipayReauth(accountId)
-      } else if (response.data.code === 'WX_REAUTH_REQUIRED') {
-        openWxReauthPrompt(accountId)
+      } else if (isWxReauthRequired(response.data)) {
+        await openWxReauthPrompt(accountId)
       } else {
         let errorMsg = response.data.message || '操作失败'
         if (response.data.data && response.data.data.msg) {
@@ -2090,15 +2091,15 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
       }
     }
   } catch (error: any) {
-    console.error('操作游戏账号失败:', error)
+    if (!isWxReauthRequired(error.response?.data)) console.error('操作游戏账号失败:', error)
 
     // 检查错误响应中是否包含重新认证要求
     if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
       await handleDouyinReauth(accountId)
     } else if (error.response?.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
       await handleAlipayReauth(accountId)
-    } else if (error.response?.data?.code === 'WX_REAUTH_REQUIRED') {
-      openWxReauthPrompt(accountId)
+    } else if (isWxReauthRequired(error.response?.data)) {
+      await openWxReauthPrompt(accountId)
     } else {
       let errorMsg = error.response?.data?.message || '操作失败'
       if (error.response?.data?.data && error.response.data.data.msg) {
@@ -2430,7 +2431,11 @@ const completeReauthAfterScan = async (
     if (response.data.data?.msg) {
       errorMsg += `: ${response.data.data.msg}`
     }
-    message.error(errorMsg)
+    message.error(
+      reauthCode === 'WX_REAUTH_REQUIRED'
+        ? getSafeWxReauthError({ message: errorMsg }, '微信认证后启动失败，请重试')
+        : errorMsg,
+    )
   } catch (error: any) {
     if (isAccountAlreadyRunningError(error.response?.data)) {
       await fetchAndUpdateSingleAccountRecord(accountId)
@@ -2446,7 +2451,11 @@ const completeReauthAfterScan = async (
     if (error.response?.data?.data?.msg) {
       errorMsg += `: ${error.response.data.data.msg}`
     }
-    message.error(errorMsg)
+    message.error(
+      reauthCode === 'WX_REAUTH_REQUIRED'
+        ? getSafeWxReauthError({ message: errorMsg }, '微信认证后启动失败，请重试')
+        : errorMsg,
+    )
   } finally {
     const newSet = new Set(operatingAccounts.value)
     newSet.delete(accountId)
@@ -2578,10 +2587,7 @@ const getWxReauthStatus = (body: any): string => {
 }
 
 const getWxReauthError = (body: any, fallback: string): string => {
-  const data = getWxReauthData(body)
-  return String(
-    body?.message ?? body?.msg ?? body?.error ?? data.message ?? data.msg ?? data.error ?? fallback,
-  )
+  return getSafeWxReauthError(body, fallback)
 }
 
 const getWxReauthQrImage = (data: Record<string, any>): string =>
