@@ -17,6 +17,24 @@ export const createDefaultFmlRaceAcceptRules = (): FmlRaceAcceptRules => ({
   otherUpgrade: { enabled: false, minScore: 46, maxScore: 99, memberMode: 'all' },
 })
 
+export const getFmlRaceSelfUpgradeMinScoreLimit = (normalMinScore: unknown): number => {
+  const minimum = Number(normalMinScore)
+  if (!Number.isInteger(minimum) || minimum < 1 || minimum > 99) return 99
+  return Math.min(99, minimum * 2)
+}
+
+/** 只压低超限的自己升级最低分，不抬高已有低分，也不改变其他接取条件。 */
+export const clampFmlRaceSelfUpgradeMinScore = (rules: FmlRaceAcceptRules): void => {
+  const normalMinimum = Number(rules.normal.minScore)
+  // 编辑中暂时清空或填入无效值时，保留原配置，交给既有校验处理。
+  if (!Number.isInteger(normalMinimum) || normalMinimum < 1 || normalMinimum > 99) return
+  const selfMinimum = Number(rules.selfUpgrade.minScore)
+  const limit = getFmlRaceSelfUpgradeMinScoreLimit(normalMinimum)
+  if (Number.isFinite(selfMinimum) && selfMinimum > limit) {
+    rules.selfUpgrade.minScore = limit
+  }
+}
+
 /** 新分类必须显式开启，不把旧的全局限分/他人任务开关迁移成授权。 */
 export const normalizeFmlRaceAcceptRules = (value: unknown): FmlRaceAcceptRules => {
   const rules = createDefaultFmlRaceAcceptRules()
@@ -40,6 +58,7 @@ export const normalizeFmlRaceAcceptRules = (value: unknown): FmlRaceAcceptRules 
       rules.otherUpgrade.memberMode = rule.memberMode === 'specified' ? 'specified' : 'all'
     }
   }
+  clampFmlRaceSelfUpgradeMinScore(rules)
   return rules
 }
 

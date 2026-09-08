@@ -2113,6 +2113,7 @@
             <Divider orientation="left" :orientation-margin="0">接取规则</Divider>
             <p class="fml-race-rule-help">
               只接取最低分 ≤ 任务分数 ≤ 最高分的任务；未开启的类型不接取。
+              自己升级任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
             </p>
             <CustomFormItem
               v-for="rule in fmlRaceAcceptRuleOptions"
@@ -2131,7 +2132,8 @@
                   v-model:value="config.union.fmlRace.acceptRules[rule.key].minScore"
                   :disabled="!config.union.fmlRace.acceptRules[rule.key].enabled"
                   :min="1"
-                  :max="99"
+                  :max="rule.key === 'selfUpgrade' ? getFmlRaceSelfUpgradeMinScoreLimit(config.union.fmlRace.acceptRules.normal.minScore) : 99"
+                  @blur="clampFmlRaceSelfUpgradeMinScore(config.union.fmlRace.acceptRules)"
                   :precision="0"
                   :aria-label="`${rule.label}最低分数`"
                   class="fml-race-rule-score"
@@ -2483,7 +2485,10 @@
       @cancel="cancelFmlRaceQuickSetup"
     >
       <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
-        <p class="fml-race-rule-help">只接已开启且分数位于最低分至最高分之间的任务（含上下限）。</p>
+        <p class="fml-race-rule-help">
+          只接已开启且分数位于最低分至最高分之间的任务（含上下限）。
+          自己升级任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
+        </p>
         <div
           v-for="rule in fmlRaceAcceptRuleOptions"
           :key="rule.key"
@@ -2498,7 +2503,8 @@
               v-model:value="fmlRaceQuickSetupRules[rule.key].minScore"
               :disabled="!fmlRaceQuickSetupRules[rule.key].enabled"
               :min="1"
-              :max="99"
+              :max="rule.key === 'selfUpgrade' ? getFmlRaceSelfUpgradeMinScoreLimit(fmlRaceQuickSetupRules.normal.minScore) : 99"
+              @blur="clampFmlRaceSelfUpgradeMinScore(fmlRaceQuickSetupRules)"
               :precision="0"
               :aria-label="`${rule.label}最低分数`"
               class="fml-race-rule-score"
@@ -2623,6 +2629,8 @@ import {
   createDefaultFmlRaceAcceptRules,
   fmlRaceAcceptRuleOptions,
   normalizeFmlRaceAcceptRules,
+  getFmlRaceSelfUpgradeMinScoreLimit,
+  clampFmlRaceSelfUpgradeMinScore,
   getFmlRaceScoreRangeError,
   validateFmlRaceScoreRanges,
 } from './game-config/fmlRaceAcceptRules'
@@ -2801,6 +2809,7 @@ const applyFmlRaceQuickSetup = async () => {
 }
 
 const handleFmlRaceQuickSetupConfirm = async () => {
+  clampFmlRaceSelfUpgradeMinScore(fmlRaceQuickSetupRules.value)
   const rangeError = validateFmlRaceScoreRanges(fmlRaceQuickSetupRules.value)
   if (rangeError) {
     message.warning(rangeError)
@@ -3088,6 +3097,7 @@ function showConfigNoticeModal(title: string, contentHtml: string, okText = '确
 
 // 保存配置
 const saveConfig = async () => {
+  clampFmlRaceSelfUpgradeMinScore(config.value.union.fmlRace.acceptRules)
   const rangeError = validateFmlRaceScoreRanges(config.value.union.fmlRace.acceptRules)
   if (rangeError) {
     message.warning(rangeError)
