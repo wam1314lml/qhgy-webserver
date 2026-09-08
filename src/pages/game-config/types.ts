@@ -71,6 +71,8 @@ export interface GameConfig {
   plant: {
     cultivate: {
       enabled: boolean
+      cultivateQualityEnabled: boolean
+      cultivateQualities: number[]
       autoHarvestEnabled: boolean
       videoSpeedUp: boolean
       upgradeEnabled: boolean

@@ -371,6 +371,32 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              label="指定品质"
+              name="plant.cultivate.cultivateQualityEnabled"
+              tooltip="开启后仅开始培育指定品质的水果，不影响已开始培育的收获、加速和水果升级"
+              v-if="config.plant.cultivate.enabled"
+            >
+              <Switch v-model:checked="config.plant.cultivate.cultivateQualityEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="选择品质"
+              name="plant.cultivate.cultivateQualities"
+              tooltip="选择要开始培育的水果品质，可多选；未选择时不开始新的培育"
+              v-if="
+                config.plant.cultivate.enabled &&
+                config.plant.cultivate.cultivateQualityEnabled
+              "
+            >
+              <CustomSelect
+                v-model:value="config.plant.cultivate.cultivateQualities"
+                mode="multiple"
+                :options="flowerQualityOptions"
+                :allow-empty="true"
+                placeholder="未选择品质时不开始新培育"
+                style="width: 100%"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="自动收获"
               name="plant.cultivate.autoHarvestEnabled"
               tooltip="开启后培育完成后会自动收获"

@@ -28,10 +28,10 @@
               <!-- 副标题 -->
               <span v-if="card.layout?.subtitle" class="evt-card-subtitle">{{ card.layout.subtitle }}</span>
               <button
-                v-if="card.module === '花卉库存'"
+                v-if="isInventoryModule(card.module)"
                 type="button"
                 class="evt-copy-inventory-btn"
-                title="复制全部花卉库存"
+                :title="`复制全部${card.module}`"
                 @click="copyFlowerInventory(card)"
               >复制全部</button>
             </div>
@@ -597,9 +597,10 @@ const toggleSection = (module: string, section: string) => {
 // ── 双排行榜切换状态 ─────────────────────────────────────────────────────────
 
 const activeRankTabs = ref<Record<string, string>>({})
+const isInventoryModule = (module: string) => module === '水果库存' || module === '花卉库存'
 const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
   const tabs = card.layout?.rankTabs ?? []
-  if (card.module !== '花卉库存' || !tabs.length) return tabs
+  if (!isInventoryModule(card.module) || !tabs.length) return tabs
 
   const items = tabs[0].items ?? []
   const byCount = [...items].sort((a, b) => Number(b.value) - Number(a.value))

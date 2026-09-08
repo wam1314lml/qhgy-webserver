@@ -263,6 +263,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   floralShop.catalogVersion = QHGY_FLORAL_SHOP_CATALOG_VERSION
 
   const cultivate = config.plant.cultivate
+  cultivate.cultivateQualityEnabled = cultivate.cultivateQualityEnabled === true
+  // 空选择代表不开始新培育，不能套用其他多选默认补首项的逻辑。
+  cultivate.cultivateQualities = normalizeAllowedNumberIds(
+    cultivate.cultivateQualities,
+    new Set(flowerQualityOptions.map((option) => String(option.value))),
+  )
   cultivate.autoHarvestEnabled = cultivate.enabled && !!cultivate.autoHarvestEnabled
   cultivate.upgradeQualityEnabled = !!cultivate.upgradeQualityEnabled
   cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)

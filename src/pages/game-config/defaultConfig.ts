@@ -65,6 +65,8 @@ export const createDefaultGameConfig = (): GameConfig =>
     plant: {
       cultivate: {
         enabled: false,
+        cultivateQualityEnabled: false,
+        cultivateQualities: [1, 2, 3, 4, 5],
         autoHarvestEnabled: true,
         videoSpeedUp: false,
         upgradeEnabled: false,
