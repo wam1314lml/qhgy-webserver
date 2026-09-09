@@ -406,6 +406,10 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabledCardCollect: false,
         enabledSmoke: false,
       },
+      hdReward: {
+        enabled: true,
+        hd3013DrawEnabled: false,
+      },
       actAnniv26Star: {
         enabled: false,
         lightStarsEnabled: false,

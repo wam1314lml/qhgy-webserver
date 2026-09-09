@@ -578,6 +578,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     fmlRace.diamondUpgradeReserve,
   )
   config.activity.fmlRace.enabled = !!config.activity.fmlRace.enabled
+  const hdReward = asRecord(config.activity.hdReward)
+  config.activity.hdReward = {
+    enabled: (hdReward?.enabled ?? true) === true,
+    hd3013DrawEnabled: hdReward?.hd3013DrawEnabled === true,
+  }
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }
 

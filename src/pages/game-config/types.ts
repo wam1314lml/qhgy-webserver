@@ -392,6 +392,10 @@ export interface GameConfig {
       enabledCardCollect: boolean
       enabledSmoke: boolean
     }
+    hdReward: {
+      enabled: boolean
+      hd3013DrawEnabled: boolean
+    }
     actAnniv26Star: {
       enabled: boolean
       lightStarsEnabled: boolean

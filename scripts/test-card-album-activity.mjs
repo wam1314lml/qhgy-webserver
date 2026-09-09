@@ -17,6 +17,24 @@ const { createDefaultGameConfig, normalizeGameConfigSelects, deepMerge } = await
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`
 )
 assert.equal(createDefaultGameConfig().activity.actCardCollect.enabledCardCollect, false)
+assert.deepEqual(createDefaultGameConfig().activity.hdReward, { enabled: true, hd3013DrawEnabled: false })
+for (const enabled of [true, false]) {
+  for (const hd3013DrawEnabled of [true, false]) {
+    let saved = deepMerge(createDefaultGameConfig(), { activity: { hdReward: { enabled, hd3013DrawEnabled } } })
+    for (let round = 0; round < 3; round++) {
+      normalizeGameConfigSelects(saved)
+      assert.deepEqual(saved.activity.hdReward, { enabled, hd3013DrawEnabled })
+      saved = deepMerge(createDefaultGameConfig(), JSON.parse(JSON.stringify(saved)))
+    }
+  }
+}
+const old = deepMerge(createDefaultGameConfig(), { activity: { actCardCollect: { enabledCardCollect: true } } })
+normalizeGameConfigSelects(old)
+assert.deepEqual(old.activity.hdReward, { enabled: true, hd3013DrawEnabled: false })
+assert.equal(old.activity.actCardCollect.enabledCardCollect, true)
+const malformed = deepMerge(createDefaultGameConfig(), { activity: { hdReward: { enabled: 'false', hd3013DrawEnabled: 'false' } } })
+normalizeGameConfigSelects(malformed)
+assert.deepEqual(malformed.activity.hdReward, { enabled: false, hd3013DrawEnabled: false })
 for (const enabled of [true, false]) {
   const saved = deepMerge(createDefaultGameConfig(), {
     activity: { actCardCollect: { enabledCardCollect: enabled } },
@@ -39,10 +57,13 @@ assert.deepEqual(template.errors, [])
 const start = source.indexOf(`<div v-if="activeTab === '活动'"`)
 assert.ok(start >= 0)
 const activity = source.slice(start, source.indexOf('</Form>', start))
-assert.deepEqual([...activity.matchAll(/<Divider[^>]*>([^<]+)<\/Divider>/g)].map(match => match[1]), ['卡册活动'])
-assert.deepEqual([...activity.matchAll(/label="([^"]+)"/g)].map(match => match[1]), ['领取卡册任务奖励'])
-assert.equal([...activity.matchAll(/<Switch\b/g)].length, 1)
+assert.deepEqual([...activity.matchAll(/<Divider[^>]*>([^<]+)<\/Divider>/g)].map(match => match[1]), ['卡册活动', '仲夏夜之梦 · 萤夜蝶舞'])
+assert.deepEqual([...activity.matchAll(/label="([^"]+)"/g)].map(match => match[1]), ['领取卡册任务奖励', '自动领取任务奖励', '活动抽奖'])
+assert.equal([...activity.matchAll(/<Switch\b/g)].length, 3)
+assert.match(activity, /v-model:checked="config.activity.hdReward.enabled"/)
+assert.match(activity, /v-model:checked="config.activity.hdReward.hd3013DrawEnabled"/)
+assert.match(activity, /:disabled="!config.activity.hdReward.enabled"/)
 assert.match(activity, /v-model:checked="config.activity.actCardCollect.enabledCardCollect"/)
 assert.equal(activity.includes('enabledSmoke'), false)
 assert.equal(activity.includes('cyclicNote'), false)
-console.log('卡册活动测试通过：活动页仅一个开关、默认关闭、保存往返和 Vue 编译。')
+console.log('活动页测试通过：卡册原开关保留、仲夏夜任务默认开启/抽奖默认关闭、禁用关联、旧配置/保存往返和 Vue 编译。')

@@ -2458,7 +2458,7 @@
             </CustomFormItem>
           </div>
 
-          <!-- 活动设置：仅保留奇幻果园卡册奖励入口。 -->
+          <!-- 活动设置：奇幻果园卡册与限时活动。 -->
           <div v-if="activeTab === '活动'" class="config-section">
             <Divider orientation="left">卡册活动</Divider>
             <CustomFormItem
@@ -2467,6 +2467,24 @@
               tooltip="领取已完成的卡册任务奖励和已达标的进度奖励，不自动开卡包。"
             >
               <Switch v-model:checked="config.activity.actCardCollect.enabledCardCollect" />
+            </CustomFormItem>
+            <Divider orientation="left">仲夏夜之梦 · 萤夜蝶舞</Divider>
+            <CustomFormItem
+              label="自动领取任务奖励"
+              name="activity.hdReward.enabled"
+              tooltip="默认开启。自动领取已达标任务、广告任务及全部任务完成奖励；活动结束后停止。"
+            >
+              <Switch v-model:checked="config.activity.hdReward.enabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="活动抽奖"
+              name="activity.hdReward.hd3013DrawEnabled"
+              tooltip="默认关闭。开启后使用活动内已有蝶舞瓶逐次放飞，不购买道具，不消耗幻梦蝴蝶。需开启自动领取任务奖励。"
+            >
+              <Switch
+                v-model:checked="config.activity.hdReward.hd3013DrawEnabled"
+                :disabled="!config.activity.hdReward.enabled"
+              />
             </CustomFormItem>
           </div>
         </Form>
