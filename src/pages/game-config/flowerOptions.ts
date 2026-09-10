@@ -206,10 +206,13 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "53033", label: "芭乐旋转杯" },
   { value: "53039", label: "悠然海钓" },
   { value: "53043", label: "椰居闲趣" },
+  { value: "53105", label: "花溪鹿眠" },
+  { value: "53106", label: "荧夜斟星" },
   { value: "54001", label: "圣域灵花" },
   { value: "54002", label: "九尾仙狐" },
   { value: "54003", label: "祥瑞灵鸾" },
   { value: "54004", label: "盛夏蜜桃" },
   { value: "54005", label: "繁光华树" },
   { value: "54014", label: "绚烂夏日" },
+  { value: "54041", label: "仲夏幻梦" },
 ]
