@@ -2501,20 +2501,9 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="游戏模式"
-              name="activity.actElim.mode"
-              tooltip="可选择普通模式或极限模式，两种模式均优先完成NPC任务并领取箱子奖励。"
-            >
-              <CustomSelect
-                v-model:value="config.activity.actElim.mode"
-                :options="[{ value: 'normal', label: '普通模式' }, { value: 'extreme', label: '极限模式' }]"
-                :disabled="!config.activity.actElim.enabled"
-              />
-            </CustomFormItem>
-            <CustomFormItem
               label="最高倍率"
               name="activity.actElim.speed"
-              tooltip="设置最高真实倍率；实际按解锁积分与脚本内部策略自动降档。倍率越高，单步消耗体力越多。"
+              tooltip="任务模式固定使用1倍，优先完成NPC任务并领取箱子；此设置仅供脚本切换分数模式后使用，按解锁积分与内部策略自动降档。倍率越高，单步消耗体力越多。"
             >
               <CustomSelect
                 v-model:value="config.activity.actElim.speed"

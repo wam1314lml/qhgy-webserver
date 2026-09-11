@@ -1,8 +1,10 @@
-# 甘之如饴游戏模式（2026-09-11）
+# 甘之如饴内部模式（2026-09-11）
 
-- 显示约束：玩家界面仅显示普通/极限模式及NPC任务领奖说明，不展示每体力具体得分或内部目标。下文数值仅为开发交接，不得恢复到前端提示；本次仅改显示，不改脚本策略。
-
-- 活动页新增游戏模式选择：普通normal、极限extreme。activity.actElim.mode默认normal，缺失/非法值也归normal；自动参与关闭时禁选并保留当前选择。
-- 普通每体力约250消除分，极限约500，均不含移动赠分和NPC奖励。两者优先完成NPC领取箱子，必要时超出目标；脚本按实际倍率缩放目标，不提供自定义分数或简易模式控件。旧simpleMode/maxScorePerMove继续在保存/导入时清理。
-- 沿既有setting接口保存；更新脚本并保存设置后，停止再启动账号生效。脚本细节见qhgy-assistant-master/docs/QHGY_ACT_ELIM_HANDOFF.md，不在前端计算任务完成或发游戏包。
-- scripts/test-act-elim-config.mjs覆盖模式往返、非法值默认、禁用联动、四项配置与Vue编译；原活动隔离测试与Vite构建通过。显式vue-tsc -p tsconfig.app.json仍有44项既有类型错误，未改动相关旧业务；未部署/推送。
+- 最新要求覆盖此前的普通/极限前端切换：任务模式、分数模式仅由脚本代码初始化选择，默认任务模式。前端不再提供任何模式选择，不发送模式字段；脚本初始化的分数模式维持原得分策略。
+- 任务模式优先尽量使用一体力完成当前NPC；确实不能完成时继续累计进度，允许两步或更多步完成。仅在直属回包确认需求达成后领奖，不承诺任何盘面或服务器状态都能一步完成。
+- 前端仅保留自动参与、体力领取、最高倍率三项。任务模式固定1倍，最高倍率保留但只供脚本切换分数模式时使用；表单提示明确适用范围。关闭自动参与时，子项禁用但保留选择。
+- `activity.actElim.mode`、`scoreMode`、`simpleMode`、`maxScorePerMove` 在加载/保存/导入时清理。历史的 `normal`、`extreme` 或手工的 `task`、`score` 均不能覆盖脚本初始化策略；默认配置和类型不再声明模式字段。
+- 玩家可见配置不显示每体力具体得分、内部目标或自定义分数设置。不得把开发调优数值恢复到前端提示。
+- 沿既有 setting 接口保存，不在前端计算NPC完成或发游戏包。脚本细节见 `qhgy-assistant-master/docs/QHGY_ACT_ELIM_HANDOFF.md`。
+- 本轮离线验证：`test-act-elim-config.mjs`、`test-card-album-activity.mjs`、`test-cultivate-quality.mjs`、`test-fml-race-accept-rules.mjs` 均通过，覆盖三个配置项、历史模式/手工内部策略的保存导入清理、倍率归一化、开关联动、其他活动隔离及Vue编译；`npm run build` 通过（保留既有大包体积提示）。未运行账号、发游戏请求、部署或推送。
+- 此前显式 `vue-tsc -p tsconfig.app.json` 的44项既有错误不属于本次修改范围；本轮运行的是仓库标准 `npm run build`，未以该结果宣称显式全量类型检查已修复。
