@@ -510,6 +510,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   const actElim = config.activity.actElim
   actElim.enabled = actElim.enabled === true
   actElim.autoClaimEnergy = actElim.autoClaimEnergy === true
+  actElim.mode = actElim.mode === 'extreme' ? 'extreme' : 'normal'
   // 保留真实倍率，不把 5/10/25/100 当成 model 档位；关闭总开关时保留子项选择。
   actElim.speed = ensureSingleSelectValue(
     Number(actElim.speed),

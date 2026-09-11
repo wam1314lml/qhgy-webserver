@@ -19,7 +19,7 @@ const { createDefaultGameConfig, normalizeGameConfigSelects, deepMerge, actElimS
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`,
 )
 const expectedDefaults = {
-  enabled: false, autoClaimEnergy: false, speed: 1,
+  enabled: false, autoClaimEnergy: false, mode: 'normal', speed: 1,
 }
 assert.deepEqual(createDefaultGameConfig().activity.actElim, expectedDefaults)
 assert.deepEqual(actElimSpeedOptions.map(option => option.value), [1, 5, 10, 25, 100], '配置必须保存真实倍率，不保存 model 档位')
@@ -31,7 +31,7 @@ const normalize = (input = {}) => {
 assert.deepEqual(normalize().activity.actElim, expectedDefaults)
 assert.deepEqual(normalize({ enabled: true, speed: 25 }).activity.actElim, {
   ...expectedDefaults, enabled: true, speed: 25,
-}, '配置只保留用户可设置的三个字段')
+}, '配置只保留用户可设置的四个字段')
 
 for (const enabled of [true, false]) {
   for (const autoClaimEnergy of [true, false]) {
@@ -41,7 +41,7 @@ for (const enabled of [true, false]) {
           const settings = { enabled, autoClaimEnergy, simpleMode, speed, maxScorePerMove }
           let config = normalize(settings)
           for (let round = 0; round < 3; round++) {
-            assert.deepEqual(config.activity.actElim, { enabled, autoClaimEnergy, speed })
+            assert.deepEqual(config.activity.actElim, { enabled, autoClaimEnergy, mode: 'normal', speed })
             assert.deepEqual(config.activity.hdReward, { enabled: true, hd3013DrawEnabled: false })
             assert.equal(config.activity.actCardCollect.enabledCardCollect, false)
             config = deepMerge(createDefaultGameConfig(), JSON.parse(JSON.stringify(config)))
@@ -54,6 +54,14 @@ for (const enabled of [true, false]) {
 }
 for (const speed of ['1', '5', '10', '25', '100']) {
   assert.equal(normalize({ speed }).activity.actElim.speed, Number(speed))
+}
+for (const mode of ['normal', 'extreme']) {
+  const config = normalize({ mode })
+  assert.equal(config.activity.actElim.mode, mode)
+  assert.equal(normalize(JSON.parse(JSON.stringify(config.activity.actElim))).activity.actElim.mode, mode)
+}
+for (const mode of [undefined, null, 'bad', true, 500]) {
+  assert.equal(normalize({ mode }).activity.actElim.mode, 'normal')
 }
 for (const speed of [0, 2, 3, 4, 6, 50, 101, -1, 1.5, 'bad', Infinity]) {
   assert.equal(normalize({ speed }).activity.actElim.speed, 1)
@@ -85,9 +93,9 @@ const start = source.indexOf('<Divider orientation="left">甘之如饴</Divider>
 assert.ok(start > source.indexOf(`<div v-if="activeTab === '活动'"`))
 const panel = source.slice(start, source.indexOf('</Form>', start))
 assert.deepEqual([...panel.matchAll(/name="activity\.actElim\.([^\"]+)"/g)].map(match => match[1]), [
-  'enabled', 'autoClaimEnergy', 'speed',
+  'enabled', 'autoClaimEnergy', 'mode', 'speed',
 ])
-for (const field of ['enabled', 'autoClaimEnergy', 'speed']) {
+for (const field of ['enabled', 'autoClaimEnergy', 'mode', 'speed']) {
   const block = panel.match(new RegExp(`<CustomFormItem[^>]*name="activity\\.actElim\\.${field}"[\\s\\S]*?</CustomFormItem>`))?.[0]
   assert.ok(block, field)
   assert.match(block, new RegExp(`v-model:(?:checked|value)="config\\.activity\\.actElim\\.${field}"`))
@@ -101,4 +109,7 @@ assert.doesNotMatch(panel, /simpleMode|maxScorePerMove|简易模式|分数上限
 assert.match(source, /normalizeGameConfigSelects\(config\.value\)[\s\S]*?axios\.put\(`\/api\/game-accounts\/\$\{accountId\.value\}\/setting`, config\.value\)/)
 assert.match(source, /deepMerge\(createDefaultGameConfig\(\), sourceResponse\.data\.data\)[\s\S]*?normalizeGameConfigSelects\(payload\)/)
 
-console.log('甘之如饴前端测试通过：仅三个配置项、内部策略字段清理、保存导入往返、真实倍率、其他活动隔离及Vue编译（全离线）。')
+assert.match(panel, /普通模式/)
+assert.match(panel, /极限模式/)
+assert.doesNotMatch(panel, /250|500|每\s*1?\s*体力|目标分数/, '玩家可见配置不展示每体力得分或内部目标')
+console.log('甘之如饴前端测试通过：四个配置项、普通极限模式往返、内部策略字段清理、真实倍率、其他活动隔离及Vue编译（全离线）。')
