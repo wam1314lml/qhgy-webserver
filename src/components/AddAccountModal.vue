@@ -1627,8 +1627,8 @@ const handleBind = async () => {
         douyin_uid: douyinUid.value,
         nickname: douyinUid.value ? `DY_${douyinUid.value}` : '抖音用户',
       }
-      console.log('📦 抖音绑定请求数据:', bindPayload)
-      const resp = await axios.post('/api/douyin/scan/bind_confirm', bindPayload)
+      // 后端先认证 SDK 身份查重，再绑定；不将凭据写入控制台。
+      const resp = await axios.post('/api/douyin/scan/bind_confirm', bindPayload, { timeout: 240_000 })
       if (resp.data.ok) {
         message.success('抖音账号绑定成功！')
         resetForm()

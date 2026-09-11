@@ -2,6 +2,8 @@
 
 更新：2026-09-12。
 
+本次更新：Web 按用户明确要求保存账号密码渠道的明文密码，来源仍是登录时 POST 的密码，浏览器绑定阶段不需重新传入；SDK opId＋区服由后端跨渠道查重。抖音 bind_confirm 前增加 SDK 身份验证，前端专用超时改为240秒，覆盖后端90秒认证＋120秒绑定；删除该请求正文的控制台日志。不改变其他请求的默认超时或新增UI开关。
+
 - 添加账号恢复“账号密码”入口，渠道 `platform=0`；默认仍选微信，抖音保持可用，支付宝继续隐藏。
 - `POST /api/game-accounts/login {username,password,platform:0}`。账号密码仅放请求正文，不写 URL、控制台、浏览器存储；请求完成即清空密码。
 - 登录响应要求 `data.platform=0`（兼容字符串 `"0"`）、`data.bindTicket` 和 `data.server_list.servers`。只展示后端返回的角色区服，不使用花园 SDK 的 token 流程。
