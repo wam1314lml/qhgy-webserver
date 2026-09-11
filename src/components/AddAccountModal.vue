@@ -21,7 +21,7 @@
         <div v-if="currentStep === 'channel'" class="step-panel">
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
-            <!-- 暂时隐藏账号密码和支付宝入口；微信优先展示，同时开放抖音扫码。 -->
+            <!-- 微信、抖音及果园官方账号密码；支付宝入口仍隐藏。 -->
             <a-radio :value="3" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper">
@@ -34,6 +34,13 @@
                 <div class="channel-icon-wrapper channel-icon-douyin">
                   <img src="/icons/douyin.svg" alt="抖音" class="channel-icon" />
                   <span class="official-badge">官方</span>
+                </div>
+              </div>
+            </a-radio>
+            <a-radio :value="0" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper channel-icon-app">
+                  <span class="account-password-text">账号密码</span>
                 </div>
               </div>
             </a-radio>
@@ -212,7 +219,7 @@
           </div>
 
           <!-- 账号密码登录界面 -->
-          <div v-else class="password-login">
+          <div v-else-if="isAccountPasswordPlatform(selectedChannel)" class="password-login">
             <a-form
               ref="loginFormRef"
               :model="loginForm"
@@ -224,6 +231,7 @@
                 <a-input
                   v-model:value.trim="loginForm.username"
                   placeholder="请输入游戏账号"
+                  autocomplete="username"
                   class="form-input"
                   size="large"
                 />
@@ -232,6 +240,7 @@
                 <a-input-password
                   v-model:value.trim="loginForm.password"
                   placeholder="请输入游戏密码"
+                  autocomplete="current-password"
                   class="form-input"
                   size="large"
                 />
@@ -280,7 +289,7 @@
             </div>
           </a-form>
 
-          <div v-if="selectedChannel !== 3" class="script-server-info">
+          <div v-if="selectedChannel === 1 || selectedChannel === 2" class="script-server-info">
             <p>自动为您分配最优的服务器</p>
             <div v-if="selectedScriptServer" class="selected-server">
               <span>已选择: {{ selectedScriptServer.name }}</span>
@@ -397,6 +406,7 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import axios from '../utils/axios'
 import { message, type FormInstance } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
+import { getSafeAccountPasswordError, isAccountPasswordPlatform, normalizeAccountPasswordLogin } from '../utils/accountPasswordLogin'
 
 // 支付宝登录数据接口（新接口）
 interface AlipayLoginData {
@@ -723,9 +733,16 @@ const loginProgressMessage = ref('正在验证账号密码，请稍候...')
 let loginProgressTimer: ReturnType<typeof setInterval> | null = null
 const scriptServers = ref<ScriptServer[]>([])
 const selectedScriptServer = ref<ScriptServer | null>(null)
-const uid = ref<string>('')
-const gameToken = ref<string>('')
-const nickname = ref<string>('')
+// 只保留网站短期绑定票据；SDK token 与密码不用于浏览器绑定请求。
+const accountBindTicket = ref('')
+let accountLoginGeneration = 0
+
+const clearAccountPasswordState = () => {
+  accountLoginGeneration += 1
+  accountBindTicket.value = ''
+  password.value = ''
+  loading.value = false
+}
 
 // 支付宝扫码相关状态
 const qrcodeUrl = ref<string>('')
@@ -810,10 +827,10 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if (selectedChannel.value === 2 || selectedChannel.value === 3) {
+      if (isAccountPasswordPlatform(selectedChannel.value) || selectedChannel.value === 2 || selectedChannel.value === 3) {
         currentStep.value = 'login'
       } else {
-        message.warning('请选择抖音或微信渠道')
+        message.warning('请选择账号密码、抖音或微信渠道')
         return
       }
       break
@@ -841,12 +858,11 @@ const handleNextStep = async () => {
           return
         }
         await handleLogin()
-      } else {
+      } else if (isAccountPasswordPlatform(selectedChannel.value)) {
         try {
           await loginFormRef.value?.validateFields()
           await handleLogin()
         } catch (error) {
-          console.log('表单验证失败:', error)
           // 验证失败时不继续执行，Ant Design Vue会自动显示错误信息
           return
         }
@@ -859,17 +875,11 @@ const handleNextStep = async () => {
           message.error('请选择游戏区服')
           return
         }
-        if (selectedChannel.value !== 3 && !selectedScriptServer.value) {
+        if ([1, 2].includes(selectedChannel.value) && !selectedScriptServer.value) {
           message.error('请等待服务器加载完成')
           return
         }
-        // 支付宝(1)、抖音(2)和微信(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-        if (
-          selectedChannel.value !== 1 &&
-          selectedChannel.value !== 2 &&
-          selectedChannel.value !== 3 &&
-          (!uid.value || !gameToken.value)
-        ) {
+        if (isAccountPasswordPlatform(selectedChannel.value) && !accountBindTicket.value) {
           message.error('游戏账号信息不完整，请重新登录')
           return
         }
@@ -917,20 +927,22 @@ const startLoginProgress = () => {
 }
 
 const finishLoginProgressSuccess = async () => {
+  const generation = accountLoginGeneration
   clearLoginProgressTimer()
   loginProgressPercent.value = 100
   loginProgressStatus.value = 'success'
   loginProgressMessage.value = '登录成功'
   await new Promise((resolve) => setTimeout(resolve, 600))
-  loginProgressVisible.value = false
+  if (generation === accountLoginGeneration) loginProgressVisible.value = false
 }
 
 const finishLoginProgressError = async (errorMessage: string) => {
+  const generation = accountLoginGeneration
   clearLoginProgressTimer()
   loginProgressStatus.value = 'exception'
   loginProgressMessage.value = errorMessage
   await new Promise((resolve) => setTimeout(resolve, 1200))
-  resetLoginProgress()
+  if (generation === accountLoginGeneration) resetLoginProgress()
 }
 
 const handleLogin = async () => {
@@ -951,51 +963,50 @@ const handleLogin = async () => {
     return
   }
 
-  // 其他渠道使用账号密码登录
+  if (!isAccountPasswordPlatform(selectedChannel.value) || loading.value) return
+  // 登录只发 POST 正文。与关闭/返回/重新打开隔离，旧请求不能恢复旧票据。
+  const generation = ++accountLoginGeneration
+  accountBindTicket.value = ''
+  serverList.value = []
+  selectedServer.value = null
+  serverForm.value.server = undefined
   loading.value = true
   startLoginProgress()
   try {
     const response = await axios.post('/api/game-accounts/login', {
       username: username.value,
       password: password.value.trim(),
-      platform: selectedChannel.value, // 传递 platform 参数
-    })
-
+      platform: 0,
+    }, { timeout: 190_000 })
+    if (generation !== accountLoginGeneration || !props.isOpen) return
+    password.value = ''
     if (response.data.success) {
-      const { server_list, uid: uidFromResponse, token: gameTokenFromResponse } = response.data.data
-      console.log('🔍 登录响应数据:', response.data.data)
-      console.log('📋 服务器列表:', server_list)
-      console.log('🆔 UID:', uidFromResponse)
-      console.log('🎫 游戏Token:', gameTokenFromResponse)
-
-      // 新的数据结构：server_list.servers
-      if (server_list && server_list.servers && Array.isArray(server_list.servers)) {
-        serverList.value = server_list.servers
-      } else {
-        console.error('❌ server_list.servers 不是数组:', server_list)
-        const errorText = '服务器获取失败'
+      const login = normalizeAccountPasswordLogin(response.data.data)
+      if (!login) {
+        const errorText = '未取得可绑定的角色区服，请确认账号已在游戏内创建角色'
         await finishLoginProgressError(errorText)
-        message.error(errorText)
-        serverList.value = []
+        if (generation === accountLoginGeneration) message.error(errorText)
         return
       }
-
-      uid.value = uidFromResponse || ''
-      gameToken.value = gameTokenFromResponse || ''
-      nickname.value = response.data.data.nickname || ''
+      accountBindTicket.value = login.bindTicket
+      serverList.value = login.servers
       await finishLoginProgressSuccess()
-      currentStep.value = 'server'
+      if (generation === accountLoginGeneration && props.isOpen) currentStep.value = 'server'
     } else {
-      const errorText = response.data.message || '登录失败'
+      const errorText = getSafeAccountPasswordError(response.data, '账号密码登录失败')
       await finishLoginProgressError(errorText)
-      message.error(errorText)
+      if (generation === accountLoginGeneration) message.error(errorText)
     }
-  } catch {
-    const errorText = '登录失败，请稍后重试'
+  } catch (error: any) {
+    if (generation !== accountLoginGeneration || !props.isOpen) return
+    const errorText = getSafeAccountPasswordError(error.response?.data, '账号密码登录失败，请稍后重试')
     await finishLoginProgressError(errorText)
-    message.error(errorText)
+    if (generation === accountLoginGeneration) message.error(errorText)
   } finally {
-    loading.value = false
+    if (generation === accountLoginGeneration) {
+      password.value = ''
+      loading.value = false
+    }
   }
 }
 
@@ -1541,10 +1552,53 @@ const handleWxLogin = async () => {
   }
 }
 
+const handleAccountPasswordBind = async () => {
+  if (loading.value) return
+  if (!selectedServer.value || !accountBindTicket.value) {
+    message.error('登录凭据已失效，请重新输入账号密码')
+    return
+  }
+  // 区服和身份由后端票据再校验，浏览器不提交密码、SDK token 或自造 parent_id。
+  const generation = accountLoginGeneration
+  loading.value = true
+  try {
+    const response = await axios.post('/api/game-accounts/bind', {
+      username: username.value,
+      server_id: selectedServer.value.serverId,
+      platform: 0,
+      bindTicket: accountBindTicket.value,
+    }, { timeout: 190_000 })
+    if (generation !== accountLoginGeneration || !props.isOpen) return
+    if (response.data.success) {
+      message.success('游戏账号绑定成功！')
+      resetForm()
+      emit('success')
+      emit('close')
+    } else {
+      message.error(getSafeAccountPasswordError(response.data, '账号绑定失败'))
+      if (response.data.code === 'ACCOUNT_PASSWORD_BIND_EXPIRED') {
+        clearAccountPasswordState()
+        currentStep.value = 'login'
+      }
+    }
+  } catch (error: any) {
+    if (generation !== accountLoginGeneration || !props.isOpen) return
+    const body = error.response?.data
+    message.error(getSafeAccountPasswordError(body, '账号绑定失败，请稍后重试'))
+    if (body?.code === 'ACCOUNT_PASSWORD_BIND_EXPIRED') {
+      clearAccountPasswordState()
+      currentStep.value = 'login'
+    }
+  } finally {
+    if (generation === accountLoginGeneration) loading.value = false
+  }
+}
+
 const handleBind = async () => {
-  console.log('  - gameToken:', gameToken.value ? '已设置' : '未设置')
-  console.log('  - selectedChannel:', selectedChannel.value)
-  console.log('  - alipayLoginData:', alipayLoginData.value)
+  if (isAccountPasswordPlatform(selectedChannel.value)) {
+    await handleAccountPasswordBind()
+    return
+  }
 
   if (!selectedServer.value) {
     message.error('请选择游戏区服')
@@ -1554,14 +1608,8 @@ const handleBind = async () => {
     message.error('服务器未加载完成')
     return
   }
-  // 支付宝(1)、抖音(2)和微信(3)扫码登录不需要检查uid和gameToken，其他渠道需要
-  if (
-    selectedChannel.value !== 1 &&
-    selectedChannel.value !== 2 &&
-    selectedChannel.value !== 3 &&
-    (!uid.value || !gameToken.value)
-  ) {
-    message.error('游戏账号信息不完整，请重新登录')
+  if (![1, 2, 3].includes(selectedChannel.value)) {
+    message.error('请选择支持的游戏渠道')
     return
   }
 
@@ -1646,33 +1694,6 @@ const handleBind = async () => {
       } else {
         message.error(response.data.message || response.data.msg || '微信绑定失败')
       }
-    } else {
-      // 普通账号密码绑定流程
-      const parentIdInput = `${username.value}${password.value.trim()}${selectedServer.value.serverId}`
-      const parentId = generateMD5Hash(parentIdInput)
-
-      const bindPayload = {
-        username: username.value,
-        password: password.value.trim(),
-        server_id: selectedServer.value.serverId,
-        server_name: selectedServer.value.serverName,
-        platform: selectedChannel.value,
-        uid: uid.value,
-        token: gameToken.value,
-        parent_id: parentId,
-        nickname: nickname.value,
-      }
-
-      const response = await axios.post('/api/game-accounts/bind', bindPayload)
-
-      if (response.data.success) {
-        message.success('游戏账号绑定成功！')
-        resetForm()
-        emit('success')
-        emit('close')
-      } else {
-        message.error(response.data.message || '绑定失败')
-      }
     }
   } catch (error: any) {
     const errorBody = error.response?.data
@@ -1683,6 +1704,8 @@ const handleBind = async () => {
 }
 
 const resetForm = () => {
+  clearAccountPasswordState()
+  loading.value = false
   resetLoginProgress()
   currentStep.value = 'channel'
   loginForm.value = {
@@ -1698,9 +1721,6 @@ const resetForm = () => {
   selectedServer.value = null
   serverList.value = []
   selectedScriptServer.value = null
-  uid.value = ''
-  gameToken.value = ''
-  nickname.value = ''
 
   // 清理支付宝相关状态
   resetAlipayQrLoading()
@@ -1756,6 +1776,13 @@ const handleClose = () => {
 }
 
 const handlePreviousStep = () => {
+  if (isAccountPasswordPlatform(selectedChannel.value)) {
+    clearAccountPasswordState()
+    resetLoginProgress()
+    serverList.value = []
+    selectedServer.value = null
+    serverForm.value.server = undefined
+  }
   if (currentStep.value === 'login') {
     if (selectedChannel.value === 3) {
       void cancelWxFlow()
@@ -1778,15 +1805,26 @@ watch(
   (isOpen) => {
     if (isOpen) {
       fetchScriptServers()
-      // 当前仅开放微信，新打开弹窗时保持默认选中微信。
+      // 微信仍为默认入口，账号密码与抖音可手动选择。
       selectedChannel.value = 3
+    } else {
+      resetForm()
     }
   },
 )
 
 onBeforeUnmount(() => {
+  clearAccountPasswordState()
+  resetLoginProgress()
   void cancelWxFlow()
   stopWxPolling()
+})
+
+watch(selectedChannel, (channel, previous) => {
+  if (channel !== previous) {
+    clearAccountPasswordState()
+    resetLoginProgress()
+  }
 })
 </script>
 

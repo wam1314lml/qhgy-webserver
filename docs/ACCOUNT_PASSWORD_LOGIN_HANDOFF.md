@@ -1,0 +1,25 @@
+# 果园官方账号密码登录
+
+更新：2026-09-11。
+
+- 添加账号恢复“账号密码”入口，渠道 `platform=0`；默认仍选微信，抖音保持可用，支付宝继续隐藏。
+- `POST /api/game-accounts/login {username,password,platform:0}`。账号密码仅放请求正文，不写 URL、控制台、浏览器存储；请求完成即清空密码。
+- 登录响应要求 `data.platform=0`（兼容字符串 `"0"`）、`data.bindTicket` 和 `data.server_list.servers`。只展示后端返回的角色区服，不使用花园 SDK 的 token 流程。
+- `POST /api/game-accounts/bind {username,server_id,platform:0,bindTicket}`。短期票据由网页后端管理脚本服、身份及区服，浏览器不传 SDK token、密码或 `parent_id`。
+- 登录和绑定单请求超时 190 秒，略大于网页后端的 180 秒；票据有效期 5 分钟，由后端校验，不在浏览器自行续期。
+- 返回、关闭、组件卸载都会清除密码/票据，旧异步响应不恢复登录状态。票据过期回到登录，网络失败可保留票据重试。
+- SDK 实名认证、绑定手机、强制改密不新增交互流程；由后端记日志，前端只显示脱敏错误提示，不主动绕过这些状态。
+- `ACCOUNT_PASSWORD_` 业务码不触发网站退出登录；网站自身访问令牌失效仍按既有逻辑退出。
+
+## 离线验证
+
+```powershell
+node scripts/test-account-password-login.mjs
+node scripts/test-add-account-channels.mjs
+node scripts/test-wx-reauth.mjs
+npm run build
+```
+
+专项测试直接执行页面处理函数，HTTP、计时器和 Vue 状态使用离线替身，不进行真实账号登录或绑定。
+
+上述三项离线测试及 `npm run build` 已通过；构建仅有既有大包体积提示，尚未实际登录或绑定账号。

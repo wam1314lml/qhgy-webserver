@@ -510,12 +510,15 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   const actElim = config.activity.actElim
   actElim.enabled = actElim.enabled === true
   actElim.autoClaimEnergy = actElim.autoClaimEnergy === true
+  // 旧账号默认启用中等策略；显式关闭时保留策略选择，重新开启即可继续使用。
+  actElim.customScoreEnabled = actElim.customScoreEnabled !== false
+  actElim.customScoreStrategy = actElim.customScoreStrategy === 'normal' ? 'normal' : 'medium'
   // 保留真实倍率，不把 5/10/25/100 当成 model 档位；关闭总开关时保留子项选择。
   actElim.speed = ensureSingleSelectValue(
     Number(actElim.speed),
     actElimSpeedOptions,
   )
-  // 任务/分数模式及其策略只由脚本初始化决定；清理历史/导入配置，保存时不再传回。
+  // 任务/分数模式及旧内部调优字段仍只由脚本初始化决定，不与用户的自定义分数策略混用。
   const legacyActElim = actElim as typeof actElim & {
     mode?: unknown
     scoreMode?: unknown

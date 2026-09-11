@@ -5,6 +5,7 @@ import { signRequest } from './hmac'
 import { generateBrowserFingerprint } from './fingerprint'
 import { d3 } from './enc'
 import { getSafeWxReauthError, isWxReauthRequired } from './wxReauth'
+import { getSafeAccountPasswordError } from './accountPasswordLogin'
 
 // 防重复消息显示机制
 const messageCache = new Map<string, number>()
@@ -115,7 +116,11 @@ axiosInstance.interceptors.request.use(
     return config
   },
   (error) => {
-    console.error('❌ 请求拦截器错误:', error)
+    if (/\/api\/game-accounts\/(?:login|bind)(?:[?#]|$)/.test(error.config?.url || '')) {
+      console.error('❌ 账号密码请求准备失败')
+    } else {
+      console.error('❌ 请求拦截器错误:', error)
+    }
     return Promise.reject(error)
   },
 )
@@ -169,6 +174,8 @@ export const handleLogout = (message?: string) => {
 // 检查是否为令牌无效错误
 const isTokenInvalidError = (data: any): boolean => {
   if (!data) return false
+  // 官方游戏登录/短期票据失效，不是网站访问令牌失效。
+  if (typeof data.code === 'string' && data.code.startsWith('ACCOUNT_PASSWORD_')) return false
 
   // 检查特定的错误格式: {"success":false,"message":"访问令牌无效或已过期"}
   if (
@@ -235,9 +242,14 @@ axiosInstance.interceptors.response.use(
       const isWxReauthRequest = /\/api\/game-accounts\/wx\/reauth\/(?:start|poll|cancel)(?:[?#]|$)/.test(
         error.config?.url || '',
       )
-      const generalErrorMessage = isWxReauthRequest
-        ? getSafeWxReauthError(data, '微信认证失败，请重新获取二维码后重试')
-        : data?.message || data?.error || data?.err
+      const isAccountPasswordRequest = /\/api\/game-accounts\/(?:login|bind)(?:[?#]|$)/.test(
+        error.config?.url || '',
+      )
+      const generalErrorMessage = isAccountPasswordRequest
+        ? getSafeAccountPasswordError(data)
+        : isWxReauthRequest
+          ? getSafeWxReauthError(data, '微信认证失败，请重新获取二维码后重试')
+          : data?.message || data?.error || data?.err
 
       if (generalErrorMessage) {
         // 如果服务器返回了错误信息，直接使用

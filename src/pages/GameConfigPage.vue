@@ -2501,6 +2501,27 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              label="自定义分数"
+              name="activity.actElim.customScoreEnabled"
+              tooltip="按所选策略调整消除计分，关闭后使用原计分方式。默认开启。"
+            >
+              <Switch
+                v-model:checked="config.activity.actElim.customScoreEnabled"
+                :disabled="!config.activity.actElim.enabled"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.activity.actElim.customScoreEnabled"
+              label="分数策略"
+              name="activity.actElim.customScoreStrategy"
+            >
+              <CustomSelect
+                v-model:value="config.activity.actElim.customScoreStrategy"
+                :options="[{ value: 'normal', label: '普通策略' }, { value: 'medium', label: '中等策略' }]"
+                :disabled="!config.activity.actElim.enabled"
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="最高倍率"
               name="activity.actElim.speed"
               tooltip="任务模式固定使用1倍，优先完成NPC任务并领取箱子；此设置仅供脚本切换分数模式后使用，按解锁积分与内部策略自动降档。倍率越高，单步消耗体力越多。"
