@@ -1697,7 +1697,7 @@ const handleBind = async () => {
     }
   } catch (error: any) {
     const errorBody = error.response?.data
-    message.error(errorBody?.message || errorBody?.msg || '绑定失败，请重试')
+    message.error(errorBody?.message || errorBody?.msg || errorBody?.err || '绑定失败，请重试')
   } finally {
     loading.value = false
   }

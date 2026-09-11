@@ -196,6 +196,35 @@ for (const asHttpError of [false, true]) {
   assert.equal(page.currentStep.value, 'login')
 }
 
+// 重复绑定提示必须保留后端已脱敏的网页用户名。
+{
+  const duplicateMessage = '该游戏账号在此区服已被网页账号「adm**」绑定，无法重复添加'
+  const { page, api, messages } = createPage({ bind: { response: { status: 409, data: {
+    success: false, code: 'ACCOUNT_PASSWORD_ALREADY_BOUND', message: duplicateMessage,
+  } } } })
+  await api.handleLogin()
+  page.selectedServer.value = page.serverList.value[0]
+  await api.handleAccountPasswordBind()
+  assert.ok(messages.some(message => message.value === duplicateMessage))
+}
+for (const platform of [2, 3]) {
+  const duplicateMessage = '该游戏账号在此区服已被网页账号「adm**」绑定，无法重复添加'
+  const { page, api, messages, calls } = createPage({ bind: { response: { status: 409,
+    data: platform === 2 ? { ok: false, err: duplicateMessage } : { success: false, message: duplicateMessage },
+  } } })
+  page.selectedChannel.value = platform
+  page.selectedServer.value = { serverId: '1' }
+  page.selectedScriptServer.value = { id: 'test' }
+  page.douyinLoginDone.value = true
+  page.douyinDyToken.value = 'synthetic-token'
+  page.wxLoginData.value = { ready: true }
+  page.wxFlowId.value = 'synthetic-flow'
+  await api.handleBind()
+  assert.equal(calls.length, 1)
+  assert.ok(messages.some(message => message.value === duplicateMessage))
+  assert.equal(page.loading.value, false)
+}
+
 // Axios 不能把游戏密码/绑定业务失败当成网站过期；网站访问令牌失效仍登出。
 const axiosSource = await read('src/utils/axios.ts')
 const axiosAst = ts.createSourceFile('axios.ts', axiosSource, ts.ScriptTarget.Latest, true)
