@@ -2486,6 +2486,31 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">甘之如饴</Divider>
+            <CustomFormItem label="自动参与" name="activity.actElim.enabled">
+              <Switch v-model:checked="config.activity.actElim.enabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="体力领取"
+              name="activity.actElim.autoClaimEnergy"
+              tooltip="自动领取每日任务完成后的体力奖励，以及已耗体力达标的进度奖励，默认关闭。"
+            >
+              <Switch
+                v-model:checked="config.activity.actElim.autoClaimEnergy"
+                :disabled="!config.activity.actElim.enabled"
+              />
+            </CustomFormItem>
+            <CustomFormItem
+              label="最高倍率"
+              name="activity.actElim.speed"
+              tooltip="设置最高真实倍率；实际按解锁积分与脚本内部策略自动降档。倍率越高，单步消耗体力越多。"
+            >
+              <CustomSelect
+                v-model:value="config.activity.actElim.speed"
+                :options="actElimSpeedOptions"
+                :disabled="!config.activity.actElim.enabled"
+              />
+            </CustomFormItem>
           </div>
         </Form>
       </div>
@@ -2624,6 +2649,7 @@ import CustomSelect from '../components/CustomSelect.vue'
 import CustomInputNumber from '../components/CustomInputNumber.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
 import {
+  actElimSpeedOptions,
   defaultFmlRaceTaskTypePriority,
   elfOptions,
   flowerArtOptions,

@@ -507,10 +507,18 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     config.activity.fishFun.speed,
     fishFunSpeedOptions,
   )
-  config.activity.actElim.speed = ensureSingleSelectValue(
-    config.activity.actElim.speed,
+  const actElim = config.activity.actElim
+  actElim.enabled = actElim.enabled === true
+  actElim.autoClaimEnergy = actElim.autoClaimEnergy === true
+  // 保留真实倍率，不把 5/10/25/100 当成 model 档位；关闭总开关时保留子项选择。
+  actElim.speed = ensureSingleSelectValue(
+    Number(actElim.speed),
     actElimSpeedOptions,
   )
+  // 简易策略和分数上限只由脚本决定；清理历史/导入配置，保存时不再传回。
+  const legacyActElim = actElim as typeof actElim & { simpleMode?: unknown; maxScorePerMove?: unknown }
+  delete legacyActElim.simpleMode
+  delete legacyActElim.maxScorePerMove
   config.activity.actDessert.speed = ensureSingleSelectValue(
     config.activity.actDessert.speed,
     actDessertSpeedOptions,
