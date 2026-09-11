@@ -16,7 +16,7 @@ for (const value of [0, '0']) assert.equal(isAccountPasswordPlatform(value), tru
 for (const value of [undefined, null, false, '', ' ', 1, 2, 3, '3']) assert.equal(isAccountPasswordPlatform(value), false)
 
 const successData = {
-  platform: 0, bindTicket: 'offline-bind-ticket',
+  platform: 0, username: 'offline-account', bindTicket: 'offline-bind-ticket',
   server_list: { servers: [{ serverId: 1, serverName: '一区', roleName: '离线角色' }] },
 }
 for (const platform of [0, '0']) {
@@ -103,21 +103,31 @@ function createPage(queue = {}) {
   return { page: context, api: context.api, calls, messages, events, logs }
 }
 
-// 两种 0 均进入密码流程，POST 后清空密码，仅服务端有角色区服进入选择。
-for (const platform of [0, '0']) {
-  const { page, api, calls, logs, events } = createPage()
+// 普通账号/手机号保持输入原名，服务端负责 trim；不依赖 PW_ 前缀或 SDK 身份。
+for (const { platform, inputUsername } of [0, '0'].flatMap(platform =>
+  ['offline-account', '19900000000', '  offline-account  ', '  19900000000  ']
+    .map(inputUsername => ({ platform, inputUsername })))) {
+  const { page, api, calls, logs, events } = createPage({ login: {
+    success: true, data: { ...successData, username: inputUsername.trim() },
+  } })
   page.selectedChannel.value = platform
+  page.loginForm.value.username = inputUsername
   await api.handleLogin()
   assert.equal(page.currentStep.value, 'server')
+  assert.equal(page.loginForm.value.username, inputUsername, '登录响应不改写输入账号')
   assert.equal(page.loginForm.value.password, '')
   assert.deepEqual(calls[0], { url: '/api/game-accounts/login', payload: {
-    username: 'offline-account', password: 'offline-password', platform: 0,
+    username: inputUsername, password: 'offline-password', platform: 0,
   } })
   page.selectedServer.value = page.serverList.value[0]
   await api.handleNextStep()
   assert.deepEqual(calls[1], { url: '/api/game-accounts/bind', payload: {
-    username: 'offline-account', server_id: '1', platform: 0, bindTicket: 'offline-bind-ticket',
+    username: inputUsername, server_id: '1', platform: 0, bindTicket: 'offline-bind-ticket',
   } })
+  assert.equal(calls[1].payload.username.startsWith('PW_'), false, '绑定不生成身份前缀')
+  for (const field of ['uid', 'opId', 'token', 'password', 'parent_id']) {
+    assert.equal(Object.hasOwn(calls[1].payload, field), false, `绑定不提交 ${field}`)
+  }
   assert.equal(page.accountBindTicket.value, '')
   assert.equal(page.loading.value, false)
   assert.equal(logs.length, 0, '账号密码流程不记录凭据或完整异常')
@@ -213,4 +223,4 @@ assert.equal(JSON.stringify(displayed).includes('offline-secret'), false)
 await assert.rejects(onResponse({ data: { success: false, message: '访问令牌无效或已过期' } }))
 assert.equal(logoutCount, 1)
 assert.doesNotMatch(source, /(?:localStorage|sessionStorage)\.(?:setItem|getItem)/)
-console.log('账号密码前端专项测试通过：platform=0/字符串0、POST登录、票据绑定、密码清理、关闭并发隔离、过期重试、安全错误、网站认证与Vue编译（零真实网络）。')
+console.log('账号密码前端专项测试通过：platform=0/字符串0、普通账号/手机号原名、POST登录、无前缀票据绑定、密码清理、关闭并发隔离、过期重试、安全错误、网站认证与Vue编译（零真实网络）。')
