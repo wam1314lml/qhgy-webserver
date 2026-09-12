@@ -10,6 +10,7 @@
           <div class="account-header">
             <div class="account-name">
               {{ account.nickname }}
+              <span v-if="!hasAccountRecord(account)" class="account-state-pending">状态待同步</span>
               <!-- 支付宝授权状态（platform===1） -->
               <template v-if="account.platform === 1">
                 <span
@@ -237,9 +238,14 @@
 
           <div class="account-actions">
             <div
-              :class="`status-indicator ${getAccountStartedStatus(account) ? 'online' : 'offline'}`"
+              :class="`status-indicator ${!hasAccountRecord(account) ? 'unknown' : getAccountStartedStatus(account) ? 'online' : 'offline'}`"
+              role="status"
+              :aria-label="getAccountStatusLabel(account)"
+              :title="getAccountStatusLabel(account)"
               :style="{
-                backgroundColor: getStatusColor(account.status, getAccountStartedStatus(account)),
+                backgroundColor: hasAccountRecord(account)
+                  ? getStatusColor(account.status, getAccountStartedStatus(account))
+                  : '#d48806',
               }"
             ></div>
             <!-- 启动按钮 -->
@@ -839,6 +845,8 @@ const isLoading = ref(false)
 const operatingAccounts = ref<Set<number>>(new Set())
 const accountRecordVersions = new Map<number, number>()
 let isDisposed = false
+let accountListRequestVersion = 0
+let isRefreshingAccounts = false
 const logModalOpen = ref(false)
 const selectedAccountId = ref<number | null>(null)
 const rechargeModalOpen = ref(false)
@@ -918,6 +926,11 @@ const hasAccountRecord = (account: GameAccount): boolean => {
 // 获取账号的启动状态
 const getAccountStartedStatus = (account: GameAccount): boolean => {
   return account.record?.isStarted || false
+}
+
+const getAccountStatusLabel = (account: GameAccount): string => {
+  if (!hasAccountRecord(account)) return '状态待同步'
+  return getAccountStartedStatus(account) ? '已启用' : '未启用'
 }
 
 const getExpiryDaysLeft = (account: GameAccount): number | null => {
@@ -1253,114 +1266,78 @@ const markAccountStarted = (accountId: number, isStarted: boolean) => {
     : account)
 }
 
-// 获取游戏账号数据（包含状态数据）
+// 获取游戏账号数据（包含状态数据）。较早的列表响应不能覆盖新一轮加载。
 const fetchGameAccounts = async () => {
+  const requestVersion = ++accountListRequestVersion
+  const isCurrent = () => !isDisposed && requestVersion === accountListRequestVersion
   const versions = new Map(accountRecordVersions)
   isLoading.value = true
   try {
-    // 1. 先获取账号列表
     const response = await axios.get('/api/game-accounts/list')
-
-    if (response.data.success) {
-      const newAccounts = response.data.data
-
-      // 2. 如果有账号，立即并行获取所有账号的状态数据
-      if (newAccounts.length > 0) {
-        const accountIds = newAccounts.map((acc: GameAccount) => acc.id)
-        const recordsResult = await fetchPlayerRecords(accountIds)
-        if (isDisposed) return
-
-        // 3. 合并账号列表和状态数据
-        if (recordsResult.success && recordsResult.records) {
-          const recordsMap = new Map(
-            recordsResult.records.map((record: any) => [parseInt(record.id), record]),
-          )
-
-          accounts.value = newAccounts.map((account: GameAccount) => {
-            const record = (versions.get(account.id) || 0) === (accountRecordVersions.get(account.id) || 0)
-              ? recordsMap.get(account.id) as PlayerRecord | undefined
-              : accounts.value.find(current => current.id === account.id)?.record
-
-            console.log(account, record)
-            if (isAccountExpired(account) && record?.status === 'online') {
-              console.warn(`⚠️ 账号 ${account.id} 已过期，expire_time: ${account.expire_time}`)
-              handleToggleAccount(account.id, 'active')
-            }
-            // 如果有 record 且包含玩家昵称，更新账号昵称
-            if (record?.record?.player?.nickName) {
-              return {
-                ...account,
-                nickname: record.record.player.nickName,
-                record,
-              }
-            }
-            return { ...account, record: record || undefined }
-          })
-
-          console.log(
-            `✅ 获取账号列表及状态成功: ${newAccounts.length} 个账号, ${recordsResult.successCount} 个状态`,
-          )
-        } else {
-          // 如果获取状态失败，也要设置账号列表（只是没有状态数据）
-          accounts.value = newAccounts.map((account: GameAccount) => ({
-            ...account,
-            record: (versions.get(account.id) || 0) !== (accountRecordVersions.get(account.id) || 0)
-              ? accounts.value.find(current => current.id === account.id)?.record
-              : undefined,
-          }))
-          console.warn('⚠️ 获取账号列表成功，但状态数据获取失败')
-        }
-        if (recordsResult.errorCount > 0) message.warning('部分账号运行状态暂未获取到，请稍后刷新')
-      } else {
-        // 没有账号
-        accounts.value = newAccounts
-      }
-    } else {
+    if (!isCurrent()) return
+    if (!response.data.success) {
       message.error('获取账号列表失败')
+      return
     }
+
+    const newAccounts: GameAccount[] = response.data.data
+    const recordsResult = await fetchPlayerRecords(newAccounts.map(account => account.id), undefined, isCurrent)
+    if (!isCurrent()) return
+
+    const recordsMap = new Map(recordsResult.records.map(record => [Number(record.id), record]))
+    accounts.value = newAccounts.map(account => {
+      const previousRecord = accounts.value.find(current => current.id === account.id)?.record
+      const record = (versions.get(account.id) || 0) === (accountRecordVersions.get(account.id) || 0)
+        ? recordsMap.get(account.id) || previousRecord
+        : previousRecord
+
+      if (isAccountExpired(account) && record?.status === 'online') {
+        handleToggleAccount(account.id, 'active')
+      }
+      return {
+        ...account,
+        ...(record?.record?.player?.nickName ? { nickname: record.record.player.nickName } : {}),
+        record,
+      }
+    })
+    if (recordsResult.errorCount > 0) message.warning('部分账号运行状态暂未获取到，将自动同步')
   } catch (error: any) {
-    console.error('❌ 获取游戏账号失败:', error)
+    if (isCurrent()) console.error('❌ 获取游戏账号失败:', error)
   } finally {
-    isLoading.value = false
+    if (isCurrent()) isLoading.value = false
   }
 }
 
-// 自动刷新所有角色数据 - 使用批量接口（预留功能，用于定时刷新）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// 批量同步包括“未启动”和“未知”的账号；登录后的旧快照也需要重新确认。
 const refreshAllAccountsData = async () => {
-  if (!autoRefreshEnabled.value || accounts.value.length === 0) {
-    return
-  }
+  if (isDisposed || isLoading.value || isRefreshingAccounts ||
+    !autoRefreshEnabled.value || accounts.value.length === 0) return
 
+  isRefreshingAccounts = true
+  const listVersion = accountListRequestVersion
+  const isCurrent = () => !isDisposed && listVersion === accountListRequestVersion
   const versions = new Map(accountRecordVersions)
   try {
-    const accountIds = accounts.value.map((account: GameAccount) => account.id)
-    const batchResult = await fetchPlayerRecords(accountIds)
-    if (isDisposed) return
+    const accountIds = accounts.value
+      .filter(account => !operatingAccounts.value.has(account.id))
+      .map(account => account.id)
+    const batchResult = await fetchPlayerRecords(accountIds, undefined, isCurrent)
+    if (!isCurrent()) return
 
-    if (batchResult.success) {
-      // 处理成功的记录
-      if (batchResult.records && batchResult.records.length > 0) {
-        batchResult.records.forEach((record: any) => {
-          const accountId = parseInt(record.id)
-          if (operatingAccounts.value.has(accountId) ||
-            (versions.get(accountId) || 0) !== (accountRecordVersions.get(accountId) || 0)) return
-          updateAccountRecord(accountId, record) // 新格式中record本身就是PlayerRecord数据
-        })
-      }
-
-      // 新格式中不再有单独的errors数组，失败的记录也在results中，通过record为null或status判断
-      // 所有记录统一在上面的records循环中处理
-
-      if (batchResult.successCount > 0) {
-        console.log(`✅ 批量刷新成功 ${batchResult.successCount}/${batchResult.total} 个账号数据`)
-      }
-    } else {
-      console.error('❌ 批量刷新失败:', batchResult.reason)
+    for (const record of batchResult.records) {
+      const accountId = Number(record.id)
+      if (operatingAccounts.value.has(accountId) ||
+        (versions.get(accountId) || 0) !== (accountRecordVersions.get(accountId) || 0)) continue
+      updateAccountRecord(accountId, record)
     }
-  } catch (error) {
-    console.error('❌ 刷新账号数据失败:', error)
+    // 暂时失败时保留已确认状态，下一次轮询继续同步，不清成“未启动”。
+  } finally {
+    isRefreshingAccounts = false
   }
+}
+
+const refreshVisibleAccountStates = () => {
+  if (document.visibilityState === 'visible') void refreshAllAccountsData()
 }
 
 // 处理添加账号
@@ -3071,6 +3048,8 @@ const startFirstAccountTour = () => {
 
 // 生命周期函数
 onMounted(async () => {
+  document.addEventListener('visibilitychange', refreshVisibleAccountStates)
+  window.addEventListener('pageshow', refreshVisibleAccountStates)
   refreshTeamOrderDay()
   document.addEventListener('visibilitychange', refreshTeamOrderDay)
   window.addEventListener('pageshow', refreshTeamOrderDay)
@@ -3096,6 +3075,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
   isDisposed = true
+  document.removeEventListener('visibilitychange', refreshVisibleAccountStates)
+  window.removeEventListener('pageshow', refreshVisibleAccountStates)
   if (teamOrderDayTimer !== null) window.clearTimeout(teamOrderDayTimer)
   teamOrderDayTimer = null
   document.removeEventListener('visibilitychange', refreshTeamOrderDay)
@@ -3158,13 +3139,8 @@ watch(
       return
     }
 
-    // 立即执行一次刷新
-    // refreshAllAccountsData()
-
-    // 设置10秒定时器
-    // autoRefreshInterval = setInterval(() => {
-    //   refreshAllAccountsData()
-    // }, 10000) // 10秒
+    // 首次列表加载已查询状态；之后每10秒同步，后台标签页不发起轮询。
+    autoRefreshInterval = window.setInterval(refreshVisibleAccountStates, 10000)
   },
   { immediate: true },
 )
@@ -3232,6 +3208,12 @@ console.log('🔍 渲染状态:', {
 
 <style scoped lang="scss">
 @import './ScriptConfig.css';
+.account-state-pending {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: normal;
+  color: #ad6800;
+}
 .menu-button {
   font-size: 18px;
   display: flex;

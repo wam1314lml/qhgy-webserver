@@ -15,9 +15,9 @@ const result = (...records) => ({ code: 200, data: { results: records } })
 const account = () => ({ id: 7, nickname: 'test', platform: 2, status: 'active', username: 'test', expire_time: '2099-01-01T00:00:00Z', record: record() })
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r }); return { promise, resolve } }
 
-function harness() {
+function harness(initial = {}) {
   const requests = [], messages = [], intervals = new Map(), timeouts = new Map()
-  const plans = { records: [], posts: [], list: [], expired: { data: { success: true, data: { isExpired: false } } } }
+  const plans = { records: [], posts: [], list: [], expired: { data: { success: true, data: { isExpired: false } } }, ...initial }
   let timerId = 0
   const timers = {
     setTimeout(fn, ms) { const id = ++timerId; if (ms <= 2000) queueMicrotask(fn); else timeouts.set(id, fn); return id },
@@ -27,14 +27,14 @@ function harness() {
   }
   const window = Object.assign(new EventTarget(), timers, { matchMedia: () => ({ matches: false }), location: { hostname: 'localhost', pathname: '/' } })
   const document = Object.assign(new EventTarget(), { visibilityState: 'visible' })
-  const storage = { getItem: () => null, removeItem() {}, setItem() {} }
+  const storage = { getItem: key => key === 'previousRoute' ? initial.previousRoute || null : null, removeItem() {}, setItem() {} }
   async function reply(value) { if (value instanceof Error) throw value; return await value }
   const http = {
     async get(url, config) {
       requests.push({ method: 'get', url, config })
       if (url.startsWith('/api/game-accounts/player_records')) return { data: await reply(plans.records.length ? plans.records.shift() : result(record())) }
       if (url.endsWith('/expired')) return reply(plans.expired)
-      if (url === '/api/game-accounts/list') return { data: { success: true, data: plans.list } }
+      if (url === '/api/game-accounts/list') return { data: { success: true, data: await reply(plans.list) } }
       if (url === '/api/quota-settings/active') return { data: { success: true, data: [] } }
       throw new Error('Unexpected GET: ' + url)
     },
@@ -101,7 +101,9 @@ function harness() {
   const tree = node('root'); app.mount(tree)
   const text = n => n.text + n.children.map(text).join('')
   function button(label, n = tree) { if (n.type === 'a-button' && text(n).trim() === label) return n; for (const child of n.children) { const found = button(label, child); if (found) return found } }
-  return { app, state: app._instance.setupState, requests, messages, plans, button,
+  function statusDot(n = tree) { if (String(n.props.class).split(' ').includes('status-indicator')) return n; for (const child of n.children) { const found = statusDot(child); if (found) return found } }
+  return { app, state: app._instance.setupState, requests, messages, plans, button, statusDot, window, document,
+    tickIntervals() { for (const callback of [...intervals.values()]) callback() },
     utils: load('src/utils/playerRecordRetry.ts'),
     async settle() { for (let i = 0; i < 50; i++) await Promise.resolve(); await vue.nextTick() },
     errorInterceptor() { load('src/utils/axios.ts'); return responseError },
@@ -251,4 +253,106 @@ if (project === 'winter-webserver') test('winter keeps complete ordered ID-less 
   h.plans.records.push(result({ isStarted: true }), result(record(7, false), record(8, true)))
   const partial = await h.state.fetchPlayerRecords([7, 8])
   assert.equal(partial.records[0].isStarted, false)
+})
+
+
+test('login with temporarily missing state stays unknown then synchronizes without a page reload', async t => {
+  const h = harness({ previousRoute: 'Login', list: [account()], records: [result(), result(), result(), result(record(7, true))] })
+  t.after(() => h.app.unmount()); await h.settle()
+  assert.equal(h.state.accounts.length, 1)
+  assert.match(h.statusDot().props.class, /unknown/)
+  assert.equal(h.statusDot().props['aria-label'], '状态待同步')
+  assert.equal(h.button('启动').props.disabled, true)
+  assert.equal(h.button('停止').props.disabled, true)
+  h.tickIntervals(); await h.settle()
+  assert.equal(h.state.accounts[0].record.isStarted, true)
+  assert.match(h.statusDot().props.class, /online/)
+  assert.equal(h.button('启动').props.disabled, true)
+  assert.equal(h.button('停止').props.disabled, false)
+  assert.equal(posts(h).length, 0)
+  assert.equal(h.requests.filter(r => r.url === '/api/game-accounts/list').length, 1)
+})
+
+test('login stale stopped snapshot is reconciled by the next background read', async t => {
+  const h = harness({ previousRoute: 'Login', list: [account()], records: [result(record()), result(record(7, true))] })
+  t.after(() => h.app.unmount()); await h.settle()
+  assert.equal(h.state.accounts[0].record.isStarted, false)
+  h.tickIntervals(); await h.settle()
+  assert.equal(h.state.accounts[0].record.isStarted, true)
+  assert.equal(posts(h).length, 0)
+})
+
+test('transient list state failure preserves an already confirmed running record', async t => {
+  const h = await ready(t)
+  h.state.accounts[0].record.isStarted = true
+  h.plans.list = [account()]; h.plans.records.push(result(), result(), result())
+  await h.state.fetchGameAccounts(); await h.settle()
+  assert.equal(h.state.accounts[0].record?.isStarted, true)
+  assert.equal(h.button('停止').props.disabled, false)
+})
+
+test('fresh mount keeps explicit stopped state distinct from unknown and retries only missing records', async t => {
+  const h = harness({ list: [account(), { ...account(), id: 8 }, { ...account(), id: 9 }], records: [result(record(7, true), record(8, false)), result(), result(), result(record(7, true), record(8, false), record(9, true))] })
+  t.after(() => h.app.unmount()); await h.settle()
+  assert.deepEqual(h.requests.filter(r => r.url.includes('player_records')).map(r => r.url.split('ids=')[1]), ['7,8,9', '9', '9'])
+  assert.equal(h.state.getAccountStatusLabel(h.state.accounts[0]), '已启用')
+  assert.equal(h.state.getAccountStatusLabel(h.state.accounts[1]), '未启用')
+  assert.equal(h.state.getAccountStatusLabel(h.state.accounts[2]), '状态待同步')
+  h.tickIntervals(); await h.settle()
+  assert.equal(h.state.accounts[1].record.isStarted, false)
+  assert.equal(h.state.accounts[2].record.isStarted, true)
+  assert.equal(posts(h).length, 0)
+})
+
+test('visible polling is single-flight and resumes immediately when the page becomes visible', async t => {
+  const h = await ready(t); h.state.accounts[0].record.isStarted = true; await h.settle()
+  const pending = deferred(); h.plans.records.push(pending.promise)
+  h.tickIntervals(); h.tickIntervals(); h.window.dispatchEvent(new Event('pageshow')); await h.settle()
+  assert.equal(h.requests.filter(r => r.url.includes('player_records')).length, 1)
+  pending.resolve(result(record(7, true))); await h.settle()
+  h.document.visibilityState = 'hidden'
+  h.tickIntervals(); h.document.dispatchEvent(new Event('visibilitychange')); await h.settle()
+  assert.equal(h.requests.filter(r => r.url.includes('player_records')).length, 1)
+  h.plans.records.push(result(record(7, false)))
+  h.document.visibilityState = 'visible'; h.document.dispatchEvent(new Event('visibilitychange')); await h.settle()
+  assert.equal(h.state.accounts[0].record.isStarted, false)
+  assert.equal(posts(h).length, 0)
+})
+
+test('unmount cancels pending polling and removes interval and visibility listeners', async () => {
+  const h = harness({ list: [account()], records: [result(record(7, true))] }); await h.settle()
+  const pending = deferred(); h.plans.records.push(pending.promise)
+  h.tickIntervals(); await h.settle(); const reads = h.requests.length
+  h.app.unmount(); pending.resolve(result()); await h.settle()
+  h.tickIntervals(); h.document.dispatchEvent(new Event('visibilitychange')); h.window.dispatchEvent(new Event('pageshow')); await h.settle()
+  assert.equal(h.requests.length, reads)
+  assert.equal(h.state.accounts[0].record.isStarted, true)
+})
+
+test('newer list load wins even when an older list response arrives last', async t => {
+  const h = await ready(t); const pending = deferred()
+  h.plans.list = pending.promise
+  const old = h.state.fetchGameAccounts(); await h.settle()
+  h.plans.list = [{ ...account(), nickname: 'new list' }]; h.plans.records.push(result(record(7, true)))
+  await h.state.fetchGameAccounts(); pending.resolve([account()]); await old; await h.settle()
+  assert.equal(h.state.accounts[0].nickname, 'new list')
+  assert.equal(h.state.accounts[0].record.isStarted, true)
+  assert.equal(h.requests.filter(r => r.url.includes('player_records')).length, 1)
+  assert.equal(h.state.isLoading, false)
+})
+
+test('starting a list reload invalidates in-flight polling and removed accounts stay removed', async t => {
+  const h = await ready(t); h.state.accounts[0].record.isStarted = true; const pending = deferred()
+  h.plans.records.push(pending.promise)
+  const old = h.state.refreshAllAccountsData(); await h.settle()
+  h.plans.list = [account()]; h.plans.records.push(result(record(7, true)))
+  await h.state.fetchGameAccounts(); pending.resolve(result(record(7, false))); await old
+  assert.equal(h.state.accounts[0].record.isStarted, true)
+  const removal = deferred(); h.plans.records.push(removal.promise)
+  const oldAgain = h.state.refreshAllAccountsData(); await h.settle()
+  h.plans.list = []; await h.state.fetchGameAccounts()
+  removal.resolve(result(record(7, true))); await oldAgain; await h.settle()
+  assert.equal(h.state.accounts.length, 0)
+  const requests = h.requests.length; h.tickIntervals(); await h.settle()
+  assert.equal(h.requests.length, requests)
 })
