@@ -7,6 +7,13 @@ import { d3 } from './enc'
 import { getSafeWxReauthError, isWxReauthRequired } from './wxReauth'
 import { getSafeAccountPasswordError } from './accountPasswordLogin'
 
+// 由调用方统一处理重试查询和业务反馈，避免中间失败重复提示。
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    handleErrorLocally?: boolean
+  }
+}
+
 // 防重复消息显示机制
 const messageCache = new Map<string, number>()
 const MESSAGE_THROTTLE_TIME = 3000 // 3秒内防重复
@@ -238,6 +245,9 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error)
       }
 
+      // 登录失效仍按原流程处理。
+      if (error.config?.handleErrorLocally && status !== 401) return Promise.reject(error)
+
       // 优先尝试使用通用错误信息，如果没有再根据状态码处理
       const isWxReauthRequest = /\/api\/game-accounts\/wx\/reauth\/(?:start|poll|cancel)(?:[?#]|$)/.test(
         error.config?.url || '',
@@ -280,6 +290,8 @@ axiosInstance.interceptors.response.use(
             throttledErrorMessage('未知错误')
         }
       }
+    } else if (error.config?.handleErrorLocally) {
+      return Promise.reject(error)
     } else if (error.request) {
       // 网络错误
       console.error('❌ 网络错误:', error.message)

@@ -49,16 +49,31 @@ export const updateUserInStorage = (updates: Partial<User>) => {
   }
 }
 
+let balanceRequestId = 0
+
 /**
  * 更新用户余额 - 从接口获取最新余额并更新到本地存储
  * @returns Promise<boolean> 返回是否更新成功
  */
 export const updateUserBalance = async (): Promise<boolean> => {
+  const requestId = ++balanceRequestId
+  const userId = getCurrentUser()?.id
+  if (userId === undefined) return false
+
   try {
     const response = await axios.get('/api/points/balance')
-    const latestBalance = response.data.points
+    const rawBalance = response.data.points
+    // 金额接口可能返回 decimal 字符串；空值不能当作 0 覆盖已有余额。
+    const latestBalance =
+      typeof rawBalance === 'number' ||
+      (typeof rawBalance === 'string' && rawBalance.trim() !== '')
+        ? Number(rawBalance)
+        : NaN
 
-    if (typeof latestBalance === 'number') {
+    // 支付后的新查询优先，避免旧请求晚返回或切换账号后覆盖当前余额。
+    if (requestId !== balanceRequestId || getCurrentUser()?.id !== userId) return false
+
+    if (Number.isFinite(latestBalance)) {
       const success = updateUserInStorage({ points: latestBalance })
       console.log('用户余额已更新:', latestBalance)
       return success

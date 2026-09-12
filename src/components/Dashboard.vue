@@ -130,6 +130,7 @@ import AgentManagement from './AgentManagement.vue'
 import WelfarePage from '../pages/WelfarePage.vue'
 import TopNavBar from './TopNavBar.vue'
 import axios from '../utils/axios'
+import { getCurrentUser } from '../utils/userUtils'
 
 interface User {
   id: number
@@ -347,6 +348,19 @@ const handleUserUpdate = (updatedUser: User) => {
   emit('userUpdate', updatedUser)
 }
 
+// 充值/兑换替换缓存对象后，同步首页、配额和充值窗口。
+const syncUserFromStorage = () => {
+  const updatedUser = getCurrentUser()
+  if (updatedUser && updatedUser.id === user.value?.id) {
+    user.value = updatedUser
+    emit('userUpdate', updatedUser)
+  }
+}
+
+const handleUserStorageChange = (event: StorageEvent) => {
+  if (event.key === 'user') syncUserFromStorage()
+}
+
 const handleExpiryBannerChange = (visible: boolean) => {
   showExpiryBanner.value = visible
 }
@@ -368,6 +382,9 @@ onMounted(() => {
     return // 如果初始化失败，已经重定向到登录页面
   }
 
+  window.addEventListener('userInfoUpdated', syncUserFromStorage)
+  window.addEventListener('storage', handleUserStorageChange)
+
   // 检查并清理过期的adminToken
   const savedAdminToken = localStorage.getItem('adminToken')
   if (savedAdminToken && isTokenExpired(savedAdminToken)) {
@@ -382,6 +399,8 @@ onMounted(() => {
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', updateBannerHeight)
+    window.removeEventListener('userInfoUpdated', syncUserFromStorage)
+    window.removeEventListener('storage', handleUserStorageChange)
   }
 })
 

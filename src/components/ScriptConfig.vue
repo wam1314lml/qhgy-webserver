@@ -722,6 +722,7 @@ import DouyinReauthModal from './DouyinReauthModal.vue'
 import WxReauthModal from './WxReauthModal.vue'
 import { getSafeWxReauthError, isWxReauthRequired } from '../utils/wxReauth'
 import { updateUserBalance } from '../utils/userUtils'
+import { fetchPlayerRecordsWithRetry, hasPlayerRecordState, isAccountAlreadyRunning } from '../utils/playerRecordRetry'
 import { getTeamOrderDay, getNextTeamOrderDayDelay, getTodayTeamOrderStats } from '../utils/teamOrderStats'
 
 // 基础账户信息接口
@@ -836,6 +837,8 @@ const canAddAccount = computed(() => accounts.value.length < MAX_GAME_ACCOUNTS)
 const showAddModal = ref(false)
 const isLoading = ref(false)
 const operatingAccounts = ref<Set<number>>(new Set())
+const accountRecordVersions = new Map<number, number>()
+let isDisposed = false
 const logModalOpen = ref(false)
 const selectedAccountId = ref<number | null>(null)
 const rechargeModalOpen = ref(false)
@@ -909,7 +912,7 @@ const getAccountGameData = (account: GameAccount) => {
 
 // 检查账号是否有record数据
 const hasAccountRecord = (account: GameAccount): boolean => {
-  return !!account.record
+  return hasPlayerRecordState(account.record)
 }
 
 // 获取账号的启动状态
@@ -1068,6 +1071,16 @@ const showQuotaConfirmModal = ref(false)
 const selectedQuotaDays = ref<number | null>(null)
 const addingQuota = ref(false)
 const userPoints = ref(props.user?.points || 0)
+
+// 不能只保存 props 的初始对象：连续充值、兑换后跟随余额更新。
+watch(
+  () => [props.user, props.user?.points],
+  ([updatedUser]) => {
+    currentUser.value = updatedUser
+    userPoints.value = updatedUser?.points ?? 0
+  }
+)
+
 const currentQuotaAccountId = ref<number | null>(null)
 const currentAccountNickname = ref<string>('') // 当前账号昵称
 const currentAccountExpiry = ref<string | null>(null) // 当前账号到期时间
@@ -1189,64 +1202,18 @@ const fetchGroupChatImage = async () => {
 //   // 此函数已废弃，请使用 fetchPlayerRecords([accountId]) 替代
 // }
 
-// 批量获取多个账号的 player_records 数据
-const fetchPlayerRecords = async (accountIds: number[]) => {
-  if (accountIds.length === 0) {
-    return {
-      success: true,
-      records: [],
-      errors: [],
-      total: 0,
-      successCount: 0,
-      errorCount: 0,
-    }
-  }
-
-  try {
-    // 限制单次最多查询100个账号
-    const limitedIds = accountIds.slice(0, 100)
-    const response = await axios.get(
-      '/api/game-accounts/player_records?ids=' + limitedIds.map((id) => id.toString()),
-    )
-
-    if (response.data.code === 200 && response.data.data) {
-      const { results, total, success, failed } = response.data.data
-
-      console.log(`✅ 批量获取player_records成功: ${success}/${total} 个账号`)
-
-      return {
-        success: true,
-        records: results || [],
-        errors: [], // 新格式中没有单独的errors数组
-        total: total || 0,
-        successCount: success || 0,
-        errorCount: failed || 0,
-      }
-    } else {
-      console.error('❌ 批量获取player_records失败:', response.data)
-      return {
-        success: false,
-        records: [],
-        errors: [],
-        total: limitedIds.length,
-        successCount: 0,
-        errorCount: limitedIds.length,
-        reason: response.data.msg || '批量接口返回错误',
-      }
-    }
-  } catch (error: any) {
-    console.error('❌ 批量获取player_records异常:', error)
-    return {
-      success: false,
-      records: [],
-      errors: [],
-      total: accountIds.length,
-      successCount: 0,
-      errorCount: accountIds.length,
-      reason: `API调用异常: ${error.message || error}`,
-    }
-  }
-}
+// 未取得有效运行状态时有限重试；不重复请求已经成功取得的账号。
+const fetchPlayerRecords = (accountIds: number[], expectedStarted?: boolean, isCurrent = () => true) =>
+  fetchPlayerRecordsWithRetry<PlayerRecord>(
+    accountIds,
+    async ids => {
+      const response = await axios.get('/api/game-accounts/player_records?ids=' + ids.join(','), {
+        handleErrorLocally: true,
+      })
+      return response.data
+    },
+    { expectedStarted, isCurrent: () => !isDisposed && isCurrent() },
+  )
 
 // 通用的账号 record 数据更新函数
 const updateAccountRecord = (accountId: number, recordData: PlayerRecord | null) => {
@@ -1265,25 +1232,30 @@ const updateAccountRecord = (accountId: number, recordData: PlayerRecord | null)
 }
 
 // 获取并更新单个账号的 player_record 数据（使用批量接口）
-const fetchAndUpdateSingleAccountRecord = async (accountId: number) => {
-  const batchResult = await fetchPlayerRecords([accountId])
+const fetchAndUpdateSingleAccountRecord = async (accountId: number, expectedStarted?: boolean) => {
+  const version = (accountRecordVersions.get(accountId) || 0) + 1
+  accountRecordVersions.set(accountId, version)
+  const isCurrent = () => accountRecordVersions.get(accountId) === version
+  const batchResult = await fetchPlayerRecords([accountId], expectedStarted, isCurrent)
+  if (isDisposed || !isCurrent()) return false
+  const record = batchResult.records.find(record => Number(record.id) === accountId)
+  if (!record) return false
+  updateAccountRecord(accountId, record)
+  accountRecordVersions.set(accountId, version + 1)
+  return true
+}
 
-  if (batchResult.success && batchResult.records && batchResult.records.length > 0) {
-    const record = batchResult.records[0]
-    updateAccountRecord(accountId, record) // 新格式中record本身就是PlayerRecord数据
-    return true
-  }
-
-  // 新格式中没有单独的errors数组，检查是否获取失败
-  if (batchResult.errorCount > 0) {
-    console.warn(`⚠️ 账号 ${accountId} 获取记录失败，失败数量: ${batchResult.errorCount}`)
-  }
-
-  return false
+// 启动/停止接口的明确结果先更新按钮，并让更早发出的状态查询失效。
+const markAccountStarted = (accountId: number, isStarted: boolean) => {
+  accountRecordVersions.set(accountId, (accountRecordVersions.get(accountId) || 0) + 1)
+  accounts.value = accounts.value.map(account => account.id === accountId && account.record
+    ? { ...account, record: { ...account.record, isStarted } }
+    : account)
 }
 
 // 获取游戏账号数据（包含状态数据）
 const fetchGameAccounts = async () => {
+  const versions = new Map(accountRecordVersions)
   isLoading.value = true
   try {
     // 1. 先获取账号列表
@@ -1296,6 +1268,7 @@ const fetchGameAccounts = async () => {
       if (newAccounts.length > 0) {
         const accountIds = newAccounts.map((acc: GameAccount) => acc.id)
         const recordsResult = await fetchPlayerRecords(accountIds)
+        if (isDisposed) return
 
         // 3. 合并账号列表和状态数据
         if (recordsResult.success && recordsResult.records) {
@@ -1304,7 +1277,9 @@ const fetchGameAccounts = async () => {
           )
 
           accounts.value = newAccounts.map((account: GameAccount) => {
-            const record = recordsMap.get(account.id) as PlayerRecord | undefined
+            const record = (versions.get(account.id) || 0) === (accountRecordVersions.get(account.id) || 0)
+              ? recordsMap.get(account.id) as PlayerRecord | undefined
+              : accounts.value.find(current => current.id === account.id)?.record
 
             console.log(account, record)
             if (isAccountExpired(account) && record?.status === 'online') {
@@ -1327,9 +1302,15 @@ const fetchGameAccounts = async () => {
           )
         } else {
           // 如果获取状态失败，也要设置账号列表（只是没有状态数据）
-          accounts.value = newAccounts
+          accounts.value = newAccounts.map((account: GameAccount) => ({
+            ...account,
+            record: (versions.get(account.id) || 0) !== (accountRecordVersions.get(account.id) || 0)
+              ? accounts.value.find(current => current.id === account.id)?.record
+              : undefined,
+          }))
           console.warn('⚠️ 获取账号列表成功，但状态数据获取失败')
         }
+        if (recordsResult.errorCount > 0) message.warning('部分账号运行状态暂未获取到，请稍后刷新')
       } else {
         // 没有账号
         accounts.value = newAccounts
@@ -1351,15 +1332,19 @@ const refreshAllAccountsData = async () => {
     return
   }
 
+  const versions = new Map(accountRecordVersions)
   try {
     const accountIds = accounts.value.map((account: GameAccount) => account.id)
     const batchResult = await fetchPlayerRecords(accountIds)
+    if (isDisposed) return
 
     if (batchResult.success) {
       // 处理成功的记录
       if (batchResult.records && batchResult.records.length > 0) {
         batchResult.records.forEach((record: any) => {
           const accountId = parseInt(record.id)
+          if (operatingAccounts.value.has(accountId) ||
+            (versions.get(accountId) || 0) !== (accountRecordVersions.get(accountId) || 0)) return
           updateAccountRecord(accountId, record) // 新格式中record本身就是PlayerRecord数据
         })
       }
@@ -2015,100 +2000,83 @@ const handleConfigAccount = (accountId: number) => {
 }
 
 const handleToggleAccount = async (accountId: number, currentStatus: string) => {
-  // 防止重复操作
+  if (isDisposed) return
   if (operatingAccounts.value.has(accountId)) {
     message.warning('操作进行中，请稍等...')
     return
   }
 
+  // 在第一次异步读取之前加锁，防止快速连点发出多个启动请求。
+  operatingAccounts.value = new Set([...operatingAccounts.value, accountId])
   const action = currentStatus === 'active' ? 'stop' : 'start'
+  const syncAlreadyRunning = async () => {
+    markAccountStarted(accountId, true)
+    message.info('账号已在运行中，无需重复启动')
+    await fetchAndUpdateSingleAccountRecord(accountId, true)
+  }
 
-  // 如果是启动操作，先检查是否已过期
-  if (action === 'start') {
-    try {
+  try {
+    if (action === 'start') {
+      const hasState = await fetchAndUpdateSingleAccountRecord(accountId)
+      if (isDisposed) return
+      if (!hasState) {
+        message.warning('暂未获取到账号运行状态，请稍后再启动')
+        return
+      }
+      const account = accounts.value.find(account => account.id === accountId)
+      if (!account) return
+      if (getAccountStartedStatus(account)) {
+        message.info('账号已在运行中，无需重复启动')
+        return
+      }
       const expiredResponse = await axios.get(`/api/game-accounts/${accountId}/expired`)
-
-      if (expiredResponse.data.success && expiredResponse.data.data.isExpired) {
+      if (isDisposed) return
+      if (!expiredResponse.data.success || typeof expiredResponse.data.data?.isExpired !== 'boolean') {
+        message.warning('暂未获取到账号配额状态，请稍后再试')
+        return
+      }
+      if (expiredResponse.data.data.isExpired) {
         message.error('账号已过期，请先增加配额')
         return
       }
-    } catch {
-      return
-    }
-  }
-
-  // 添加到操作中的账号列表
-  operatingAccounts.value = new Set([...operatingAccounts.value, accountId])
-
-  try {
-    const response = await axios.post(`/api/game-accounts/${accountId}/${action}`, {})
-
-    if (action === 'stop') {
-      await wait(1000)
     }
 
+    const response = await axios.post(`/api/game-accounts/${accountId}/${action}`, {}, { handleErrorLocally: true })
+    if (isDisposed) return
     if (response.data.success) {
+      markAccountStarted(accountId, action === 'start')
       message.success(`游戏账号${action === 'start' ? '启动' : '停止'}成功`)
-
-      // 立即更新账号状态（预估值）
-      accounts.value = accounts.value.map((account: GameAccount) => {
-        if (account.id === accountId) {
-          const updatedRecord = account.record
-            ? {
-                ...account.record,
-                isStarted: action === 'start',
-              }
-            : undefined
-          return { ...account, record: updatedRecord }
-        }
-        return account
-      })
-
-      // 延迟1秒后获取当前账号的最新 player_record 数据
-      await fetchAndUpdateSingleAccountRecord(accountId)
-
-      // 如果是停止操作，移除操作状态，让启动按钮可以点击
-      if (action === 'stop') {
-        const newSet = new Set(operatingAccounts.value)
-        newSet.delete(accountId)
-        operatingAccounts.value = newSet
-        return // 提前返回，避免在finally中重复移除状态
-      }
+      if (action === 'stop') await wait(1000)
+      const synced = await fetchAndUpdateSingleAccountRecord(accountId, action === 'start')
+      if (!isDisposed && !synced) message.warning('操作已完成，运行状态详情暂未同步，请稍后刷新')
+    } else if (action === 'start' && isAccountAlreadyRunning(response.data)) {
+      await syncAlreadyRunning()
+    } else if (response.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
+      await handleDouyinReauth(accountId)
+    } else if (response.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
+      await handleAlipayReauth(accountId)
+    } else if (isWxReauthRequired(response.data)) {
+      await openWxReauthPrompt(accountId)
     } else {
-      // 检查是否需要重新认证
-      if (response.data.code === 'DOUYIN_REAUTH_REQUIRED') {
-        await handleDouyinReauth(accountId)
-      } else if (response.data.code === 'ALIPAY_REAUTH_REQUIRED') {
-        await handleAlipayReauth(accountId)
-      } else if (isWxReauthRequired(response.data)) {
-        await openWxReauthPrompt(accountId)
-      } else {
-        let errorMsg = response.data.message || '操作失败'
-        if (response.data.data && response.data.data.msg) {
-          errorMsg += `: ${response.data.data.msg}`
-        }
-        message.error(errorMsg)
-      }
+      const detail = response.data.data?.msg
+      message.error((response.data.message || '操作失败') + (detail ? `: ${detail}` : ''))
     }
   } catch (error: any) {
-    if (!isWxReauthRequired(error.response?.data)) console.error('操作游戏账号失败:', error)
-
-    // 检查错误响应中是否包含重新认证要求
-    if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
+    if (isDisposed) return
+    if (action === 'start' && isAccountAlreadyRunning(error.response?.data)) {
+      await syncAlreadyRunning()
+    } else if (error.response?.data?.code === 'DOUYIN_REAUTH_REQUIRED') {
       await handleDouyinReauth(accountId)
     } else if (error.response?.data?.code === 'ALIPAY_REAUTH_REQUIRED') {
       await handleAlipayReauth(accountId)
     } else if (isWxReauthRequired(error.response?.data)) {
       await openWxReauthPrompt(accountId)
     } else {
-      let errorMsg = error.response?.data?.message || '操作失败'
-      if (error.response?.data?.data && error.response.data.data.msg) {
-        errorMsg += `: ${error.response.data.data.msg}`
-      }
-      message.error(errorMsg)
+      const detail = error.response?.data?.data?.msg
+      message.error((error.response?.data?.message || '操作失败，请稍后重试') + (detail ? `: ${detail}` : ''))
     }
   } finally {
-    // 移除操作状态（对于启动操作或失败情况）
+    accountRecordVersions.set(accountId, (accountRecordVersions.get(accountId) || 0) + 1)
     const newSet = new Set(operatingAccounts.value)
     newSet.delete(accountId)
     operatingAccounts.value = newSet
@@ -3127,6 +3095,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  isDisposed = true
   if (teamOrderDayTimer !== null) window.clearTimeout(teamOrderDayTimer)
   teamOrderDayTimer = null
   document.removeEventListener('visibilitychange', refreshTeamOrderDay)

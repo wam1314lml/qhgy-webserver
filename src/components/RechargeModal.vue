@@ -730,6 +730,33 @@ const handleRecharge = async () => {
   }
 }
 
+// 所有支付成功入口统一刷新余额，并先停止轮询，避免重复处理成功结果。
+const handlePaymentSuccess = async (card: typeof welfareCard.value) => {
+  if (paymentStatus.value === 'success') return
+  paymentStatus.value = 'success'
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value)
+    pollingTimer.value = null
+  }
+  if (timeoutTimer.value) {
+    clearTimeout(timeoutTimer.value)
+    timeoutTimer.value = null
+  }
+
+  await updateUserBalance()
+  currentStep.value = 2
+  welfareCard.value = card || null
+  message.success('支付成功！点数已到账')
+
+  // 有福利卡：不自动关闭，让用户手动关闭。
+  if (!welfareCard.value) {
+    setTimeout(() => {
+      emit('close')
+      resetModal()
+    }, 3000)
+  }
+}
+
 // 开始轮询支付状态
 const startPaymentPolling = (orderIdToCheck: string) => {
   const timer = setInterval(async () => {
@@ -737,30 +764,7 @@ const startPaymentPolling = (orderIdToCheck: string) => {
       const response = await axios.get(`/api/payment/check-status/${orderIdToCheck}`, {})
 
       if (response.data.status === 'success') {
-        await updateUserBalance()
-        // 支付成功
-        paymentStatus.value = 'success'
-        currentStep.value = 2
-        clearInterval(timer)
-
-        // 清除超时定时器
-        if (timeoutTimer.value) {
-          clearTimeout(timeoutTimer.value)
-          timeoutTimer.value = null
-        }
-
-        // 保存福利卡信息
-        welfareCard.value = response.data.welfare_card || null
-
-        message.success('支付成功！点数已到账')
-
-        // 有福利卡：不自动关闭，让用户手动关闭
-        if (!welfareCard.value) {
-          setTimeout(() => {
-            emit('close')
-            resetModal()
-          }, 3000)
-        }
+        await handlePaymentSuccess(response.data.welfare_card)
       } else if (response.data.status === 'failed') {
         // 支付失败
         paymentStatus.value = 'failed'
@@ -805,32 +809,7 @@ const handleManualCheckAlipay = async () => {
     const response = await axios.post(`/api/payment/manual-check-alipay/${orderId.value}`, {}, {})
 
     if (response.data.success) {
-      updateUserBalance()
-      // 支付成功
-      paymentStatus.value = 'success'
-      currentStep.value = 2
-      welfareCard.value = response.data.welfare_card || null
-
-      // 停止轮询
-      if (pollingTimer.value) {
-        clearInterval(pollingTimer.value)
-      }
-
-      // 清除超时定时器
-      if (timeoutTimer.value) {
-        clearTimeout(timeoutTimer.value)
-        timeoutTimer.value = null
-      }
-
-      message.success('支付成功！点数已到账')
-
-      // 有福利卡：不自动关闭
-      if (!welfareCard.value) {
-        setTimeout(() => {
-          emit('close')
-          resetModal()
-        }, 3000)
-      }
+      await handlePaymentSuccess(response.data.welfare_card)
     } else {
       message.info(response.data.message || '订单尚未支付成功')
     }
@@ -909,7 +888,7 @@ const redeemWelfareCard = async () => {
       if (r.data.success) {
         message.success(r.data.message)
         welfareCard.value = { ...welfareCard.value, status: 'used' }
-        updateUserBalance()
+        await updateUserBalance()
       } else {
         message.error(r.data.message || '兑换失败')
       }
