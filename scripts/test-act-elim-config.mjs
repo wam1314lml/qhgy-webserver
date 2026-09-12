@@ -19,7 +19,7 @@ const { createDefaultGameConfig, normalizeGameConfigSelects, deepMerge, actElimS
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`,
 )
 const expectedDefaults = {
-  enabled: false, autoClaimEnergy: false, customScoreEnabled: true, customScoreStrategy: 'medium', speed: 1,
+  enabled: false, autoClaimEnergy: false, customScoreEnabled: false, scoreMode: 'extreme', speed: 1,
 }
 assert.deepEqual(createDefaultGameConfig().activity.actElim, expectedDefaults)
 assert.deepEqual(actElimSpeedOptions.map(option => option.value), [1, 5, 10, 25, 100], '配置必须保存真实倍率，不保存 model 档位')
@@ -31,7 +31,7 @@ const normalize = (input = {}) => {
 assert.deepEqual(normalize().activity.actElim, expectedDefaults)
 assert.deepEqual(normalize({ enabled: true, speed: 25 }).activity.actElim, {
   ...expectedDefaults, enabled: true, speed: 25,
-}, '配置只保留用户可设置的五个字段')
+}, '保留四个用户配置及强制关闭标志')
 
 for (const enabled of [true, false]) {
   for (const autoClaimEnergy of [true, false]) {
@@ -59,9 +59,9 @@ for (const mode of ['normal', 'extreme', 'task', 'score', undefined, null, 'bad'
   for (const scoreMode of ['normal', 'extreme', 'task', 'score', undefined, null, true]) {
     let config = normalize({ enabled: true, autoClaimEnergy: true, speed: 25, mode, scoreMode })
     for (let round = 0; round < 3; round++) {
-      assert.deepEqual(config.activity.actElim, { ...expectedDefaults, enabled: true, autoClaimEnergy: true, speed: 25 })
+      assert.deepEqual(config.activity.actElim, { ...expectedDefaults, enabled: true, autoClaimEnergy: true, speed: 25, scoreMode: scoreMode === 'normal' ? 'normal' : 'extreme' })
       assert.equal(Object.hasOwn(config.activity.actElim, 'mode'), false, '历史或手工模式不再保存')
-      assert.equal(Object.hasOwn(config.activity.actElim, 'scoreMode'), false, '内部得分策略不由账号配置覆盖')
+      assert.equal(config.activity.actElim.scoreMode, scoreMode === 'normal' ? 'normal' : 'extreme', '只允许高分/普通策略，重复保存导入不丢失')
       config = normalize(JSON.parse(JSON.stringify(config.activity.actElim)))
     }
   }
@@ -74,17 +74,22 @@ for (const enabled of [true, false]) {
     for (const customScoreStrategy of ['normal', 'medium']) {
       let config = normalize({ enabled, customScoreEnabled, customScoreStrategy })
       for (let round = 0; round < 3; round++) {
-        assert.deepEqual(config.activity.actElim, { ...expectedDefaults, enabled, customScoreEnabled, customScoreStrategy }, '总开关/分数开关关闭时仍保留策略，保存导入不丢失')
+        assert.deepEqual(config.activity.actElim, { ...expectedDefaults, enabled }, '旧自定义开关强制关闭并清理旧策略')
         config = normalize(JSON.parse(JSON.stringify(config.activity.actElim)))
       }
     }
   }
 }
 for (const customScoreEnabled of [undefined, null, 'true', 'false', 1, 0, '', 'bad', {}, []]) {
-  assert.equal(normalize({ customScoreEnabled }).activity.actElim.customScoreEnabled, true, '缺失或非法分数开关使用默认开启，只有布尔false关闭')
+  assert.equal(normalize({ customScoreEnabled }).activity.actElim.customScoreEnabled, false, '任何输入均强制关闭')
 }
 for (const customScoreStrategy of [undefined, null, 'extreme', 'task', 'score', '', 'bad', true, false, 0, 1, {}, []]) {
-  assert.equal(normalize({ customScoreStrategy }).activity.actElim.customScoreStrategy, 'medium', '缺失/非法策略统一默认中等')
+  assert.equal(Object.hasOwn(normalize({ customScoreStrategy }).activity.actElim, 'customScoreStrategy'), false, '旧策略不再保存')
+}
+for (const scoreMode of ['normal', 'extreme']) {
+  const config = normalize({ enabled: false, scoreMode, customScoreEnabled: true, customScoreMin: 1, customScoreMax: 99999 })
+  assert.deepEqual(config.activity.actElim, { ...expectedDefaults, scoreMode })
+  assert.deepEqual(normalize(JSON.parse(JSON.stringify(config.activity.actElim))).activity.actElim, config.activity.actElim)
 }
 for (const input of [undefined, null, true, false, 0, 500, 1000, 1000000, '', ' ', 'bad', Infinity, NaN, {}, []]) {
   const config = createDefaultGameConfig()
@@ -113,9 +118,9 @@ const start = source.indexOf('<Divider orientation="left">甘之如饴</Divider>
 assert.ok(start > source.indexOf(`<div v-if="activeTab === '活动'"`))
 const panel = source.slice(start, source.indexOf('</Form>', start))
 assert.deepEqual([...panel.matchAll(/name="activity\.actElim\.([^\"]+)"/g)].map(match => match[1]), [
-  'enabled', 'autoClaimEnergy', 'customScoreEnabled', 'customScoreStrategy', 'speed',
+  'enabled', 'autoClaimEnergy', 'scoreMode', 'speed',
 ])
-for (const field of ['enabled', 'autoClaimEnergy', 'customScoreEnabled', 'customScoreStrategy', 'speed']) {
+for (const field of ['enabled', 'autoClaimEnergy', 'scoreMode', 'speed']) {
   const block = panel.match(new RegExp(`<CustomFormItem[^>]*name="activity\\.actElim\\.${field}"[\\s\\S]*?</CustomFormItem>`))?.[0]
   assert.ok(block, field)
   assert.match(block, new RegExp(`v-model:(?:checked|value)="config\\.activity\\.actElim\\.${field}"`))
@@ -123,19 +128,18 @@ for (const field of ['enabled', 'autoClaimEnergy', 'customScoreEnabled', 'custom
 }
 assert.match(panel, /:options="actElimSpeedOptions"/)
 assert.match(panel, /每日任务完成后的体力奖励，以及已耗体力达标的进度奖励/)
-assert.match(panel, /label="自定义分数"/)
-assert.match(panel, /按所选策略调整消除计分，关闭后使用原计分方式/)
-assert.match(panel, /<CustomFormItem\s+v-if="config\.activity\.actElim\.customScoreEnabled"\s+label="分数策略"/)
+assert.doesNotMatch(panel, /自定义分数|customScore|中等策略/)
+assert.match(panel, /label="分数策略"/)
 assert.match(panel, /value: 'normal', label: '普通策略'/)
-assert.match(panel, /value: 'medium', label: '中等策略'/)
+assert.match(panel, /value: 'extreme', label: '高分策略'/)
 assert.doesNotMatch(panel, /<Input(?:Number)?\b/, '只允许选择策略，不开放任意分数输入')
 assert.match(panel, /label="最高倍率"/)
 assert.match(panel, /任务模式固定使用1倍/)
 assert.match(panel, /仅供脚本切换分数模式后使用/)
 assert.match(panel, /按解锁积分与内部策略自动降档/)
-assert.doesNotMatch(panel, /actElim\.(?:mode|scoreMode)|游戏模式|普通模式|极限模式|simpleMode|maxScorePerMove|简易模式|分数上限/)
+assert.doesNotMatch(panel, /actElim\.mode|游戏模式|普通模式|极限模式|simpleMode|maxScorePerMove|简易模式|分数上限/)
 assert.match(source, /normalizeGameConfigSelects\(config\.value\)[\s\S]*?axios\.put\(`\/api\/game-accounts\/\$\{accountId\.value\}\/setting`, config\.value\)/)
 assert.match(source, /deepMerge\(createDefaultGameConfig\(\), sourceResponse\.data\.data\)[\s\S]*?normalizeGameConfigSelects\(payload\)/)
 
 assert.doesNotMatch(panel, /250|500|每\s*1?\s*体力|目标分数/, '玩家可见配置不展示每体力得分或内部目标')
-console.log('甘之如饴前端测试通过：五个配置项、默认启用中等分数策略、策略显隐及关闭保存、旧模式及内部参数清理、真实倍率、其他活动隔离及Vue编译（全离线）。')
+console.log('甘之如饴前端测试通过：自定义计分强制关闭、scoreMode高分/普通保存导入、旧字段清理、四项可见配置、真实倍率、其他活动隔离及Vue编译（全离线）。')

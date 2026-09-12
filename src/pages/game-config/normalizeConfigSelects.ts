@@ -510,23 +510,27 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   const actElim = config.activity.actElim
   actElim.enabled = actElim.enabled === true
   actElim.autoClaimEnergy = actElim.autoClaimEnergy === true
-  // 旧账号默认启用中等策略；显式关闭时保留策略选择，重新开启即可继续使用。
-  actElim.customScoreEnabled = actElim.customScoreEnabled !== false
-  actElim.customScoreStrategy = actElim.customScoreStrategy === 'normal' ? 'normal' : 'medium'
+  // 即使旧配置/导入带true也强制关闭；只允许选择自然计分的分数策略。
+  actElim.customScoreEnabled = false
+  actElim.scoreMode = actElim.scoreMode === 'normal' ? 'normal' : 'extreme'
   // 保留真实倍率，不把 5/10/25/100 当成 model 档位；关闭总开关时保留子项选择。
   actElim.speed = ensureSingleSelectValue(
     Number(actElim.speed),
     actElimSpeedOptions,
   )
-  // 任务/分数模式及旧内部调优字段仍只由脚本初始化决定，不与用户的自定义分数策略混用。
+  // 任务/分数模式仍由脚本初始化；旧自定义计分与内部调优字段不得随保存重新带回。
   const legacyActElim = actElim as typeof actElim & {
     mode?: unknown
-    scoreMode?: unknown
+    customScoreStrategy?: unknown
+    customScoreMin?: unknown
+    customScoreMax?: unknown
     simpleMode?: unknown
     maxScorePerMove?: unknown
   }
   delete legacyActElim.mode
-  delete legacyActElim.scoreMode
+  delete legacyActElim.customScoreStrategy
+  delete legacyActElim.customScoreMin
+  delete legacyActElim.customScoreMax
   delete legacyActElim.simpleMode
   delete legacyActElim.maxScorePerMove
   config.activity.actDessert.speed = ensureSingleSelectValue(

@@ -2501,23 +2501,13 @@
               />
             </CustomFormItem>
             <CustomFormItem
-              label="自定义分数"
-              name="activity.actElim.customScoreEnabled"
-              tooltip="按所选策略调整消除计分，关闭后使用原计分方式。默认开启。"
-            >
-              <Switch
-                v-model:checked="config.activity.actElim.customScoreEnabled"
-                :disabled="!config.activity.actElim.enabled"
-              />
-            </CustomFormItem>
-            <CustomFormItem
-              v-if="config.activity.actElim.customScoreEnabled"
               label="分数策略"
-              name="activity.actElim.customScoreStrategy"
+              name="activity.actElim.scoreMode"
+              tooltip="仅在脚本切换为分数模式后生效，任务模式仍优先完成NPC任务。"
             >
               <CustomSelect
-                v-model:value="config.activity.actElim.customScoreStrategy"
-                :options="[{ value: 'normal', label: '普通策略' }, { value: 'medium', label: '中等策略' }]"
+                v-model:value="config.activity.actElim.scoreMode"
+                :options="[{ value: 'extreme', label: '高分策略' }, { value: 'normal', label: '普通策略' }]"
                 :disabled="!config.activity.actElim.enabled"
               />
             </CustomFormItem>

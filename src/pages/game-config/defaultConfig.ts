@@ -350,8 +350,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       actElim: {
         enabled: false,
         autoClaimEnergy: false,
-        customScoreEnabled: true,
-        customScoreStrategy: 'medium',
+        customScoreEnabled: false,
+        scoreMode: 'extreme',
         speed: 1,
       },
       zooGameElim: {

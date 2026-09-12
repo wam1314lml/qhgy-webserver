@@ -336,8 +336,8 @@ export interface GameConfig {
     actElim: {
       enabled: boolean
       autoClaimEnergy: boolean
-      customScoreEnabled: boolean
-      customScoreStrategy: 'normal' | 'medium'
+      customScoreEnabled: false
+      scoreMode: 'normal' | 'extreme'
       speed: number
     }
     zooGameElim: {
