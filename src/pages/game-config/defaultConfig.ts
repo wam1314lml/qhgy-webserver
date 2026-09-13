@@ -186,6 +186,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       artSell: {
         autoSellArt: false,
+        makeWhenInsufficient: true,
         artSellMode: 'vase',
         specifiedArts: [],
         specifiedArtsFull: [],

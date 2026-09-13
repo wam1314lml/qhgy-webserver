@@ -1288,6 +1288,13 @@
               <Switch v-model:checked="config.plant.artSell.autoSellArt" />
             </CustomFormItem>
             <template v-if="config.plant.artSell.autoSellArt">
+              <CustomFormItem
+                label="库存不足时制作果艺"
+                name="plant.artSell.makeWhenInsufficient"
+                tooltip="开启后，常规自动上架会按指定花瓶或果艺补做不足的成品；关闭后只用已有成品进行常规上架，不再为上架补做或补种。果艺首做及顾客、公会任务制作仍由各自开关控制。"
+              >
+                <Switch v-model:checked="config.plant.artSell.makeWhenInsufficient" />
+              </CustomFormItem>
               <CustomFormItem label="上架模式" name="plant.artSell.artSellMode">
                 <Radio.Group v-model:value="config.plant.artSell.artSellMode">
                   <Space direction="vertical">
@@ -1299,7 +1306,7 @@
               <CustomFormItem
                 label="指定花瓶"
                 name="plant.artSell.specifiedArts"
-                tooltip="指定花瓶，优先选择有库存的上架，否则进行制作，如果水果库存不足需要配合种植开启任务优先进行使用。"
+                tooltip="按指定花瓶选择果艺，优先上架已有成品；库存不足时，仅在开启「库存不足时制作果艺」后补做。水果不足时可配合种植任务优先。"
                 v-if="config.plant.artSell.artSellMode === 'vase'"
               >
                 <CustomSelect
@@ -1313,7 +1320,7 @@
                 class="form-item--stack-mobile"
                 label="指定果艺"
                 name="plant.artSell.specifiedArtsFull"
-                tooltip="指定果艺，优先选择有库存的上架，否则进行制作，如果水果库存不足需要配合种植开启任务优先进行使用。"
+                tooltip="按指定果艺选择配方，优先上架已有成品；库存不足时，仅在开启「库存不足时制作果艺」后补做。水果不足时可配合种植任务优先。"
                 v-if="config.plant.artSell.artSellMode === 'full'"
               >
                 <CustomSelect
@@ -1348,7 +1355,7 @@
               <CustomFormItem
                 label="库存优先"
                 name="plant.artSell.stockFirst"
-                tooltip="开启后会优先上架已有的果艺(从多到少排序)，全部没有后才会再根据上架模式上架设置的果艺"
+                tooltip="自动上架开启时，先一次性清理全部已有果艺，不限指定花瓶或果艺，按库存从多到少、同款售完再换。清仓期间暂停常规补做，每架最多12份，不受上架数量限制，尾数也会上架；清完后恢复指定模式。关闭再开启或重启脚本会重新清仓。"
               >
                 <Switch v-model:checked="config.plant.artSell.stockFirst" />
               </CustomFormItem>
@@ -1370,7 +1377,7 @@
             <CustomFormItem
               label="果艺首做"
               name="plant.artSell.artFirstMake"
-              tooltip="自动制作所有未首次制作过的果艺，制作效率和任务优先级里的果艺售卖优先级挂钩"
+              tooltip="自动制作所有未首次制作过的果艺，制作效率和任务优先级里的果艺售卖优先级挂钩。此开关独立于「库存不足时制作果艺」，关闭常规补做不会关闭首做。"
             >
               <Switch v-model:checked="config.plant.artSell.artFirstMake" />
             </CustomFormItem>

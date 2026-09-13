@@ -168,6 +168,7 @@ export interface GameConfig {
     }
     artSell: {
       autoSellArt: boolean
+      makeWhenInsufficient: boolean
       artSellMode: 'vase' | 'full' | string
       specifiedArts: Array<number | string>
       specifiedArtsFull: Array<number | string>

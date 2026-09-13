@@ -424,6 +424,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     QHGY_ART_OPTIONS.filter((option) => QHGY_ART_ID_SET.has(String(option.value))),
   )
   config.plant.artSell.artFirstMake = !!config.plant.artSell.artFirstMake
+  config.plant.artSell.stockFirst = config.plant.artSell.stockFirst === true
+  // 旧账号缺失字段时沿用自动补做，必须保留用户显式关闭。
+  config.plant.artSell.makeWhenInsufficient = config.plant.artSell.makeWhenInsufficient !== false
 
   const market = config.plant.market
   market.putMode = ensureSingleSelectValue(market.putMode, putModeOptions)
