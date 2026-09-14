@@ -173,6 +173,24 @@ for (const login of [
   assert.equal(logs.length, 0)
 }
 
+// 账号/密码失败在进度提示结束后显示具体原因，仍停留登录表单并允许重新输入。
+for (const reason of ['账户不存在', '账号或密码错误']) for (const httpError of [false, true]) {
+  const body = { success: false, code: 'ACCOUNT_PASSWORD_LOGIN_FAILED', message: reason }
+  const { page, api, messages, calls, events, logs } = createPage({
+    login: httpError ? { response: { status: 401, data: body } } : body,
+  })
+  await api.handleLogin()
+  assert.equal(page.currentStep.value, 'login')
+  assert.equal(page.loginProgressVisible.value, false)
+  assert.ok(messages.some(row => row.type === 'error' && row.value === reason))
+  assert.equal(page.accountBindTicket.value, '')
+  assert.equal(page.loginForm.value.password, '')
+  assert.equal(page.loading.value, false)
+  assert.equal(calls.length, 1)
+  assert.equal(events.length, 0)
+  assert.equal(logs.length, 0)
+}
+
 // 票据过期返回登录，不保留密码，也不留 loading 死锁；网络失败可用同票据重试。
 for (const asHttpError of [false, true]) {
   const body = { success: false, code: 'ACCOUNT_PASSWORD_BIND_EXPIRED', message: '登录凭据已过期，请重新输入账号密码' }
@@ -241,8 +259,8 @@ const axiosContext = vm.createContext({
   handleLogout: () => logoutCount++, throttledErrorMessage: text => displayed.push(text),
 })
 vm.runInContext(compile(`${classifier.getText()}\n${responseHook.getText()}`), axiosContext)
-for (const status of [200, 400, 401, 500]) {
-  const response = { status, data: { success: false, code: 'ACCOUNT_PASSWORD_LOGIN_FAILED', message: '游戏 token过期，请重新登录' } }
+for (const status of [200, 400, 401, 500]) for (const reason of ['账户不存在', '账号或密码错误', '游戏 token过期，请重新登录']) {
+  const response = { status, data: { success: false, code: 'ACCOUNT_PASSWORD_LOGIN_FAILED', message: reason } }
   if (status === 200) assert.equal(onResponse(response), response)
   else await assert.rejects(onRejected({ config: { url: '/api/game-accounts/login' }, response }))
 }
