@@ -10,6 +10,7 @@
       >
         <template #right-prefix>
           <Space>
+            <a-button :disabled="loading" @click="openConfigShare">分享</a-button>
             <a-button
               :loading="importConfigLoading"
               :disabled="loading"
@@ -2641,6 +2642,13 @@
         />
       </div>
     </Modal>
+    <ConfigShareDialog
+      v-model:open="configShareVisible"
+      :current="config"
+      :adapter="configShareAdapter"
+      :api="configShareApi"
+      @apply="applySharedConfig"
+    />
   </div>
 </template>
 
@@ -2661,6 +2669,9 @@ import {
   Modal,
 } from 'ant-design-vue'
 import axios from '../utils/axios'
+import ConfigShareDialog from '../features/config-share/ConfigShareDialog.vue'
+import { createProjectShareAdapter } from '../features/config-share/projectAdapter'
+import { createConfigShareApi } from '../features/config-share/api'
 import TopNavBar from '../components/TopNavBar.vue'
 import CustomFormItem from '../components/CustomFormItem.vue'
 import CustomSelect from '../components/CustomSelect.vue'
@@ -3320,6 +3331,28 @@ onMounted(() => {
     '我知道了',
   )
 })
+
+// 分享模块复用花园实现，只接入本页已有配置归一化与保存规则。
+const configShareVisible = ref(false)
+const configShareAdapter = createProjectShareAdapter<GameConfig>((value) => {
+  const error = validateFmlRaceScoreRanges(value.union.fmlRace.acceptRules)
+  if (error) throw new Error(error)
+  normalizeGameConfigSelects(value)
+  return value
+})
+const configShareApi = createConfigShareApi(configShareAdapter.project.id)
+const openConfigShare = () => {
+  configShareVisible.value = true
+}
+const applySharedConfig = (value: GameConfig) => {
+  config.value = value
+  Modal.success({
+    title: '分享配置已应用',
+    content: '分享配置已应用到页面，请核对后点击“保存”。',
+    okText: '确定', centered: true, maskClosable: false, keyboard: false, closable: false,
+  })
+}
+
 </script>
 
 <style lang="scss" scoped>
