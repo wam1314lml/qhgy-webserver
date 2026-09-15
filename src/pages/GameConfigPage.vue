@@ -2223,10 +2223,16 @@
             <CustomFormItem
               label="完成已接任务"
               name="union.fmlRace.completeTakenTask"
-              tooltip="开启后会完成已接取的任务，不判断优先级和分数；目标水果未培育或指定果艺无法制作时，会先输出事件再放弃。果艺缺少的水果已培育时，会安排补种。"
+              tooltip="仅普通模式生效：开启后会完成已接取的任务，不判断优先级和分数；目标水果未培育或指定果艺无法制作时，会先输出事件再放弃。果艺缺少的水果已培育时，会安排补种。小号升级或刷新开启时，此项不生效，原勾选保留。"
             >
-              <Switch v-model:checked="config.union.fmlRace.completeTakenTask" />
-              <p class="fml-race-taken-task-help">
+              <Switch
+                v-model:checked="config.union.fmlRace.completeTakenTask"
+                :disabled="fmlRaceSmallAccountMode"
+              />
+              <p v-if="fmlRaceSmallAccountMode" class="fml-race-taken-task-help">
+                {{ fmlRaceCompleteTakenTaskInactiveNotice }}
+              </p>
+              <p v-else class="fml-race-taken-task-help">
                 开启后会完成已接取的任务，不判断优先级和分数；未培育所需水果、无法完成时会放弃。
               </p>
             </CustomFormItem>
@@ -2349,7 +2355,7 @@
             <CustomFormItem
               label="小号专属"
               name="union.fmlRace.smallAccountExclusiveEnabled"
-              tooltip="本功能为小号专用，会消耗勾玉。新接取任务仍需满足上方四类接取规则，再按下方条件刷新或升级后放弃；开启“完成已接任务”时会优先完成当前任务，不按小号模式放弃。"
+              tooltip="本功能为小号专用，会消耗勾玉。新接取任务仍需满足上方四类接取规则，再按下方条件刷新或升级后放弃；升级或刷新任一开启时，“完成已接任务”不生效，原勾选保留，关闭两项后恢复。"
             >
               <Switch
                 :checked="config.union.fmlRace.smallAccountExclusiveEnabled"
@@ -2360,7 +2366,7 @@
               <CustomFormItem
                 label="勾玉升级任务"
                 name="union.fmlRace.onlyDiamondUpgradeTask"
-                tooltip="付费模式：仍需满足上方四类接取规则，再按升级最低积分及任务优先级判断；执行勾玉升级后放弃。可与勾玉刷新同时开启；开启“完成已接任务”时优先完成当前任务。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再按升级最低积分及任务优先级判断；执行勾玉升级后放弃。可与勾玉刷新同时开启；此模式下“完成已接任务”不生效。"
               >
                 <Switch
                   :checked="config.union.fmlRace.onlyDiamondUpgradeTask"
@@ -2386,7 +2392,7 @@
               <CustomFormItem
                 label="勾玉刷新任务"
                 name="union.fmlRace.diamondRefreshTask"
-                tooltip="付费模式：仍需满足上方四类接取规则，再接取积分小于等于低分阈值的任务进行刷新，达到目标后放弃；同时开启勾玉升级且达到条件时才升级。开启“完成已接任务”时优先完成当前任务。"
+                tooltip="付费模式：仍需满足上方四类接取规则，再接取积分小于等于低分阈值的任务进行刷新，达到目标后放弃；同时开启勾玉升级且达到条件时才升级。此模式下“完成已接任务”不生效。"
               >
                 <Switch
                   :checked="config.union.fmlRace.diamondRefreshTask"
@@ -2553,6 +2559,9 @@
       @ok="handleFmlRaceQuickSetupConfirm"
       @cancel="cancelFmlRaceQuickSetup"
     >
+      <p v-if="fmlRaceSmallAccountMode" class="fml-race-taken-task-help">
+        {{ fmlRaceCompleteTakenTaskInactiveNotice }}
+      </p>
       <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
         <p class="fml-race-rule-help">
           只接已开启且分数位于最低分至最高分之间的任务（含上下限）。
@@ -2752,6 +2761,14 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+// 只改变当前可用状态，保留原勾选供关闭小号升级/刷新后恢复。
+const fmlRaceSmallAccountMode = computed(() => {
+  const fmlRace = config.value.union.fmlRace
+  return fmlRace.onlyDiamondUpgradeTask === true || fmlRace.diamondRefreshTask === true
+})
+const fmlRaceCompleteTakenTaskInactiveNotice =
+  '小号升级/刷新开启时，“完成已接任务”不生效；原勾选保留，关闭两项后恢复。'
 
 const handleCultivateEnabledChange = (enabled: boolean) => {
   config.value.plant.cultivate.autoHarvestEnabled = enabled
