@@ -2135,6 +2135,7 @@
               :key="rule.key"
               :label="rule.label"
               :name="`union.fmlRace.acceptRules.${rule.key}`"
+              :tooltip="rule.key === 'selfUpgrade' ? fmlRaceSelfUpgradeBonusNotice : undefined"
               class="fml-race-accept-rule-item"
               :validate-status="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) ? 'error' : undefined"
               :help="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) || undefined"
@@ -2602,6 +2603,9 @@
               />
             </label>
           </div>
+          <p v-if="rule.key === 'selfUpgrade'" class="fml-race-rule-help">
+            {{ fmlRaceSelfUpgradeBonusNotice }}
+          </p>
         </div>
         <p v-if="validateFmlRaceScoreRanges(fmlRaceQuickSetupRules)" class="fml-race-range-error" role="alert">
           {{ validateFmlRaceScoreRanges(fmlRaceQuickSetupRules) }}
@@ -2717,6 +2721,7 @@ import type { GameConfig } from './game-config/types'
 import {
   createDefaultFmlRaceAcceptRules,
   fmlRaceAcceptRuleOptions,
+  fmlRaceSelfUpgradeBonusNotice,
   normalizeFmlRaceAcceptRules,
   getFmlRaceSelfUpgradeMinScoreLimit,
   clampFmlRaceSelfUpgradeMinScore,
