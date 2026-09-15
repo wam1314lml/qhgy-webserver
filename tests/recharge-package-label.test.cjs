@@ -88,17 +88,17 @@ test('actual admin create/edit/save/clear round-trip uses a separate label and p
   try {
     const {state} = h.mount('src/components/admin/RechargePackageManagement.vue',{token:'offline-fixture'})
     await settle(); state.handleCreatePackage()
-    assert.equal(state.packageForm.purchase_limit_label,'')
-    Object.assign(state.packageForm,{name:'测试套餐',price:30,points:30,max_purchase_count:0,purchase_limit_label:'  限时活动  '})
+    assert.equal(state.packageForm.activity_display_text,'')
+    Object.assign(state.packageForm,{name:'测试套餐',price:30,points:30,max_purchase_count:0,activity_display_text:'  限时活动  '})
     await state.handleSavePackage(); await settle()
     assert.equal(h.writes[0].body.max_purchase_count,null)
-    assert.equal(h.writes[0].body.purchase_limit_label,'限时活动')
+    assert.equal(h.writes[0].body.activity_display_text,'限时活动')
     assert.equal(h.writes[0].body.price,30)
-    state.handleEditPackage(state.rechargePackages[0]); assert.equal(state.packageForm.purchase_limit_label,'限时活动')
+    state.handleEditPackage(state.rechargePackages[0]); assert.equal(state.packageForm.activity_display_text,'限时活动')
     const consumer = await showConsumer(h)
     assert.ok(textOf(consumer.host).includes('限时活动'))
-    state.packageForm.purchase_limit_label=''; await state.handleSavePackage(); await settle()
-    assert.equal(h.writes[1].method,'PUT'); assert.equal(h.writes[1].body.purchase_limit_label,'')
+    state.packageForm.activity_display_text=''; await state.handleSavePackage(); await settle()
+    assert.equal(h.writes[1].method,'PUT'); assert.equal(h.writes[1].body.activity_display_text,'')
     await consumer.state.fetchRechargePackages(); await settle()
     assert.ok(textOf(consumer.host).includes('无限制')); assert.ok(!textOf(consumer.host).includes('限时活动'))
   } finally { h.cleanup() }
@@ -106,7 +106,7 @@ test('actual admin create/edit/save/clear round-trip uses a separate label and p
 test('normal and gift-card cards both display custom text without changing can_purchase or prices', async () => {
   const h=harness()
   try {
-    h.setPackages([0,1].map((gift_card_enabled,i)=>({id:i+1,name:'测试',enabled:1,price:30,points:30,max_purchase_count:0,purchase_limit_label:'限时活动',gift_card_enabled,can_purchase:true})))
+    h.setPackages([0,1].map((gift_card_enabled,i)=>({id:i+1,name:'测试',enabled:1,price:30,points:30,max_purchase_count:0,activity_display_text:'限时活动',gift_card_enabled,can_purchase:true})))
     const {state,host}=await showConsumer(h)
     assert.equal(textOf(host).split('限时活动').length-1,2)
     assert.ok(state.packages.every(p=>p.max_purchase_count===0&&p.can_purchase===true&&p.price===30))
@@ -115,7 +115,7 @@ test('normal and gift-card cards both display custom text without changing can_p
 test('limited and exhausted packages retain real limit/count/disabled presentation even when a custom label exists', async () => {
   const h=harness()
   try {
-    h.setPackages([true,false].map((can_purchase,i)=>({id:i+1,enabled:1,price:30,points:30,max_purchase_count:2,user_purchased_count:i?2:1,purchase_limit_label:'限时活动',can_purchase})))
+    h.setPackages([true,false].map((can_purchase,i)=>({id:i+1,enabled:1,price:30,points:30,max_purchase_count:2,user_purchased_count:i?2:1,activity_display_text:'限时活动',can_purchase})))
     const {state,host}=await showConsumer(h)
     const text=textOf(host); assert.ok(text.includes('限购2次，已购买1次')); assert.ok(text.includes('已达购买上限')); assert.ok(!text.includes('限时活动'))
     assert.equal(state.packages[1].can_purchase,false)
@@ -124,7 +124,7 @@ test('limited and exhausted packages retain real limit/count/disabled presentati
 test('old/missing/blank labels fall back to unlimited; numeric/string zero treated equally', async () => {
   const h=harness()
   try {
-    h.setPackages([0,'0',null,undefined].map((max_purchase_count,i)=>({id:i+1,enabled:1,price:30,points:30,max_purchase_count,purchase_limit_label:i===1?'  ':undefined,can_purchase:true})))
+    h.setPackages([0,'0',null,undefined].map((max_purchase_count,i)=>({id:i+1,enabled:1,price:30,points:30,max_purchase_count,activity_display_text:i===1?'  ':undefined,can_purchase:true})))
     const {host}=await showConsumer(h); assert.equal(textOf(host).split('无限制').length-1,4)
   } finally {h.cleanup()}
 })
@@ -135,7 +135,7 @@ test('label trimming/type/length constraints and literal text rendering', async 
     assert.equal(util.normalizePurchaseLimitLabel(null),'')
     assert.equal(util.normalizePurchaseLimitLabel(123),'')
     assert.equal(util.normalizePurchaseLimitLabel('🌸'.repeat(21)),'🌸'.repeat(20))
-    h.setPackages([{id:1,enabled:1,price:30,points:30,max_purchase_count:0,purchase_limit_label:'<b>限时活动</b>',can_purchase:true}])
+    h.setPackages([{id:1,enabled:1,price:30,points:30,max_purchase_count:0,activity_display_text:'<b>限时活动</b>',can_purchase:true}])
     const {host}=await showConsumer(h); assert.ok(textOf(host).includes('<b>限时活动</b>')); assert.ok(!all(host).some(n=>n.type==='b'))
   } finally {h.cleanup()}
 })

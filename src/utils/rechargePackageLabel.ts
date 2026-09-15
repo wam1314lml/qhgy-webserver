@@ -5,5 +5,5 @@ export const normalizePurchaseLimitLabel = (value: unknown): string =>
 export const hasPurchaseLimit = (pkg: { max_purchase_count?: unknown }): boolean =>
   Number(pkg.max_purchase_count) > 0
 
-export const getUnlimitedPurchaseLabel = (pkg: { purchase_limit_label?: unknown }): string =>
-  normalizePurchaseLimitLabel(pkg.purchase_limit_label) || '无限制'
+export const getUnlimitedPurchaseLabel = (pkg: { activity_display_text?: unknown }): string =>
+  normalizePurchaseLimitLabel(pkg.activity_display_text) || '无限制'

@@ -10,16 +10,18 @@
 
 ## 新字段和接口对接
 
+2026-09-15 按确认统一使用 `activity_display_text`；表单、创建/修改请求、列表回填及用户展示均使用此字段名，显示规则不变。
+
 | 字段 | 类型 | 默认 | 规则 |
 | --- | --- | --- | --- |
-| `purchase_limit_label` | string，可兼容null/缺失 | 空字符串 | 去除两侧空白，最长20个字符；仅不限购时替换默认展示文字 |
+| `activity_display_text` | string，可兼容null/缺失 | 空字符串 | 去除两侧空白，最长20个字符；仅不限购时替换默认展示文字 |
 
 - 新建/修改：`POST /api/admin/recharge-packages`、`PUT /api/admin/recharge-packages/:id` 的JSON中提交此字段。
 - 后台列表：`GET /api/admin/recharge-packages` 的`packages[]`返回此字段，用于列表显示、编辑回填。
 - 用户列表：`GET /api/payment/recharge-packages` 的`packages[]`返回此字段，用于首次加载及刷新。
 - 旧数据缺少字段或为空仍显示「无限制」。前端沿用既有规则，把编辑值0的`max_purchase_count`保存成null，不用文字字段代替购买次数。
 
-例如：`{"max_purchase_count":null,"purchase_limit_label":"限时活动"}`，表示不限购，文字为「限时活动」，**不表示自动设置活动日期或到期下架**。
+例如：`{"max_purchase_count":null,"activity_display_text":"限时活动"}`，表示不限购，文字为「限时活动」，**不表示自动设置活动日期或到期下架**。
 
 本仓库只有前端，本机未找到果园Web API的对应服务源码。服务端必须补齐字段存储、输入校验及上述两个列表的返回；尚未验证线上存储和跨用户显示。不要用浏览器本地缓存代替服务端持久化。本次真实组件测试用模拟后台，不创建支付订单、不执行充值。
 

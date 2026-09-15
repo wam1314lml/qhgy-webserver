@@ -111,12 +111,12 @@
         </a-form-item>
 
         <a-form-item
-          name="purchase_limit_label"
+          name="activity_display_text"
           label="不限购展示文字"
           tooltip="仅在购买次数限制为0或留空时，替换充值套餐上的“无限制”文字；留空沿用默认显示，不改变实际购买次数限制。"
         >
           <a-input
-            v-model:value="packageForm.purchase_limit_label"
+            v-model:value="packageForm.activity_display_text"
             placeholder="例如：限时活动"
             :maxlength="20"
             allow-clear
@@ -228,7 +228,7 @@ interface RechargePackage {
   enabled: number
   sort_order: number
   max_purchase_count?: number
-  purchase_limit_label?: string | null
+  activity_display_text?: string | null
   user_invite_rebate: string
   created_at: string
   updated_at: string
@@ -259,7 +259,7 @@ const packageForm = ref({
   popular: false,
   enabled: 1,
   max_purchase_count: 0,
-  purchase_limit_label: '',
+  activity_display_text: '',
   user_invite_rebate: '',
   lottery_tickets: 0,
   gift_card_enabled: 0,
@@ -326,8 +326,8 @@ const packageColumns = computed(() => [
   },
   {
     title: '不限购展示文字',
-    dataIndex: 'purchase_limit_label',
-    key: 'purchase_limit_label',
+    dataIndex: 'activity_display_text',
+    key: 'activity_display_text',
     customRender: ({ text }: { text: unknown }) => normalizePurchaseLimitLabel(text) || '-',
   },
   {
@@ -441,7 +441,7 @@ const handleCreatePackage = () => {
     popular: false,
     enabled: 1,
     max_purchase_count: 0,
-    purchase_limit_label: '',
+    activity_display_text: '',
     user_invite_rebate: '',
     lottery_tickets: 0,
     gift_card_enabled: 0,
@@ -465,7 +465,7 @@ const handleEditPackage = (pkg: RechargePackage) => {
     popular: pkg.popular,
     enabled: pkg.enabled,
     max_purchase_count: pkg.max_purchase_count || 0,
-    purchase_limit_label: normalizePurchaseLimitLabel(pkg.purchase_limit_label),
+    activity_display_text: normalizePurchaseLimitLabel(pkg.activity_display_text),
     user_invite_rebate: pkg.user_invite_rebate || '',
     lottery_tickets: (pkg as any).lottery_tickets || 0,
     gift_card_enabled: (pkg as any).gift_card_enabled || 0,
@@ -510,7 +510,7 @@ const handleSavePackage = async () => {
     // 处理表单数据，将max_purchase_count为0时转换为null
     const formData = {
       ...packageForm.value,
-      purchase_limit_label: normalizePurchaseLimitLabel(packageForm.value.purchase_limit_label),
+      activity_display_text: normalizePurchaseLimitLabel(packageForm.value.activity_display_text),
       max_purchase_count:
         packageForm.value.max_purchase_count === 0 ? null : packageForm.value.max_purchase_count,
     }
@@ -538,7 +538,7 @@ const handleSavePackage = async () => {
         popular: false,
         enabled: 1,
         max_purchase_count: 0,
-        purchase_limit_label: '',
+        activity_display_text: '',
         user_invite_rebate: '',
         lottery_tickets: 0,
         gift_card_enabled: 0,
