@@ -115,7 +115,7 @@
           <div style="padding: 12px 0;">
             <a-input-search v-model:value="redeemCode" placeholder="请输入16位卡密（区分大小写）" enter-button="立即兑换"
               :loading="redeeming" size="large" @search="handleRedeem" />
-            <p class="text-gray-400 text-xs mt-2">兑换成功后点数将立即到账，每张卡密只能兑换一次。</p>
+            <p class="text-gray-400 text-xs mt-2">兑换成功后配额将立即到账，每张卡密只能兑换一次。</p>
           </div>
         </div>
 
@@ -130,7 +130,7 @@
               <div v-for="card in welfareCards" :key="card.id" class="transaction-item">
                 <div class="transaction-info">
                   <div class="transaction-type font-mono font-bold text-sm">{{ card.code }}</div>
-                  <div class="transaction-description text-gray-500">{{ card.label }} · {{ card.points }} 点</div>
+                  <div class="transaction-description text-gray-500">{{ card.label }} · {{ card.points }} 配额</div>
                   <div class="transaction-meta">获得于 {{ formatDate(card.created_at) }}</div>
                 </div>
                 <div class="transaction-amount">
@@ -569,11 +569,11 @@ const handleRedeem = async (code: string) => {
     // 统一弹确认弹窗
     const reasonText = fee > 0 && fee_reason ? `\n原因：${fee_reason}` : ''
     const feeDesc = fee > 0
-      ? `需扣除 ${fee} 点手续费${reasonText}，实际到账 ${points_to_add} 点`
-      : `将到账 ${points_to_add} 点`
+      ? `需扣除 ${fee} 配额手续费${reasonText}，实际到账 ${points_to_add} 配额`
+      : `将到账 ${points_to_add} 配额`
     Modal.confirm({
       title: '确认兑换',
-      content: `该卡密面值 ${points} 点，${feeDesc}。\n\n确认兑换？`,
+      content: `该卡密面值 ${points} 配额，${feeDesc}。\n\n确认兑换？`,
       okText: '确认兑换',
       cancelText: '取消',
       onOk: async () => {

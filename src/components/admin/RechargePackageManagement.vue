@@ -110,6 +110,19 @@
           />
         </a-form-item>
 
+        <a-form-item
+          name="purchase_limit_label"
+          label="不限购展示文字"
+          tooltip="仅在购买次数限制为0或留空时，替换充值套餐上的“无限制”文字；留空沿用默认显示，不改变实际购买次数限制。"
+        >
+          <a-input
+            v-model:value="packageForm.purchase_limit_label"
+            placeholder="例如：限时活动"
+            :maxlength="20"
+            allow-clear
+          />
+        </a-form-item>
+
         <a-form-item name="user_invite_rebate" label="普通用户返点" :rules="[{ required: false }]">
           <a-input
             style="width: 100%"
@@ -140,9 +153,9 @@
         <a-form-item
           v-if="packageForm.gift_card_enabled"
           name="gift_card_points"
-          label="赠点数卡"
-          :rules="[{ required: true, message: '请输入福利卡点数' }]"
-          tooltip="福利卡包含的点数"
+          label="福利卡配额"
+          :rules="[{ required: true, message: '请输入福利卡配额' }]"
+          tooltip="福利卡包含的配额"
         >
           <a-input-number
             :min="1"
@@ -169,11 +182,11 @@
         <a-form-item
           v-if="packageForm.gift_card_enabled && packageForm.gift_card_use_policy === 4"
           name="gift_card_transfer_fee"
-          label="手续费（点数）"
-          :rules="[{ required: true, message: '请输入手续费点数' }]"
+          label="手续费（配额）"
+          :rules="[{ required: true, message: '请输入手续费配额' }]"
         >
-          <a-input-number :min="0" style="width:100%" placeholder="他人兑换时扣除的手续费点数" v-model:value="packageForm.gift_card_transfer_fee" />
-          <div style="color:#999;font-size:12px;margin-top:4px">实际获得点数 = 福利卡点数 - 手续费</div>
+          <a-input-number :min="0" style="width:100%" placeholder="兑换时扣除的手续费配额" v-model:value="packageForm.gift_card_transfer_fee" />
+          <div style="color:#999;font-size:12px;margin-top:4px">实际获得配额 = 福利卡配额 - 手续费</div>
         </a-form-item>
 
         <a-form-item
@@ -202,6 +215,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vu
 import { message, Button, Space, Popconfirm } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import CustomTable from '../CustomTable.vue'
+import { normalizePurchaseLimitLabel } from '../../utils/rechargePackageLabel'
 
 interface RechargePackage {
   id: number
@@ -214,6 +228,7 @@ interface RechargePackage {
   enabled: number
   sort_order: number
   max_purchase_count?: number
+  purchase_limit_label?: string | null
   user_invite_rebate: string
   created_at: string
   updated_at: string
@@ -244,6 +259,7 @@ const packageForm = ref({
   popular: false,
   enabled: 1,
   max_purchase_count: 0,
+  purchase_limit_label: '',
   user_invite_rebate: '',
   lottery_tickets: 0,
   gift_card_enabled: 0,
@@ -309,6 +325,12 @@ const packageColumns = computed(() => [
     },
   },
   {
+    title: '不限购展示文字',
+    dataIndex: 'purchase_limit_label',
+    key: 'purchase_limit_label',
+    customRender: ({ text }: { text: unknown }) => normalizePurchaseLimitLabel(text) || '-',
+  },
+  {
     title: '普通用户返点',
     dataIndex: 'user_invite_rebate',
     key: 'user_invite_rebate',
@@ -332,7 +354,7 @@ const packageColumns = computed(() => [
       const enabled = record.gift_card_enabled
       const pts = parseInt(record.gift_card_points || 0)
       if (!enabled || enabled === 0) return h(resolveComponent('a-tag'), { color: 'default' }, '无')
-      return h(resolveComponent('a-tag'), { color: 'blue' }, `+${pts}点`)
+      return h(resolveComponent('a-tag'), { color: 'blue' }, `+${pts}配额`)
     },
   },
   {
@@ -419,6 +441,7 @@ const handleCreatePackage = () => {
     popular: false,
     enabled: 1,
     max_purchase_count: 0,
+    purchase_limit_label: '',
     user_invite_rebate: '',
     lottery_tickets: 0,
     gift_card_enabled: 0,
@@ -442,6 +465,7 @@ const handleEditPackage = (pkg: RechargePackage) => {
     popular: pkg.popular,
     enabled: pkg.enabled,
     max_purchase_count: pkg.max_purchase_count || 0,
+    purchase_limit_label: normalizePurchaseLimitLabel(pkg.purchase_limit_label),
     user_invite_rebate: pkg.user_invite_rebate || '',
     lottery_tickets: (pkg as any).lottery_tickets || 0,
     gift_card_enabled: (pkg as any).gift_card_enabled || 0,
@@ -486,6 +510,7 @@ const handleSavePackage = async () => {
     // 处理表单数据，将max_purchase_count为0时转换为null
     const formData = {
       ...packageForm.value,
+      purchase_limit_label: normalizePurchaseLimitLabel(packageForm.value.purchase_limit_label),
       max_purchase_count:
         packageForm.value.max_purchase_count === 0 ? null : packageForm.value.max_purchase_count,
     }
@@ -513,6 +538,7 @@ const handleSavePackage = async () => {
         popular: false,
         enabled: 1,
         max_purchase_count: 0,
+        purchase_limit_label: '',
         user_invite_rebate: '',
         lottery_tickets: 0,
         gift_card_enabled: 0,

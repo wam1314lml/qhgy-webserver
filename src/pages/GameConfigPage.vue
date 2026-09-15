@@ -964,12 +964,12 @@
                 "
                 label="好友名字"
                 name="plant.friendSteal.specifiedFriendNames"
-                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+                tooltip="可填多个好友名字，回车隔开，例如：曼东"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.specifiedFriendNames"
                   mode="tags"
-                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  placeholder="例如：曼东"
                   :token-separators="[',', '，']"
                   style="width: 100%"
                 />
@@ -1122,12 +1122,12 @@
                 v-if="config.plant.friendSteal.excludeFriendsEnabled"
                 label="好友名字"
                 name="plant.friendSteal.excludedFriendNames"
-                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+                tooltip="可填多个好友名字，回车隔开，例如：曼东"
               >
                 <CustomSelect
                   v-model:value="config.plant.friendSteal.excludedFriendNames"
                   mode="tags"
-                  placeholder="例如：s1047.曼冬,s1047.酷暑"
+                  placeholder="例如：曼东"
                   :token-separators="[',', '，']"
                   style="width: 100%"
                 />
@@ -1510,12 +1510,12 @@
                 "
                 label="好友名字"
                 name="plant.market.buyFriendNames"
-                tooltip="可填多个好友名字，回车隔开，例：s1047.曼冬,s1047.酷暑"
+                tooltip="可填多个好友名字，回车隔开，例如：曼东"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.buyFriendNames"
                   mode="tags"
-                  placeholder="例如：s1047.曼冬"
+                  placeholder="例如：曼东"
                   style="width: 100%"
                 />
               </CustomFormItem>

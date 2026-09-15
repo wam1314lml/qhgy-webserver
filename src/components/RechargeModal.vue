@@ -34,11 +34,11 @@
 
         <!-- 步骤1: 选择套餐和支付方式 -->
         <template v-if="currentStep === 0">
-           <!-- 赠点套餐（gift_card_enabled === 1） -->
+           <!-- 赠配额套餐（gift_card_enabled === 1） -->
           <div v-if="giftCardPackages.length > 0" class="packages-section gift-card-section">
             <h4 class="gift-card-title">
               <span class="gift-card-icon">🎁</span>
-              <span class="gift-card-text">赠点套餐</span>
+              <span class="gift-card-text">赠配额套餐</span>
               <span class="gift-card-sparkle">✨</span>
             </h4>
             <div class="packages-grid">
@@ -80,11 +80,11 @@
                   <GiftOutlined /> +{{ pkg.bonus_points }} 赠送
                 </div>
                 <div v-if="pkg.gift_card_points > 0" class="package-bonus">
-                  <GiftOutlined /> 赠福利卡 {{ pkg.gift_card_points }} 点
+                  <GiftOutlined /> 赠福利卡 {{ pkg.gift_card_points }} 配额
                 </div>
 
                 <!-- 购买次数限制信息 -->
-                <div v-if="pkg.max_purchase_count" class="pt-1 border-t border-gray-100 text-xs">
+                <div v-if="hasPurchaseLimit(pkg)" class="pt-1 border-t border-gray-100 text-xs">
                   <div v-if="pkg.can_purchase" class="text-yellow-500 font-medium">
                     限购{{ pkg.max_purchase_count }}次，已购买{{ pkg.user_purchased_count }}次
                   </div>
@@ -93,7 +93,7 @@
                   </div>
                 </div>
                 <div v-else class="pt-1 border-t border-gray-100 text-xs">
-                  <div class="text-green-500 font-medium">无限制</div>
+                  <div class="text-green-500 font-medium break-words">{{ getUnlimitedPurchaseLabel(pkg) }}</div>
                 </div>
 
                 <!-- 不可购买时的遮罩 -->
@@ -149,7 +149,7 @@
                 </div>
 
                 <!-- 购买次数限制信息 -->
-                <div v-if="pkg.max_purchase_count" class="pt-1 border-t border-gray-100 text-xs">
+                <div v-if="hasPurchaseLimit(pkg)" class="pt-1 border-t border-gray-100 text-xs">
                   <div v-if="pkg.can_purchase" class="text-yellow-500 font-medium">
                     限购{{ pkg.max_purchase_count }}次，已购买{{ pkg.user_purchased_count }}次
                   </div>
@@ -158,7 +158,7 @@
                   </div>
                 </div>
                 <div v-else class="pt-1 border-t border-gray-100 text-xs">
-                  <div class="text-green-500 font-medium">无限制</div>
+                  <div class="text-green-500 font-medium break-words">{{ getUnlimitedPurchaseLabel(pkg) }}</div>
                 </div>
 
                 <!-- 不可购买时的遮罩 -->
@@ -375,7 +375,7 @@
                       <CopyOutlined class="welfare-card-copy-icon" @click="copyWelfareCode" />
                     </div>
                     <div class="welfare-card-label">
-                      {{ welfareCard.label }} · {{ welfareCard.points }} 点
+                      {{ welfareCard.label }} · {{ welfareCard.points }} 配额
                     </div>
                     <div class="welfare-card-policy">
                       <a-tag :color="policyColor(welfareCard.use_policy)">
@@ -442,6 +442,7 @@ import {
 import axios from '../utils/axios'
 import { message, Modal } from 'ant-design-vue'
 import { updateUserBalance } from '../utils/userUtils'
+import { getUnlimitedPurchaseLabel, hasPurchaseLimit } from '../utils/rechargePackageLabel'
 
 interface RechargeConfig {
   id: number
@@ -855,7 +856,7 @@ const policyDesc = (policy: number, fee: number) => {
     1: '无绑定，任意用户可使用',
     2: '仅限本人使用',
     3: '仅限他人使用，建议赠送他人',
-    4: `本人使用扣 ${fee} 点手续费，他人使用不扣（建议赠送他人）`,
+    4: `本人使用扣 ${fee} 配额手续费，他人使用不扣（建议赠送他人）`,
   }
   return map[policy] || '无绑定'
 }
@@ -896,9 +897,9 @@ const redeemWelfareCard = async () => {
     // 统一弹确认弹窗
     const reasonText = fee > 0 && fee_reason ? `\n原因：${fee_reason}` : ''
     const feeDesc = fee > 0
-      ? `需扣除 ${fee} 点手续费${reasonText}，实际到账 ${points_to_add} 点`
-      : `将到账 ${points_to_add} 点`
-    const contentText = `该福利卡面值 ${points} 点，${feeDesc}。\n\n确认兑换？`
+      ? `需扣除 ${fee} 配额手续费${reasonText}，实际到账 ${points_to_add} 配额`
+      : `将到账 ${points_to_add} 配额`
+    const contentText = `该福利卡面值 ${points} 配额，${feeDesc}。\n\n确认兑换？`
     Modal.confirm({
       title: '确认兑换',
       content: h('div', { style: 'white-space: pre-wrap; word-break: break-word;' }, contentText),
@@ -999,7 +1000,7 @@ const recommendedPackages = computed(() =>
   packages.value.filter((pkg) => Number(pkg.gift_card_enabled || 0) !== 1)
 )
 
-// 赠点套餐：gift_card_enabled === 1
+// 赠配额套餐：gift_card_enabled === 1
 const giftCardPackages = computed(() =>
   packages.value.filter((pkg) => Number(pkg.gift_card_enabled || 0) === 1)
 )

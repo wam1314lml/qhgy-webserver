@@ -76,7 +76,7 @@
           </template>
           <template v-if="column.key === 'use_policy'">
             <span>{{ policyText(record.use_policy) }}</span>
-            <span v-if="record.use_policy === 4 && record.transfer_fee > 0" class="text-orange-500 text-xs ml-1">(-{{ record.transfer_fee }}点)</span>
+            <span v-if="record.use_policy === 4 && record.transfer_fee > 0" class="text-orange-500 text-xs ml-1">(-{{ record.transfer_fee }}配额)</span>
           </template>
           <template v-if="column.key === 'action'">
             <a-popconfirm
@@ -107,8 +107,8 @@
         <a-form-item label="卡密类型名称（如：月卡、周卡）" required>
           <a-input v-model:value="genForm.label" placeholder="请输入类型名称" />
         </a-form-item>
-        <a-form-item label="点数" required>
-          <a-input-number v-model:value="genForm.points" :min="1" style="width:100%" placeholder="此卡密兑换后获得的点数" />
+        <a-form-item label="配额" required>
+          <a-input-number v-model:value="genForm.points" :min="1" style="width:100%" placeholder="此卡密兑换后获得的配额" />
         </a-form-item>
         <a-form-item label="卡面值（元，用于充值统计）" required>
           <a-input-number v-model:value="genForm.face_value" :min="0" :precision="2" style="width:100%" placeholder="0.00" />
@@ -165,7 +165,7 @@ const columns = [
   { title: '卡密', key: 'code', dataIndex: 'code', width: 200 },
   { title: '类型', key: 'type', dataIndex: 'type', width: 100 },
   { title: '卡密名称', key: 'label', dataIndex: 'label', width: 120 },
-  { title: '点数', key: 'points', dataIndex: 'points', width: 80 },
+  { title: '配额', key: 'points', dataIndex: 'points', width: 80 },
   { title: '卡面值', key: 'face_value', dataIndex: 'face_value', width: 100 },
   { title: '使用策略', key: 'use_policy', dataIndex: 'use_policy', width: 160 },
   { title: '状态', key: 'status', dataIndex: 'status', width: 90 },
@@ -220,7 +220,7 @@ async function loadList(page = 1) {
 // ─── 生成卡密 ───
 async function handleGenerate() {
   if (!genForm.label.trim()) { message.warning('请填写卡密类型名称'); return }
-  if (!genForm.points || genForm.points <= 0) { message.warning('点数必须大于0'); return }
+  if (!genForm.points || genForm.points <= 0) { message.warning('配额必须大于0'); return }
   if (genForm.face_value < 0) { message.warning('卡面值不能为负'); return }
 
   generating.value = true
