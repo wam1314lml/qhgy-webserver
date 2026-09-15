@@ -21,6 +21,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       mail: false,
       benefit: {
+        platformRwd: true,
         buff: false,
         box: false,
         shareRwd: false,

@@ -51,6 +51,9 @@
           "benefit": {
             "type": "object",
             "properties": {
+              "platformRwd": {
+                "type": "boolean"
+              },
               "buff": {
                 "type": "boolean"
               },

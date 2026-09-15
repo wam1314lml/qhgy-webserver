@@ -7,7 +7,12 @@ import { compileScript, parse } from '@vue/compiler-sfc'
 import { loadSharePageModel } from './config-share-page-model.mjs'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const bundle = await build({ stdin: { contents: `export * from './src/features/config-share/core'; export * from './src/features/config-share/project';`, resolveDir: root }, bundle: true, write: false, platform: 'node', format: 'esm' })
+const bundle = await build({ stdin: { contents: `
+  export * from './src/features/config-share/core'; export * from './src/features/config-share/project';
+  export { createDefaultGameConfig } from './src/pages/game-config/defaultConfig';
+  export { normalizeGameConfigSelects } from './src/pages/game-config/normalizeConfigSelects';
+  export { deepMerge } from './src/pages/game-config/utils';
+`, resolveDir: root }, bundle: true, write: false, platform: 'node', format: 'esm' })
 const m = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`)
 const page = await loadSharePageModel(root), adapter = page.adapter, project = m.shareProject
 const clone = value => JSON.parse(JSON.stringify(value)), fresh = () => clone(page.current)
@@ -35,6 +40,32 @@ test('旧码仅改现有字段，新字段及当前其他设置保留', () => {
   assert.deepEqual(result.config.futureModule, current.futureModule)
   const expected = m.mergeConfig(current, fixtureConfig(desired), project.schema).config
   assert.deepEqual(result.config, expected)
+})
+
+test('平台奖励旧配置默认开启，关闭保存/分享可往返，旧码保留当前开关', () => {
+  const load = setting => {
+    const config = m.deepMerge(m.createDefaultGameConfig(), setting)
+    m.normalizeGameConfigSelects(config)
+    return config
+  }
+  assert.equal(fresh().basic.benefit.platformRwd, true)
+  for (const setting of [{}, { basic: { benefit: {} } }]) {
+    assert.equal(load(setting).basic.benefit.platformRwd, true)
+  }
+  for (const value of [false, true]) {
+    let config = load({ basic: { benefit: { platformRwd: value } } })
+    for (let round = 0; round < 3; round++) {
+      assert.equal(config.basic.benefit.platformRwd, value)
+      config = load(clone(config))
+    }
+    const shared = adapter.exportConfig(config)
+    assert.equal(shared.config.basic.benefit.platformRwd, value)
+    const imported = adapter.preview(fresh(), shared).config
+    assert.equal(imported.basic.benefit.platformRwd, value)
+    const old = adapter.preview(imported, payload({ basic: { benefit: { buff: true } } })).config
+    assert.equal(old.basic.benefit.platformRwd, value)
+    assert.equal(old.basic.benefit.buff, true)
+  }
 })
 test('项目名和24小时时限，整段与裸码解析、跨项目拒绝', () => {
   const result = { code: 'aBcdEF12_345-789', createdAt: Date.UTC(2026, 8, 14), expiresAt: Date.UTC(2026, 8, 15) }

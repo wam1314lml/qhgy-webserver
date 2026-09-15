@@ -26,6 +26,7 @@ export interface GameConfig {
     }
     mail: boolean
     benefit: {
+      platformRwd: boolean
       buff: boolean
       box: boolean
       shareRwd: boolean

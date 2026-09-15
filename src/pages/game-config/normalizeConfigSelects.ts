@@ -255,6 +255,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   migrateLegacyFmlRaceTaskPriority(config)
   migrateLegacyFloralShopCatalog(config)
 
+  // 旧配置默认继续领取平台奖励，保存/导入时保留用户明确关闭的设置。
+  config.basic.benefit.platformRwd = config.basic.benefit.platformRwd !== false
+
   // VIP 商店功能已下线，清理服务端遗留字段，避免旧配置继续生效。
   delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
   const floralShop = config.basic.shop.floralShop

@@ -161,6 +161,13 @@
 
             <Divider orientation="left">福利配置</Divider>
             <CustomFormItem
+              label="平台奖励"
+              name="basic.benefit.platformRwd"
+              tooltip="自动领取抖音关注、侧边栏、桌面及快手、淘宝平台奖励，并汇总获得的物品"
+            >
+              <Switch v-model:checked="config.basic.benefit.platformRwd" />
+            </CustomFormItem>
+            <CustomFormItem
               label="双倍金币"
               name="basic.benefit.buff"
               tooltip="每4小时自动看视频领取双倍金币福利"
