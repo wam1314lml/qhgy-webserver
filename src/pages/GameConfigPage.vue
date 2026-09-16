@@ -2861,6 +2861,9 @@ const handleCustomerFloralCoinEnabledChange = (enabled: boolean) => {
 const handleSmallAccountExclusiveChange = (enabled: boolean) => {
   const fmlRace = config.value.union.fmlRace
   fmlRace.smallAccountExclusiveEnabled = enabled
+  if (enabled) {
+    fmlRace.taskTypePriority['20046'] = 1
+  }
   if (!enabled) {
     fmlRace.onlyDiamondUpgradeTask = false
     fmlRace.diamondRefreshTask = false
