@@ -1,16 +1,17 @@
 import type { FmlRaceAcceptRule, FmlRaceAcceptRules } from './types'
 
 export const fmlRaceSelfUpgradeBonusNotice =
-  "若想接带 +1、+2 分加成的花并用勾玉升级，例如 28+1，升级后为 28×2+1=57；对应“普通任务未升级”设置 29–99，“自己升级任务”设置 57–99。"
+  "若想接带 +1、+2 分加成的花并用勾玉升级，例如 28+1，升级后为 28×2+1=57；对应“普通任务未升级”设置 29–99，“自己升级过的任务”设置 57–99。"
 
 export const fmlRaceAcceptRuleOptions: Array<{
   key: keyof FmlRaceAcceptRules
   label: string
+  tooltip: string
 }> = [
-  { key: 'normal', label: '普通任务未升级' },
-  { key: 'systemUpgrade', label: '系统升级任务（原金）' },
-  { key: 'selfUpgrade', label: '自己升级任务' },
-  { key: 'otherUpgrade', label: '他人升级任务' },
+  { key: 'normal', label: '普通任务未升级', tooltip: '接取任务栏里达到设置分数的未升级任务' },
+  { key: 'systemUpgrade', label: '系统升级任务（原金）', tooltip: '接取任务栏里达到设置分数的原金任务' },
+  { key: 'selfUpgrade', label: '自己升级过的任务', tooltip: `接取任务栏里达到设置分数的自己升级过的任务，${fmlRaceSelfUpgradeBonusNotice}` },
+  { key: 'otherUpgrade', label: '他人升级任务', tooltip: '接取任务栏里达到设置分数的他人升级的任务' },
 ]
 
 export const createDefaultFmlRaceAcceptRules = (): FmlRaceAcceptRules => ({

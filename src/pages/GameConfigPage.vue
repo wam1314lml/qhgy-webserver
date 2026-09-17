@@ -2128,14 +2128,14 @@
             <Divider orientation="left" :orientation-margin="0">接取规则</Divider>
             <p class="fml-race-rule-help">
               只接取最低分 ≤ 任务分数 ≤ 最高分的任务；未开启的类型不接取。
-              自己升级任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
+              自己升级过的任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
             </p>
             <CustomFormItem
               v-for="rule in fmlRaceAcceptRuleOptions"
               :key="rule.key"
               :label="rule.label"
               :name="`union.fmlRace.acceptRules.${rule.key}`"
-              :tooltip="rule.key === 'selfUpgrade' ? fmlRaceSelfUpgradeBonusNotice : undefined"
+              :tooltip="rule.tooltip"
               class="fml-race-accept-rule-item"
               :validate-status="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) ? 'error' : undefined"
               :help="getFmlRaceScoreRangeError(config.union.fmlRace.acceptRules[rule.key]) || undefined"
@@ -2222,6 +2222,18 @@
               </div>
             </CustomFormItem>
             <CustomFormItem
+              label="勾玉升级任务"
+              name="union.fmlRace.upgradeTask"
+              tooltip="领取任务后花费勾玉自动升级。"
+            >
+              <Switch
+                :checked="config.union.fmlRace.upgradeTask"
+                @change="
+                  (checked) => handleDiamondCostSwitchChange('union.fmlRace.upgradeTask', checked)
+                "
+              />
+            </CustomFormItem>
+            <CustomFormItem
               label="完成已接任务"
               name="union.fmlRace.completeTakenTask"
               tooltip="仅普通模式生效：开启后会完成已接取的任务，不判断优先级和分数；目标水果未培育或指定果艺无法制作时，会先输出事件再放弃。果艺缺少的水果已培育时，会安排补种。小号升级或刷新开启时，此项不生效，原勾选保留。"
@@ -2284,18 +2296,6 @@
                   />
                 </div>
               </div>
-            </CustomFormItem>
-            <CustomFormItem
-              label="自动升级任务"
-              name="union.fmlRace.upgradeTask"
-              tooltip="领取任务后花费勾玉自动升级。"
-            >
-              <Switch
-                :checked="config.union.fmlRace.upgradeTask"
-                @change="
-                  (checked) => handleDiamondCostSwitchChange('union.fmlRace.upgradeTask', checked)
-                "
-              />
             </CustomFormItem>
             <CustomFormItem
               label="删除低分任务"
@@ -2612,7 +2612,7 @@
       <div v-if="fmlRaceQuickSetupStep === 1" class="fml-race-quick-setup">
         <p class="fml-race-rule-help">
           只接已开启且分数位于最低分至最高分之间的任务（含上下限）。
-          自己升级任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
+          自己升级过的任务最低分超过普通任务未升级最低分的 2 倍时，自动调整为 2 倍；未超过则保持不变。
         </p>
         <div
           v-for="rule in fmlRaceAcceptRuleOptions"
@@ -2649,8 +2649,8 @@
               />
             </label>
           </div>
-          <p v-if="rule.key === 'selfUpgrade'" class="fml-race-rule-help">
-            {{ fmlRaceSelfUpgradeBonusNotice }}
+          <p class="fml-race-rule-help">
+            {{ rule.tooltip }}
           </p>
         </div>
         <p v-if="validateFmlRaceScoreRanges(fmlRaceQuickSetupRules)" class="fml-race-range-error" role="alert">
@@ -2769,7 +2769,6 @@ import type { GameConfig } from './game-config/types'
 import {
   createDefaultFmlRaceAcceptRules,
   fmlRaceAcceptRuleOptions,
-  fmlRaceSelfUpgradeBonusNotice,
   normalizeFmlRaceAcceptRules,
   getFmlRaceSelfUpgradeMinScoreLimit,
   clampFmlRaceSelfUpgradeMinScore,
