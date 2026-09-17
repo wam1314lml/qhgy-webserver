@@ -400,6 +400,14 @@ export interface GameConfig {
       enabled: boolean
       hd3013DrawEnabled: boolean
     }
+    flowerCompete: {
+      autoLike: boolean
+      autoClaimRewards: boolean
+    }
+    silkEmbroidery: {
+      enabled: boolean
+      shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }
+    }
     actAnniv26Star: {
       enabled: boolean
       lightStarsEnabled: boolean

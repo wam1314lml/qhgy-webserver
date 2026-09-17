@@ -2,6 +2,7 @@ import type { GameConfig } from './types'
 import { defaultFmlRaceTaskTypePriority } from './fmlRaceTaskTypes'
 import { createDefaultFmlRaceAcceptRules } from './fmlRaceAcceptRules'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
+import { createDefaultActivityShop } from './activityShop'
 
 export const createDefaultGameConfig = (): GameConfig =>
   ({
@@ -413,6 +414,14 @@ export const createDefaultGameConfig = (): GameConfig =>
       hdReward: {
         enabled: true,
         hd3013DrawEnabled: false,
+      },
+      flowerCompete: {
+        autoLike: false,
+        autoClaimRewards: false,
+      },
+      silkEmbroidery: {
+        enabled: false,
+        shop: createDefaultActivityShop('silkEmbroidery'),
       },
       actAnniv26Star: {
         enabled: false,

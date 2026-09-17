@@ -1298,6 +1298,39 @@
               }
             }
           },
+          "flowerCompete": {
+            "type": "object",
+            "properties": {
+              "autoLike": {
+                "type": "boolean"
+              },
+              "autoClaimRewards": {
+                "type": "boolean"
+              }
+            }
+          },
+          "silkEmbroidery": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "shop": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "beforeEndMinutes": {
+                    "type": "number"
+                  },
+                  "shopItemId": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
           "actAnniv26Star": {
             "type": "object",
             "properties": {

@@ -2508,6 +2508,35 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">百果争鲜</Divider>
+            <CustomFormItem
+              label="自动点赞"
+              name="activity.flowerCompete.autoLike"
+              tooltip="先在游戏内选择支持对象，脚本再使用已有点赞道具自动点赞。未选择时跳过。"
+            >
+              <Switch v-model:checked="config.activity.flowerCompete.autoLike" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="领取免费奖励和任务奖励"
+              name="activity.flowerCompete.autoClaimRewards"
+              tooltip="按顺序领取已解锁的免费礼包，以及已达标且未领取的任务奖励。"
+            >
+              <Switch v-model:checked="config.activity.flowerCompete.autoClaimRewards" />
+            </CustomFormItem>
+
+            <Divider orientation="left">穿丝绣锦</Divider>
+            <!-- 配合花艺上架功能就可快速完成任务。 -->
+            <p class="activity-task-help">配合花艺上架功能就可快速完成任务。</p>
+            <CustomFormItem label="自动领取奖励" name="activity.silkEmbroidery.enabled">
+              <Switch v-model:checked="config.activity.silkEmbroidery.enabled" />
+            </CustomFormItem>
+            <p class="activity-task-help">绣锦商店：活动结束前自动兑换，可单独开启。</p>
+            <ActivityShopSettings
+              v-model="config.activity.silkEmbroidery.shop"
+              :catalog="activityShopCatalogs.silkEmbroidery"
+              config-path="activity.silkEmbroidery.shop"
+            />
+
             <Divider orientation="left">甘之如饴</Divider>
             <CustomFormItem label="自动参与" name="activity.actElim.enabled">
               <Switch v-model:checked="config.activity.actElim.enabled" />
@@ -2690,6 +2719,8 @@ import {
 } from 'ant-design-vue'
 import axios from '../utils/axios'
 import ConfigShareDialog from '../features/config-share/ConfigShareDialog.vue'
+import ActivityShopSettings from './game-config/ActivityShopSettings.vue'
+import { activityShopCatalogs } from './game-config/activityShop'
 import { createProjectShareAdapter } from '../features/config-share/projectAdapter'
 import { createConfigShareApi } from '../features/config-share/api'
 import TopNavBar from '../components/TopNavBar.vue'
@@ -3388,6 +3419,13 @@ const applySharedConfig = (value: GameConfig) => {
 </script>
 
 <style lang="scss" scoped>
+.activity-task-help {
+  margin: 0 0 16px;
+  padding-left: 24px;
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+}
+
 .ant-tabs {
   :deep(.ant-tabs-tab + .ant-tabs-tab) {
     margin: 0 0 0 18px;

@@ -1,4 +1,5 @@
 import type { GameConfig } from './types'
+import { normalizeActivityShop } from './activityShop'
 import {
   actDessertSpeedOptions,
   actElimSpeedOptions,
@@ -610,6 +611,16 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.activity.hdReward = {
     enabled: (hdReward?.enabled ?? true) === true,
     hd3013DrawEnabled: hdReward?.hd3013DrawEnabled === true,
+  }
+  const flowerCompete = asRecord(config.activity.flowerCompete)
+  config.activity.flowerCompete = {
+    autoLike: flowerCompete?.autoLike === true,
+    autoClaimRewards: flowerCompete?.autoClaimRewards === true,
+  }
+  const silkEmbroidery = asRecord(config.activity.silkEmbroidery)
+  config.activity.silkEmbroidery = {
+    enabled: silkEmbroidery?.enabled === true,
+    shop: normalizeActivityShop(silkEmbroidery?.shop, 'silkEmbroidery'),
   }
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
 }

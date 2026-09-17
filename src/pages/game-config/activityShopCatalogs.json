@@ -1,0 +1,14 @@
+{
+  "silkEmbroidery": {
+    "name": "绣锦商店",
+    "currencyName": "金丝绣线",
+    "defaultShopItemId": 2,
+    "fallbackShopItemId": 4,
+    "items": [
+      { "shopItemId": 1, "name": "加速卡", "amount": 4, "price": 50 },
+      { "shopItemId": 2, "name": "水滴", "amount": 4, "price": 50 },
+      { "shopItemId": 3, "name": "百果券", "amount": 4, "price": 50 },
+      { "shopItemId": 4, "name": "金币", "amount": 1000, "price": 25 }
+    ]
+  }
+}
