@@ -16,8 +16,8 @@
 - src/features/config-share/ConfigShareDialog.vue、adapter.ts、api.ts 直接复制花园；projectAdapter.ts 从花园适配器提取为工厂，页面注入原有归一化逻辑。
 - project.json 定义稳定 ID qhgy、展示名、schemaVersion、显式类型覆盖与排除字段；project.schema.json 自动生成，不手改。
 - scripts/config-share-schema.mjs 从页面实际 ref<GameConfig> 的类型（支持独立类型文件）生成白名单。没有复制另一套默认值。新增配置需同步现有 GameConfig 类型；不明确的 any/混合 JSON 类型必须在 project.json 显式描述，不能默认放行。
-- scripts/sync-config-share.mjs 沿用花园同步流程，prebuild 自动生成前端 schema；发布时必须同步 Web API 的 core.ts/project.schema.json 并执行 --check。
-- Web API 的 service.ts、router.ts 直接复制花园。routes/configShares.ts 只替换项目 schema，复用 authenticateToken 和 dynamicRedisManager；index.ts 在全局 JSON 解析前挂载接口。保存配置接口复用原有 saveConfigRateLimit。
+- scripts/sync-config-share.mjs 的 prebuild 生成前端 schema；后端现为通用存储，普通字段不再同步后端。--server-root 只读核对项目身份/版本/隐私规则，不写 schema/core。
+- Web API 的 service.ts、router.ts 直接复制花园。routes/configShares.ts 加载静态 project.json，storage.ts 负责通用 JSON 校验，复用 authenticateToken 和 dynamicRedisManager；index.ts 在全局 JSON 解析前挂载接口。保存配置接口复用原有 saveConfigRateLimit。
 
 项目适配：复用 normalizeGameConfigSelects 与竞赛分数校验；花市上架密码排除。
 
@@ -36,8 +36,8 @@
 前端运行：
 
 ```powershell
-node scripts/sync-config-share.mjs --server-root J:/CodeBuddy/qhgy-web/qhgy-web
-node scripts/sync-config-share.mjs --check --server-root J:/CodeBuddy/qhgy-web/qhgy-web
+node scripts/sync-config-share.mjs
+node scripts/sync-config-share.mjs --check
 node scripts/test-config-share.mjs
 npm run build
 ```

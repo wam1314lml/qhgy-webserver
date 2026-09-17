@@ -2510,16 +2510,33 @@
             </CustomFormItem>
             <Divider orientation="left">百果争鲜</Divider>
             <CustomFormItem
+              label="自动选择支持对象"
+              name="activity.flowerCompete.autoSelect"
+              tooltip="开启后，仅在本期活动尚未选择对象时自动选择下方果艺；已有选择不会切换。自动点赞需单独开启。"
+            >
+              <Switch v-model:checked="config.activity.flowerCompete.autoSelect" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.activity.flowerCompete.autoSelect"
+              label="支持对象"
+              name="activity.flowerCompete.selectFlowerId"
+            >
+              <Select v-model:value="config.activity.flowerCompete.selectFlowerId" style="width: 240px">
+                <Select.Option :value="5301">甜喵软憩</Select.Option>
+                <Select.Option :value="5302">云畔萌啾</Select.Option>
+              </Select>
+            </CustomFormItem>
+            <CustomFormItem
               label="自动点赞"
               name="activity.flowerCompete.autoLike"
-              tooltip="先在游戏内选择支持对象，脚本再使用已有点赞道具自动点赞。未选择时跳过。"
+              tooltip="活动开放且已选择支持对象后，使用已有点赞道具自动点赞。可在游戏内手动选择，或开启上方自动选择；未选择或没有道具时跳过。"
             >
               <Switch v-model:checked="config.activity.flowerCompete.autoLike" />
             </CustomFormItem>
             <CustomFormItem
-              label="领取免费奖励和任务奖励"
+              label="领取免费、任务及累计点赞奖励"
               name="activity.flowerCompete.autoClaimRewards"
-              tooltip="按顺序领取已解锁的免费礼包，以及已达标且未领取的任务奖励。"
+              tooltip="按顺序领取已解锁的免费礼包、已完成任务奖励，以及累计点赞达标奖励（当前为20、40、60、80次，以本期活动为准）；已领取的不会重复领取。"
             >
               <Switch v-model:checked="config.activity.flowerCompete.autoClaimRewards" />
             </CustomFormItem>

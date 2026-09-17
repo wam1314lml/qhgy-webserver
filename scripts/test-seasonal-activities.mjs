@@ -15,12 +15,13 @@ const bundle = await build({ stdin: { contents: `
 const m = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`)
 const load = value => { const config = m.deepMerge(m.createDefaultGameConfig(), value); m.normalizeGameConfigSelects(config); return config }
 const defaults = load({})
-assert.deepEqual(defaults.activity.flowerCompete, { autoLike: false, autoClaimRewards: false })
+assert.deepEqual(defaults.activity.flowerCompete, { autoSelect: false, selectFlowerId: 5301, autoLike: false, autoClaimRewards: false })
 assert.deepEqual(defaults.activity.silkEmbroidery, { enabled: false, shop: { enabled: false, beforeEndMinutes: 5, shopItemId: 2 } })
 for (const autoLike of [false, true]) for (const autoClaimRewards of [false, true]) {
+  for (const autoSelect of [false, true]) for (const selectFlowerId of [5301, 5302]) {
   for (const enabled of [false, true]) for (const shopEnabled of [false, true]) {
     for (const shopItemId of [1, 2, 3, 4]) {
-      const activity = { flowerCompete: { autoLike, autoClaimRewards }, silkEmbroidery: {
+      const activity = { flowerCompete: { autoSelect, selectFlowerId, autoLike, autoClaimRewards }, silkEmbroidery: {
         enabled, shop: { enabled: shopEnabled, beforeEndMinutes: 1, shopItemId },
       } }
       const config = load({ activity })
@@ -29,7 +30,15 @@ for (const autoLike of [false, true]) for (const autoClaimRewards of [false, tru
       assert.deepEqual(reloaded.activity.silkEmbroidery, activity.silkEmbroidery)
     }
   }
+  }
 }
+for (const selectFlowerId of [false, '', 'invalid', 0, 5303, 5301.5, [5301], {}]) {
+  const config = load({ activity: { flowerCompete: { autoSelect: true, selectFlowerId } } })
+  assert.equal(config.activity.flowerCompete.autoSelect, false)
+  assert.equal(config.activity.flowerCompete.selectFlowerId, 5301)
+}
+assert.equal(load({ activity: { flowerCompete: { autoSelect: 'true' } } }).activity.flowerCompete.autoSelect, false)
+assert.equal(load({ activity: { flowerCompete: { autoSelect: true, selectFlowerId: '5302' } } }).activity.flowerCompete.selectFlowerId, 5302)
 for (const [input, expected] of [[undefined, 5], [null, 5], ['', 5], ['12', 12], [0, 1], [-10, 1], [2000, 1440], [2.8, 2]]) {
   const config = load({ activity: { silkEmbroidery: { shop: { beforeEndMinutes: input } } } })
   assert.equal(config.activity.silkEmbroidery.shop.beforeEndMinutes, expected)
@@ -43,7 +52,7 @@ assert.deepEqual(m.getActivityShopOptions(m.activityShopCatalogs.silkEmbroidery)
   ['加速卡×4（50金丝绣线）', '水滴×4（50金丝绣线）', '百果券×4（50金丝绣线）', '金币×1000（25金丝绣线）'])
 
 const page = await loadSharePageModel(root)
-const current = load({ activity: { flowerCompete: { autoLike: true, autoClaimRewards: true },
+const current = load({ activity: { flowerCompete: { autoSelect: true, selectFlowerId: 5302, autoLike: true, autoClaimRewards: true },
   silkEmbroidery: { enabled: true, shop: { enabled: true, beforeEndMinutes: 7, shopItemId: 3 } } } })
 const payload = page.adapter.exportConfig(current)
 const applied = page.adapter.preview(defaults, payload).config
@@ -54,6 +63,10 @@ const old = page.adapter.preview(current, { format: 1, project: 'qhgy', schemaVe
 } }).config
 assert.deepEqual(old.activity.flowerCompete, current.activity.flowerCompete)
 assert.deepEqual(old.activity.silkEmbroidery, current.activity.silkEmbroidery)
+const oldFlower = page.adapter.preview(current, { format: 1, project: 'qhgy', schemaVersion: 1, config: {
+  activity: { flowerCompete: { autoLike: false, autoClaimRewards: false } },
+} }).config
+assert.deepEqual(oldFlower.activity.flowerCompete, { autoSelect: true, selectFlowerId: 5302, autoLike: false, autoClaimRewards: false })
 for (const relative of ['src/pages/GameConfigPage.vue', 'src/pages/game-config/ActivityShopSettings.vue']) {
   const source = await readFile(new URL(`../${relative}`, import.meta.url), 'utf8')
   const { descriptor, errors } = parse(source, { filename: relative }); assert.deepEqual(errors, [])
@@ -62,11 +75,15 @@ for (const relative of ['src/pages/GameConfigPage.vue', 'src/pages/game-config/A
     compilerOptions: { bindingMetadata: script.bindings } })
   assert.deepEqual(template.errors, [])
   if (relative.endsWith('GameConfigPage.vue')) {
-    for (const field of ['flowerCompete.autoLike', 'flowerCompete.autoClaimRewards', 'silkEmbroidery.enabled']) {
+    for (const field of ['flowerCompete.autoSelect', 'flowerCompete.autoLike', 'flowerCompete.autoClaimRewards', 'silkEmbroidery.enabled']) {
       assert.ok(source.includes(`v-model:checked="config.activity.${field}"`))
     }
     assert.ok(source.includes('v-model="config.activity.silkEmbroidery.shop"'))
     assert.ok(source.includes('配合花艺上架功能就可快速完成任务'))
+    assert.ok(source.includes('v-model:value="config.activity.flowerCompete.selectFlowerId"'))
+    assert.ok(source.includes('<Select.Option :value="5301">甜喵软憩</Select.Option>'))
+    assert.ok(source.includes('<Select.Option :value="5302">云畔萌啾</Select.Option>'))
+    assert.ok(source.includes('领取免费、任务及累计点赞奖励'))
   }
 }
-console.log('PASS 新活动配置：64种开关/商品保存重载、分钟边界、异常值、实际分享适配器新旧码及Vue组件编译')
+console.log('PASS 新活动配置：256种开关/对象/商品保存重载、非法对象关闭、分钟边界、实际分享适配器新旧码及Vue组件编译')

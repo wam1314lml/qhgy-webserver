@@ -613,7 +613,13 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     hd3013DrawEnabled: hdReward?.hd3013DrawEnabled === true,
   }
   const flowerCompete = asRecord(config.activity.flowerCompete)
+  const selectId = flowerCompete?.selectFlowerId ?? 5301
+  const selectFlowerId = (typeof selectId === 'number' || typeof selectId === 'string' && selectId.trim())
+    ? Number(selectId) : NaN
+  const validSelectFlower = [5301, 5302].includes(selectFlowerId)
   config.activity.flowerCompete = {
+    autoSelect: flowerCompete?.autoSelect === true && validSelectFlower,
+    selectFlowerId: validSelectFlower ? selectFlowerId : 5301,
     autoLike: flowerCompete?.autoLike === true,
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }

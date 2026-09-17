@@ -401,6 +401,8 @@ export interface GameConfig {
       hd3013DrawEnabled: boolean
     }
     flowerCompete: {
+      autoSelect: boolean
+      selectFlowerId: number
       autoLike: boolean
       autoClaimRewards: boolean
     }

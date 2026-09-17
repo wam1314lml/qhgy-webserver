@@ -416,6 +416,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         hd3013DrawEnabled: false,
       },
       flowerCompete: {
+        autoSelect: false,
+        selectFlowerId: 5301,
         autoLike: false,
         autoClaimRewards: false,
       },
