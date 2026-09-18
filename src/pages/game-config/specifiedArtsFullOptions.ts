@@ -630,6 +630,7 @@ export const specifiedArtsFullOptions: Array<{ value: string; label: string }> =
   { value: "503727", label: "果乐园邀约果艺品(芭乐旋转杯,黄色蓝靛果,水晶白西柚)" },
   { value: "504901", label: "芳桃映夏果艺品(盛夏蜜桃,闪闪绒球,小白兔狸藻)" },
   { value: "505101", label: "云屿甜梦果艺品(绮梦甜兔,缤纷气球,七彩花)" },
+  { value: "505401", label: "柿柿如意果艺品(秋玉盈枝,香水柠檬,苏里南樱桃)" },
   { value: "531101", label: "椰风漫曲果艺品(椰居闲趣,普罗旺斯红番茄,黄肉菠萝蜜)" },
   { value: "531901", label: "翠拱晴虹果艺品(七宝灵葫,星月萦光,绯光幻莓)" },
   { value: "541501", label: "夏日狂欢果艺品(绚烂夏日,悠然海钓,香蕉)" },

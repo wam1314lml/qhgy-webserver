@@ -33,6 +33,7 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5402", label: "灵花幻域" },
   { value: "5403", label: "鸾鸣九霄" },
   { value: "5404", label: "芳桃映夏" },
+  { value: "5406", label: "柿柿如意" },
   { value: "5415", label: "夏日狂欢" },
   { value: "5440", label: "幻梦之夜" },
 ]
