@@ -834,10 +834,10 @@ const fetchScriptServers = async () => {
 const handleNextStep = async () => {
   switch (currentStep.value) {
     case 'channel':
-      if (isAccountPasswordPlatform(selectedChannel.value) || selectedChannel.value === 2 || selectedChannel.value === 3) {
+      if (isAccountPasswordPlatform(selectedChannel.value) || [1, 2, 3].includes(selectedChannel.value)) {
         currentStep.value = 'login'
       } else {
-        message.warning('请选择账号密码、抖音或微信渠道')
+        message.warning('请选择账号密码、支付宝、抖音或微信渠道')
         return
       }
       break

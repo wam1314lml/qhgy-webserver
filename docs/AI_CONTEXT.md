@@ -1,6 +1,7 @@
 # 配置分享维护规范
 
 - 果园支付宝 platform=1 已开放，复用 AddAccountModal 扫码及 ScriptConfig/AlipayReauthModal 续期；对应 Web API 使用果园 appId=2021006190692125。不得在控制台打印扫码凭据/完整绑定请求；普通配置 schema 不包含登录认证字段。
+- 渠道入口变更须同步 handleNextStep 白名单，并运行 scripts/test-add-account-channels.mjs 验证实际按钮→登录页→二维码请求；不能仅凭选项显示或构建通过认定渠道可用。
 
 - 竞赛小号升级或刷新任一开启时，`completeTakenTask` 只在界面禁用，保留原勾选和保存值；两项关闭后恢复普通模式。常规表单和快速设置复用同一模式判断及说明，勿通过清空配置制造互斥。
 - 先读 [功能手册](CONFIG_SHARE_MANUAL.md)。前端修改前先拉取。
