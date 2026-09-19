@@ -21,11 +21,18 @@
         <div v-if="currentStep === 'channel'" class="step-panel">
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
-            <!-- 微信、抖音及果园官方账号密码；支付宝入口仍隐藏。 -->
+            <!-- 果园微信、支付宝、抖音及官方账号密码渠道。 -->
             <a-radio :value="3" class="channel-option">
               <div class="channel-content">
                 <div class="channel-icon-wrapper">
                   <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
+                </div>
+              </div>
+            </a-radio>
+            <a-radio :value="1" class="channel-option">
+              <div class="channel-content">
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/alipay.svg" alt="支付宝" class="channel-icon" />
                 </div>
               </div>
             </a-radio>
@@ -1127,7 +1134,7 @@ const startAlipayPolling = () => {
         // 设置服务器列表
         if (data.servers && Array.isArray(data.servers) && data.servers.length > 0) {
           serverList.value = data.servers.map((s: any) => ({
-            serverId: String(s.serverId),
+            serverId: String(s.serverId ?? s.sid ?? s.id),
             serverName: s.serverName,
           }))
           console.log(`✅ 已加载 ${serverList.value.length} 个服务器`)
@@ -1141,7 +1148,7 @@ const startAlipayPolling = () => {
           await fetchScriptServers()
         }
 
-        console.log('🎉 支付宝登录成功:', alipayLoginData.value)
+        console.log('支付宝扫码成功，已加载角色区服')
         setTimeout(() => {
           currentStep.value = 'server'
         }, 500)
@@ -1650,7 +1657,6 @@ const handleBind = async () => {
       const parentIdInput = `${alipayRealId}${selectedServer.value.serverId}`
       const parentId = generateMD5Hash(parentIdInput)
 
-      console.log('🔑 支付宝绑定 parent_id:', parentId, '  input:', parentIdInput)
 
       const bindPayload = {
         authCode: alipayLoginData.value.authCode,
@@ -1662,7 +1668,7 @@ const handleBind = async () => {
         pcwebToken: alipayLoginData.value.pcwebToken,
       }
 
-      console.log('📦 支付宝绑定请求数据(alipay_bind2):', bindPayload)
+      console.log('正在绑定支付宝角色')
 
       const response = await axios.post('/api/game-accounts/alipay_bind2', bindPayload)
 
