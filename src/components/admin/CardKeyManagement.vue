@@ -31,6 +31,7 @@
         <a-select v-model:value="filterType" placeholder="类型筛选" style="width:120px" allowClear @change="loadList(1)">
           <a-select-option value="admin">管理员卡</a-select-option>
           <a-select-option value="welfare">福利卡</a-select-option>
+          <a-select-option value="event">活动卡密</a-select-option>
         </a-select>
         <a-button type="primary" @click="showGenModal = true">
           <PlusOutlined /> 生成卡密
@@ -63,15 +64,15 @@
             <span class="font-mono font-bold">{{ record.code }}</span>
           </template>
           <template v-if="column.key === 'type'">
-            <a-tag :color="record.type === 'admin' ? 'blue' : 'green'">
-              {{ record.type === 'admin' ? '管理员卡' : '福利卡' }}
+            <a-tag :color="record.type === 'admin' ? 'blue' : record.type === 'event' ? 'orange' : 'green'">
+              {{ record.type === 'admin' ? '管理员卡' : record.type === 'event' ? '活动卡密' : '福利卡' }}
             </a-tag>
           </template>
           <template v-if="column.key === 'status'">
             <a-tag :color="statusColor(record.status)">{{ statusText(record.status) }}</a-tag>
           </template>
           <template v-if="column.key === 'face_value'">
-            <span v-if="record.type === 'admin'">¥{{ formatNum(record.face_value) }}</span>
+            <span v-if="record.type === 'admin' || record.type === 'event'">¥{{ formatNum(record.face_value) }}</span>
             <span v-else class="text-gray-400">-</span>
           </template>
           <template v-if="column.key === 'use_policy'">
@@ -104,6 +105,12 @@
       ok-text="生成"
     >
       <a-form :model="genForm" layout="vertical">
+        <a-form-item label="卡密类型" required>
+          <a-radio-group v-model:value="genForm.card_type">
+            <a-radio value="admin">管理员卡</a-radio>
+            <a-radio value="event">活动卡密</a-radio>
+          </a-radio-group>
+        </a-form-item>
         <a-form-item label="卡密类型名称（如：月卡、周卡）" required>
           <a-input v-model:value="genForm.label" placeholder="请输入类型名称" />
         </a-form-item>
@@ -158,7 +165,7 @@ const stats = reactive({
   total_face_value: 0, used_face_value: 0
 })
 
-const genForm = reactive({ label: '', points: 100, face_value: 0, count: 1 })
+const genForm = reactive({ label: '', points: 100, face_value: 0, count: 1, card_type: 'admin' })
 
 // ─── 表格列 ───
 const columns = [
@@ -261,7 +268,7 @@ function copyAllCodes() {
 // ─── 弹窗关闭时重置 ───
 function onModalClose() {
   generatedCodes.value = []
-  Object.assign(genForm, { label: '', points: 100, face_value: 0, count: 1 })
+  Object.assign(genForm, { label: '', points: 100, face_value: 0, count: 1, card_type: 'admin' })
 }
 
 onMounted(() => {
