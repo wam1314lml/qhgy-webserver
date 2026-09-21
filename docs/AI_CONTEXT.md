@@ -1,6 +1,6 @@
 # 配置分享维护规范
 
-- 普通水果延迟收获在自动种植下，plant.flower.delayedHarvestEnabled默认false、delayedHarvestMinutes默认10（1-999整数），与elves独立，生成果灵的地块只用elves设置。数字输入失焦/保存归一化；新增类型及分享schema同步，旧码缺字段保留当前值。果灵模式达限说明须包含已生成待收数量，不将其混为实际已收获。
+- 普通水果延迟收获在自动收获下作为子项，仅自动收获开启时显示，plant.flower.delayedHarvestEnabled默认false、delayedHarvestMinutes默认10（1-999整数），与elves独立，生成果灵的地块只用elves设置。数字输入失焦/保存归一化；新增类型及分享schema同步，旧码缺字段保留当前值。果灵模式达限说明须包含已生成待收数量，不将其混为实际已收获。
 
 - 竞赛 `union.fmlRace.keepProgressTask` 默认false、严格布尔归一化，仅deleteTask开启时显示，隐藏保留；与avoidProgressTask独立，保护公共任务自动删除，不控制本人任务放弃。新增字段同步类型及生成前端分享schema，旧码保留接收方值。
 

@@ -536,13 +536,8 @@
               <Switch v-model:checked="config.plant.flower.harvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              label="自动种植"
-              name="plant.flower.plantEnabled"
-              tooltip="自动完成土地浇水，加速，种植"
-            >
-              <Switch v-model:checked="config.plant.flower.plantEnabled" />
-            </CustomFormItem>
-            <CustomFormItem
+              v-if="config.plant.flower.harvestEnabled"
+              class="config-sub-item"
               label="延迟收获"
               name="plant.flower.delayedHarvestEnabled"
               tooltip="普通作物成熟后等待指定分钟数再收获，需要开启自动收获。已生成果灵的地块使用果灵自己的延迟收获设置。"
@@ -550,7 +545,8 @@
               <Switch v-model:checked="config.plant.flower.delayedHarvestEnabled" />
             </CustomFormItem>
             <CustomFormItem
-              v-if="config.plant.flower.delayedHarvestEnabled"
+              v-if="config.plant.flower.harvestEnabled && config.plant.flower.delayedHarvestEnabled"
+              class="config-sub-item config-sub-item--deep"
               label="延迟时间（分）"
               name="plant.flower.delayedHarvestMinutes"
             >
@@ -562,6 +558,13 @@
                 @blur="handleFlowerDelayedHarvestMinutesBlur"
                 class="w-42! sm:w-48!"
               />
+            </CustomFormItem>
+            <CustomFormItem
+              label="自动种植"
+              name="plant.flower.plantEnabled"
+              tooltip="自动完成土地浇水，加速，种植"
+            >
+              <Switch v-model:checked="config.plant.flower.plantEnabled" />
             </CustomFormItem>
             <template v-if="config.plant.flower.plantEnabled">
               <CustomFormItem
@@ -3555,6 +3558,17 @@ const applySharedConfig = (value: GameConfig) => {
 
 .config-section {
   width: 100%;
+}
+
+/* 自动收获下的延迟收获设置，作为同一组的子项显示 */
+.config-section :deep(.config-sub-item) {
+  margin-left: 24px;
+  padding-left: 12px;
+  border-left: 2px solid #f0f0f0;
+}
+
+.config-section :deep(.config-sub-item--deep) {
+  margin-left: 48px;
 }
 
 .wish-pets-container {

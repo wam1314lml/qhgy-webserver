@@ -32,6 +32,7 @@ const declarations = names.map(name => {
 })
 const executable = await transform(declarations.join('\n'), { loader: 'ts', format: 'cjs' })
 const config = ref(helpers.createDefaultGameConfig())
+config.value.plant.flower.harvestEnabled = true
 let saved = {}, choose, minutesInput
 const fail = text => { throw new Error(String(text)) }
 const env = { ...helpers, config, accountId: ref(1), loading: ref(false),
@@ -54,8 +55,11 @@ const form = source.match(/<CustomFormItem\b[^>]*name="plant\.flower\.delayedHar
 assert.ok(form, '缺少普通延迟收获表单')
 const minuteForm = source.match(/<CustomFormItem\b[^>]*name="plant\.flower\.delayedHarvestMinutes"[\s\S]*?<\/CustomFormItem>/)?.[0]
 assert.ok(minuteForm)
-assert.ok(source.indexOf('name="plant.flower.delayedHarvestEnabled"') > source.indexOf('name="plant.flower.plantEnabled"'))
+assert.ok(source.indexOf('name="plant.flower.delayedHarvestEnabled"') > source.indexOf('name="plant.flower.harvestEnabled"'))
 assert.ok(source.indexOf('name="plant.flower.delayedHarvestEnabled"') < source.indexOf('name="plant.flower.videoSpeedUp"'))
+assert.match(form, /v-if="config\.plant\.flower\.harvestEnabled"/)
+assert.match(minuteForm, /v-if="config\.plant\.flower\.harvestEnabled && config\.plant\.flower\.delayedHarvestEnabled"/)
+assert.match(form, /class="config-sub-item"/)
 const app = createSSRApp({ setup: () => ({ config, handleFlowerDelayedHarvestMinutesBlur: page.handleFlowerDelayedHarvestMinutesBlur }), render: compile(form + minuteForm) })
 app.component('CustomFormItem', { props: ['label'], setup: (props, { slots }) =>
   () => h('section', [h('label', props.label), slots.default?.()]) })
