@@ -225,6 +225,12 @@
               "plantEnabled": {
                 "type": "boolean"
               },
+              "delayedHarvestEnabled": {
+                "type": "boolean"
+              },
+              "delayedHarvestMinutes": {
+                "type": "number"
+              },
               "videoSpeedUp": {
                 "type": "boolean"
               },

@@ -278,6 +278,11 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)
 
   const flower = config.plant.flower
+  flower.delayedHarvestEnabled = flower.delayedHarvestEnabled === true
+  const flowerDelayedMinutes = Number(flower.delayedHarvestMinutes)
+  flower.delayedHarvestMinutes = Number.isFinite(flowerDelayedMinutes)
+    ? Math.min(999, Math.max(1, Math.floor(flowerDelayedMinutes)))
+    : 10
   flower.speedUpTicketScenes = normalizeSpeedUpTicketScenes(flower.speedUpTicketScenes)
   flower.speedUpTicketMode = normalizeSpeedUpTicketMode(flower.speedUpTicketMode)
   flower.speedUpTicketMinMinutes = normalizeSpeedUpTicketNumber(

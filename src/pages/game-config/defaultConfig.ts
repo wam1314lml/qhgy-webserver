@@ -80,6 +80,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         autoUnlockLand: false,
         harvestEnabled: false,
         plantEnabled: false,
+        delayedHarvestEnabled: false,
+        delayedHarvestMinutes: 10,
         videoSpeedUp: false,
         useSpeedUpTicket: false,
         speedUpTicketScenes: ['normal', 'elves'],

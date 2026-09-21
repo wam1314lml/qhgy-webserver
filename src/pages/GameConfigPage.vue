@@ -542,6 +542,27 @@
             >
               <Switch v-model:checked="config.plant.flower.plantEnabled" />
             </CustomFormItem>
+            <CustomFormItem
+              label="延迟收获"
+              name="plant.flower.delayedHarvestEnabled"
+              tooltip="普通作物成熟后等待指定分钟数再收获，需要开启自动收获。已生成果灵的地块使用果灵自己的延迟收获设置。"
+            >
+              <Switch v-model:checked="config.plant.flower.delayedHarvestEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.flower.delayedHarvestEnabled"
+              label="延迟时间（分）"
+              name="plant.flower.delayedHarvestMinutes"
+            >
+              <CustomInputNumber
+                v-model:value="config.plant.flower.delayedHarvestMinutes"
+                :min="1"
+                :max="999"
+                :step="1"
+                @blur="handleFlowerDelayedHarvestMinutesBlur"
+                class="w-42! sm:w-48!"
+              />
+            </CustomFormItem>
             <template v-if="config.plant.flower.plantEnabled">
               <CustomFormItem
                 label="视频加速"
@@ -1153,7 +1174,7 @@
             <CustomFormItem
               label="自动种果灵"
               name="plant.elves.enabled"
-              tooltip="优先种植指定果灵；未指定时，从当期双倍名单中选择主果和副果都已培育的一款种植（默认8块主果，其余副果）。需要开启种植系统的自动收获和自动种植；当期没有可种组合或每日果灵收获达到上限时，恢复原有种植模式。"
+              tooltip="优先种植指定果灵；未指定时，从当期双倍名单中选择主果和副果都已培育的一款种植（默认8块主果，其余副果）。需要开启种植系统的自动收获和自动种植；当期没有可种组合或今日已收获与地里已生成待收获的果灵合计达到上限时，恢复原有种植模式。"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
@@ -2857,6 +2878,18 @@ const fmlRaceSmallAccountMode = computed(() => {
 })
 const fmlRaceCompleteTakenTaskInactiveNotice =
   '小号升级/刷新开启时，“完成已接任务”不生效；原勾选保留，关闭两项后恢复。'
+
+const clampInteger = (value: unknown, min: number, max: number) =>
+  Math.max(min, Math.min(max, Math.floor(Number(value) || 0)))
+
+// 移动端数字键盘会先产生一位数的中间值；输入期间允许该状态，失焦后再校验实际下限。
+const handleFlowerDelayedHarvestMinutesBlur = () => {
+  config.value.plant.flower.delayedHarvestMinutes = clampInteger(
+    config.value.plant.flower.delayedHarvestMinutes,
+    1,
+    999,
+  )
+}
 
 const handleCultivateEnabledChange = (enabled: boolean) => {
   config.value.plant.cultivate.autoHarvestEnabled = enabled

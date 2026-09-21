@@ -85,6 +85,8 @@ export interface GameConfig {
       autoUnlockLand: boolean
       harvestEnabled: boolean
       plantEnabled: boolean
+      delayedHarvestEnabled: boolean
+      delayedHarvestMinutes: number
       videoSpeedUp: boolean
       useSpeedUpTicket: boolean
       speedUpTicketScenes: Array<'normal' | 'elves'>
