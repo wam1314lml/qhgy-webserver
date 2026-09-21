@@ -141,4 +141,27 @@ for (const checked of [false, true]) {
 }
 assert.equal(source.includes('开启“完成已接任务”时优先完成当前任务'), false)
 assert.equal(source.includes('开启“完成已接任务”时会优先完成当前任务'), false)
+// 复用真实页面保存/加载与 Vue 宿主，覆盖删除子开关，隐藏时不清空。
+const keepProgressForm = source.match(/<CustomFormItem\b[^>]*name="union\.fmlRace\.keepProgressTask"[\s\S]*?<\/CustomFormItem>/)?.[0]
+assert.ok(keepProgressForm, '缺少不删有进度的任务表单')
+config.value = createDefaultGameConfig()
+assert.equal(config.value.union.fmlRace.keepProgressTask, false)
+assert.equal((await render(keepProgressForm)).includes('<button'), false)
+config.value.union.fmlRace.deleteTask = true
+for (const keep of [true, false]) {
+  await render(keepProgressForm)
+  chooseComplete(keep)
+  assert.equal(config.value.union.fmlRace.keepProgressTask, keep, '开关绑定实际配置')
+  assert.equal(config.value.union.fmlRace.avoidProgressTask, false, '不改变接取进度筛选')
+  await state.saveConfig()
+  assert.equal(saved.union.fmlRace.keepProgressTask, keep)
+  config.value = createDefaultGameConfig()
+  await state.fetchConfig()
+  assert.ok((await render(keepProgressForm)).includes(`aria-checked="${keep}"`))
+  config.value.union.fmlRace.deleteTask = false
+  assert.equal((await render(keepProgressForm)).includes('<button'), false)
+  assert.equal(config.value.union.fmlRace.keepProgressTask, keep)
+  config.value.union.fmlRace.deleteTask = true
+}
 console.log('竞赛小号界面检查通过：两开关组合、原勾选保留、实际保存/加载、快速设置、关闭模式后恢复及真实 Vue 表单绑定。')
+console.log('不删有进度配置通过：显隐、实际开关、保存/加载、隐藏保留及与接取开关独立。')

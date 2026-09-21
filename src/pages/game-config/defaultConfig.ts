@@ -296,6 +296,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         upgradeTask: false,
         deleteTask: false,
         deleteTaskMaxScore: 0,
+        keepProgressTask: false,
         keepSystemUpgrade: false,
         keepPlayerUpgrade: false,
         deleteUnclaimedTask: false,

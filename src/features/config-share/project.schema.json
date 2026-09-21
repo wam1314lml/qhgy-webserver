@@ -951,6 +951,9 @@
               "deleteTaskMaxScore": {
                 "type": "number"
               },
+              "keepProgressTask": {
+                "type": "boolean"
+              },
               "keepSystemUpgrade": {
                 "type": "boolean"
               },

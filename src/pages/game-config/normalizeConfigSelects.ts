@@ -570,6 +570,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.acceptRules = normalizeFmlRaceAcceptRules(fmlRace.acceptRules)
   fmlRace.completeTakenTask = fmlRace.completeTakenTask === true
   fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
+  fmlRace.keepProgressTask = fmlRace.keepProgressTask === true
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
   fmlRace.taskTypePriority = normalizeFmlRaceTaskTypePriority(fmlRace.taskTypePriority)
   fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled

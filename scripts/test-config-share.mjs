@@ -92,6 +92,30 @@ test('铲除后种植旧配置默认开启，显式关闭和旧分享码不会�
   }
 })
 
+test('竞赛不删有进度默认关闭，新码保留真假、旧码保留当前值，接取开关独立', () => {
+  const missing = fresh()
+  delete missing.union.fmlRace.keepProgressTask
+  m.normalizeGameConfigSelects(missing)
+  assert.equal(missing.union.fmlRace.keepProgressTask, false)
+  for (const keep of [false, true]) {
+    for (const avoid of [false, true]) {
+      const current = fresh()
+      Object.assign(current.union.fmlRace, { keepProgressTask: keep, avoidProgressTask: avoid })
+      m.normalizeGameConfigSelects(current)
+      const shared = adapter.exportConfig(current)
+      assert.equal(shared.config.union.fmlRace.keepProgressTask, keep)
+      const imported = adapter.preview(fresh(), shared).config
+      assert.equal(imported.union.fmlRace.keepProgressTask, keep)
+      assert.equal(imported.union.fmlRace.avoidProgressTask, avoid)
+      const old = adapter.preview(imported, payload({ union: { fmlRace: { deleteTask: true } } })).config
+      assert.equal(old.union.fmlRace.keepProgressTask, keep)
+      const reloaded = m.deepMerge(m.createDefaultGameConfig(), clone(old))
+      m.normalizeGameConfigSelects(reloaded)
+      assert.equal(reloaded.union.fmlRace.keepProgressTask, keep)
+    }
+  }
+})
+
 test('项目名和24小时时限，整段与裸码解析、跨项目拒绝', () => {
   const result = { code: 'aBcdEF12_345-789', createdAt: Date.UTC(2026, 8, 14), expiresAt: Date.UTC(2026, 8, 15) }
   const text = m.formatShareText(result, project)

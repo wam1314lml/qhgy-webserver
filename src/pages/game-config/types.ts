@@ -279,6 +279,7 @@ export interface GameConfig {
       upgradeTask: boolean
       deleteTask: boolean
       deleteTaskMaxScore: number
+      keepProgressTask: boolean
       keepSystemUpgrade: boolean
       keepPlayerUpgrade: boolean
       deleteUnclaimedTask: boolean

@@ -2346,6 +2346,14 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              label="不删有进度的任务"
+              name="union.fmlRace.keepProgressTask"
+              tooltip="开启后，服务器记录已有进度的公共任务不会被自动删除；进度为0的任务仍按原删除规则判断。与“不接有进度的任务”独立设置。"
+              v-if="config.union.fmlRace.deleteTask"
+            >
+              <Switch v-model:checked="config.union.fmlRace.keepProgressTask" />
+            </CustomFormItem>
+            <CustomFormItem
               label="保留原金"
               name="union.fmlRace.keepSystemUpgrade"
               tooltip="开启后会保留系统自动出的原金任务，不判断分数"
