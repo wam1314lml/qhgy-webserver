@@ -420,6 +420,9 @@
               "buyStealCount": {
                 "type": "number"
               },
+              "friendCoinReserve": {
+                "type": "number"
+              },
               "noStealEnabled": {
                 "type": "boolean"
               },
@@ -451,6 +454,9 @@
               },
               "delayedHarvestMinutes": {
                 "type": "number"
+              },
+              "clearBeforePlant": {
+                "type": "boolean"
               },
               "requestAid": {
                 "type": "boolean"

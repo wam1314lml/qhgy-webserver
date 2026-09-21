@@ -1076,6 +1076,21 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                v-if="config.plant.friendSteal.buyStealEnabled"
+                label="保留友情币"
+                name="plant.friendSteal.friendCoinReserve"
+                tooltip="填0则不保留友情币。购买后余额不会低于保留值，例如余额205、保留200，最多购买5次；余额等于或低于保留值时不再购买。"
+              >
+                <CustomInputNumber
+                  v-model:value="config.plant.friendSteal.friendCoinReserve"
+                  :min="0"
+                  :max="9999"
+                  :step="1"
+                  :precision="0"
+                  class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
                 label="禁止偷花时段"
                 name="plant.friendSteal.noStealEnabled"
                 tooltip="开启后，在设置的时间段内不执行偷花，建议半夜别偷"
@@ -1138,7 +1153,7 @@
             <CustomFormItem
               label="自动种果灵"
               name="plant.elves.enabled"
-              tooltip="优先种植指定果灵，否则选择当期双倍加成果灵种植（8朵主花+其余辅花），需要打开种植系统自动收获和自动种植，每日果灵达到收获上限后恢复到原有种植模式"
+              tooltip="优先种植指定果灵；未指定时，从当期双倍名单中选择主果和副果都已培育的一款种植（默认8块主果，其余副果）。需要开启种植系统的自动收获和自动种植；当期没有可种组合或每日果灵收获达到上限时，恢复原有种植模式。"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
@@ -1177,6 +1192,19 @@
                 :step="1"
                 class="w-42! sm:w-48!"
               />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.enabled"
+              label="种植策略"
+              name="plant.elves.clearBeforePlant"
+              tooltip="全部铲完种：先铲除可铲除的非目标普通作物，保留目标主副果、成熟地块、已生成果灵和竞赛需求作物，再补种组合。等待收获完成种：不铲除现有作物，空地出现后按已有主果数量补足，其余种副果。默认选择全部铲完种。"
+            >
+              <Radio.Group v-model:value="config.plant.elves.clearBeforePlant">
+                <Space wrap>
+                  <Radio :value="true">全部铲完种</Radio>
+                  <Radio :value="false">等待收获完成种</Radio>
+                </Space>
+              </Radio.Group>
             </CustomFormItem>
             <CustomFormItem label="自动申请协助" name="plant.elves.requestAid">
               <Switch v-model:checked="config.plant.elves.requestAid" />

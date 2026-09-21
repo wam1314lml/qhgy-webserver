@@ -67,6 +67,31 @@ test('平台奖励旧配置默认开启，关闭保存/分享可往返，旧码�
     assert.equal(old.basic.benefit.buff, true)
   }
 })
+test('铲除后种植旧配置默认开启，显式关闭和旧分享码不会被重置', () => {
+  const missing = fresh()
+  delete missing.plant.elves.clearBeforePlant
+  m.normalizeGameConfigSelects(missing)
+  assert.equal(missing.plant.elves.clearBeforePlant, true)
+  for (const enabled of [false, true]) {
+    const current = fresh()
+    current.plant.elves.clearBeforePlant = enabled
+    m.normalizeGameConfigSelects(current)
+    assert.equal(current.plant.elves.clearBeforePlant, enabled)
+    const shared = adapter.exportConfig(current)
+    assert.equal(shared.config.plant.elves.clearBeforePlant, enabled)
+    const imported = adapter.preview(fresh(), shared).config
+    assert.equal(imported.plant.elves.clearBeforePlant, enabled)
+    const old = adapter.preview(imported, payload({
+      plant: { elves: { delayedHarvestEnabled: true } },
+    })).config
+    assert.equal(old.plant.elves.clearBeforePlant, enabled)
+    assert.equal(old.plant.elves.delayedHarvestEnabled, true)
+    const reloaded = JSON.parse(JSON.stringify(old))
+    m.normalizeGameConfigSelects(reloaded)
+    assert.equal(reloaded.plant.elves.clearBeforePlant, enabled)
+  }
+})
+
 test('项目名和24小时时限，整段与裸码解析、跨项目拒绝', () => {
   const result = { code: 'aBcdEF12_345-789', createdAt: Date.UTC(2026, 8, 14), expiresAt: Date.UTC(2026, 8, 15) }
   const text = m.formatShareText(result, project)

@@ -136,6 +136,7 @@ export interface GameConfig {
       excludeFlowerIds: Array<number | string>
       buyStealEnabled: boolean
       buyStealCount: number
+      friendCoinReserve: number
       noStealEnabled: boolean
       noStealStart: string
       noStealEnd: string
@@ -146,6 +147,7 @@ export interface GameConfig {
       selectedElvesIds: Array<number | string>
       delayedHarvestEnabled: boolean
       delayedHarvestMinutes: number
+      clearBeforePlant: boolean
       requestAid: boolean
       recvAid: boolean
       helpFrd: boolean

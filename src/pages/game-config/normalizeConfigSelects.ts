@@ -397,6 +397,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   friendSteal.buyStealCount = Number.isFinite(buyStealCount)
     ? Math.min(99, Math.max(1, Math.floor(buyStealCount)))
     : 10
+  const friendCoinReserve = Number(friendSteal.friendCoinReserve)
+  friendSteal.friendCoinReserve = Number.isFinite(friendCoinReserve)
+    ? Math.min(9999, Math.max(0, Math.floor(friendCoinReserve)))
+    : 0
 
   // 时间格式校验（HH:mm），格式不合法则恢复默认
   const HHmmRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -408,6 +412,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     elfOptions,
     QHGY_ELF_ID_SET,
   )
+  config.plant.elves.clearBeforePlant = config.plant.elves.clearBeforePlant !== false
   const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)
   config.plant.elves.delayedHarvestMinutes = Number.isFinite(delayedHarvestMinutes)
     ? Math.min(999, Math.max(10, Math.floor(delayedHarvestMinutes)))
