@@ -1277,11 +1277,24 @@ const handleDouyinLogin = async () => {
 
 // 轮询抖音扫码状态
 const startDouyinPoll = () => {
+  stopDouyinPoll()
+  const sid = douyinSid.value
+  if (!sid) return
+  let inFlight = false
+  let consecutiveErrors = 0
   isDouyinPolling.value = true
-  douyinPollTimer = setInterval(async () => {
-    if (!douyinSid.value) return
+  // 每轮扫码独立处理请求；关闭、重扫或成功后忽略仍在途中的旧响应。
+  const isCurrent = () => isDouyinPolling.value && douyinSid.value === sid && douyinPollTimer === timer
+  const timer = setInterval(async () => {
+    if (!isCurrent() || inFlight) return
+    inFlight = true
     try {
-      const res = await axios.get('/api/douyin/scan/poll', { params: { sid: douyinSid.value } })
+      const res = await axios.get('/api/douyin/scan/poll', {
+        params: { sid },
+        handleErrorLocally: true,
+      })
+      if (!isCurrent()) return
+      consecutiveErrors = 0
       const d = res.data
       if (d.qr_png_b64) {
         if (isDouyinQrLoading.value && !douyinQrB64.value) {
@@ -1297,17 +1310,32 @@ const startDouyinPoll = () => {
       } else if (d.scan_status === 'confirmed' && d.game_ok) {
         // 扫码成功，调 /bind 取服务器列表（防重：确保只触发一次）
         if (douyinBindingInProgress) return
-        douyinBindingInProgress = true
         stopDouyinPoll()
+        douyinBindingInProgress = true
         await handleDouyinAfterScan(d)
       } else if (d.scan_status === 'expired' || d.scan_status === 'error') {
         stopDouyinPoll()
         message.warning(d.scan_err || '二维码已过期，请重新获取')
       }
     } catch (err: any) {
+      if (!isCurrent()) return
+      const status = err.response?.status
+      if (status === 401) {
+        stopDouyinPoll() // 网站登录失效仍由全局拦截器处理。
+        return
+      }
       console.error('[douyinPoll] 轮询失败:', err.message)
+      const retryable = !status || status === 408 || status === 429 || status >= 500
+      if (retryable && ++consecutiveErrors < 3) return
+      stopDouyinPoll()
+      resetDouyinQrLoading()
+      douyinScanStatus.value = 'error'
+      message.error(err.response?.data?.err || '扫码服务暂时无法连接，请重新获取二维码')
+    } finally {
+      inFlight = false
     }
   }, 2000)
+  douyinPollTimer = timer
 }
 
 // 扫码确认后：取服务器列表
