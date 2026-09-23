@@ -1,17 +1,16 @@
 <template>
   <div class="evt-view">
+    <div class="evt-toolbar">
+      <span class="evt-toolbar-info">已加载 {{ totalEventCount }} 条事件。{{ historyNotice }}</span>
+      <button class="evt-clear-btn" @click="$emit('refresh')" title="重新读取当前状态与最近事件">重新读取</button>
+    </div>
     <div v-if="cards.length === 0" class="evt-empty">
       <div class="evt-empty-icon">📭</div>
       <p>暂无事件数据</p>
-      <p class="evt-empty-hint">日志中包含 [[EVT]] 标记的行将在此显示</p>
+      <p class="evt-empty-hint">状态与事件记录读取后将在此显示</p>
     </div>
 
     <div v-else class="evt-cards">
-      <!-- 顶部工具栏：清除缓存 -->
-      <div class="evt-toolbar">
-        <span class="evt-toolbar-info">已缓存 {{ totalEventCount }} 条模块事件（最多保留 {{ MAX_LOG_HISTORY }} 条，历史保留，即使日志刷新也不丢失）</span>
-        <button class="evt-clear-btn" @click="clearCache" title="清除所有已缓存的 EVT 事件记录">🗑 清除历史</button>
-      </div>
       <div
         v-for="card in cards"
         :key="card.module"
@@ -327,32 +326,19 @@
         </template>
 
         <!-- ┌─ 组件区 10: 时间线 timeline ─┐ -->
-        <template v-if="card.layout?.timeline !== false">
+        <template v-if="card.events.length || pages[card.module]?.count || card.layout?.timeline !== false">
           <div class="evt-section-toggle" @click="toggleSection(card.module, 'timeline')">
-            <span>事件记录（{{ card.events.length }} 条）</span>
+            <span>事件记录（已加载 {{ card.events.length }} 条{{ pages[card.module]?.count != null ? ` / ${pages[card.module]?.count} 条` : '' }}）</span>
             <span class="evt-toggle-arrow">{{ expanded(card.module, 'timeline') ? '▲ 收起' : '▼ 展开' }}</span>
           </div>
-          <div v-if="expanded(card.module, 'timeline')" class="evt-timeline">
-            <div
-              v-for="evt in [...card.events].reverse()"
-              :key="evt.id"
-              class="evt-tl-item"
-              :class="`evt-tl-item--${evt.status}`"
-            >
-              <div class="evt-tl-dot"></div>
-              <div class="evt-tl-body">
-                <span class="evt-tl-time">{{ formatTime(evt.ts) }}</span>
-                <span class="evt-tl-title">{{ evt.title }}</span>
-                <span v-if="evt.desc" class="evt-tl-desc">{{ evt.desc }}</span>
-                <!-- 时间线条目内嵌 tags -->
-                <div v-if="evt.gains?.length" class="evt-tl-gains">
-                  <span v-for="g in evt.gains" :key="g.name" class="evt-tag evt-tag--xs evt-tag--blue">
-                    {{ g.icon || '' }} {{ g.name }} x{{ g.count }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EvtTimeline
+            v-if="expanded(card.module, 'timeline')"
+            :events="card.events"
+            :loading="pages[card.module]?.loading"
+            :has-more="pages[card.module]?.hasMore"
+            :error="pages[card.module]?.error"
+            @load-more="$emit('load-history', card.module)"
+          />
         </template>
 
       </div><!-- /evt-card -->
@@ -363,7 +349,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
-import { MAX_LOG_HISTORY } from '../utils/evtHistoryStorage'
+import type { EvtModuleView, EvtHistoryPage } from '../utils/evtHistoryStorage'
+import EvtTimeline from './EvtTimeline.vue'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
 
@@ -477,113 +464,20 @@ interface Layout {
   timeline?:       boolean            // 默认 true；false 时隐藏时间线
 }
 
-interface EvtEvent {
-  id:      string
-  ts:      number
-  module:  string
-  title:   string
-  status:  'success' | 'failed' | 'info' | 'warning'
-  desc?:   string
-  gains?:  EvtGain[]
-  silent?: boolean
-  meta?:   { layout?: Layout; [k: string]: any }
-}
-
-interface EvtCard {
-  module:       string
-  events:       EvtEvent[]
-  latest:       EvtEvent | null
-  latestStatus: string
-  successCount: number
-  failedCount:  number
-  warningCount: number
-  infoCount:    number
-  layout:       Layout | null
-}
-
-// ── Props ───────────────────────────────────────────────────────────────────
-
-interface ModuleCategory {
-  name: string
-  count: number
-  color: string
-}
+interface EvtCard extends Omit<EvtModuleView, 'layout'> { layout: Layout | null }
+interface ModuleCategory { name: string; count: number; color: string }
 
 const props = defineProps<{
-  rawLogs: string
-  accountId?: number
+  modules: EvtModuleView[]
+  pages: Record<string, EvtHistoryPage>
+  historyNotice: string
   filterCategory?: string
-  historyResetKey?: number
 }>()
 const emit = defineEmits<{
-  (e: 'clear'): void
-  (e: 'categories-change', categories: ModuleCategory[]): void
+  (event: 'refresh'): void
+  (event: 'load-history', module: string): void
+  (event: 'categories-change', categories: ModuleCategory[]): void
 }>()
-
-// ── localStorage 缓存 key ───────────────────────────────────────────────────
-
-const CACHE_VERSION = 2
-const cacheKey = (accId?: number) =>
-  `evt_cache_v${CACHE_VERSION}_acc${accId ?? 0}`
-
-/** 缓存结构：每个 module 独立存 events + layout（layout 单独持久化，不依赖 events） */
-interface ModuleCache {
-  events: EvtEvent[]
-  layout: Layout | null
-}
-
-/** 从 localStorage 读取缓存 */
-function loadCache(accId?: number): Map<string, ModuleCache> {
-  try {
-    const raw = localStorage.getItem(cacheKey(accId))
-    if (!raw) return new Map()
-    const obj: Record<string, ModuleCache> = JSON.parse(raw)
-    const map = new Map(Object.entries(obj))
-    trimModuleMapEvents(map, MAX_LOG_HISTORY)
-    return map
-  } catch {
-    return new Map()
-  }
-}
-
-/** 全局保留最新 maxEvents 条非 silent 事件（跨模块合计） */
-function trimModuleMapEvents(moduleMap: Map<string, ModuleCache>, maxEvents: number) {
-  const all: { module: string; evt: EvtEvent }[] = []
-  moduleMap.forEach((mc, module) => {
-    for (const evt of mc.events) {
-      all.push({ module, evt })
-    }
-  })
-  if (all.length <= maxEvents) return
-
-  const keptIds = new Set(
-    all
-      .sort((a, b) => a.evt.ts - b.evt.ts)
-      .slice(-maxEvents)
-      .map((item) => item.evt.id),
-  )
-
-  moduleMap.forEach((mc) => {
-    mc.events = mc.events.filter((evt) => keptIds.has(evt.id))
-  })
-}
-
-/** 写入 localStorage，全局最多保留 MAX_LOG_HISTORY 条 event */
-function saveCache(moduleMap: Map<string, ModuleCache>, accId?: number) {
-  try {
-    trimModuleMapEvents(moduleMap, MAX_LOG_HISTORY)
-    const obj: Record<string, ModuleCache> = {}
-    moduleMap.forEach((mc, mod) => {
-      obj[mod] = {
-        layout: mc.layout,
-        events: [...mc.events].sort((a, b) => a.ts - b.ts),
-      }
-    })
-    localStorage.setItem(cacheKey(accId), JSON.stringify(obj))
-  } catch {
-    // localStorage 满了或不可用，忽略
-  }
-}
 
 // ── 折叠状态 ────────────────────────────────────────────────────────────────
 
@@ -591,7 +485,10 @@ const expandedSet = ref<Set<string>>(new Set())
 const expanded    = (module: string, section: string) => expandedSet.value.has(`${module}:${section}`)
 const toggleSection = (module: string, section: string) => {
   const key = `${module}:${section}`
-  if (expandedSet.value.has(key)) { expandedSet.value.delete(key) } else { expandedSet.value.add(key) }
+  if (expandedSet.value.has(key)) { expandedSet.value.delete(key) } else {
+    expandedSet.value.add(key)
+    if (section === 'timeline' && !props.pages[module]?.loaded) emit('load-history', module)
+  }
 }
 
 // ── 双排行榜切换状态 ─────────────────────────────────────────────────────────
@@ -637,162 +534,21 @@ const toggleRankItem = (module: string, tabKey: string, item: LayoutRankItem, in
   else expandedRankItems.value.add(key)
 }
 
-// ── 解析 & 聚合 ─────────────────────────────────────────────────────────────
-
-const parseEvtLines = (raw: string): EvtEvent[] => {
-  const events: EvtEvent[] = []
-  for (const line of raw.split('\n')) {
-    const idx = line.indexOf('[[EVT]]')
-    if (idx === -1) continue
-    try {
-      const evt = JSON.parse(line.slice(idx + 7))
-      if (evt?.id && evt?.module) events.push(evt as EvtEvent)
-    } catch { /* ignore parse error */ }
-  }
-  return events
-}
-
-/**
- * 把新 events 追加合并进 moduleMap。
- * - silent 事件：只做 layout 分区合并，不加入 events（不出现在时间线/摘要）
- * - 普通事件：去重追加到 events，同时 layout 分区合并
- * layout 分区合并：新 layout 各字段只覆盖自身非 undefined 的部分，
- * 保留旧 layout 中其他字段（地块详情/任务缺口等不会被收获完成事件清掉）
- */
-function mergeLayout(existing: Layout | null, incoming: Layout): Layout {
-  const base: Layout = existing ? { ...existing } : {}
-  // 逐字段合并，只覆盖 incoming 中明确提供的字段
-  if (incoming.subtitle        !== undefined) base.subtitle        = incoming.subtitle
-  if (incoming.headerStats     !== undefined) base.headerStats     = incoming.headerStats
-  if (incoming.tags            !== undefined) base.tags            = incoming.tags
-  if (incoming.progress        !== undefined) base.progress        = incoming.progress
-  if (incoming.multiProgress   !== undefined) base.multiProgress   = incoming.multiProgress
-  if (incoming.kvList          !== undefined) base.kvList          = incoming.kvList
-  if (incoming.alert           !== undefined) base.alert           = incoming.alert
-  if (incoming.grid            !== undefined) base.grid            = incoming.grid
-  if (incoming.tables          !== undefined) base.tables          = incoming.tables
-  if (incoming.table           !== undefined) base.table           = incoming.table
-  if (incoming.rankList        !== undefined) base.rankList        = incoming.rankList
-  if (incoming.rankListLabel   !== undefined) base.rankListLabel   = incoming.rankListLabel
-  if (incoming.rankTabs        !== undefined) base.rankTabs        = incoming.rankTabs
-  if (incoming.rankTabDefault  !== undefined) base.rankTabDefault  = incoming.rankTabDefault
-  if (incoming.rankTabsMode    !== undefined) base.rankTabsMode    = incoming.rankTabsMode
-  if (incoming.statGrid        !== undefined) base.statGrid        = incoming.statGrid
-  if (incoming.statGridLabel   !== undefined) base.statGridLabel   = incoming.statGridLabel
-  if (incoming.timeline        !== undefined) base.timeline        = incoming.timeline
-  return base
-}
-
-function mergeIntoMap(moduleMap: Map<string, ModuleCache>, newEvents: EvtEvent[]) {
-  for (const evt of newEvents) {
-    if (!moduleMap.has(evt.module)) moduleMap.set(evt.module, { events: [], layout: null })
-    const mc = moduleMap.get(evt.module)!
-    // layout 分区合并（不整体替换，保留旧字段）
-    if (evt.meta?.layout) mc.layout = mergeLayout(mc.layout, evt.meta.layout)
-    // silent 事件只更新 layout，不入时间线
-    if (evt.silent) continue
-    // 普通事件去重追加
-    if (!mc.events.find(e => e.id === evt.id)) mc.events.push(evt)
-  }
-}
-
-/** 把 moduleMap 转成 EvtCard[] */
-function buildCards(moduleMap: Map<string, ModuleCache>): EvtCard[] {
-  const result: EvtCard[] = []
-  moduleMap.forEach((mc, module) => {
-    const sorted = [...mc.events].sort((a, b) => a.ts - b.ts)
-    const latest = sorted[sorted.length - 1] ?? null
-    result.push({
-      module,
-      events:       sorted,
-      latest,
-      latestStatus: latest?.status ?? 'info',
-      successCount: mc.events.filter(e => e.status === 'success').length,
-      failedCount:  mc.events.filter(e => e.status === 'failed').length,
-      warningCount: mc.events.filter(e => e.status === 'warning').length,
-      infoCount:    mc.events.filter(e => e.status === 'info').length,
-      layout:       mc.layout,
-    })
-  })
-  return result
-}
-
-// ── 带缓存的响应式卡片列表 ───────────────────────────────────────────────────
-
-// 初始从缓存加载（按当前 accountId）
-const cachedModuleMap = ref<Map<string, ModuleCache>>(loadCache(props.accountId))
-
-// accountId 变化时切换到对应账号的缓存
-watch(
-  () => props.accountId,
-  (accId) => {
-    cachedModuleMap.value = loadCache(accId)
-  }
-)
-
-// 每日 0 点自动清除历史时，同步重置内存中的模块缓存
-watch(
-  () => props.historyResetKey,
-  (key) => {
-    if (!key) return
-    cachedModuleMap.value = new Map()
-  }
-)
-
-// rawLogs 变化时，追加新 EVT 到内存 + 持久化
-watch(
-  () => props.rawLogs,
-  (raw) => {
-    const newEvents = parseEvtLines(raw || '')
-    if (newEvents.length === 0) return   // 没有新 EVT，不动缓存
-    mergeIntoMap(cachedModuleMap.value, newEvents)
-    // 触发 Vue 响应式更新
-    cachedModuleMap.value = new Map(cachedModuleMap.value)
-    saveCache(cachedModuleMap.value, props.accountId)
-  },
-  { immediate: true }
-)
-
-const MODULE_CATEGORY_COLORS = [
-  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16',
-]
-
-function buildModuleCategories(moduleMap: Map<string, ModuleCache>): ModuleCategory[] {
-  const allCards = buildCards(moduleMap)
-  const total = allCards.reduce((sum, card) => sum + card.events.length, 0)
-  return [
-    { name: '全部', count: total, color: '#6b7280' },
-    ...allCards.map((card, index) => ({
-      name: card.module,
-      count: card.events.length,
-      color: MODULE_CATEGORY_COLORS[index % MODULE_CATEGORY_COLORS.length],
-    })),
-  ]
-}
-
-function syncModuleCategories() {
-  emit('categories-change', buildModuleCategories(cachedModuleMap.value))
-}
-
-watch(cachedModuleMap, syncModuleCategories, { deep: true, immediate: true })
-
+// 状态与历史由父组件按增量维护，这里只投影当前需要显示的卡片。
+const MODULE_CATEGORY_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16']
 const cards = computed<EvtCard[]>(() => {
-  const all = buildCards(cachedModuleMap.value)
   const filter = props.filterCategory
-  if (!filter || filter === '全部') return all
-  return all.filter((card) => card.module === filter)
+  return (!filter || filter === '全部' ? props.modules : props.modules.filter(card => card.module === filter)) as EvtCard[]
 })
-
-const totalEventCount = computed(() =>
-  buildCards(cachedModuleMap.value).reduce((sum, card) => sum + card.events.length, 0),
-)
-
-/** 清除当前账号的 EVT 缓存，同时通知父组件清掉原始行缓存 */
-function clearCache() {
-  try { localStorage.removeItem(cacheKey(props.accountId)) } catch {}
-  cachedModuleMap.value = new Map()
-  emit('clear')
-}
+const totalEventCount = computed(() => props.modules.reduce((sum, card) => sum + card.events.length, 0))
+watch([() => props.modules, () => props.pages], () => {
+  const categories = props.modules.map((card, index) => ({
+    name: card.module,
+    count: props.pages[card.module]?.count ?? card.events.length,
+    color: MODULE_CATEGORY_COLORS[index % MODULE_CATEGORY_COLORS.length],
+  }))
+  emit('categories-change', [{ name: '全部', count: categories.reduce((sum, category) => sum + category.count, 0), color: '#6b7280' }, ...categories])
+}, { immediate: true })
 
 async function writeClipboardText(text: string): Promise<void> {
   if (navigator.clipboard && window.isSecureContext) {

@@ -1,108 +1,183 @@
-/** EVT 事件历史 localStorage 工具（原始行 + 模块卡片缓存） */
-
-/** 普通日志与 EVT 事件历史统一保留条数上限 */
+/** 普通日志仍按条数截断；EVT 的状态、事件和保留策略独立处理。 */
 export const MAX_LOG_HISTORY = 2500
+export const EVT_RETENTION_MS = 24 * 60 * 60 * 1000
+export const EVT_OTHER_MODULE_LIMIT = Infinity
+export const EVT_IMPORTANT_MODULES = new Set(['订单系统', '组合订单', '土地系统', '兑换码', '花卉系统', '珍珠系统'])
 
-export const EVT_LINES_CACHE_KEY = (accId?: number) => `evt_raw_lines_acc${accId ?? 0}`
-export const EVT_CACHE_KEY = (accId?: number, version = 2) =>
-  `evt_cache_v${version}_acc${accId ?? 0}`
-
-const EVT_LAST_AUTO_CLEAR_KEY = 'evt_last_auto_clear_date'
-
-function getLocalDateKey(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+export interface EvtEvent {
+  id: string
+  ts: number
+  module: string
+  title: string
+  status: 'success' | 'failed' | 'info' | 'warning'
+  desc?: string
+  gains?: { name: string; count: number; icon?: string }[]
+  kv?: { label: string; value: unknown; color?: string }[]
+  silent?: boolean
+  meta?: { layout?: Record<string, any>; [key: string]: any }
 }
 
-function markAutoClearedToday() {
-  try {
-    localStorage.setItem(EVT_LAST_AUTO_CLEAR_KEY, getLocalDateKey())
-  } catch {}
+export interface EvtModuleView {
+  module: string
+  events: EvtEvent[] // 新到旧，直接交给虚拟列表，渲染时不再复制/排序。
+  latest: EvtEvent | null
+  latestStatus: string
+  successCount: number
+  failedCount: number
+  warningCount: number
+  infoCount: number
+  layout: Record<string, any> | null
 }
 
-/** 清除所有账号的 EVT 原始行与模块卡片缓存 */
-export function clearAllEvtHistory() {
-  try {
-    const keysToRemove: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (!key) continue
-      if (key.startsWith('evt_raw_lines_acc') || key.startsWith('evt_cache_v')) {
-        keysToRemove.push(key)
-      }
-    }
-    keysToRemove.forEach((key) => localStorage.removeItem(key))
-    markAutoClearedToday()
-  } catch {}
+export interface EvtHistoryPage {
+  loaded?: boolean
+  loading?: boolean
+  hasMore?: boolean
+  cursor?: string | null
+  error?: string
+  count?: number
 }
 
-export function clearEvtLines(accId?: number) {
-  try {
-    localStorage.removeItem(EVT_LINES_CACHE_KEY(accId))
-  } catch {}
-}
-
-export function loadEvtLines(accId?: number): string {
-  try {
-    return localStorage.getItem(EVT_LINES_CACHE_KEY(accId)) ?? ''
-  } catch {
-    return ''
-  }
+interface ModuleEntry {
+  view: EvtModuleView
+  ids: Set<string>
+  fieldTimes: Map<string, number>
+  stateLatest?: EvtEvent | null
 }
 
 export function trimLogLines(content: string, maxLines = MAX_LOG_HISTORY): string {
   return content.split('\n').filter(Boolean).slice(-maxLines).join('\n')
 }
 
-export function saveEvtLines(lines: string, accId?: number, maxLines = MAX_LOG_HISTORY) {
+/** 丢弃旧双缓存，不读取、不再同步写入大段日志。 */
+export function removeLegacyEvtCache(accId: number) {
   try {
-    const trimmed = trimLogLines(lines, maxLines)
-    localStorage.setItem(EVT_LINES_CACHE_KEY(accId), trimmed)
-  } catch {}
+    localStorage.removeItem(`evt_raw_lines_acc${accId}`)
+    localStorage.removeItem(`evt_cache_v2_acc${accId}`)
+  } catch { /* 隐私模式不妨碍内存视图。 */ }
 }
 
-/** 若已进入新的一天且尚未自动清理，则清除全部 EVT 历史并返回 true */
-export function runDailyAutoClearIfNeeded(): boolean {
-  try {
-    const today = getLocalDateKey()
-    const last = localStorage.getItem(EVT_LAST_AUTO_CLEAR_KEY)
-    if (last === null) {
-      // 首次启用：仅记录日期，不清除当天已有缓存
-      markAutoClearedToday()
-      return false
-    }
-    if (last === today) return false
-    clearAllEvtHistory()
-    return true
-  } catch {
-    return false
+export function parseEvtLines(lines: readonly string[]): EvtEvent[] {
+  const result: EvtEvent[] = []
+  for (const line of lines) {
+    const start = line.indexOf('[[EVT]]')
+    if (start < 0) continue
+    try {
+      const value = JSON.parse(line.slice(start + 7))
+      if (validEvent(value)) result.push(value)
+    } catch { /* 旧日志中的不完整行不影响下一条。 */ }
   }
+  return result
 }
 
-/** 调度每日 0 点自动清理；返回取消函数 */
-export function scheduleMidnightEvtClear(onClear: () => void): () => void {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
+function validEvent(value: any): value is EvtEvent {
+  return !!value && typeof value.id === 'string' && typeof value.module === 'string'
+    && value.module.length > 0 && Number.isFinite(value.ts)
+}
 
-  const scheduleNext = () => {
-    const now = new Date()
-    const nextMidnight = new Date(now)
-    nextMidnight.setDate(nextMidnight.getDate() + 1)
-    nextMidnight.setHours(0, 0, 0, 0)
-    const delay = nextMidnight.getTime() - now.getTime()
+/** 只保存已加载的历史。服务器仍是24小时历史的来源，页面关闭无需落盘。 */
+export class EvtHistoryStore {
+  private entries = new Map<string, ModuleEntry>()
 
-    timeoutId = setTimeout(() => {
-      if (runDailyAutoClearIfNeeded()) {
-        onClear()
+  private entry(module: string): ModuleEntry {
+    let entry = this.entries.get(module)
+    if (!entry) {
+      entry = {
+        ids: new Set(), fieldTimes: new Map(),
+        view: { module, events: [], latest: null, latestStatus: 'info', layout: null,
+          successCount: 0, failedCount: 0, warningCount: 0, infoCount: 0 },
       }
-      scheduleNext()
-    }, delay)
+      this.entries.set(module, entry)
+    }
+    return entry
   }
 
-  scheduleNext()
-  return () => {
-    if (timeoutId !== undefined) clearTimeout(timeoutId)
+  ensureModules(modules: string[]) { for (const module of modules) this.entry(module) }
+
+  /** 新接口提供完整的已合并模块状态；历史事件里的 layout 不会进入这里。 */
+  replaceStates(states: Record<string, { layout: Record<string, any> | null; latest?: EvtEvent | null }>) {
+    for (const [module, entry] of this.entries) {
+      if (!(module in states)) {
+        entry.stateLatest = null
+        entry.view = { ...entry.view, layout: null }
+        this.summarize(entry, false)
+      }
+    }
+    for (const [module, state] of Object.entries(states)) {
+      const entry = this.entry(module)
+      entry.view = { ...entry.view, layout: state.layout }
+      entry.stateLatest = state.latest
+      entry.fieldTimes.clear()
+      this.summarize(entry, false)
+    }
   }
+
+  /** 旧接口兼容只使用较新的分区字段，避免轮转重放旧行回滚状态。 */
+  private applyLegacyState(event: EvtEvent) {
+    if (!event.meta?.layout) return
+    const entry = this.entry(event.module)
+    const layout = { ...entry.view.layout }
+    let changed = false
+    for (const [field, value] of Object.entries(event.meta.layout)) {
+      if (value !== undefined && event.ts >= (entry.fieldTimes.get(field) ?? -Infinity)) {
+        layout[field] = value
+        entry.fieldTimes.set(field, event.ts)
+        changed = true
+      }
+    }
+    if (changed) entry.view = { ...entry.view, layout }
+  }
+
+  ingest(events: readonly EvtEvent[], now = Date.now(), legacy = false) {
+    const touched = new Set<ModuleEntry>()
+    for (const event of events) {
+      if (!validEvent(event)) continue
+      if (legacy) this.applyLegacyState(event)
+      if (event.silent || event.ts < now - EVT_RETENTION_MS) continue
+      const entry = this.entry(event.module)
+      if (entry.ids.has(event.id)) continue
+      entry.ids.add(event.id)
+      const { layout, ...meta } = event.meta ?? {}
+      // 旧协议 kv 位于 layout，仍保留每次操作的具体值；大展示状态不进历史。
+      const kv = event.kv ?? (Array.isArray(layout?.kvList) ? layout.kvList : undefined)
+      const compact = { ...event, ...(kv ? { kv } : {}), meta: Object.keys(meta).length ? meta : undefined }
+      if (!touched.has(entry)) entry.view = { ...entry.view, events: [...entry.view.events] }
+      entry.view.events.push(compact)
+      touched.add(entry)
+    }
+    for (const entry of touched) entry.view.events.sort((a, b) => b.ts - a.ts || b.id.localeCompare(a.id))
+    this.prune(now, touched)
+  }
+
+  private summarize(entry: ModuleEntry, countEvents = true) {
+    const counts = countEvents ? { success: 0, failed: 0, warning: 0, info: 0 } : {
+      success: entry.view.successCount, failed: entry.view.failedCount,
+      warning: entry.view.warningCount, info: entry.view.infoCount,
+    }
+    if (countEvents) for (const event of entry.view.events) counts[Object.prototype.hasOwnProperty.call(counts, event.status) ? event.status : 'info']++
+    const historyLatest = entry.view.events[0] ?? null
+    const latest = (entry.stateLatest?.ts ?? 0) > (historyLatest?.ts ?? 0) ? entry.stateLatest! : historyLatest
+    entry.view = { ...entry.view, latest, latestStatus: latest?.status ?? 'info',
+      successCount: counts.success, failedCount: counts.failed,
+      warningCount: counts.warning, infoCount: counts.info }
+  }
+
+  prune(now = Date.now(), touched = new Set<ModuleEntry>()) {
+    for (const entry of this.entries.values()) {
+      const events = entry.view.events
+      const firstExpired = events.length && events[events.length - 1].ts < now - EVT_RETENTION_MS
+        ? events.findIndex(event => event.ts < now - EVT_RETENTION_MS) : -1
+      const max = EVT_IMPORTANT_MODULES.has(entry.view.module) ? events.length : EVT_OTHER_MODULE_LIMIT
+      const length = Math.min(max, firstExpired < 0 ? events.length : firstExpired)
+      if (length !== events.length) {
+        entry.view = { ...entry.view, events: events.slice(0, length) }
+        entry.ids = new Set(entry.view.events.map(event => event.id))
+        touched.add(entry)
+      }
+    }
+    for (const entry of touched) this.summarize(entry)
+  }
+
+  snapshot(): EvtModuleView[] { return [...this.entries.values()].map(entry => entry.view) }
+  clear() { this.entries.clear() }
 }

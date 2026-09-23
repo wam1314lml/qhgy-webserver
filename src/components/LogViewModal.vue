@@ -17,14 +17,14 @@
       </div>
 
       <!-- 未找到日志：EVT 流水存在时仍需挂载事件卡片 -->
-      <div v-else-if="logData?.未找到日志 && !rawEvtContent" class="log-not-found">
+      <div v-else-if="viewMode === 'log' && logData?.未找到日志" class="log-not-found">
         <div class="not-found-icon">📄</div>
         <h4>暂无日志</h4>
         <p>未找到今日的日志文件：{{ logData.未找到日志 }}</p>
       </div>
 
       <!-- 日志内容：普通日志或 EVT 流水存在时展示 -->
-      <div v-else-if="logData?.content || rawEvtContent" class="log-main-content">
+      <div v-else-if="viewMode === 'evt' || logData?.content" class="log-main-content">
         <!-- 左侧分类标签栏 -->
         <div class="log-categories">
           <a-button
@@ -86,11 +86,13 @@
           <!-- 事件卡片视图 -->
           <div v-if="viewMode === 'evt'" class="log-content-wrapper">
             <EventCardView
-              :raw-logs="rawEvtContent"
-              :account-id="props.accountId"
+              :key="props.accountId"
+              :modules="evtModules"
+              :pages="evtPages"
+              :history-notice="evtNotice"
               :filter-category="selectedCategory"
-              :history-reset-key="evtHistoryResetKey"
-              @clear="onEvtClear"
+              @refresh="reloadEvt"
+              @load-history="evtClient.loadOlder($event)"
               @categories-change="evtCategories = $event"
             />
           </div>
@@ -154,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, shallowRef, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import axios from '../utils/axios'
 import { message } from 'ant-design-vue'
 import { useSwipeToClose } from '../hooks/useSwipeToClose'
@@ -163,15 +165,8 @@ import { sanitizeLog } from '../utils/sanitize'
 import { filterLogLines, shouldHideLogLine } from '../utils/logFilter'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import EventCardView from './EventCardView.vue'
-import {
-  clearEvtLines,
-  loadEvtLines,
-  MAX_LOG_HISTORY,
-  runDailyAutoClearIfNeeded,
-  saveEvtLines,
-  scheduleMidnightEvtClear,
-  trimLogLines,
-} from '../utils/evtHistoryStorage'
+import { MAX_LOG_HISTORY, trimLogLines, removeLegacyEvtCache, type EvtModuleView, type EvtHistoryPage } from '../utils/evtHistoryStorage'
+import { EvtClient } from '../utils/evtClient'
 
 // 创建 ansi-to-html 转换器实例
 const ansiToHtml = new AnsiToHtml({
@@ -230,32 +225,25 @@ const swipeRef = useSwipeToClose({
 const loading = ref(false)
 const logData = ref<LogData | null>(null)
 
-const rawEvtContent = ref<string>('')   // EVT 行原始内容，供 EventCardView 解析
-const evtHistoryResetKey = ref(0)
-const evtLastLine = ref<number>(0)      // EVT 日志独立的 lastLine 指针
-const evtStreamId = ref<string>('')     // EVT 最老分段身份，滚动后用于重置失效游标
-let _evtApiUnavailable = false          // evt-stream-poll 不可用时降级到普通日志提取
+const evtModules = shallowRef<EvtModuleView[]>([])
+const evtPages = shallowRef<Record<string, EvtHistoryPage>>({})
+const evtNotice = ref('正在读取状态与事件记录…')
+const evtClient = new EvtClient(
+  async (path, params) => (await axios.get(path, { params })).data,
+  () => {
+    evtModules.value = evtClient.store.snapshot()
+    evtPages.value = evtClient.pages
+    evtNotice.value = evtClient.notice
+  },
+)
+let logGeneration = 0
+let logPending = false
 
-function resetEvtHistoryState() {
-  rawEvtContent.value = ''
-  evtHistoryResetKey.value++
-  evtLastLine.value = 0
-  evtStreamId.value = ''
+function reloadEvt() {
+  evtClient.reset(props.accountId)
+  fetchEvtLogs()
 }
 
-function applyDailyAutoClearIfNeeded() {
-  if (runDailyAutoClearIfNeeded()) {
-    resetEvtHistoryState()
-  }
-}
-
-/** EventCardView 点击"清除历史"时同步清掉原始 EVT 行缓存，防止旧模块名卡片重新出现 */
-function onEvtClear() {
-  clearEvtLines(props.accountId)
-  rawEvtContent.value = ''
-}
-
-let cancelMidnightClear: (() => void) | undefined
 const accountInfo = ref<AccountInfo | null>(null)
 const selectedCategory = ref<string>('全部')
 const evtCategories = ref<LogCategory[]>([{ name: '全部', count: 0, color: '#6b7280' }])
@@ -472,7 +460,9 @@ const sidebarCategories = computed(() =>
 
 // 获取普通日志（不含 EVT 行）
 const fetchLogs = async (silent = false) => {
-  if (!props.accountId || !props.token) return
+  if (!props.isOpen || !props.accountId || !props.token || logPending) return
+  const generation = logGeneration
+  logPending = true
 
   if (!silent) {
     loading.value = true
@@ -487,6 +477,7 @@ const fetchLogs = async (silent = false) => {
       },
     })
 
+    if (generation !== logGeneration || !props.isOpen) return
     if (response.data.code === 200 && response.data.data.success) {
       const streamData: LogStreamResponse = response.data.data
       if (streamData.streamReset) {
@@ -495,11 +486,7 @@ const fetchLogs = async (silent = false) => {
       const wasFirstLoad = lastLine.value === 0 || Boolean(streamData.streamReset)
 
       if (streamData.count > 0) {
-        // fallback 模式：evt-stream-poll 不可用时，从普通日志中提取 [[EVT]] 行
-        if (_evtApiUnavailable) {
-          const evtLines = streamData.logs.filter((l: string) => l.includes('[[EVT]]'))
-          _applyEvtLines(evtLines)
-        }
+        evtClient.ingestFallback(streamData.logs)
         // 过滤掉 [[EVT]] 行（普通日志视图不展示 EVT）
         const visibleLogs = filterLogLines(streamData.logs)
         const newLogs = visibleLogs.join('\n')
@@ -543,68 +530,22 @@ const fetchLogs = async (silent = false) => {
       }
     }
   } catch (error) {
+    if (generation !== logGeneration || !props.isOpen) return
     console.error('获取日志失败:', error)
     if (!silent) message.error('网络请求失败')
   } finally {
-    if (!silent) loading.value = false
+    if (generation === logGeneration) {
+      logPending = false
+      if (!silent) loading.value = false
+    }
   }
 }
 
-// 将 EVT 行追加到 rawEvtContent（fetchEvtLogs / fallback 共用）
-function _applyEvtLines(evtLines: string[]) {
-  if (!evtLines.length) return
-  rawEvtContent.value = trimLogLines(
-    rawEvtContent.value
-      ? rawEvtContent.value + '\n' + evtLines.join('\n')
-      : evtLines.join('\n'),
-  )
-  saveEvtLines(rawEvtContent.value, props.accountId)
-}
-
-// 获取 EVT 事件日志（独立接口，读 _evt.log 文件）
-// 若接口返回 404，静默降级为从普通日志中提取 [[EVT]] 行（fallback）
+// 新版状态快照与历史分别读取；旧版接口只作为明确标注的兼容显示。
 const fetchEvtLogs = async () => {
-  if (!props.accountId || !props.token) return
-
-  // 已知接口不可用，直接走 fallback（由 fetchLogs 提取）
-  if (_evtApiUnavailable) return
-
-  try {
-    const response = await axios.get(`/api/game-accounts/evt-stream-poll`, {
-      params: {
-        id: props.accountId,
-        lastLine: evtLastLine.value,
-        streamId: evtStreamId.value,
-      },
-    })
-
-    if (response.data.code === 200 && response.data.data.success) {
-      const streamData: LogStreamResponse = response.data.data
-      if (streamData.streamReset) {
-        clearEvtLines(props.accountId)
-        rawEvtContent.value = ''
-        evtHistoryResetKey.value++
-      }
-      if (streamData.count > 0) {
-        _applyEvtLines(streamData.logs)
-      }
-      evtLastLine.value = streamData.lastLine
-      evtStreamId.value = streamData.streamId || ''
-    } else if (response.data.code === 404 || response.data.code === 500) {
-      // 接口不存在或服务端异常，静默降级
-      _evtApiUnavailable = true
-      console.debug(`[EVT] evt-stream-poll 不可用(${response.data.code})，降级到普通日志提取模式`)
-    }
-  } catch (error: any) {
-    // axios 默认对非2xx抛异常，404/500 均走此分支
-    const status = error?.response?.status
-    if (status === 404 || status === 500) {
-      _evtApiUnavailable = true
-      console.debug(`[EVT] evt-stream-poll 不可用(${status})，降级到普通日志提取模式`)
-    } else {
-      console.debug('获取EVT日志失败:', error)
-    }
-  }
+  if (!props.isOpen || !props.accountId || !props.token || document.hidden) return
+  await evtClient.poll()
+  if (evtClient.mode === 'fallback') await fetchLogs(true)
 }
 
 const formatLogLine = (lineInfo: any): string => {
@@ -666,67 +607,50 @@ const formatLogLine = (lineInfo: any): string => {
   return sanitizeLog(parts.join(''))
 }
 
-// 统一管理日志获取和自动刷新逻辑
-let _lastWatchedAccountId: number | undefined = undefined
-watch(
-  [() => props.isOpen, () => props.accountId, autoRefresh],
-  ([isOpen, accountId, autoRefreshEnabled]) => {
-    // 清除之前的定时器
-    if (refreshInterval.value) {
-      clearInterval(refreshInterval.value)
-      refreshInterval.value = undefined
-    }
+// 打开/切号重置会话；自动刷新开关只控制轮询，不重放全部历史。
+const refreshVisible = () => {
+  if (!props.isOpen || document.hidden) return
+  if (viewMode.value === 'evt') fetchEvtLogs()
+  else fetchLogs(true)
+}
+watch([() => props.isOpen, () => props.accountId], ([isOpen, accountId]) => {
+  logGeneration++
+  logPending = false
+  loading.value = false
+  evtClient.stop()
+  if (!isOpen || !accountId) return
+  selectedCategory.value = '全部'
+  searchTerm.value = ''
+  viewMode.value = 'evt'
+  lastLine.value = 0
+  logStreamId.value = ''
+  logData.value = null
+  accountInfo.value = null
+  removeLegacyEvtCache(accountId)
+  evtClient.reset(accountId)
+  fetchEvtLogs()
+}, { immediate: true })
 
-    // 重置搜索状态
-    if (isOpen && accountId) {
-      applyDailyAutoClearIfNeeded()
-      selectedCategory.value = '全部'
-      searchTerm.value = ''
-      viewMode.value = 'evt'
-      lastLine.value = 0    // 重置普通日志行数
-      logStreamId.value = '' // 重置普通日志分段身份
-      evtLastLine.value = 0 // 重置EVT日志行数
-      _evtApiUnavailable = false // 每次重新打开时重新探测接口可用性
-      // accountId 切换时才清空旧账号缓存
-      if (accountId !== _lastWatchedAccountId) {
-        _lastWatchedAccountId = accountId
-      }
-      // 从 localStorage 恢复该账号的 EVT 行（弹窗关了再开立即有数据）
-      rawEvtContent.value = trimLogLines(loadEvtLines(accountId))
+watch([() => props.isOpen, autoRefresh], ([isOpen, enabled]) => {
+  if (refreshInterval.value) clearInterval(refreshInterval.value)
+  refreshInterval.value = undefined
+  if (isOpen && enabled) refreshInterval.value = setInterval(refreshVisible, 10000)
+}, { immediate: true })
 
-      // 立即获取一次日志（普通 + EVT）
-      fetchLogs()
-      fetchEvtLogs()
-
-      // 如果启用自动刷新，设置定时器
-      if (autoRefreshEnabled) {
-        refreshInterval.value = setInterval(() => {
-          fetchLogs(true)  // 普通日志静默刷新
-          fetchEvtLogs()   // EVT 日志刷新
-        }, 10000)
-      }
-    }
-  },
-  { immediate: false },
-)
-
-// 当过滤后的日志行发生变化时，如果启用自动滚动，滚动到底部
-watch([computedLogData, autoScrollToBottom], ([, autoScrollEnabled]) => {
-  if (logData.value?.content && autoScrollEnabled) {
-    scrollToBottomWithDelay()
-  }
+watch(viewMode, () => {
+  selectedCategory.value = '全部'
+  refreshVisible()
 })
-
-onMounted(() => {
-  applyDailyAutoClearIfNeeded()
-  cancelMidnightClear = scheduleMidnightEvtClear(resetEvtHistoryState)
+watch([computedLogData, autoScrollToBottom], ([, enabled]) => {
+  if (viewMode.value === 'log' && logData.value?.content && enabled) scrollToBottomWithDelay()
 })
-
+const onVisibilityChange = () => { if (!document.hidden && autoRefresh.value) refreshVisible() }
+onMounted(() => document.addEventListener('visibilitychange', onVisibilityChange))
 onUnmounted(() => {
-  if (refreshInterval.value) {
-    clearInterval(refreshInterval.value)
-  }
-  cancelMidnightClear?.()
+  evtClient.stop()
+  logGeneration++
+  if (refreshInterval.value) clearInterval(refreshInterval.value)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
 
