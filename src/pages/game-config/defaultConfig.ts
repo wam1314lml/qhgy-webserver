@@ -422,7 +422,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
       flowerCompete: {
         autoSelect: false,
-        selectFlowerId: 5301,
+        selectIndex: 0,
         autoLike: false,
         autoClaimRewards: false,
       },

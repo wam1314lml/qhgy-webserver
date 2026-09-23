@@ -2572,18 +2572,18 @@
             <CustomFormItem
               label="自动选择支持对象"
               name="activity.flowerCompete.autoSelect"
-              tooltip="开启后，仅在本期活动尚未选择对象时自动选择下方果艺；已有选择不会切换。自动点赞需单独开启。"
+              tooltip="开启后，按左侧或右侧选择本区服当前活动的支持对象；已有选择不会切换。自动点赞需单独开启。"
             >
               <Switch v-model:checked="config.activity.flowerCompete.autoSelect" />
             </CustomFormItem>
             <CustomFormItem
               v-if="config.activity.flowerCompete.autoSelect"
               label="支持对象"
-              name="activity.flowerCompete.selectFlowerId"
+              name="activity.flowerCompete.selectIndex"
             >
-              <Select v-model:value="config.activity.flowerCompete.selectFlowerId" style="width: 240px">
-                <Select.Option :value="5301">甜喵软憩</Select.Option>
-                <Select.Option :value="5302">云畔萌啾</Select.Option>
+              <Select v-model:value="config.activity.flowerCompete.selectIndex" style="width: 240px">
+                <Select.Option :value="0">左侧（第一个）</Select.Option>
+                <Select.Option :value="1">右侧（第二个）</Select.Option>
               </Select>
             </CustomFormItem>
             <CustomFormItem
@@ -2822,6 +2822,7 @@ import { floralShopAllOptions } from './game-config/shopItem6Options'
 import { deepMerge } from './game-config/utils'
 import {
   migrateLegacyFloralShopCatalog,
+  migrateLegacyFlowerCompeteSelection,
   migrateLegacyFmlRaceTaskPriority,
   normalizeGameConfigSelects,
 } from './game-config/normalizeConfigSelects'
@@ -3272,6 +3273,7 @@ const fetchConfig = async () => {
         // 使用深度合并确保所有默认字段都存在
         migrateLegacyFmlRaceTaskPriority(response.data.data)
         migrateLegacyFloralShopCatalog(response.data.data)
+        migrateLegacyFlowerCompeteSelection(response.data.data)
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig)
         config.value = mergedConfig
@@ -3434,6 +3436,7 @@ const importConfigFromSelectedAccount = async () => {
 
     migrateLegacyFmlRaceTaskPriority(sourceResponse.data.data)
     migrateLegacyFloralShopCatalog(sourceResponse.data.data)
+    migrateLegacyFlowerCompeteSelection(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload)
     const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
@@ -3490,7 +3493,7 @@ const configShareAdapter = createProjectShareAdapter<GameConfig>((value) => {
   if (error) throw new Error(error)
   normalizeGameConfigSelects(value)
   return value
-})
+}, migrateLegacyFlowerCompeteSelection)
 const configShareApi = createConfigShareApi(configShareAdapter.project.id)
 const openConfigShare = () => {
   configShareVisible.value = true

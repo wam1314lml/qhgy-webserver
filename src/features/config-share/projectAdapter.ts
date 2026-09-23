@@ -6,7 +6,8 @@ import {
 import type { ConfigShareAdapter } from './adapter'
 const groupNames: Record<string, string> = {"basic":"基础","plant":"种植","order":"订单","union":"公会","activity":"活动","chopTree":"砍树","cave":"洞府","challenge":"挑战","mall":"商城","guild":"公会","outskirts":"城郊","jiangning":"江宁","xiancheng":"县城","others":"其他","largeCity":"大都市","daily":"日常","base":"基础","homeland":"家园","talent":"天赋","wild":"野外","reconnectInterval":"重连设置"}
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value))
-export function createProjectShareAdapter<T>(normalize: (config: T) => T): ConfigShareAdapter<T> {
+export function createProjectShareAdapter<T>(normalize: (config: T) => T,
+  migratePatch?: (config: unknown) => void): ConfigShareAdapter<T> {
   return {
     project: shareProject,
     privacyNotice: '不包含账号登录信息和密码。好友、成员名单及高级设置会随配置分享，请仅发给需要的人。',
@@ -16,6 +17,11 @@ export function createProjectShareAdapter<T>(normalize: (config: T) => T): Confi
       return { format: SHARE_FORMAT, project: shareProject.id, schemaVersion: shareProject.schemaVersion, config }
     },
     preview(current, input) {
+      // 旧字段须在白名单过滤和合并前迁移；只处理码中实际存在的字段，不补默认值。
+      if (migratePatch && input !== null && typeof input === 'object' && !Array.isArray(input)) {
+        input = clone(input)
+        migratePatch((input as SharePayload).config)
+      }
       const payload = validatePayload(input, shareProject)
       const ignored = sanitizeConfig((input as SharePayload).config, shareProject.schema).ignored
       const currentObject = current as unknown as ConfigObject

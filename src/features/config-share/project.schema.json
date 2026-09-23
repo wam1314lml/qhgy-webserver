@@ -1319,7 +1319,7 @@
               "autoSelect": {
                 "type": "boolean"
               },
-              "selectFlowerId": {
+              "selectIndex": {
                 "type": "number"
               },
               "autoLike": {

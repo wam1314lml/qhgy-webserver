@@ -251,6 +251,27 @@ function normalizeArtOptionValues(
   return options[0] ? [String(options[0].value)] : []
 }
 
+// 必须在补默认值/合并分享码前迁移，避免旧右侧选择被默认左侧覆盖。
+export function migrateLegacyFlowerCompeteSelection(value: unknown): void {
+  const root = asRecord(value)
+  const activity = asRecord(root?.activity)
+  const settings = asRecord(activity?.flowerCompete)
+  if (!settings) return
+  if (Object.hasOwn(settings, 'selectIndex')) {
+    const raw = settings.selectIndex
+    const index = (typeof raw === 'number' || typeof raw === 'string' && raw.trim()) ? Number(raw) : NaN
+    settings.selectIndex = [0, 1].includes(index) ? index : 0
+    if (![0, 1].includes(index)) settings.autoSelect = false
+  } else if (Object.hasOwn(settings, 'selectFlowerId')) {
+    const raw = settings.selectFlowerId
+    const id = (typeof raw === 'number' || typeof raw === 'string' && raw.trim()) ? Number(raw) : NaN
+    const index = [5301, 5302].indexOf(id)
+    settings.selectIndex = index >= 0 ? index : 0
+    if (index < 0) settings.autoSelect = false
+  }
+  delete settings.selectFlowerId
+}
+
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
   migrateLegacyFmlRaceTaskPriority(config)
@@ -624,13 +645,13 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     hd3013DrawEnabled: hdReward?.hd3013DrawEnabled === true,
   }
   const flowerCompete = asRecord(config.activity.flowerCompete)
-  const selectId = flowerCompete?.selectFlowerId ?? 5301
-  const selectFlowerId = (typeof selectId === 'number' || typeof selectId === 'string' && selectId.trim())
-    ? Number(selectId) : NaN
-  const validSelectFlower = [5301, 5302].includes(selectFlowerId)
+  const rawSelectIndex = flowerCompete && Object.hasOwn(flowerCompete, 'selectIndex') ? flowerCompete.selectIndex : 0
+  const selectIndex = (typeof rawSelectIndex === 'number' || typeof rawSelectIndex === 'string' && rawSelectIndex.trim())
+    ? Number(rawSelectIndex) : NaN
+  const validSelectFlower = [0, 1].includes(selectIndex)
   config.activity.flowerCompete = {
     autoSelect: flowerCompete?.autoSelect === true && validSelectFlower,
-    selectFlowerId: validSelectFlower ? selectFlowerId : 5301,
+    selectIndex: validSelectFlower ? selectIndex : 0,
     autoLike: flowerCompete?.autoLike === true,
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }

@@ -407,7 +407,7 @@ export interface GameConfig {
     }
     flowerCompete: {
       autoSelect: boolean
-      selectFlowerId: number
+      selectIndex: number // 0=左侧第一个，1=右侧第二个
       autoLike: boolean
       autoClaimRewards: boolean
     }
