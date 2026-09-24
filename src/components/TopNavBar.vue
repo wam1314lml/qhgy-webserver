@@ -34,26 +34,24 @@
           :selectedKeys="props.selectedKeys"
           mode="horizontal"
           class="nav-menu"
+          :disabledOverflow="isMobile"
+          :triggerSubMenuAction="isMobile ? 'click' : 'hover'"
           @select="emit('menu-select', $event)"
         >
           <a-menu-item key="script" class="nav-tab"> 首页 </a-menu-item>
-          <a-menu-item key="quota-transfer" class="nav-tab">转移配额</a-menu-item>
           <a-menu-item v-if="user?.permissions?.welfare_panel" key="welfare" class="nav-tab">
             福利
           </a-menu-item>
-          <a-menu-item v-if="user?.permissions?.invite_system" key="performance" class="nav-tab">
-            业绩管理
-          </a-menu-item>
-          <a-menu-item
-            v-if="user?.role === 'vip1' || user?.role === 'vip2'"
-            key="agent"
-            class="nav-tab"
-          >
-            代理后台
-          </a-menu-item>
-          <a-menu-item v-if="user?.role === 'admin' || user?.role === 'subadmin'" key="admin" class="nav-tab">
-            管理面板
-          </a-menu-item>
+          <a-menu-item key="quota-transfer" class="nav-tab">转移配额</a-menu-item>
+          <a-sub-menu v-if="isMobile && managementItems.length" key="more">
+            <template #title><EllipsisOutlined aria-label="更多功能" /></template>
+            <a-menu-item v-for="item in managementItems" :key="item.key">{{ item.label }}</a-menu-item>
+          </a-sub-menu>
+          <template v-if="!isMobile">
+            <a-menu-item v-for="item in managementItems" :key="item.key" class="nav-tab">
+              {{ item.label }}
+            </a-menu-item>
+          </template>
         </a-menu>
       </div>
     </div>
@@ -65,7 +63,7 @@
         <div class="balance-display" @click="openRechargeModal">
           <span class="balance-icon">💰</span>
           <span class="balance-text">余额：</span>
-          <span class="balance-amount">{{ formatAmount(user?.points || 0) }}</span>
+          <span class="balance-amount" :title="String(formatAmount(user?.points || 0))">{{ formatAmount(user?.points || 0) }}</span>
         </div>
       </div>
 
@@ -104,9 +102,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import { useRouter } from 'vue-router'
-import { LeftOutlined } from '@ant-design/icons-vue'
+import { EllipsisOutlined, LeftOutlined } from '@ant-design/icons-vue'
 import UserAvatar from './UserAvatar.vue'
 import RechargeModal from './RechargeModal.vue'
 
@@ -148,6 +147,14 @@ const router = useRouter()
 
 // 用户信息状态
 const user = ref<User | null>(null)
+const isMobile = useMediaQuery('(max-width: 768px)')
+const managementItems = computed(() => {
+  const items: { key: string; label: string }[] = []
+  if (user.value?.permissions?.invite_system) items.push({ key: 'performance', label: '业绩管理' })
+  if (user.value?.role === 'vip1' || user.value?.role === 'vip2') items.push({ key: 'agent', label: '代理后台' })
+  if (user.value?.role === 'admin' || user.value?.role === 'subadmin') items.push({ key: 'admin', label: '管理面板' })
+  return items
+})
 
 // 充值弹窗状态
 const showRechargeModal = ref(false)
@@ -393,7 +400,7 @@ watch(
     position: relative !important;
     z-index: 999 !important;
     overflow-x: hidden; /* 防止水平滚动 */
-    padding-right: 12px;
+    padding-right: 8px;
   }
 
   /* 导航栏左侧布局优化 */
@@ -413,21 +420,15 @@ watch(
   .nav-menu {
     border-bottom: none !important;
     background: transparent !important;
-    overflow-x: auto; /* 允许菜单水平滚动 */
-    scrollbar-width: none; /* Firefox 隐藏滚动条 */
-    -ms-overflow-style: none; /* IE 隐藏滚动条 */
-  }
-
-  /* 隐藏菜单滚动条 */
-  .nav-menu::-webkit-scrollbar {
-    display: none;
+    white-space: nowrap;
   }
 
   /* 菜单项移动端样式 */
-  .nav-menu :deep(.ant-menu-item) {
-    padding: 0 8px !important; /* 减小菜单项内边距 */
-    margin: 0 2px !important; /* 减小菜单项间距 */
-    font-size: 13px !important; /* 减小字体大小 */
+  .nav-menu :deep(.ant-menu-item),
+  .nav-menu :deep(.ant-menu-submenu) {
+    padding: 0 8px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
     white-space: nowrap; /* 防止换行 */
     flex-shrink: 0; /* 防止收缩 */
   }
@@ -440,12 +441,14 @@ watch(
   }
 
   .navbar-right {
-    gap: 8px;
+    gap: 4px;
+    flex-shrink: 0;
   }
 
   .logo {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 4px;
+    padding-right: 4px;
+    flex-shrink: 0;
   }
 
   .logo-text {
@@ -463,6 +466,23 @@ watch(
 
   .balance-amount {
     font-size: 14px;
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* 小屏手机为三个常用入口和“更多”保留空间。 */
+@media (max-width: 374px) {
+  .nav-menu :deep(.ant-menu-item),
+  .nav-menu :deep(.ant-menu-submenu) {
+    padding: 0 4px !important;
+    font-size: 13px !important;
+  }
+
+  .balance-amount {
+    max-width: 48px;
   }
 }
 </style>
