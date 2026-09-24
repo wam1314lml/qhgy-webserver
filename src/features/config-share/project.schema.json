@@ -1310,6 +1310,15 @@
               },
               "hd3013DrawEnabled": {
                 "type": "boolean"
+              },
+              "hd90TaskRewardEnabled": {
+                "type": "boolean"
+              },
+              "hd90DrawEnabled": {
+                "type": "boolean"
+              },
+              "hd91SignEnabled": {
+                "type": "boolean"
               }
             }
           },

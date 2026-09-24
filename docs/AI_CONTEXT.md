@@ -1,5 +1,9 @@
 # 配置分享维护规范
 
+## 月照团圆（2026-09-24）
+
+`activity.hdReward.hd90TaskRewardEnabled`、`hd90DrawEnabled`、`hd91SignEnabled`三开关默认false，严格布尔归一化且互不依赖；仲夏夜enabled不得禁用它们。同步默认值/类型/normalize及生成分享schema，旧分享码缺字段保留当前值。制作文案按已有印模50/10/1，不能把520次写成制作上限；验证使用scripts/test-moon-reunion-activities.mjs及原活动/分享测试。
+
 ## 配额转移（2026-09-24）
 
 - 开关/费率来自服务端，默认关闭，确认金额取preview结果。结果不明保留原UUID，不能换号重发；待确认内容和登录用户隔离。

@@ -419,6 +419,9 @@ export const createDefaultGameConfig = (): GameConfig =>
       hdReward: {
         enabled: true,
         hd3013DrawEnabled: false,
+        hd90TaskRewardEnabled: false,
+        hd90DrawEnabled: false,
+        hd91SignEnabled: false,
       },
       flowerCompete: {
         autoSelect: false,

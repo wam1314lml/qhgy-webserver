@@ -17,24 +17,25 @@ const { createDefaultGameConfig, normalizeGameConfigSelects, deepMerge } = await
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`
 )
 assert.equal(createDefaultGameConfig().activity.actCardCollect.enabledCardCollect, false)
-assert.deepEqual(createDefaultGameConfig().activity.hdReward, { enabled: true, hd3013DrawEnabled: false })
+const moonDefaults = { hd90TaskRewardEnabled: false, hd90DrawEnabled: false, hd91SignEnabled: false }
+assert.deepEqual(createDefaultGameConfig().activity.hdReward, { enabled: true, hd3013DrawEnabled: false, ...moonDefaults })
 for (const enabled of [true, false]) {
   for (const hd3013DrawEnabled of [true, false]) {
     let saved = deepMerge(createDefaultGameConfig(), { activity: { hdReward: { enabled, hd3013DrawEnabled } } })
     for (let round = 0; round < 3; round++) {
       normalizeGameConfigSelects(saved)
-      assert.deepEqual(saved.activity.hdReward, { enabled, hd3013DrawEnabled })
+      assert.deepEqual(saved.activity.hdReward, { enabled, hd3013DrawEnabled, ...moonDefaults })
       saved = deepMerge(createDefaultGameConfig(), JSON.parse(JSON.stringify(saved)))
     }
   }
 }
 const old = deepMerge(createDefaultGameConfig(), { activity: { actCardCollect: { enabledCardCollect: true } } })
 normalizeGameConfigSelects(old)
-assert.deepEqual(old.activity.hdReward, { enabled: true, hd3013DrawEnabled: false })
+assert.deepEqual(old.activity.hdReward, { enabled: true, hd3013DrawEnabled: false, ...moonDefaults })
 assert.equal(old.activity.actCardCollect.enabledCardCollect, true)
 const malformed = deepMerge(createDefaultGameConfig(), { activity: { hdReward: { enabled: 'false', hd3013DrawEnabled: 'false' } } })
 normalizeGameConfigSelects(malformed)
-assert.deepEqual(malformed.activity.hdReward, { enabled: false, hd3013DrawEnabled: false })
+assert.deepEqual(malformed.activity.hdReward, { enabled: false, hd3013DrawEnabled: false, ...moonDefaults })
 for (const enabled of [true, false]) {
   const saved = deepMerge(createDefaultGameConfig(), {
     activity: { actCardCollect: { enabledCardCollect: enabled } },
@@ -57,9 +58,9 @@ assert.deepEqual(template.errors, [])
 const start = source.indexOf(`<div v-if="activeTab === '活动'"`)
 assert.ok(start >= 0)
 const activity = source.slice(start, source.indexOf('</Form>', start))
-assert.deepEqual([...activity.matchAll(/<Divider[^>]*>([^<]+)<\/Divider>/g)].map(match => match[1]), ['卡册活动', '仲夏夜之梦 · 萤夜蝶舞', '百果争鲜', '穿丝绣锦', '甘之如饴'])
+assert.deepEqual([...activity.matchAll(/<Divider[^>]*>([^<]+)<\/Divider>/g)].map(match => match[1]), ['卡册活动', '仲夏夜之梦 · 萤夜蝶舞', '月照团圆', '百果争鲜', '穿丝绣锦', '甘之如饴'])
 // 原有活动控件保持原样；甘之如饴的五项配置由独立专项覆盖。
-const existingActivity = activity.slice(0, activity.indexOf('<Divider orientation="left">百果争鲜</Divider>'))
+const existingActivity = activity.slice(0, activity.indexOf('<Divider orientation="left">月照团圆</Divider>'))
 assert.deepEqual([...existingActivity.matchAll(/label="([^"]+)"/g)].map(match => match[1]), ['领取卡册任务奖励', '自动领取任务奖励', '活动抽奖'])
 assert.equal([...existingActivity.matchAll(/<Switch\b/g)].length, 3)
 assert.match(activity, /v-model:checked="config.activity.hdReward.enabled"/)

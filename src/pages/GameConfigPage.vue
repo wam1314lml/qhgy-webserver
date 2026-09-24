@@ -2568,6 +2568,28 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">月照团圆</Divider>
+            <CustomFormItem
+              label="酥饴寄月每日任务领奖"
+              name="activity.hdReward.hd90TaskRewardEnabled"
+              tooltip="默认关闭。领取已达标的每日任务、广告任务奖励，以及全部每日任务完成奖励。"
+            >
+              <Switch v-model:checked="config.activity.hdReward.hd90TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="酥饴寄月制作"
+              name="activity.hdReward.hd90DrawEnabled"
+              tooltip="默认关闭。使用已有酥饴印模制作月饼，按库存优先制作50次、10次或1次；可与每日任务领奖独立开启。"
+            >
+              <Switch v-model:checked="config.activity.hdReward.hd90DrawEnabled" />
+            </CustomFormItem>
+            <CustomFormItem
+              label="七日签到"
+              name="activity.hdReward.hd91SignEnabled"
+              tooltip="默认关闭。领取月照团圆活动中已达到登录天数、尚未领取的七日签到奖励。"
+            >
+              <Switch v-model:checked="config.activity.hdReward.hd91SignEnabled" />
+            </CustomFormItem>
             <Divider orientation="left">百果争鲜</Divider>
             <CustomFormItem
               label="自动选择支持对象"
