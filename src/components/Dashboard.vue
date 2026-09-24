@@ -32,6 +32,10 @@
       />
     </div>
 
+    <div v-else-if="currentView === 'quota-transfer'" class="main-content">
+      <QuotaTransfer />
+    </div>
+
     <div v-else-if="currentView === 'performance'" class="main-content">
       <PerformanceManagement :user="user" :token="token" />
     </div>
@@ -124,6 +128,7 @@ import { useRouter } from 'vue-router'
 import { CopyOutlined } from '@ant-design/icons-vue'
 import ScriptConfig from './ScriptConfig.vue'
 import AdminPanel from './AdminPanel.vue'
+import QuotaTransfer from './QuotaTransfer.vue'
 import AdminLogin from './AdminLogin.vue'
 import PerformanceManagement from './PerformanceManagement.vue'
 import AgentManagement from './AgentManagement.vue'
@@ -156,7 +161,7 @@ const token = ref<string>('')
 const isLoggedIn = ref(false)
 
 // 响应式数据
-const currentView = ref<'script' | 'admin' | 'performance' | 'agent' | 'welfare'>('script')
+const currentView = ref<'script' | 'admin' | 'performance' | 'agent' | 'welfare' | 'quota-transfer'>('script')
 const adminToken = ref<string | null>(localStorage.getItem('adminToken'))
 const adminInfo = ref<any>(null)
 const selectedKeys = ref<string[]>(['script'])
@@ -367,7 +372,7 @@ const handleExpiryBannerChange = (visible: boolean) => {
 
 // 处理菜单选择
 const handleMenuSelect = ({ key }: { key: string }) => {
-  currentView.value = key as 'script' | 'admin' | 'performance' | 'agent' | 'welfare'
+  currentView.value = key as 'script' | 'admin' | 'performance' | 'agent' | 'welfare' | 'quota-transfer'
   selectedKeys.value = [key]
 }
 

@@ -52,7 +52,8 @@ axiosInstance.interceptors.request.use(
 
     const token = userToken || adminToken
 
-    if (token) {
+    // 管理面板可能单独登录：保留调用方指定的管理员身份。
+    if (token && !config.headers.has('Authorization')) {
       config.headers.Authorization = `Bearer ${token}`
     }
 

@@ -52,6 +52,10 @@
           </a-card>
         </a-tab-pane>
 
+        <a-tab-pane key="quota-transfers" tab="玩家交易配额" v-if="isAdminRole">
+          <QuotaTransferAdmin :token="token" />
+        </a-tab-pane>
+
         <!-- 配额设置 -->
         <a-tab-pane key="quota" v-if="hasModuleAccess('quota_settings')">
           <template #tab>
@@ -2134,6 +2138,7 @@ import {
 import { message, Button, Space, Popconfirm, Modal } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import QuotaSettings from './QuotaSettings.vue'
+import QuotaTransferAdmin from './admin/QuotaTransferAdmin.vue'
 import PermissionSettings from './PermissionSettings.vue'
 import AdminPaymentSettings from './AdminPaymentSettings.vue'
 import RechargePackageManagement from './admin/RechargePackageManagement.vue'

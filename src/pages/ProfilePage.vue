@@ -146,48 +146,8 @@
 
 
 
-        <!-- 交易历史 -->
-        <div class="transactions-card">
-          <div class="transactions-header">
-            <h3>交易历史</h3>
-            <a-button class="refresh-button" type="primary" @click="fetchTransactions">
-              刷新
-            </a-button>
-          </div>
-          <div class="transactions-list">
-            <template v-if="transactions.length > 0">
-              <div v-for="transaction in transactions" :key="transaction.id" class="transaction-item">
-                <div class="transaction-info">
-                  <div class="transaction-type">
-                    {{ getTransactionTypeName(transaction.transaction_type) }}
-                  </div>
-                  <div class="transaction-description">
-                    {{ transaction.description }}
-                  </div>
-                  <div class="transaction-meta">
-                    {{ getPaymentMethodName(transaction.payment_method) }} •
-                    {{ formatDate(transaction.created_at) }}
-                  </div>
-                </div>
-                <div class="transaction-amount">
-                  <span class="amount" :class="{
-                    positive: ['recharge', 'bonus', 'refund'].includes(
-                      transaction.transaction_type,
-                    ),
-                    negative: transaction.transaction_type === 'consume',
-                  }">
-                    {{ transaction.transaction_type === 'consume' ? '-' : '+' }}
-                    {{ formatAmount(transaction.amount) }}
-                  </span>
-                  <div class="balance-after">
-                    余额: {{ formatAmount(transaction.balance_after) }}
-                  </div>
-                </div>
-              </div>
-            </template>
-            <div v-else class="no-transactions">暂无交易记录</div>
-          </div>
-        </div>
+        <!-- 交易历史（与管理员查询共用分页组件） -->
+        <PointTransactionHistory ref="transactionHistory" />
 
         <!-- 操作历史 -->
         <div class="transactions-card" style="margin-top:24px">
@@ -242,6 +202,7 @@
 </template>
 
 <script setup lang="ts">
+import PointTransactionHistory from '../components/PointTransactionHistory.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClipboard } from '@vueuse/core'
@@ -263,16 +224,7 @@ interface User {
   permissions?: any
 }
 
-interface Transaction {
-  id: number
-  transaction_type: 'recharge' | 'consume' | 'refund' | 'bonus'
-  amount: number
-  balance_after: number
-  description: string
-  payment_method?: string
-  created_at: string
-  status: string
-}
+
 
 interface InviteInfo {
   invite_code: string
@@ -295,7 +247,7 @@ const token = ref<string>('')
 
 // 响应式数据
 const currentPoints = ref(0)
-const transactions = ref<Transaction[]>([])
+const transactionHistory = ref<InstanceType<typeof PointTransactionHistory> | null>(null)
 const inviteInfo = ref<InviteInfo | null>(null)
 
 // 福利卡 & 卡密兑换
@@ -360,14 +312,7 @@ const fetchBalance = async () => {
 }
 
 // 获取交易历史
-const fetchTransactions = async () => {
-  try {
-    const response = await axios.get('/api/points/transactions?limit=10')
-    transactions.value = response.data.transactions
-  } catch (error) {
-    console.error('获取交易历史失败:', error)
-  }
-}
+const fetchTransactions = () => transactionHistory.value?.refresh()
 
 // 获取邀请信息
 const fetchInviteInfo = async () => {
@@ -395,40 +340,6 @@ const fetchCustomerServiceInfo = async () => {
       qq_group_name: null,
       enabled: false,
     }
-  }
-}
-
-// 获取交易类型的中文名称
-const getTransactionTypeName = (type: string) => {
-  switch (type) {
-    case 'recharge':
-      return '充值'
-    case 'consume':
-      return '消费'
-    case 'refund':
-      return '退款'
-    case 'bonus':
-      return '赠送'
-    default:
-      return type
-  }
-}
-
-// 获取支付方式的中文名称
-const getPaymentMethodName = (method?: string) => {
-  switch (method) {
-    case 'alipay':
-      return '支付宝'
-    case 'wechat':
-      return '微信支付'
-    case 'shengpay':
-      return '盛付通'
-    case 'bank':
-      return '银行卡'
-    case 'admin':
-      return '管理员'
-    default:
-      return method || '-'
   }
 }
 
