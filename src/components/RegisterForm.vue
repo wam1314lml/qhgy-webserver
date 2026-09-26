@@ -26,6 +26,7 @@
         ref="formRef"
         :model="formData"
         :rules="rules"
+        :disabled="isLoading"
         @finish="onSubmit"
         class="register-form"
         layout="vertical"
@@ -246,7 +247,9 @@ const sendEmailCode = async () => {
 
 // 表单提交
 const onSubmit = async () => {
-  if (!formRef.value) return
+  if (!formRef.value || isLoading.value) return
+
+  isLoading.value = true
 
   try {
     await formRef.value.validate()
@@ -261,23 +264,32 @@ const onSubmit = async () => {
       return
     }
 
-    isLoading.value = true
-
-    const response = await axios.post('/api/auth/register', {
+    // 固定本次提交的数据，避免等待响应时表单变化导致回执显示另一组账号密码。
+    const submittedData = {
       username: formData.username,
       email: formData.email,
       emailCode: formData.emailCode,
       password: formData.password,
       inviteCode: formData.inviteCode || undefined,
-    })
+    }
+    const response = await axios.post('/api/auth/register', submittedData)
 
-    if (response.data.success) {
+    if (response.data?.success === true) {
+      const registeredUser = response.data.user
+      if (
+        typeof registeredUser?.username !== 'string' || !registeredUser.username.trim() ||
+        typeof registeredUser?.email !== 'string' || !registeredUser.email.trim()
+      ) {
+        message.error('注册结果缺少账号信息，请联系管理员核实后再操作')
+        return
+      }
+
       Modal.success({
         title: '注册成功',
         content: h(RegisterSuccessContent, {
-          email: formData.email,
-          username: formData.username,
-          password: formData.password,
+          email: registeredUser.email,
+          username: registeredUser.username,
+          password: submittedData.password,
         }),
         centered: true,
         onOk() {
@@ -285,7 +297,7 @@ const onSubmit = async () => {
         },
       })
     } else {
-      message.error(response.data.message)
+      message.error(response.data?.message || '注册失败，请稍后重试')
     }
   } catch (error: any) {
     if (typeof error === 'object' && error !== null && 'errorFields' in error) {
