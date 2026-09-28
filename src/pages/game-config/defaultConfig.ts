@@ -433,6 +433,15 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         shop: createDefaultActivityShop('silkEmbroidery'),
       },
+      flowerEmbroidery: {
+        enabled: false,
+        refreshEnabled: false,
+        unlockSlot: false,
+        orderGuard: { enabled: false, timeRanges: [{ start: '00:00', end: '21:00' }] },
+        customerOrderGuard: { enabled: false, timeRanges: [{ start: '00:00', end: '21:00' }] },
+        artSellGuard: { enabled: false, timeRanges: [{ start: '00:00', end: '21:00' }] },
+        shop: createDefaultActivityShop('flowerEmbroidery'),
+      },
       actAnniv26Star: {
         enabled: false,
         lightStarsEnabled: false,

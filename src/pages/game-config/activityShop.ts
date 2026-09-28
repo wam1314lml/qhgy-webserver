@@ -9,7 +9,7 @@ export interface ActivityShopCatalog {
   currencyName: string
   defaultShopItemId: number
   fallbackShopItemId: number | null
-  items: Array<{ shopItemId: number; name: string; amount: number; price: number }>
+  items: Array<{ shopItemId: number; name: string; amount?: number; price?: number }>
 }
 export const activityShopCatalogs = catalogs
 export type ActivityShopKey = keyof typeof catalogs
@@ -34,5 +34,8 @@ export function normalizeActivityShop(value: unknown, key: ActivityShopKey): Act
 export const createDefaultActivityShop = (key: ActivityShopKey): ActivityShopConfig => normalizeActivityShop(undefined, key)
 
 export const getActivityShopOptions = (catalog: ActivityShopCatalog) => catalog.items.map(item => ({
-  value: item.shopItemId, label: `${item.name}×${item.amount}（${item.price}${catalog.currencyName}）`,
+  value: item.shopItemId,
+  label: item.amount != null && item.price != null
+    ? `${item.name}×${item.amount}（${item.price}${catalog.currencyName}）`
+    : `${item.name}（数量与价格以本期活动为准）`,
 }))

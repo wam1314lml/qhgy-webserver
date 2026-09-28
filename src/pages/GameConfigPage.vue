@@ -2623,6 +2623,36 @@
               <Switch v-model:checked="config.activity.flowerCompete.autoClaimRewards" />
             </CustomFormItem>
 
+            <Divider orientation="left">果香绘色</Divider>
+            <CustomFormItem label="自动领取任务及进度奖励" name="activity.flowerEmbroidery.enabled">
+              <Switch v-model:checked="config.activity.flowerEmbroidery.enabled" />
+            </CustomFormItem>
+            <CustomFormItem label="勾玉刷新任务" name="activity.flowerEmbroidery.refreshEnabled"
+              tooltip="使用勾玉（元宝）更换尚无进度的任务，保留任意种植、收获任务和已开启守护的任务。每栏每轮最多一次，费用以本期活动为准；余额不足时跳过。">
+              <Switch v-model:checked="config.activity.flowerEmbroidery.refreshEnabled" :disabled="!config.activity.flowerEmbroidery.enabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动解锁任务栏" name="activity.flowerEmbroidery.unlockSlot"
+              tooltip="使用本期活动要求的勾玉或道具解锁尚未开放的任务栏；按当期价格扣费，余额不足时跳过。默认关闭。">
+              <Switch v-model:checked="config.activity.flowerEmbroidery.unlockSlot" :disabled="!config.activity.flowerEmbroidery.enabled" />
+            </CustomFormItem>
+            <template v-for="guard in ([{ key: 'orderGuard', label: '居民订单守护' }, { key: 'customerOrderGuard', label: '顾客订单守护' }, { key: 'artSellGuard', label: '花艺守护' }] as const)" :key="guard.key">
+              <CustomFormItem :label="guard.label" :name="`activity.flowerEmbroidery.${guard.key}.enabled`">
+                <Switch v-model:checked="config.activity.flowerEmbroidery[guard.key].enabled" :disabled="!config.activity.flowerEmbroidery.enabled" />
+              </CustomFormItem>
+              <CustomFormItem v-if="config.activity.flowerEmbroidery[guard.key].enabled" label="守护时段（北京时间）">
+                <Space>
+                  <Input v-model:value="config.activity.flowerEmbroidery[guard.key].timeRanges[0].start" type="time" aria-label="守护开始时间" style="width: 120px" />
+                  <span>至</span>
+                  <Input v-model:value="config.activity.flowerEmbroidery[guard.key].timeRanges[0].end" type="time" aria-label="守护结束时间" style="width: 120px" />
+                </Space>
+              </CustomFormItem>
+            </template>
+            <p class="activity-task-help">守护时段内，等待对应任务出现才放行；完成后暂停，等待领奖和下一项任务。居民任务临时放开普通、绸缎、建材子开关及用户次数限制，仍需开启自动居民订单；顾客任务临时放开自动顾客订单及其次数限制。品质、奖励筛选和顾客到店设置仍生效；顾客守护同时暂停到店和拒单。订单达到本期最后一档进度目标后恢复普通模式。</p>
+            <p class="activity-task-help">花艺守护仅暂停上架，备货、首做和已售完货架收取沿用原设置。花艺任务进行中自动启用4分钟超时下架，重新上架仍需开启自动上架。种植、收获任意水果由土地原有设置完成。</p>
+            <p class="activity-task-help">花绣商店：活动结束前兑换已有时花绣，可单独开启。</p>
+            <ActivityShopSettings v-model="config.activity.flowerEmbroidery.shop"
+              :catalog="activityShopCatalogs.flowerEmbroidery" config-path="activity.flowerEmbroidery.shop" />
+
             <Divider orientation="left">穿丝绣锦</Divider>
             <!-- 配合花艺上架功能就可快速完成任务。 -->
             <p class="activity-task-help">配合花艺上架功能就可快速完成任务。</p>

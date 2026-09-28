@@ -414,6 +414,15 @@ export interface GameConfig {
       autoLike: boolean
       autoClaimRewards: boolean
     }
+    flowerEmbroidery: {
+      enabled: boolean
+      refreshEnabled: boolean
+      unlockSlot: boolean
+      orderGuard: { enabled: boolean; timeRanges: Array<{ start: string; end: string }> }
+      customerOrderGuard: { enabled: boolean; timeRanges: Array<{ start: string; end: string }> }
+      artSellGuard: { enabled: boolean; timeRanges: Array<{ start: string; end: string }> }
+      shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }
+    }
     silkEmbroidery: {
       enabled: boolean
       shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }

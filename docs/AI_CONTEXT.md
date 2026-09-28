@@ -1,5 +1,9 @@
 # 配置分享维护规范
 
+## 果香绘色（2026-09-28）
+
+activity.flowerEmbroidery的新开关全部默认false，含unlockSlot，旧cyclicNote不迁移授权。三个守护为orderGuard/customerOrderGuard/artSellGuard，timeRanges首段默认00:00～21:00且严格HH:mm归一；北京时间支持跨午夜。说明须保持：居民任务绕过三类子开关但保留总开关，顾客任务绕过两级执行开关；果艺守护只挡上架，任务独立触发4分钟下架，重新上架仍需autoSellArt。shop独立于enabled，目标为物品ID而非固定商品行，当前售价/数量不在前端猜测。商品目录允许省略amount/price并显示以本期为准；保持丝绣旧标签。用户已取消土地活动优先级，不要加入。改动验证scripts/test-flower-embroidery.mjs和原活动/分享回归。
+
 ## 月照团圆（2026-09-24）
 
 `activity.hdReward.hd90TaskRewardEnabled`、`hd90DrawEnabled`、`hd91SignEnabled`三开关默认false，严格布尔归一化且互不依赖；仲夏夜enabled不得禁用它们。同步默认值/类型/normalize及生成分享schema，旧分享码缺字段保留当前值。制作文案按已有印模50/10/1，不能把520次写成制作上限；验证使用scripts/test-moon-reunion-activities.mjs及原活动/分享测试。

@@ -1339,6 +1339,100 @@
               }
             }
           },
+          "flowerEmbroidery": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "refreshEnabled": {
+                "type": "boolean"
+              },
+              "unlockSlot": {
+                "type": "boolean"
+              },
+              "orderGuard": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "timeRanges": {
+                    "type": "array",
+                    "item": {
+                      "type": "object",
+                      "properties": {
+                        "start": {
+                          "type": "string"
+                        },
+                        "end": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "customerOrderGuard": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "timeRanges": {
+                    "type": "array",
+                    "item": {
+                      "type": "object",
+                      "properties": {
+                        "start": {
+                          "type": "string"
+                        },
+                        "end": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "artSellGuard": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "timeRanges": {
+                    "type": "array",
+                    "item": {
+                      "type": "object",
+                      "properties": {
+                        "start": {
+                          "type": "string"
+                        },
+                        "end": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "shop": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "beforeEndMinutes": {
+                    "type": "number"
+                  },
+                  "shopItemId": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
           "silkEmbroidery": {
             "type": "object",
             "properties": {

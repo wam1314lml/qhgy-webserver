@@ -31,7 +31,7 @@ function update(key: keyof ActivityShopConfig, value: unknown) {
       按服务器活动结束时间倒推，尽量将{{ catalog.currencyName }}兑换为所选商品。
       <template v-if="catalog.fallbackShopItemId != null">余额不足所选商品一组时转兑金币，仍不足兑换的余额保留。</template>
       <template v-else>余额不足一组时停止，剩余兑换币保留。</template>
-      仅消耗金丝绣线，不消耗勾玉。请保持账号运行，脚本将在设置时间内检查兑换。
+      仅消耗{{ catalog.currencyName }}，不消耗勾玉。本期未上架所选商品时保留余额。请保持账号运行，脚本将在设置时间内检查兑换。
     </p>
   </template>
 </template>

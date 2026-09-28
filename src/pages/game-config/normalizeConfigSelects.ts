@@ -658,6 +658,25 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     autoLike: flowerCompete?.autoLike === true,
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }
+  const flowerEmbroidery = asRecord(config.activity.flowerEmbroidery)
+  const embroideryGuard = (value: unknown) => {
+    const guard = asRecord(value)
+    const range = Array.isArray(guard?.timeRanges) ? asRecord(guard.timeRanges[0]) : undefined
+    const validTime = (v: unknown): v is string => typeof v === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(v)
+    return { enabled: guard?.enabled === true, timeRanges: [{
+      start: validTime(range?.start) ? range.start : '00:00',
+      end: validTime(range?.end) ? range.end : '21:00',
+    }] }
+  }
+  config.activity.flowerEmbroidery = {
+    enabled: flowerEmbroidery?.enabled === true,
+    refreshEnabled: flowerEmbroidery?.refreshEnabled === true,
+    unlockSlot: flowerEmbroidery?.unlockSlot === true,
+    orderGuard: embroideryGuard(flowerEmbroidery?.orderGuard),
+    customerOrderGuard: embroideryGuard(flowerEmbroidery?.customerOrderGuard),
+    artSellGuard: embroideryGuard(flowerEmbroidery?.artSellGuard),
+    shop: normalizeActivityShop(flowerEmbroidery?.shop, 'flowerEmbroidery'),
+  }
   const silkEmbroidery = asRecord(config.activity.silkEmbroidery)
   config.activity.silkEmbroidery = {
     enabled: silkEmbroidery?.enabled === true,
