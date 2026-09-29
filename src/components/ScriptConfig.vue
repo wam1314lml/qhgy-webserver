@@ -838,7 +838,7 @@ const refreshTeamOrderDay = () => {
   teamOrderDayTimer = window.setTimeout(refreshTeamOrderDay, getNextTeamOrderDayDelay(now))
 }
 
-const MAX_GAME_ACCOUNTS = 10
+const MAX_GAME_ACCOUNTS = 50
 const canAddAccount = computed(() => accounts.value.length < MAX_GAME_ACCOUNTS)
 const showAddModal = ref(false)
 const isLoading = ref(false)
