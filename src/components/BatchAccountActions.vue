@@ -1,18 +1,10 @@
 <template>
-  <div v-if="toast" class="batch-toast" role="status">{{ toast }}</div>
-  <div v-if="running" class="batch-progress" role="status">
-    {{ actionLabel }}：{{ completed }}/{{ total }}
-    <Button size="small" :disabled="cancelled" @click="cancelled = true">{{ cancelled ? '正在取消' : '取消剩余' }}</Button>
-  </div>
-  <section v-if="results.length && !dismissed" class="batch-result" aria-label="批量操作结果">
-    <button class="batch-close" aria-label="关闭批量结果" @click="dismissed = true">×</button>
-    <strong>{{ actionLabel }}：{{ summary }}</strong>
-    <ul v-if="visibleResults.length"><li v-for="row in visibleResults" :key="row.id">{{ row.label }}：{{ row.reason }}</li></ul>
-  </section>
-  <FloatButton.Group v-model:open="menuOpen" trigger="click" :style="{ left: '24px', right: 'auto', bottom: '110px' }" description="批量" :tooltip="'批量操作'">
-    <FloatButton description="全部启动" tooltip="全部启动" :disabled="disabled || busy || !accounts.length" @click="confirmAction('start')"><template #icon><PlayCircleOutlined /></template></FloatButton>
-    <FloatButton description="全部停止" tooltip="全部停止" :disabled="disabled || busy || !accounts.length" @click="confirmAction('stop')"><template #icon><PauseCircleOutlined /></template></FloatButton>
-    <FloatButton description="全部配额" tooltip="全部配额" :disabled="disabled || busy || !accounts.length" @click="openQuota"><template #icon><ShoppingCartOutlined /></template></FloatButton>
+  <BatchProgress v-model:open="progressOpen" :running="running" :busy="busy" :cancelled="cancelled" :dismissed="dismissed" :action="action" :completed="completed" :total="total" :results="results" :summary="summary" :label="currentLabel" :plan-label="planLabel" :request-pending="requestPending" @cancel="cancelled = true" @dismiss="dismissed = true" />
+  <FloatButton.Group v-if="showMenu !== false && accounts.length" v-model:open="menuOpen" class="account-fab account-batch-fab" trigger="click" type="primary" shape="square" :style="{ left: '24px', right: 'auto', borderRadius: '8px' }" description="批量" @keydown.esc="menuOpen = false">
+    <template #icon><CaretRightOutlined /></template><template #closeIcon><CaretRightOutlined /></template>
+    <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="confirmAction('start')"><span class="account-batch-action-icon account-batch-action-icon--start"><CaretRightOutlined /></span><span>启动全部</span></button>
+    <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="confirmAction('stop')"><span class="account-batch-action-icon account-batch-action-icon--stop"><span class="account-batch-stop-mark" /></span><span>停止全部</span></button>
+    <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="openQuota"><span class="account-batch-action-icon account-batch-action-icon--quota"><ShoppingCartOutlined /></span><span>全部配额</span></button>
   </FloatButton.Group>
   <Modal :open="quotaOpen" title="全部配额" :width="560" ok-text="确认分配" cancel-text="取消" :ok-button-props="{ disabled: !quote || loading || confirming }" @ok="confirmQuota" @cancel="closeQuota">
     <p v-if="loading">正在读取套餐和余额…</p>
@@ -34,23 +26,26 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Alert, Button, FloatButton, InputNumber, Modal } from 'ant-design-vue'
-import { PlayCircleOutlined, PauseCircleOutlined, ShoppingCartOutlined } from '@ant-design/icons-vue'
+import { CaretRightOutlined, ShoppingCartOutlined } from '@ant-design/icons-vue'
+import BatchProgress from './BatchProgress.vue'
 import axios from '../utils/axios'
 import { runAccountBatch, batchSummary, type BatchAction, type BatchResult } from '../utils/accountBatch'
 import { quotaAccounts, quotaQuote, runQuotaBatch, quotaBatchSummary, type QuotaAccount, type QuotaPlan, type QuotaBatchResult } from '../utils/quotaBatch'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   accounts: { id: number; nickname?: string; username?: string }[]
+  showMenu?: boolean
   disabled: boolean
   ownerKey: string
   getStarted: (id: number) => Promise<boolean | undefined>
-}>()
+}>(), { showMenu: true })
 const emit = defineEmits<{
   busy: [busy: boolean]
   started: [id: number, started: boolean]
   balance: [points: number]
   finished: []
 }>()
+const progressOpen = ref(false), requestPending = ref(false), currentLabel = ref(''), planLabel = ref('')
 const toast = ref('')
 let toastTimer: ReturnType<typeof setTimeout> | undefined
 function clearToast() { if (toastTimer) clearTimeout(toastTimer); toastTimer = undefined; toast.value = '' }
@@ -86,6 +81,7 @@ function progress(done: number, count: number) { if (current()) { completed.valu
 function prepare(kind: BatchAction | 'quota') {
   clearToast(); action.value = kind; results.value = []; dismissed.value = false; cancelled.value = false
   running.value = true; completed.value = 0; total.value = snapshot.value.length
+  currentLabel.value = snapshot.value[0]?.label || ''; requestPending.value = false; progressOpen.value = true
 }
 function confirmAction(kind: BatchAction) {
   if (!acquire()) return
@@ -96,17 +92,22 @@ function confirmAction(kind: BatchAction) {
 }
 async function executeAction(kind: BatchAction) {
   if (running.value || !busy.value || !current()) return
+  planLabel.value = `依次处理 ${snapshot.value.length} 个角色 · 已处于目标状态的角色会跳过`
   prepare(kind)
   try {
     const rows = await runAccountBatch({ accounts: snapshot.value, action: kind,
-      getStarted: props.getStarted,
+      getStarted: async id => { if (current()) currentLabel.value = snapshot.value.find(row => row.id === id)?.label || String(id); return props.getStarted(id) },
       getExpired: async id => { const response = await axios.get(`/api/game-accounts/${id}/expired`, { handleErrorLocally: true }); return response.data?.success === true ? response.data.data?.isExpired : undefined },
-      execute: async (id, act) => (await axios.post(`/api/game-accounts/${id}/${act}`, {}, { handleErrorLocally: true })).data,
+      execute: async (id, act) => {
+        requestPending.value = true
+        try { return (await axios.post(`/api/game-accounts/${id}/${act}`, {}, { handleErrorLocally: true })).data }
+        finally { requestPending.value = false }
+      },
       isCancelled: () => cancelled.value || !current(),
       onStarted: (id, started) => { if (current()) emit('started', id, started) }, onProgress: progress,
     })
-    if (current()) { results.value = rows; showToast() }
-  } finally { running.value = false; release(); if (current()) emit('finished') }
+    if (current()) results.value = rows
+  } finally { requestPending.value = false; if (!current()) progressOpen.value = false; running.value = false; release(); if (current()) emit('finished') }
 }
 async function openQuota() {
   if (!acquire()) return
@@ -138,21 +139,56 @@ function confirmQuota() {
 }
 async function executeQuota(pending: { accounts: QuotaAccount[]; plan: QuotaPlan; balance: number }) {
   if (running.value || !busy.value || !current()) return
+  planLabel.value = `${pending.plan.days}天套餐 · 每个角色 ${quotaQuote(pending.accounts, pending.plan, pending.balance).perAccount} 点配额`
   quotaOpen.value = false; prepare('quota')
   try {
     const rows = await runQuotaBatch({ ...pending,
-      execute: async (id, body) => (await axios.post(`/api/game-accounts/${id}/extend-quota`, body, { handleErrorLocally: true })).data,
-      isCancelled: () => cancelled.value || !current(), onProgress: progress,
+      execute: async (id, body) => {
+        if (current()) { currentLabel.value = pending.accounts.find(row => row.id === id)?.label || String(id); requestPending.value = true }
+        try { return (await axios.post(`/api/game-accounts/${id}/extend-quota`, body, { handleErrorLocally: true })).data }
+        finally { requestPending.value = false }
+      },
+      isCancelled: () => cancelled.value || !current(), onProgress: (done, count) => {
+        progress(done, count)
+        if (current() && done < count && !requestPending.value) currentLabel.value = pending.accounts[done].label
+      },
       onBalance: points => { if (current()) { balance.value = points; emit('balance', points) } },
     })
-    if (current()) { results.value = rows; showToast() }
-  } finally { running.value = false; release(); if (current()) emit('finished') }
+    if (current()) results.value = rows
+  } finally { requestPending.value = false; if (!current()) progressOpen.value = false; running.value = false; release(); if (current()) emit('finished') }
 }
-watch(() => props.ownerKey, () => { clearToast(); cancelled.value = true; generation++; results.value = []; quotaOpen.value = false; dialog?.destroy(); dialog = undefined; if (!running.value) release() })
-onBeforeUnmount(() => { clearToast(); disposed = true; cancelled.value = true; generation++; dialog?.destroy() })
+function beforeUnload(event: BeforeUnloadEvent) { if (disposed || !running.value) return; event.preventDefault(); event.returnValue = '' }
+watch(running, value => { if (value) window.addEventListener('beforeunload', beforeUnload); else window.removeEventListener('beforeunload', beforeUnload) }, { flush: 'sync' })
+function clearResult() { if (!busy.value && !running.value) { dismissed.value = true; progressOpen.value = false; results.value = [] } }
+defineExpose({ openQuota, clearResult })
+watch(() => props.ownerKey, () => { progressOpen.value = false; clearToast(); cancelled.value = true; generation++; results.value = []; quotaOpen.value = false; dialog?.destroy(); dialog = undefined; if (!running.value) release() })
+onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload); clearToast(); disposed = true; cancelled.value = true; generation++; dialog?.destroy() })
 </script>
 
 <style scoped>
+.account-fab { width: 48px; bottom: calc(48px + env(safe-area-inset-bottom)); }
+.account-fab :deep(> .ant-float-btn) { width: 48px; height: 48px; min-height: 48px; border-radius: 8px; }
+.account-fab :deep(> .ant-float-btn .ant-float-btn-body) { height: 100%; border-radius: 8px; }
+.account-fab :deep(> .ant-float-btn .ant-float-btn-content) { padding: 4px; gap: 2px; }
+.account-fab :deep(> .ant-float-btn .ant-float-btn-icon) { margin: 0; height: 18px; font-size: 18px; line-height: 18px; }
+.account-fab :deep(> .ant-float-btn .ant-float-btn-description) { margin: 0; font-size: 12px; line-height: 16px; white-space: nowrap; }
+.account-batch-fab :deep(.ant-float-btn-group-wrap) { width: 136px; background: transparent; box-shadow: none; }
+.account-batch-action {
+  display: flex; align-items: center; gap: 10px; width: 136px; min-height: 44px;
+  margin: 0 0 8px; padding: 8px 12px; border: 0; border-radius: 10px;
+  background: #fff; color: #26334d; box-shadow: 0 4px 16px rgba(27, 50, 92, .16);
+  font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer;
+}
+.account-batch-action:hover { background: #f0f5ff; }
+.account-batch-action:disabled { opacity: .5; cursor: not-allowed; }
+.account-batch-action:focus-visible { outline: 2px solid #1677ff; outline-offset: 2px; }
+.account-batch-action-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; color: #fff; font-size: 20px; }
+.account-batch-action-icon--start { background: #36ad6a; }
+.account-batch-action-icon--stop { background: #ed5862; }
+.account-batch-stop-mark { width: 10px; height: 10px; background: #fff; border-radius: 1px; }
+
+.account-batch-action-icon--quota { background: #1677ff; }
+
 .batch-toast { position: fixed; z-index: 1100; left: 50%; top: 28px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 8px; color: white; background: rgba(0,0,0,.8); pointer-events: none; overflow-wrap: anywhere; }
 .batch-progress,.batch-result { padding: 12px 38px 12px 14px; margin-bottom: 12px; background: white; border: 1px solid #d9d9d9; border-radius: 10px; overflow-wrap: anywhere; position: relative; }
 .batch-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }

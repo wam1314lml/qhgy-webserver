@@ -121,7 +121,7 @@ test('实际批量弹框：实时总额、余额不足仍按快照分配，成�
  h.plans.posts.push({data:{success:true,data:{newBalance:13}}},{data:{success:true,data:{newBalance:1}}},{data:{success:false,message:'余额不足'}});
  h.confirms[0].onOk();await finish(h);assert.equal(posts(h).length,3);assert.deepEqual(JSON.parse(JSON.stringify(posts(h).map(p=>p.body))),Array(3).fill({days:30,additionalPoints:2}));
  assert.equal(h.state.summary,'成功 2，失败 1，取消 0');assert.equal(h.state.visibleResults.length,3);assert.deepEqual(Array.from(h.state.results,r=>r.label),['角色1','角色2','角色3']);
- assert.ok(h.state.toast);h.advanceTimers(3000);await h.settle();assert.equal(h.state.toast,'');h.state.dismissed=true;await h.settle();assert.equal(h.byClass('batch-result'),undefined);assert.ok(h.events.some(e=>e[0]==='finished'));
+ assert.equal(h.state.progressOpen,true);h.advanceTimers(3000);await h.settle();assert.equal(h.state.progressOpen,true);h.state.progressOpen=false;h.state.progressOpen=true;assert.equal(posts(h).length,3);h.state.dismissed=true;await h.settle();assert.equal(h.byClass('batch-result'),undefined);assert.ok(h.events.some(e=>e[0]==='finished'));
 });
 test('第一个立即执行，3499ms不请求第二个，3500ms才继续；取消不多扣',async t=>{
  const h=await quota(t);h.state.confirmQuota();h.confirms[0].onOk();await h.settle();assert.equal(posts(h).length,1);
@@ -151,4 +151,20 @@ test('批量启停跳过已启动/过期账号，认证错误逐号保留，不�
 test('启停预检期间取消以及外部单号忙碌时不发送写请求',async t=>{
  const h=harness();t.after(()=>h.app.unmount());h.app._instance.props.disabled=true;await h.state.openQuota();h.state.confirmAction('start');assert.equal(h.requests.length,0);
  h.app._instance.props.disabled=false;const pending=deferred();h.app._instance.props.getStarted=()=>pending.promise;h.state.confirmAction('start');h.confirms[0].onOk();h.state.cancelled=true;pending.resolve(false);await h.settle();assert.equal(posts(h).length,0);assert.equal(h.state.results.length,3);
+});
+
+test('进度窗口显示实际角色，提交和3.5秒等待分开；完成解除刷新警告',async t=>{
+ const h=await quota(t),wait=deferred();h.plans.posts.push(wait.promise);h.state.confirmQuota();h.confirms[0].onOk();await h.settle();
+ assert.equal(h.state.progressOpen,true);assert.equal(h.state.requestPending,true);assert.equal(h.state.currentLabel,'角色1');
+ let event=new Event('beforeunload',{cancelable:true});h.window.dispatchEvent(event);assert.equal(event.defaultPrevented,true);
+ wait.resolve({data:{success:true}});await h.settle();assert.equal(h.state.requestPending,false);assert.equal(h.state.currentLabel,'角色2');assert.equal(h.state.completed,1);
+ h.state.cancelled=true;h.advanceTimers(3500);await h.settle();assert.equal(h.state.completed,3);assert.equal(posts(h).length,1);
+ event=new Event('beforeunload',{cancelable:true});h.window.dispatchEvent(event);assert.equal(event.defaultPrevented,false);
+});
+test('启停进度区分预检和提交；卸载清理刷新监听',async t=>{
+ const h=harness(),check=deferred(),submit=deferred();h.app._instance.props.getStarted=()=>check.promise;h.plans.posts.push(submit.promise);
+ h.state.confirmAction('start');h.confirms[0].onOk();await h.settle();assert.equal(h.state.requestPending,false);assert.equal(h.state.currentLabel,'角色1');
+ check.resolve(false);await h.settle();assert.equal(h.state.requestPending,true);h.state.cancelled=true;submit.resolve({data:{success:true}});await h.settle();
+ assert.deepEqual(Array.from(h.state.results,r=>r.status),['success','cancelled','cancelled']);assert.equal(h.state.progressOpen,true);
+ h.app.unmount();const event=new Event('beforeunload',{cancelable:true});h.window.dispatchEvent(event);assert.equal(event.defaultPrevented,false);
 });
