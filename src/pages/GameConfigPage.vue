@@ -16,7 +16,7 @@
               :disabled="loading"
               @click="openImportConfigModal"
             >
-              导入
+              复制
             </a-button>
             <a-button
               @click="onSave"
@@ -2637,7 +2637,7 @@
             </CustomFormItem>
             <CustomFormItem label="勾玉刷新任务" name="activity.flowerEmbroidery.refreshEnabled"
               tooltip="使用勾玉（元宝）更换尚无进度的任务，保留任意种植、收获任务和已开启守护的任务。每栏每轮最多一次，费用以本期活动为准；余额不足时跳过。">
-              <Switch v-model:checked="config.activity.flowerEmbroidery.refreshEnabled" :disabled="!config.activity.flowerEmbroidery.enabled" />
+              <Switch :checked="config.activity.flowerEmbroidery.refreshEnabled" @change="(checked) => handleDiamondCostSwitchChange('activity.flowerEmbroidery.refreshEnabled', checked === true)" :disabled="!config.activity.flowerEmbroidery.enabled" />
             </CustomFormItem>
             <CustomFormItem label="自动解锁任务栏" name="activity.flowerEmbroidery.unlockSlot"
               tooltip="使用本期活动要求的勾玉或道具解锁尚未开放的任务栏；按当期价格扣费，余额不足时跳过。默认关闭。">
@@ -2807,25 +2807,39 @@
 
     <Modal
       v-model:open="importConfigModalVisible"
-      title="导入配置"
+      title="配置复制"
       :confirm-loading="importConfigLoading"
-      okText="确定"
+      :okText="configCopyMode === 'out' ? '复制' : '导入'"
+      :closable="!importConfigLoading"
+      :maskClosable="!importConfigLoading"
+      :keyboard="!importConfigLoading"
+      :cancelButtonProps="{ disabled: importConfigLoading }"
+      :okButtonProps="{ disabled: importAccountListLoading || !importAccountOptions.length || (configCopyMode === 'out' && !copyTargetAccountIds.length) }"
       cancelText="取消"
       centered
-      @ok="importConfigFromSelectedAccount"
+      @ok="configCopyMode === 'out' ? copyConfigToSelectedAccounts() : importConfigFromSelectedAccount()"
     >
       <div class="import-config-modal">
-        <p>从哪个账号复制配置过来？</p>
-        <p class="import-config-warning">当前配置将被覆盖，操作不可撤销。</p>
-        <Select
-          v-model:value="importSourceAccountId"
-          class="w-full"
-          placeholder="请选择账号"
-          :options="importAccountOptions"
-          :loading="importAccountListLoading"
-          show-search
-          :filter-option="filterImportAccountOption"
-        />
+        <Radio.Group v-model:value="configCopyMode" button-style="solid" :disabled="importConfigLoading" class="config-copy-tabs">
+          <Radio.Button value="in">从其他号导入</Radio.Button>
+          <Radio.Button value="out">复制到其他号</Radio.Button>
+        </Radio.Group>
+        <template v-if="configCopyMode === 'in'">
+          <p>从哪个账号复制配置过来？</p>
+          <p class="import-config-warning">当前配置将被覆盖，操作不可撤销。</p>
+          <Select v-model:value="importSourceAccountId" class="w-full" placeholder="请选择账号"
+            :options="importAccountOptions" :disabled="importConfigLoading" :loading="importAccountListLoading"
+            show-search :filter-option="filterImportAccountOption" />
+        </template>
+        <template v-else>
+          <p>将当前账号配置复制到哪些账号？</p>
+          <p class="import-config-warning">选中账号的已保存配置将被覆盖；如有未保存修改请先保存。</p>
+          <Select v-model:value="copyTargetAccountIds" mode="multiple" class="w-full"
+            placeholder="请选择目标账号（可多选）" :options="importAccountOptions"
+            :disabled="importConfigLoading" :loading="importAccountListLoading"
+            show-search :filter-option="filterImportAccountOption" />
+          <p v-if="copyConfigProgress" role="status">{{ copyConfigProgress }}</p>
+        </template>
       </div>
     </Modal>
     <ConfigShareDialog
@@ -2839,7 +2853,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Form,
@@ -2905,6 +2919,12 @@ const router = useRouter()
 const accountId = computed(() => Number(route.params.accountId))
 
 const loading = ref(false)
+let configCopyDisposed = false
+onBeforeUnmount(() => { configCopyDisposed = true })
+const configCopyMode = ref<'in' | 'out'>('in')
+const copyTargetAccountIds = ref<number[]>([])
+const copyConfigProgress = ref('')
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const importConfigLoading = ref(false)
 const importConfigModalVisible = ref(false)
 const importAccountListLoading = ref(false)
@@ -2987,6 +3007,7 @@ type DiamondCostSwitchPath =
   | 'union.fmlRace.upgradeTask'
   | 'union.fmlRace.onlyDiamondUpgradeTask'
   | 'union.fmlRace.diamondRefreshTask'
+  | 'activity.flowerEmbroidery.refreshEnabled'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {
@@ -3460,6 +3481,10 @@ const fetchImportAccountOptions = async () => {
 }
 
 const openImportConfigModal = () => {
+  if (importConfigLoading.value) return
+  configCopyMode.value = 'in'
+  copyTargetAccountIds.value = []
+  copyConfigProgress.value = ''
   importSourceAccountId.value = undefined
   importConfigModalVisible.value = true
   fetchImportAccountOptions()
@@ -3474,6 +3499,7 @@ const openFreeStylePage = () => {
 }
 
 const importConfigFromSelectedAccount = async () => {
+  if (importConfigLoading.value || importAccountListLoading.value) return
   if (!importSourceAccountId.value) {
     message.warning('请选择要复制配置的账号')
     return Promise.reject()
@@ -3518,6 +3544,87 @@ const importConfigFromSelectedAccount = async () => {
   } catch (error) {
     console.error('导入配置失败:', error)
     message.error('导入配置失败')
+  } finally {
+    importConfigLoading.value = false
+  }
+}
+
+const copyConfigToSelectedAccounts = async () => {
+  if (importConfigLoading.value || importAccountListLoading.value) return
+  const sourceId = accountId.value
+  const owner = localStorage.getItem('token')
+  const current = () => !configCopyDisposed && sourceId === accountId.value && owner === localStorage.getItem('token')
+  const allowed = new Set(importAccountOptions.value.map((option) => option.value))
+  const ids = [...new Set(copyTargetAccountIds.value)].filter(
+    (id) => id !== sourceId && allowed.has(id),
+  )
+  if (!ids.length) {
+    message.warning('请选择要复制到的角色')
+    return
+  }
+  importConfigLoading.value = true
+  copyConfigProgress.value = '正在读取当前角色已保存配置…'
+  try {
+    const response = await axios.get(`/api/game-accounts/${sourceId}/setting`)
+    const raw = response.data?.data
+    if (
+      response.status !== 200 ||
+      response.data?.success === false ||
+      response.data?.['未找到账号'] ||
+      !raw ||
+      typeof raw !== 'object' ||
+      Array.isArray(raw) ||
+      !raw.basic ||
+      typeof raw.basic !== 'object' ||
+      Array.isArray(raw.basic) ||
+      raw.basic.reconnectInterval == null
+    ) {
+      throw new Error('当前角色已保存配置无效，请先保存后重试')
+    }
+    migrateLegacyFmlRaceTaskPriority(raw)
+    migrateLegacyFloralShopCatalog(raw)
+    migrateLegacyFlowerCompeteSelection(raw)
+    const payload = deepMerge(createDefaultGameConfig(), raw)
+    normalizeGameConfigSelects(payload)
+    const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
+    if (rangeError) throw new Error(rangeError)
+    const failed: number[] = []
+    for (let index = 0; index < ids.length; index++) {
+      if (!current()) return
+      copyConfigProgress.value = `正在复制 ${index + 1}/${ids.length}`
+      try {
+        const saved = await axios.put(
+          `/api/game-accounts/${ids[index]}/setting`,
+          JSON.parse(JSON.stringify(payload)),
+        )
+        if (!saved.data?.success) throw new Error('复制失败')
+      } catch {
+        failed.push(ids[index])
+      }
+      if (index < ids.length - 1) {
+        for (let seconds = 11; seconds > 0; seconds--) {
+          if (!current()) return
+          copyConfigProgress.value = `已处理 ${index + 1}/${ids.length}，${seconds} 秒后继续`
+          await wait(1000)
+        }
+      }
+    }
+    if (!current()) return
+    copyTargetAccountIds.value = failed
+    const succeeded = ids.length - failed.length
+    copyConfigProgress.value = failed.length
+      ? `成功 ${succeeded} 个，失败 ${failed.length} 个；已保留失败项，可重试。`
+      : `已复制到 ${succeeded} 个角色`
+    if (failed.length) message.warning(copyConfigProgress.value)
+    else {
+      importConfigModalVisible.value = false
+      message.success(copyConfigProgress.value)
+    }
+    if (succeeded) message.warning('复制后，目标角色需要先停止再启动才能生效。')
+  } catch (error) {
+    if (!current()) return
+    copyConfigProgress.value = error instanceof Error ? error.message : '复制失败，请重试'
+    message.error(copyConfigProgress.value)
   } finally {
     importConfigLoading.value = false
   }
@@ -3582,6 +3689,7 @@ const applySharedConfig = (value: GameConfig) => {
     margin: 0 0 0 18px;
   }
 }
+.config-copy-tabs { margin-bottom: 16px; }
 .import-config-modal {
   display: flex;
   flex-direction: column;

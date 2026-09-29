@@ -1,6 +1,9 @@
 <template>
   <div class="script-config-container">
-    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+    <BatchAccountActions :accounts="accounts" :disabled="isLoading || operatingAccounts.size > 0 || showAddModal || showQuotaModal || addingQuota || showDeleteModal || showUpdatePasswordModal || showQuotaConfirmModal || douyinReauthVisible || wxReauthVisible"
+      :owner-key="String(props.user?.id || '') + ':' + props.token" :get-started="getBatchAccountStarted"
+      @busy="setBatchBusy" @started="markAccountStarted" @balance="updateBatchBalance" @finished="refreshAfterBatch" />
+    <div class="accounts-grid">
       <div v-if="accounts.length === 0" class="add-account-card" @click="handleAddAccount">
         <div class="add-icon">+</div>
         <div class="add-text">添加游戏账号</div>
@@ -114,7 +117,7 @@
                       </a-menu-item>
                       <!-- :disabled="
                       !(
-                        operatingAccounts.has(account.id) ||
+                        batchBusy || operatingAccounts.has(account.id) ||
                         getAccountStartedStatus(account) ||
                         !hasAccountRecord(account) ||
                         !account.expire_time ||
@@ -122,7 +125,7 @@
                       )
                     " -->
                       <a-menu-item
-                        :disabled="operatingAccounts.has(account.id)"
+                        :disabled="batchBusy || operatingAccounts.has(account.id)"
                         key="delete"
                         class="delete-item"
                       >
@@ -255,7 +258,7 @@
               }`"
               @click="handleToggleAccount(account.id, 'inactive')"
               :disabled="
-                operatingAccounts.has(account.id) ||
+                batchBusy || operatingAccounts.has(account.id) ||
                 getAccountStartedStatus(account) ||
                 !hasAccountRecord(account) ||
                 !account.expire_time ||
@@ -269,7 +272,7 @@
             <a-button
               class="action-button secondary"
               @click="handleToggleAccount(account.id, 'active')"
-              :disabled="operatingAccounts.has(account.id) || !getAccountStartedStatus(account)"
+              :disabled="batchBusy || operatingAccounts.has(account.id) || !getAccountStartedStatus(account)"
               type="primary"
               danger
             >
@@ -702,6 +705,7 @@
 </template>
 
 <script setup lang="ts">
+import BatchAccountActions from './BatchAccountActions.vue'
 import { ref, onMounted, onUnmounted, watch, onBeforeUnmount, h, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../utils/axios'
@@ -842,6 +846,7 @@ const MAX_GAME_ACCOUNTS = 50
 const canAddAccount = computed(() => accounts.value.length < MAX_GAME_ACCOUNTS)
 const showAddModal = ref(false)
 const isLoading = ref(false)
+const batchBusy = ref(false)
 const operatingAccounts = ref<Set<number>>(new Set())
 const accountRecordVersions = new Map<number, number>()
 let isDisposed = false
@@ -1266,8 +1271,33 @@ const markAccountStarted = (accountId: number, isStarted: boolean) => {
     : account)
 }
 
+// 批量和单号操作共用互斥及状态版本，避免旧轮询覆盖操作结果。
+const setBatchBusy = (busy: boolean) => {
+  batchBusy.value = busy
+  accountListRequestVersion++
+  for (const account of accounts.value) {
+    accountRecordVersions.set(account.id, (accountRecordVersions.get(account.id) || 0) + 1)
+  }
+}
+const getBatchAccountStarted = async (id: number) => {
+  const found = await fetchAndUpdateSingleAccountRecord(id)
+  const account = accounts.value.find(row => row.id === id)
+  return found && account ? getAccountStartedStatus(account) : undefined
+}
+const updateBatchBalance = (points: number) => {
+  userPoints.value = points
+  currentUser.value = { ...currentUser.value, points }
+  props.onUserUpdate?.(currentUser.value)
+}
+const refreshAfterBatch = async () => {
+  const owner = localStorage.getItem('token')
+  await updateUserBalance()
+  if (!isDisposed && owner === localStorage.getItem('token')) await fetchGameAccounts()
+}
+
 // 获取游戏账号数据（包含状态数据）。较早的列表响应不能覆盖新一轮加载。
 const fetchGameAccounts = async () => {
+  if (batchBusy.value || isDisposed) return
   const requestVersion = ++accountListRequestVersion
   const isCurrent = () => !isDisposed && requestVersion === accountListRequestVersion
   const versions = new Map(accountRecordVersions)
@@ -1310,7 +1340,7 @@ const fetchGameAccounts = async () => {
 
 // 批量同步包括“未启动”和“未知”的账号；登录后的旧快照也需要重新确认。
 const refreshAllAccountsData = async () => {
-  if (isDisposed || isLoading.value || isRefreshingAccounts ||
+  if (isDisposed || batchBusy.value || isLoading.value || isRefreshingAccounts ||
     !autoRefreshEnabled.value || accounts.value.length === 0) return
 
   isRefreshingAccounts = true
@@ -1342,6 +1372,7 @@ const refreshVisibleAccountStates = () => {
 
 // 处理添加账号
 const handleAddAccount = () => {
+  if (batchBusy.value) return
   if (!canAddAccount.value) {
     message.warning(`最多只能绑定 ${MAX_GAME_ACCOUNTS} 个游戏账号`)
     return
@@ -1368,6 +1399,7 @@ const handleAccountAdded = async () => {
 
 // 处理菜单点击事件
 const handleMenuClick = (e: any, account: GameAccount) => {
+  if (batchBusy.value) return
   const key = e.key
   const accountId: number = account.id
   console.log('🎯 菜单点击:', { key, accountId })
@@ -1402,6 +1434,7 @@ const canActivateTrial = (account: GameAccount): boolean => {
 
 // 处理开通试用
 const handleActivateTrial = async (accountId: number) => {
+  if (batchBusy.value) return
   console.log('🎁 开通试用:', accountId)
 
   try {
@@ -1436,6 +1469,7 @@ const handleActivateTrial = async (accountId: number) => {
 
 // 处理延长配额
 const handleExtendQuota = (accountId: number) => {
+  if (batchBusy.value) return
   console.log('🎯 handleExtendQuota 被调用，accountId:', accountId)
   currentQuotaAccountId.value = accountId
 
@@ -1977,6 +2011,7 @@ const handleConfigAccount = (accountId: number) => {
 }
 
 const handleToggleAccount = async (accountId: number, currentStatus: string) => {
+  if (batchBusy.value) return
   if (isDisposed) return
   if (operatingAccounts.value.has(accountId)) {
     message.warning('操作进行中，请稍等...')
@@ -2063,6 +2098,7 @@ const handleToggleAccount = async (accountId: number, currentStatus: string) => 
 // 配额管理相关函数已整合到handleExtendQuota和confirmExtendQuota中
 
 const handleDeleteAccount = (accountId: number) => {
+  if (batchBusy.value) return
   console.log('🗑️ handleDeleteAccount 被调用，accountId:', accountId)
   const account = accounts.value.find((acc: GameAccount) => acc.id === accountId)
   if (!account) return
@@ -3230,7 +3266,9 @@ console.log('🔍 渲染状态:', {
   border-radius: 4px;
   margin-left: 6px;
   vertical-align: middle;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 .alipay-token-expired {
   background: #fff1f0;
