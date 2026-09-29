@@ -1,5 +1,9 @@
 # 配置分享维护规范
 
+## 顾客可种也拒绝（2026-09-29）
+
+order.customer.rejectPlantable默认false、严格布尔true，显示为“可种也拒绝”，仅顾客订单enabled及rejectEnabled都开启时显示，隐藏不清空。它依赖自动拒绝：成品不足且制作原料也不足才拒绝，原料够制作仍完成；tooltip须说明两开关关系。复用原默认/类型/归一化/分享schema；旧码缺字段保留当前值。验证scripts/test-customer-reject-plantable.mjs及原分享回归。
+
 ## 果香绘色（2026-09-28）
 
 activity.flowerEmbroidery的新开关全部默认false，含unlockSlot，旧cyclicNote不迁移授权。三个守护为orderGuard/customerOrderGuard/artSellGuard，timeRanges首段默认00:00～21:00且严格HH:mm归一；北京时间支持跨午夜。说明须保持：居民任务绕过三类子开关但保留总开关，顾客任务绕过两级执行开关；果艺守护只挡上架，任务独立触发4分钟下架，重新上架仍需autoSellArt。shop独立于enabled，目标为物品ID而非固定商品行，当前售价/数量不在前端猜测。商品目录允许省略amount/price并显示以本期为准；保持丝绣旧标签。用户已取消土地活动优先级，不要加入。改动验证scripts/test-flower-embroidery.mjs和原活动/分享回归。

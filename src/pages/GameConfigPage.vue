@@ -1809,6 +1809,14 @@
               <Switch v-model:checked="config.order.customer.rejectEnabled" />
             </CustomFormItem>
             <CustomFormItem
+              label="可种也拒绝"
+              name="order.customer.rejectPlantable"
+              tooltip="需同时开启自动拒绝。开启后，即使所需水果可以种植，成品不足且制作原料库存不足时也会拒绝该订单；原料足够直接制作的订单仍正常完成。"
+              v-if="config.order.customer.enabled && config.order.customer.rejectEnabled"
+            >
+              <Switch v-model:checked="config.order.customer.rejectPlantable" />
+            </CustomFormItem>
+            <CustomFormItem
               label="顾客订单上限"
               name="order.customer.customerMaxNum"
               tooltip="今日累计完成顾客订单达到此数量后停止完成，且不再为顾客订单种植花卉（1-9999）"

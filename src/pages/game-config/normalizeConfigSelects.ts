@@ -497,6 +497,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.order.resident.startTime = normalizeTimeHM(config.order.resident.startTime, 0, 0)
   config.order.resident.endTime = normalizeTimeHM(config.order.resident.endTime, 0, 0)
   config.order.customer.floralCoinEnabled = !!config.order.customer.floralCoinEnabled
+  config.order.customer.rejectPlantable = config.order.customer.rejectPlantable === true
   const floralCoinCount = Number(config.order.customer.floralCoinCount)
   config.order.customer.floralCoinCount = ([1, 2, 3].includes(floralCoinCount)
     ? floralCoinCount

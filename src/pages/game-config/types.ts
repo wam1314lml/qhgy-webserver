@@ -223,6 +223,7 @@ export interface GameConfig {
       floralCoinEnabled: boolean
       floralCoinCount: 1 | 2 | 3
       rejectEnabled: boolean
+      rejectPlantable: boolean
       customerMaxNum: number
     }
     palace: {

@@ -695,6 +695,9 @@
               "rejectEnabled": {
                 "type": "boolean"
               },
+              "rejectPlantable": {
+                "type": "boolean"
+              },
               "customerMaxNum": {
                 "type": "number"
               }

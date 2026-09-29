@@ -241,6 +241,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         floralCoinEnabled: false,
         floralCoinCount: 2,
         rejectEnabled: false,
+        rejectPlantable: false,
         customerMaxNum: 999,
       },
       palace: {
