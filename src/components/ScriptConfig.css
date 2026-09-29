@@ -4,8 +4,9 @@
    ============================ */
 
 .script-config-container {
-  padding: 24px;
-  max-width: 1300px;
+  padding: 16px 12px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   min-height: calc(100vh - 56px);
 }
@@ -44,25 +45,29 @@
    ============================ */
 .accounts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 312px), 1fr));
+  gap: 12px;
 }
 
 /* ============================
    账号卡片
    ============================ */
 .account-card {
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px;
   transition: all 0.3s ease;
   animation: cardIn 0.4s ease-out;
   position: relative;
   /* overflow: hidden; */
-  width: 360px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -115,6 +120,7 @@
 }
 
 .account-name {
+  overflow-wrap: anywhere;
   font-size: 15px;
   font-weight: 600;
   color: #1a1a1a;
@@ -289,9 +295,10 @@
    操作按钮区
    ============================ */
 .account-actions {
+  margin-top: auto;
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -304,7 +311,9 @@
   border-radius: 8px !important;
   transition: all 0.2s ease !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-  padding: 4px 12px;
+  padding: 4px 6px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .account-actions .ant-btn:hover:not(:disabled),
@@ -389,7 +398,9 @@
   transition: all 0.3s ease;
   min-height: 200px;
   color: rgba(0, 0, 0, 0.45);
-  width: 360px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .add-account-card:hover {
@@ -729,7 +740,6 @@ li.ant-dropdown-menu-item.trial-item .anticon,
   }
 
   .accounts-grid {
-    grid-template-columns: 1fr;
     gap: 14px;
   }
 
@@ -740,7 +750,7 @@ li.ant-dropdown-menu-item.trial-item .anticon,
 
 @media (max-width: 480px) {
   .script-config-container {
-    padding: 12px 0;
+    padding: 12px;
   }
 
   .qrcode-image {
