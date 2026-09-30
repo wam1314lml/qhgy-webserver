@@ -16,7 +16,7 @@
               :disabled="loading"
               @click="openImportConfigModal"
             >
-              复制
+              导入
             </a-button>
             <a-button
               @click="onSave"
