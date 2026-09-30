@@ -1088,12 +1088,15 @@ const stepItems = computed(() => [
   },
 ])
 
-// 获取基准单价（原价单价）- 取所有套餐中单价最高的作为基准
-const getBaseUnitPrice = () => {
-  if (packages.value.length === 0) return 0
+// 推荐套餐仅与推荐套餐比较；赠配额套餐保持原有计算范围。
+const getBaseUnitPrice = (pkg: any) => {
+  const comparisonPackages = Number(pkg.gift_card_enabled || 0) === 1
+    ? packages.value
+    : recommendedPackages.value
+  if (comparisonPackages.length === 0) return 0
 
   // 计算每个套餐的单价，找出最高的
-  const unitPrices = packages.value.map((pkg) => {
+  const unitPrices = comparisonPackages.map((pkg) => {
     const price = parseFloat(pkg.price || 0)
     const points = parseFloat(pkg.points || 1)
     return price / points
@@ -1118,7 +1121,7 @@ const getDiscountPercentage = (pkg: any) => {
   const currentUnitPrice = parseFloat(pkg.price) / parseFloat(pkg.points)
 
   // 获取基准单价（原价）
-  const baseUnitPrice = getBaseUnitPrice()
+  const baseUnitPrice = getBaseUnitPrice(pkg)
 
   if (baseUnitPrice === 0) return 100
 
