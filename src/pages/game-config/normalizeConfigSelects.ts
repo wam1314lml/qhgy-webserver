@@ -516,6 +516,8 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   )
   config.order.team.reserveStock = normalizeDiamondUpgradeReserve(config.order.team.reserveStock)
 
+  const redBag = asRecord(config.union.redBag)
+  config.union.redBag = { enabled: redBag?.enabled === true }
   const land = config.union.land
   land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)
   land.lowStockThreshold = normalizeUnionLandLowStockThreshold(land.lowStockThreshold)
@@ -647,6 +649,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     hd90TaskRewardEnabled: hdReward?.hd90TaskRewardEnabled === true,
     hd90DrawEnabled: hdReward?.hd90DrawEnabled === true,
     hd91SignEnabled: hdReward?.hd91SignEnabled === true,
+    hd42SignEnabled: hdReward?.hd42SignEnabled === true,
+    hd44TaskRewardEnabled: hdReward?.hd44TaskRewardEnabled === true,
+    hd44GiftEnabled: hdReward?.hd44GiftEnabled === true,
   }
   const flowerCompete = asRecord(config.activity.flowerCompete)
   const rawSelectIndex = flowerCompete && Object.hasOwn(flowerCompete, 'selectIndex') ? flowerCompete.selectIndex : 0

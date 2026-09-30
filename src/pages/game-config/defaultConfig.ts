@@ -261,6 +261,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
     },
     union: {
+      redBag: { enabled: false },
       land: {
         harvest: false,
         autoPlant: false,
@@ -423,6 +424,9 @@ export const createDefaultGameConfig = (): GameConfig =>
         hd90TaskRewardEnabled: false,
         hd90DrawEnabled: false,
         hd91SignEnabled: false,
+        hd42SignEnabled: false,
+        hd44TaskRewardEnabled: false,
+        hd44GiftEnabled: false,
       },
       flowerCompete: {
         autoSelect: false,

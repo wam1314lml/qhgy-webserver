@@ -1,5 +1,11 @@
 # 限时活动领奖开关（2026-09-09）
 
+## 2026-09-30 王国庆典
+
+- 新增activity.hdReward.hd42SignEnabled（登录有礼）、hd44TaskRewardEnabled（果骑集结每日/视频/全部任务/进度奖）、hd44GiftEnabled（勾玉礼包与集结），三个开关均默认false，独立于仲夏夜enabled。
+- 购买项接handleDiamondCostSwitchChange统一勾玉确认；说明先用已有号角，缺少才逐包购买，价格/限购以游戏为准，达到520领取柠趣气球后停购，已有种子或已解锁水果也停止。目标上限和购买安全复核由配套HdRewardMgr执行，不由前端猜测库存。
+- 另在公会→公会增加union.redBag.enabled，由脚本独立FmlRedBagMgr每5秒刷新并抢取。四个字段已同步类型、默认、归一化、生成分享schema与512种保存/分享测试；原月照团圆及分享回归、生产构建通过。协议、证据与待实测范围见脚本项目的QHGY_HD_REWARD_HANDOFF及QHGY_FML_RED_BAG_HANDOFF。
+
 ## 2026-09-23 百果争鲜按左右位置选择
 
 - 支持对象改为“左侧（第一个）/右侧（第二个）”，selectIndex保存0/1，默认0、autoSelect默认false；不再显示固定果艺名称。配套脚本从本区服当期Competing_cfg.flower1/flower2解析真实ID再发送，已有选择不切换、点赞独立授权。

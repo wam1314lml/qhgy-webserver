@@ -244,6 +244,7 @@ export interface GameConfig {
   }
 
   union: {
+    redBag: { enabled: boolean }
     land: {
       harvest: boolean
       autoPlant: boolean
@@ -408,6 +409,9 @@ export interface GameConfig {
       hd90TaskRewardEnabled: boolean
       hd90DrawEnabled: boolean
       hd91SignEnabled: boolean
+      hd42SignEnabled: boolean
+      hd44TaskRewardEnabled: boolean
+      hd44GiftEnabled: boolean
     }
     flowerCompete: {
       autoSelect: boolean

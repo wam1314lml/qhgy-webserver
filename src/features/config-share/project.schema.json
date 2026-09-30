@@ -760,6 +760,14 @@
       "union": {
         "type": "object",
         "properties": {
+          "redBag": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            }
+          },
           "land": {
             "type": "object",
             "properties": {
@@ -1321,6 +1329,15 @@
                 "type": "boolean"
               },
               "hd91SignEnabled": {
+                "type": "boolean"
+              },
+              "hd42SignEnabled": {
+                "type": "boolean"
+              },
+              "hd44TaskRewardEnabled": {
+                "type": "boolean"
+              },
+              "hd44GiftEnabled": {
                 "type": "boolean"
               }
             }

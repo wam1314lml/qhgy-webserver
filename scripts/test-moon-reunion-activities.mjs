@@ -21,7 +21,8 @@ const defaults = load({})
 for (const key of fields) assert.equal(defaults.activity.hdReward[key], false)
 const page = await loadSharePageModel(root)
 for (let mask = 0; mask < 32; mask++) {
-  const expected = Object.fromEntries(['enabled', 'hd3013DrawEnabled', ...fields].map((key, index) => [key, !!(mask & (1 << index))]))
+  const expected = { ...defaults.activity.hdReward,
+    ...Object.fromEntries(['enabled', 'hd3013DrawEnabled', ...fields].map((key, index) => [key, !!(mask & (1 << index))])) }
   const config = load({ activity: { hdReward: expected } })
   assert.deepEqual(load(JSON.parse(JSON.stringify(config))).activity.hdReward, expected)
   const payload = page.adapter.exportConfig(config)

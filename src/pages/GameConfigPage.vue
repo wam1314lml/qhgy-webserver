@@ -2034,6 +2034,11 @@
               </CustomFormItem>
             </template>
 
+            <Divider orientation="left">公会红包</Divider>
+            <CustomFormItem label="抢红包" name="union.redBag.enabled"
+              tooltip="默认关闭。活动期间每5秒查询一次本公会可抢红包，并自动抢取。">
+              <Switch v-model:checked="config.union.redBag.enabled" />
+            </CustomFormItem>
             <Divider orientation="left">公会建设</Divider>
             <CustomFormItem
               label="视频建设"
@@ -2576,6 +2581,20 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">王国庆典</Divider>
+            <CustomFormItem label="登录有礼签到领奖" name="activity.hdReward.hd42SignEnabled"
+              tooltip="默认关闭。领取王国庆典中已达到登录天数、尚未领取的签到奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd42SignEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="果骑集结每日任务领奖" name="activity.hdReward.hd44TaskRewardEnabled"
+              tooltip="默认关闭。领取已达标的每日任务、观看视频任务奖励、完成今日所有任务奖励，以及已达标的集结进度奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd44TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="购买集结礼包" name="activity.hdReward.hd44GiftEnabled"
+              tooltip="默认关闭。先使用已有星愿号角自动集结，不足时用勾玉逐包购买已解锁的集结礼包并继续集结。本期礼包为60勾玉换12个号角，实际价格与限购以游戏为准。达到520集结值后领取柠趣气球并停止购买；已持有其种子或已解锁该水果也会停止。">
+              <Switch :checked="config.activity.hdReward.hd44GiftEnabled"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd44GiftEnabled', checked === true)" />
+            </CustomFormItem>
             <Divider orientation="left">月照团圆</Divider>
             <CustomFormItem
               label="酥饴寄月每日任务领奖"
@@ -3008,6 +3027,7 @@ type DiamondCostSwitchPath =
   | 'union.fmlRace.onlyDiamondUpgradeTask'
   | 'union.fmlRace.diamondRefreshTask'
   | 'activity.flowerEmbroidery.refreshEnabled'
+  | 'activity.hdReward.hd44GiftEnabled'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {
