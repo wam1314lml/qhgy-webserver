@@ -114,6 +114,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "51061", label: "光佛手" },
   { value: "51062", label: "金佛手" },
   { value: "51063", label: "香蕉" },
+  { value: "51079", label: "相思果" },
   { value: "51083", label: "太婆梨" },
   { value: "51133", label: "翠霞星果" },
   { value: "51998", label: "橙肉菠萝蜜" },
@@ -244,6 +245,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "53038", label: "马克菠萝" },
   { value: "53039", label: "悠然海钓" },
   { value: "53043", label: "椰居闲趣" },
+  { value: "53053", label: "赤狐幻莲" },
   { value: "53057", label: "桂树升月" },
   { value: "53058", label: "秋宵月影" },
   { value: "53059", label: "月亮天灯" },
@@ -259,6 +261,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "54007", label: "秋玉盈枝" },
   { value: "54013", label: "昭华礼赞" },
   { value: "54014", label: "绚烂夏日" },
+  { value: "54020", label: "山海·灵狐引" },
   { value: "54022", label: "祈月共舞" },
   { value: "54041", label: "仲夏幻梦" },
 ]
