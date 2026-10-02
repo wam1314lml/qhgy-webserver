@@ -23,6 +23,15 @@
     <!-- 操作栏 -->
     <a-card class="mb-4">
       <div class="flex flex-wrap items-center gap-3">
+        <a-input-search
+          v-model:value="searchCode"
+          placeholder="输入完整卡密精确查询"
+          aria-label="查询卡密"
+          enter-button="查询"
+          allow-clear
+          style="width:320px; max-width:100%"
+          @search="handleSearch"
+        />
         <a-select v-model:value="filterStatus" placeholder="状态筛选" style="width:120px" allowClear @change="loadList(1)">
           <a-select-option value="unused">未使用</a-select-option>
           <a-select-option value="used">已使用</a-select-option>
@@ -33,6 +42,7 @@
           <a-select-option value="welfare">福利卡</a-select-option>
           <a-select-option value="event">活动卡密</a-select-option>
         </a-select>
+        <a-button @click="resetFilters">重置</a-button>
         <a-button type="primary" @click="showGenModal = true">
           <PlusOutlined /> 生成卡密
         </a-button>
@@ -48,6 +58,7 @@
         :dataSource="list"
         :columns="columns"
         :loading="loading"
+        :locale="{ emptyText: '未找到符合条件的卡密' }"
         :pagination="{
           current: currentPage,
           pageSize: pageSize,
@@ -155,6 +166,9 @@ const list = ref<any[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
+const searchCode = ref('')
+const appliedCode = ref('')
+let listRequestId = 0
 const filterStatus = ref<string | undefined>(undefined)
 const filterType = ref<string | undefined>(undefined)
 const showGenModal = ref(false)
@@ -204,7 +218,22 @@ async function loadStats() {
   if (data.success) Object.assign(stats, data.data)
 }
 
+function handleSearch(value: string) {
+  searchCode.value = value.trim().toUpperCase()
+  appliedCode.value = searchCode.value
+  return loadList(1)
+}
+
+function resetFilters() {
+  searchCode.value = ''
+  appliedCode.value = ''
+  filterStatus.value = undefined
+  filterType.value = undefined
+  return loadList(1)
+}
+
 async function loadList(page = 1) {
+  const requestId = ++listRequestId
   loading.value = true
   currentPage.value = page
   try {
@@ -213,14 +242,20 @@ async function loadList(page = 1) {
       pageSize: String(pageSize.value),
       ...(filterStatus.value ? { status: filterStatus.value } : {}),
       ...(filterType.value ? { type: filterType.value } : {}),
+      ...(appliedCode.value ? { code: appliedCode.value } : {}),
     })
     const data = await apiFetch(`/api/card-key/admin/list?${params}`)
-    if (data.success) {
-      list.value = data.data.list
-      total.value = data.data.total
-    }
+    if (requestId !== listRequestId) return
+    if (!data.success) throw new Error(data.message || '查询卡密失败')
+    list.value = data.data.list
+    total.value = data.data.total
+  } catch (err) {
+    if (requestId !== listRequestId) return
+    list.value = []
+    total.value = 0
+    message.error(err instanceof Error ? err.message : '查询卡密失败，请稍后重试')
   } finally {
-    loading.value = false
+    if (requestId === listRequestId) loading.value = false
   }
 }
 
