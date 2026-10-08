@@ -1,3 +1,7 @@
+## 果园新增账号扫码入口取消（2026-10-08）
+
+`AddAccountModal` 的2/3渠道仅展示转换教程并允许返回；默认平台0，顺序0/1/2/3。不得恢复二维码主按钮或绕过处理器守卫。已有账号重验不在此改动范围；支付宝与账号密码逻辑保持。离线验证入口 `scripts/test-add-account-channels.mjs`、`test-account-password-login.mjs`、`test-channel-conversion-browser.mjs`，后者可传 `--screenshots DIR`。
+
 # 配置分享维护规范
 
 ## 顾客可种也拒绝（2026-09-29）

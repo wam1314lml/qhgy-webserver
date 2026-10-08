@@ -96,6 +96,7 @@ function createPage(queue = {}) {
     } },
   })
   vm.runInContext(`
+    const isConversionChannel = { get value() { return [2, 3].includes(selectedChannel.value) } };
     const username = { get value() { return loginForm.value.username }, set value(v) { loginForm.value.username = v } };
     const password = { get value() { return loginForm.value.password }, set value(v) { loginForm.value.password = v } };
   `, context)
@@ -238,8 +239,7 @@ for (const platform of [2, 3]) {
   page.wxLoginData.value = { ready: true }
   page.wxFlowId.value = 'synthetic-flow'
   await api.handleBind()
-  assert.equal(calls.length, 1)
-  assert.ok(messages.some(message => message.value === duplicateMessage))
+  assert.equal(calls.length, 0, "已停用渠道即使残留扫码状态也不能绑定")
   assert.equal(page.loading.value, false)
 }
 

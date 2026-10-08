@@ -23,15 +23,15 @@ assert.deepEqual(template.errors, [])
 
 const channels = source.match(/<a-radio-group[^>]*class="channel-options"[\s\S]*?<\/a-radio-group>/)[0]
 const visibleChannels = [...channels.matchAll(/<a-radio\s+:value="(\d+)"/g)].map(match => Number(match[1]))
-assert.deepEqual(visibleChannels, [3, 1, 2, 0])
+assert.deepEqual(visibleChannels, [0, 1, 2, 3])
 assert.match(channels, /<a-radio :value="2" class="channel-option">/)
 assert.match(channels, /<a-radio :value="3" class="channel-option">/)
 assert.match(channels, /<a-radio :value="0" class="channel-option">/)
-assert.match(source, /const selectedChannel = ref<number>\(3\)/)
+assert.match(source, /const selectedChannel = ref<number>\(0\)/)
 assert.match(source, /axios\.post\('\/api\/douyin\/scan\/bind_confirm', bindPayload, \{ timeout: 240_000 \}\)/)
 assert.ok(!source.includes("console.log('📦 抖音绑定请求数据:', bindPayload)"))
 assert.match(source, /message\.error\(errorBody\?\.message \|\| errorBody\?\.msg \|\| errorBody\?\.err \|\| '绑定失败，请重试'\)/)
-assert.deepEqual([...source.matchAll(/selectedChannel\.value = (\d+)/g)].map(match => Number(match[1])), [3, 3])
+assert.deepEqual([...source.matchAll(/selectedChannel\.value = (\d+)/g)].map(match => Number(match[1])), [0, 0])
 // Run the component's actual navigation and QR request functions. A visible radio must
 // pass the next-step guard; compilation alone cannot detect a hidden-channel guard.
 const transpile = text => ts.transpileModule(text, {
@@ -47,8 +47,10 @@ const declarations = ast.statements.filter(statement => ts.isVariableStatement(s
 assert.equal(declarations.match(/const handle/g).length, names.size)
 function createPage(success = true) {
   const calls = [], warnings = [], errors = [], qrEvents = []
+  const selectedChannel = { value: 1 }
   const page = vm.createContext({
-    currentStep: { value: 'channel' }, selectedChannel: { value: 1 },
+    isConversionChannel: { get value() { return [2, 3].includes(selectedChannel.value) } },
+    currentStep: { value: 'channel' }, selectedChannel,
     loading: { value: false }, alipayLoginData: { value: null },
     qrcodeUrl: { value: '' }, qrcodeImage: { value: '' },
     isAccountPasswordPlatform: utilities.exports.isAccountPasswordPlatform,
@@ -100,10 +102,18 @@ for (const success of [true, false]) {
 }
 const styles = await readFile(new URL('../src/components/AddAccountModal.css', import.meta.url), 'utf8')
 assert.match(styles, /\.channel-options\s*\{[^}]*caret-color: transparent;[^}]*user-select: none;/)
-assert.match(source, /class="sms-verify-input"/)
-assert.match(source, /inputmode="numeric"/)
-assert.match(source, /autocomplete="one-time-code"/)
 assert.match(scriptConfigSource, /return \[1, 2, 3\]\.includes\(platform\) \? accountName : maskOfficialAccountName\(accountName\)/)
 assert.match(styles, /\.sms-verify-input\s*\{[^}]*flex: 0 1 140px;[^}]*min-width: 0;/)
 assert.match(styles, /@media \(max-width: 768px\)[\s\S]*\.sms-verify-input\s*\{[^}]*flex-basis: 130px;/)
+for (const channel of [2, 3]) {
+  const { page, calls } = createPage();
+  page.selectedChannel.value = channel;
+  await page.api.handleNextStep();
+  await page.api.handleNextStep();
+  await page.api.handleLogin();
+  assert.equal(page.currentStep.value, 'login');
+  assert.equal(calls.length, 0);
+}
+assert.match(source, /https:\/\/www.kdocs.cn\/l\/cglzU54HkUHa/);
+assert.match(source, /v-if="!\(currentStep === 'login' && isConversionChannel\)"/);
 console.log('添加账号渠道测试通过：四渠道下一步、非法渠道门禁、支付宝二维码请求及失败恢复/已扫码选服、Vue编译。HTTP为内存替身。')

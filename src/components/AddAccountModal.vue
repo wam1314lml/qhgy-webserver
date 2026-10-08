@@ -22,10 +22,10 @@
           <h4>选择游戏渠道</h4>
           <a-radio-group v-model:value="selectedChannel" class="channel-options">
             <!-- 果园微信、支付宝、抖音及官方账号密码渠道。 -->
-            <a-radio :value="3" class="channel-option">
+            <a-radio :value="0" class="channel-option">
               <div class="channel-content">
-                <div class="channel-icon-wrapper">
-                  <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
+                <div class="channel-icon-wrapper channel-icon-app">
+                  <span class="account-password-text">账号密码</span>
                 </div>
               </div>
             </a-radio>
@@ -44,10 +44,10 @@
                 </div>
               </div>
             </a-radio>
-            <a-radio :value="0" class="channel-option">
+            <a-radio :value="3" class="channel-option">
               <div class="channel-content">
-                <div class="channel-icon-wrapper channel-icon-app">
-                  <span class="account-password-text">账号密码</span>
+                <div class="channel-icon-wrapper">
+                  <img src="/icons/wechat.svg" alt="微信" class="channel-icon" />
                 </div>
               </div>
             </a-radio>
@@ -58,86 +58,9 @@
         <div v-if="currentStep === 'login'" class="step-panel">
           <h4>登录游戏账号</h4>
 
-          <!-- 抖音扫码登录界面 -->
-          <div v-if="selectedChannel === 2" class="alipay-login">
-            <div v-if="isDouyinQrLoading" class="scan-qrcode-loading">
-              <p class="scan-qrcode-loading-text">正在获取二维码...</p>
-              <div
-                class="scan-qrcode-progress"
-                role="progressbar"
-                :aria-valuenow="douyinQrProgress"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                <div
-                  class="scan-qrcode-progress-bar"
-                  :style="{ width: `${douyinQrProgress}%` }"
-                ></div>
-              </div>
-            </div>
-            <div v-else-if="!douyinQrB64" class="qrcode-placeholder">
-              <p>点击"获取二维码"开始抖音扫码登录</p>
-            </div>
-            <div v-else class="qrcode-container">
-              <h5>请使用抖音扫描二维码，无法通过相册截图扫码</h5>
-              <div class="qrcode-display">
-                <div class="qrcode-wrapper">
-                  <div class="qrcode-content">
-                    <img
-                      :src="`data:image/png;base64,${douyinQrB64}`"
-                      alt="抖音二维码"
-                      style="width: 200px; height: 200px; border-radius: 8px"
-                    />
-                    <p class="qrcode-status-text">
-                      <span v-if="douyinScanStatus === 'waiting'">⏳ 等待扫码中...</span>
-                      <span v-else-if="douyinScanStatus === 'scanned'"
-                        >✅ 已扫码，请在手机上确认</span
-                      >
-                      <span v-else-if="douyinScanStatus === 'finalizing'"
-                        >⏳ 已确认，正在换取登录态...</span
-                      >
-                      <span v-else-if="douyinScanStatus === 'confirmed'">🎉 扫码成功！</span>
-                      <span v-else-if="douyinScanStatus === 'expired'" style="color: #ff4d4f"
-                        >⚠️ 二维码已过期，请重新获取</span
-                      >
-                      <span v-else-if="douyinScanStatus === 'error'" style="color: #ff4d4f"
-                        >❌ 扫码失败，请重试</span
-                      >
-                    </p>
-                    <!-- 短信验证码 -->
-                    <div
-                      v-if="douyinScanStatus === 'verify_sms'"
-                      class="sms-verify-box"
-                    >
-                      <p class="sms-verify-message">
-                        {{ douyinSmsMsg || '请输入短信验证码' }}
-                      </p>
-                      <div class="sms-verify-row">
-                        <a-input
-                          v-model:value="douyinSmsCode"
-                          placeholder="短信验证码"
-                          maxlength="6"
-                          inputmode="numeric"
-                          autocomplete="one-time-code"
-                          class="sms-verify-input"
-                        />
-                        <a-button
-                          class="sms-verify-submit"
-                          :loading="douyinSmsSubmitting"
-                          @click="handleDouyinSmsVerify"
-                        >
-                          提交
-                        </a-button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="qrcode-status">
-                <p v-if="isDouyinPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
-                <p v-else-if="douyinLoginDone" style="color: #52c41a">✅ 扫码登录成功！</p>
-              </div>
-            </div>
+          <div v-if="isConversionChannel" class="channel-conversion-notice">
+            <p>{{ selectedChannel === 3 ? '微信' : '抖音' }}小程序因扫码登陆不稳定已取消，请用户转成账号密码，使用账号密码渠道登陆，账号密码转换图文教程在下方连接：</p>
+            <a href="https://www.kdocs.cn/l/cglzU54HkUHa" target="_blank" rel="noopener noreferrer">账号密码转换图文教程</a>
           </div>
 
           <!-- 支付宝扫码登录界面 -->
@@ -179,48 +102,6 @@
                 <p v-if="isPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
                 <p v-else-if="alipayLoginData" style="color: #52c41a">✅ 扫码登录成功！</p>
                 <p v-else style="color: #faad14">📱 请使用支付宝扫描上方二维码</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- 微信扫码登录界面 -->
-          <div v-else-if="selectedChannel === 3" class="alipay-login">
-            <div v-if="isWxQrLoading" class="scan-qrcode-loading">
-              <p class="scan-qrcode-loading-text">正在获取微信二维码...</p>
-            </div>
-            <div v-else-if="!wxQrcodeImage" class="qrcode-placeholder">
-              <p>点击"获取二维码"开始微信扫码登录</p>
-            </div>
-            <div v-else class="qrcode-container">
-              <h5>请使用微信扫描二维码并在手机上确认</h5>
-              <div class="qrcode-display">
-                <div class="qrcode-wrapper">
-                  <div class="qrcode-content">
-                    <img
-                      :src="wxQrcodeImage"
-                      alt="微信登录二维码"
-                      style="width: 200px; height: 200px; border-radius: 8px"
-                    />
-                    <p class="qrcode-status-text">
-                      <span v-if="wxScanStatus === 'pending'">⏳ 等待微信扫码...</span>
-                      <span v-else-if="wxScanStatus === 'scanned'"
-                        >✅ 已扫码，正在获取角色信息...</span
-                      >
-                      <span v-else-if="wxScanStatus === 'completed'">🎉 扫码成功！</span>
-                      <span v-else-if="wxScanStatus === 'expired'" style="color: #ff4d4f"
-                        >⚠️ 二维码已过期，请重新获取</span
-                      >
-                      <span v-else-if="wxScanStatus === 'error'" style="color: #ff4d4f"
-                        >❌ 扫码失败，请重试</span
-                      >
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="qrcode-status">
-                <p v-if="isWxPolling" style="color: #1890ff">请在5分钟内完成扫码...</p>
-                <p v-else-if="wxLoginData" style="color: #52c41a">✅ 已取得角色区服，请继续</p>
               </div>
             </div>
           </div>
@@ -334,6 +215,7 @@
           </a-button> -->
 
         <a-button
+          v-if="!(currentStep === 'login' && isConversionChannel)"
           @click="handleMainButton"
           :disabled="
             loading ||
@@ -729,7 +611,8 @@ const password = computed({
     loginForm.value.password = value
   },
 })
-const selectedChannel = ref<number>(3)
+const selectedChannel = ref<number>(0)
+const isConversionChannel = computed(() => [2, 3].includes(selectedChannel.value))
 const selectedServer = ref<ServerInfo | null>(null)
 const serverList = ref<ServerInfo[]>([])
 const loading = ref(false)
@@ -832,6 +715,7 @@ const fetchScriptServers = async () => {
 }
 
 const handleNextStep = async () => {
+  if (currentStep.value !== 'channel' && isConversionChannel.value) return
   switch (currentStep.value) {
     case 'channel':
       if (isAccountPasswordPlatform(selectedChannel.value) || [1, 2, 3].includes(selectedChannel.value)) {
@@ -953,6 +837,7 @@ const finishLoginProgressError = async (errorMessage: string) => {
 }
 
 const handleLogin = async () => {
+  if (isConversionChannel.value) return
   // 如果是支付宝渠道，使用扫码登录
   if (selectedChannel.value === 1) {
     await handleAlipayLogin()
@@ -1250,6 +1135,7 @@ const stopDouyinPoll = () => {
 
 // 发起抖音登录（获取二维码）
 const handleDouyinLogin = async () => {
+  if (isConversionChannel.value) return
   stopDouyinPoll()
   douyinQrB64.value = ''
   douyinScanStatus.value = 'waiting'
@@ -1379,6 +1265,7 @@ const handleDouyinAfterScan = async (scanResult: any) => {
 
 // 提交短信验证码
 const handleDouyinSmsVerify = async () => {
+  if (isConversionChannel.value) return
   if (!douyinSid.value || !douyinSmsCode.value.trim()) return
   douyinSmsSubmitting.value = true
   try {
@@ -1558,6 +1445,7 @@ const startWxPolling = () => {
 }
 
 const handleWxLogin = async () => {
+  if (isConversionChannel.value) return
   if (wxFlowId.value) await cancelWxFlow()
   clearWxState()
   isWxQrLoading.value = true
@@ -1630,6 +1518,7 @@ const handleAccountPasswordBind = async () => {
 }
 
 const handleBind = async () => {
+  if (isConversionChannel.value) return
   if (isAccountPasswordPlatform(selectedChannel.value)) {
     await handleAccountPasswordBind()
     return
@@ -1751,7 +1640,7 @@ const resetForm = () => {
   }
   loginFormRef.value?.resetFields()
   serverFormRef.value?.resetFields()
-  selectedChannel.value = 3
+  selectedChannel.value = 0
   selectedServer.value = null
   serverList.value = []
   selectedScriptServer.value = null
@@ -1839,8 +1728,8 @@ watch(
   (isOpen) => {
     if (isOpen) {
       fetchScriptServers()
-      // 微信仍为默认入口，账号密码与抖音可手动选择。
-      selectedChannel.value = 3
+      // 账号密码为首选入口；微信和抖音只提供转换教程。
+      selectedChannel.value = 0
     } else {
       resetForm()
     }
@@ -1864,6 +1753,24 @@ watch(selectedChannel, (channel, previous) => {
 
 <style scoped>
 @import './AddAccountModal.css';
+
+.channel-conversion-notice {
+  padding: 16px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  background: #f6f8fa;
+  border-radius: 8px;
+}
+.channel-conversion-notice p { margin: 0 0 12px; }
+@media (max-width: 480px) {
+  .custom-steps :deep(.ant-steps-item) { flex: 1; margin: 0; padding: 0; overflow: visible; }
+  .custom-steps :deep(.ant-steps-item-container) { display: flex; flex-direction: column; align-items: center; }
+  .custom-steps :deep(.ant-steps-item-icon) { margin: 0 0 4px; }
+  .custom-steps :deep(.ant-steps-item-content) { display: block; min-height: 24px; }
+  .custom-steps :deep(.ant-steps-item-title) { padding: 0; font-size: 12px; line-height: 20px; white-space: nowrap; }
+  .custom-steps :deep(.ant-steps-item-title::after),
+  .custom-steps :deep(.ant-steps-item-tail) { display: none; }
+}
 </style>
 
 <style>
