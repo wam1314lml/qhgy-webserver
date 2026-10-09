@@ -1490,7 +1490,7 @@ const handleAccountPasswordBind = async () => {
       server_id: selectedServer.value.serverId,
       platform: 0,
       bindTicket: accountBindTicket.value,
-    }, { timeout: 190_000 })
+    }, { timeout: 190_000, handleErrorLocally: true })
     if (generation !== accountLoginGeneration || !props.isOpen) return
     if (response.data.success) {
       message.success('游戏账号绑定成功！')

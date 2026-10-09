@@ -61,8 +61,21 @@ const declarations = ast.statements.filter(statement => ts.isVariableStatement(s
   .map(statement => statement.getText()).join('\n')
 const defer = () => { let resolve; const promise = new Promise(done => { resolve = done }); return { promise, resolve } }
 
+const axiosSource = await read('src/utils/axios.ts')
+const axiosAst = ts.createSourceFile('axios.ts', axiosSource, ts.ScriptTarget.Latest, true)
+let rejectHandler
+function findResponseHandler(node) {
+  if (ts.isCallExpression(node) && node.expression.getText(axiosAst) === 'axiosInstance.interceptors.response.use') {
+    rejectHandler = node.arguments[1].getText(axiosAst)
+  }
+  ts.forEachChild(node, findResponseHandler)
+}
+findResponseHandler(axiosAst)
+assert.ok(rejectHandler)
 function createPage(queue = {}) {
   const calls = [], messages = [], events = [], logs = []
+  const requestOptions = []
+  let rejectResponse
   const refs = Object.fromEntries([
     'accountBindTicket', 'loginProgressMessage', 'douyinSid', 'douyinQrB64', 'douyinScanStatus',
     'douyinSmsCode', 'douyinSmsMsg', 'douyinDyToken', 'douyinUid', 'qrcodeUrl', 'qrcodeImage',
@@ -74,6 +87,8 @@ function createPage(queue = {}) {
   const context = vm.createContext({
     ...refs, Promise, Set, String, Number,
     isAccountPasswordPlatform, normalizeAccountPasswordLogin, getSafeAccountPasswordError,
+    isWxReauthRequired: () => false, isTokenInvalidError: () => false,
+    throttledErrorMessage: value => messages.push({ type: 'error', value }), handleLogout: () => {},
     props: { isOpen: true }, currentStep: { value: 'login' }, selectedChannel: { value: 0 },
     loginForm: { value: { username: 'offline-account', password: 'offline-password' } },
     loginFormRef: { value: { validateFields: async () => {}, resetFields: () => {} } },
@@ -88,10 +103,14 @@ function createPage(queue = {}) {
     cancelWxFlow: async () => {}, clearWxState: () => {}, stopDouyinPoll: () => {},
     resetAlipayQrLoading: () => {}, resetDouyinQrLoading: () => {},
     handleAlipayLogin: async () => {}, handleDouyinLogin: async () => {}, handleWxLogin: async () => {},
-    axios: { post: async (url, payload) => {
+    axios: { post: async (url, payload, options) => {
       calls.push({ url, payload: copy(payload) })
+      requestOptions.push(options)
       const result = await (url.endsWith('/login') ? queue.login : queue.bind)
-      if (result?.response || result instanceof Error) throw result
+      if (result?.response || result instanceof Error) {
+        if (queue.withInterceptor) return await rejectResponse({ ...result, config: { ...options, url } })
+        throw result
+      }
       return { data: result || (url.endsWith('/login') ? { success: true, data: successData } : { success: true }) }
     } },
   })
@@ -101,7 +120,9 @@ function createPage(queue = {}) {
     const password = { get value() { return loginForm.value.password }, set value(v) { loginForm.value.password = v } };
   `, context)
   vm.runInContext(compile(`${declarations}\nglobalThis.api = { ${[...names].filter(name => !['accountLoginGeneration', 'loginProgressTimer'].includes(name)).join(',')} };`), context)
-  return { page: context, api: context.api, calls, messages, events, logs }
+  vm.runInContext(compile(`globalThis.rejectResponse = ${rejectHandler}`), context)
+  rejectResponse = context.rejectResponse
+  return { page: context, api: context.api, calls, messages, events, logs, requestOptions }
 }
 
 // 普通账号/手机号保持输入原名，服务端负责 trim；不依赖 PW_ 前缀或 SDK 身份。
@@ -216,6 +237,19 @@ for (const asHttpError of [false, true]) {
 }
 
 // 重复绑定提示必须保留后端已脱敏的网页用户名。
+for (const reason of ['账号配置保存失败：磁盘空间不足，请清理后重试', '账号配置同步Redis失败，请稍后重试',
+  '脚本已完成绑定，但网站数据库保存账号失败，请重试确认绑定']) {
+  const { page, api, messages, requestOptions } = createPage({ withInterceptor: true,
+    bind: { response: { status: 502, data: { code: 'ACCOUNT_PASSWORD_BIND_FAILED', message: reason } } } })
+  await api.handleLogin()
+  page.selectedServer.value = page.serverList.value[0]
+  await api.handleAccountPasswordBind()
+  assert.equal(requestOptions.at(-1).handleErrorLocally, true)
+  assert.deepEqual(messages.filter(row => row.type === 'error'), [{ type: 'error', value: reason }])
+  assert.equal(page.accountBindTicket.value, 'offline-bind-ticket')
+  assert.equal(page.currentStep.value, 'server')
+  assert.equal(page.loading.value, false)
+}
 {
   const duplicateMessage = '该游戏账号在此区服已被网页账号「adm**」绑定，无法重复添加'
   const { page, api, messages } = createPage({ bind: { response: { status: 409, data: {
@@ -244,8 +278,6 @@ for (const platform of [2, 3]) {
 }
 
 // Axios 不能把游戏密码/绑定业务失败当成网站过期；网站访问令牌失效仍登出。
-const axiosSource = await read('src/utils/axios.ts')
-const axiosAst = ts.createSourceFile('axios.ts', axiosSource, ts.ScriptTarget.Latest, true)
 const classifier = axiosAst.statements.find(statement => ts.isVariableStatement(statement) &&
   statement.declarationList.declarations.some(decl => decl.name.getText() === 'isTokenInvalidError'))
 const responseHook = axiosAst.statements.find(statement => ts.isExpressionStatement(statement) &&

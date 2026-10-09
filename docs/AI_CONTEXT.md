@@ -1,3 +1,7 @@
+## 密码绑定具体原因只提示一次（2026-10-09）
+
+AddAccountModal的账号密码绑定请求使用handleErrorLocally:true，HTTP失败只由页面getSafeAccountPasswordError显示，避免全局Axios拦截器再弹一次。保留后端已归一原因；未知敏感文本继续过滤，普通失败保留票据/选服可重试，BIND_EXPIRED回到登录。网站负责重复绑定校验，脚本已有文件可以更新，不在前端增加本地文件判断。账号密码登录/渠道转换守卫保持。验证test-account-password-login.mjs含实际响应拦截器链和单次错误提示，及渠道专项/生产构建。
+
 ## 果园新增账号扫码入口取消（2026-10-08）
 
 `AddAccountModal` 的2/3渠道仅展示转换教程并允许返回；默认平台0，顺序0/1/2/3。不得恢复二维码主按钮或绕过处理器守卫。已有账号重验不在此改动范围；支付宝与账号密码逻辑保持。离线验证入口 `scripts/test-add-account-channels.mjs`、`test-account-password-login.mjs`、`test-channel-conversion-browser.mjs`，后者可传 `--screenshots DIR`。
