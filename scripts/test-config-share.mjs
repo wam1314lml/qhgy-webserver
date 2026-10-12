@@ -12,6 +12,7 @@ const bundle = await build({ stdin: { contents: `
   export { createDefaultGameConfig } from './src/pages/game-config/defaultConfig';
   export { normalizeGameConfigSelects } from './src/pages/game-config/normalizeConfigSelects';
   export { deepMerge } from './src/pages/game-config/utils';
+  export { normalizeFmlShop } from './src/pages/game-config/fmlShopRules';
 `, resolveDir: root }, bundle: true, write: false, platform: 'node', format: 'esm' })
 const m = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`)
 const page = await loadSharePageModel(root), adapter = page.adapter, project = m.shareProject
@@ -142,6 +143,26 @@ test('竞赛不删有进度默认关闭，新码保留真假、旧码保留当�
       assert.equal(reloaded.union.fmlRace.keepProgressTask, keep)
     }
   }
+})
+
+test('公会商店36商品默认关闭、排序/条件/余额完整保存分享、旧码保留', () => {
+  const current = fresh()
+  assert.equal(current.union.fmlShop.enabled, false)
+  assert.equal(current.union.fmlShop.items.length, 36)
+  assert(current.union.fmlShop.items.every(item => item.enabled === false))
+  current.union.fmlShop = m.normalizeFmlShop({ enabled: true, coinReserve: 123, autoUnlock: true,
+    unlockTo: 9, refreshMode: 'paid', items: [{ id: 10036, enabled: true, mode: 'stockOrDiscount', stockBelow: 95, discount: 3 }] })
+  m.normalizeGameConfigSelects(current)
+  const shared = adapter.exportConfig(current)
+  assert.deepEqual(shared.config.union.fmlShop, current.union.fmlShop)
+  const imported = adapter.preview(fresh(), shared).config
+  assert.deepEqual(imported.union.fmlShop, current.union.fmlShop)
+  const old = adapter.preview(imported, payload({ union: { redBag: { enabled: true } } })).config
+  assert.deepEqual(old.union.fmlShop, current.union.fmlShop)
+  const invalid = m.normalizeFmlShop({ enabled: 'true', autoUnlock: 1, unlockTo: 99, coinReserve: -1,
+    items: [{ id: 10001, enabled: 'true' }, { id: 10001 }, { id: 999 }] })
+  assert(!invalid.enabled && !invalid.autoUnlock && !invalid.items[0].enabled)
+  assert.equal(invalid.items.length, 36); assert.equal(invalid.unlockTo, 16); assert.equal(invalid.coinReserve, 0)
 })
 
 test('项目名和24小时时限，整段与裸码解析、跨项目拒绝', () => {

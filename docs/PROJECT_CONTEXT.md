@@ -1,5 +1,7 @@
 # 奇幻果园模块索引
 
+- 公会商店（2026-10-12）：GameConfigPage公会页新增FmlShopSettings，配置union.fmlShop；36种果园商品、五种条件、排序/余额保留/解锁/刷新。脚本FmlShopConfig为规则源，生成前端规则/目录，类型/默认值/归一化/分享schema同步。无新Web API。
+
 - 果香绘色HD17：GameConfigPage活动配置，activity.flowerEmbroidery的领奖/勾玉刷新/任务栏解锁/三类守护/花绣商店；复用ActivityShopSettings，动态商品数量和价格由脚本当期读取。后端ActFlowerEmbroideryMgr，未新增种植优先级。见HANDOFF的2026-09-28条目及二次对齐说明。
 
 - 配额转移：QuotaTransfer.vue为用户入口，admin/QuotaTransferAdmin.vue为管理入口，PointTransactionHistory.vue为个人/后台共用分页流水。见[QUOTA_TRANSFER.md](QUOTA_TRANSFER.md)。

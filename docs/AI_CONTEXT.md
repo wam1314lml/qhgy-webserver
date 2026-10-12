@@ -1,3 +1,7 @@
+## 公会商店（2026-10-12）
+
+union.fmlShop默认关闭，FmlShopSettings复用花园配置交互但目录仅取果园club_shop/item的36种商品。fmlShopRules.js/fmlShopCatalog.json由果园脚本scripts/sync-fml-shop.mjs --frontend-root生成，不能手改为花园币种/商品。商品数组顺序即优先级，库存按道具个数且整组购买；隐藏不清子项，保存/分享/旧码保值复用原通道。五种条件、公会币保留、自动解锁及none/free/paid刷新类型配套维护；真实页面回归tools/check-fml-shop-ui.py只使用本地Vite和合成接口，产物在artifacts/fml-shop-*。
+
 ## 延迟收获按当前友情币余额跳过（2026-10-12）
 
 plant.flower和plant.elves分别新增delayedHarvestStopAt500FriendCoin，默认false、归一化仅接受true。普通种植/果灵各自延迟选项下显示“满500友情币停止延迟”：当前余额>=500正常收获，跌破500恢复延迟，不能写成当天累计所得。类型、默认值、归一化、表单和sync-config-share生成schema必须同时维护；旧分享码缺字段保留当前开关，后端通用存储无须改白名单。脚本LandMgr负责实际余额及发送前复核。

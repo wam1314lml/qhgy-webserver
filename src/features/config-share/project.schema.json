@@ -766,6 +766,49 @@
       "union": {
         "type": "object",
         "properties": {
+          "fmlShop": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "coinReserve": {
+                "type": "number"
+              },
+              "autoUnlock": {
+                "type": "boolean"
+              },
+              "unlockTo": {
+                "type": "number"
+              },
+              "refreshMode": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "item": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "mode": {
+                      "type": "string"
+                    },
+                    "stockBelow": {
+                      "type": "number"
+                    },
+                    "discount": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "redBag": {
             "type": "object",
             "properties": {

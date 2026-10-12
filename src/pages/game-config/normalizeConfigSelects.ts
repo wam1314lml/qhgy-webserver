@@ -1,4 +1,5 @@
 import type { GameConfig } from './types'
+import { normalizeFmlShop } from './fmlShopRules'
 import { normalizeActivityShop } from './activityShop'
 import {
   actDessertSpeedOptions,
@@ -519,6 +520,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.order.team.reserveStock = normalizeDiamondUpgradeReserve(config.order.team.reserveStock)
 
   const redBag = asRecord(config.union.redBag)
+  config.union.fmlShop = normalizeFmlShop(config.union.fmlShop)
   config.union.redBag = { enabled: redBag?.enabled === true }
   const land = config.union.land
   land.plantMode = ensureSingleSelectValue(land.plantMode, unionLandPlantModeOptions)

@@ -2051,6 +2051,9 @@
               </CustomFormItem>
             </template>
 
+            <Divider orientation="left">公会商店</Divider>
+            <FmlShopSettings v-model="config.union.fmlShop" />
+
             <Divider orientation="left">公会红包</Divider>
             <CustomFormItem label="抢红包" name="union.redBag.enabled"
               tooltip="默认关闭。活动期间每30秒查询一次本公会可抢红包，并自动抢取。">
@@ -2907,6 +2910,7 @@ import {
 import axios from '../utils/axios'
 import ConfigShareDialog from '../features/config-share/ConfigShareDialog.vue'
 import ActivityShopSettings from './game-config/ActivityShopSettings.vue'
+import FmlShopSettings from './game-config/FmlShopSettings.vue'
 import { activityShopCatalogs } from './game-config/activityShop'
 import { createProjectShareAdapter } from '../features/config-share/projectAdapter'
 import { createConfigShareApi } from '../features/config-share/api'

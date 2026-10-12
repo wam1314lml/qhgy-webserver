@@ -1,4 +1,5 @@
 import type { GameConfig } from './types'
+import { normalizeFmlShop } from './fmlShopRules'
 import { defaultFmlRaceTaskTypePriority } from './fmlRaceTaskTypes'
 import { createDefaultFmlRaceAcceptRules } from './fmlRaceAcceptRules'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
@@ -263,6 +264,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       },
     },
     union: {
+      fmlShop: normalizeFmlShop(),
       redBag: { enabled: false },
       land: {
         harvest: false,

@@ -47,3 +47,6 @@ temp/
 .env
 
 /bak
+
+# 公会商店本地界面回归产物
+/artifacts/fml-shop-*

@@ -1,0 +1,295 @@
+{
+  "source": "qhgy-database.json: club_shop / item",
+  "currencyId": 12,
+  "maxSlots": 16,
+  "items": [
+    {
+      "id": 10001,
+      "itemId": 3001,
+      "name": "石灰水",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10002,
+      "itemId": 3002,
+      "name": "蓖麻液",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10003,
+      "itemId": 3003,
+      "name": "皂角液",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10004,
+      "itemId": 3004,
+      "name": "苦楝叶液",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10005,
+      "itemId": 3005,
+      "name": "花椒水",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10006,
+      "itemId": 3006,
+      "name": "生姜水",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10007,
+      "itemId": 3101,
+      "name": "玉米芯肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10008,
+      "itemId": 3102,
+      "name": "蚕沙肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10009,
+      "itemId": 3103,
+      "name": "钾长石粉",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10010,
+      "itemId": 3104,
+      "name": "花生壳肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10011,
+      "itemId": 3105,
+      "name": "鸡粪肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10012,
+      "itemId": 3106,
+      "name": "膨润土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10013,
+      "itemId": 3107,
+      "name": "芝麻渣肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10014,
+      "itemId": 3108,
+      "name": "羊蹄壳粉",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10015,
+      "itemId": 3109,
+      "name": "石膏粉",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10016,
+      "itemId": 3111,
+      "name": "蚯蚓粪肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10017,
+      "itemId": 3112,
+      "name": "硅藻土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10018,
+      "itemId": 3201,
+      "name": "红壤土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10019,
+      "itemId": 3202,
+      "name": "砂壤土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10020,
+      "itemId": 3203,
+      "name": "黏壤土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10021,
+      "itemId": 3204,
+      "name": "腐叶土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10022,
+      "itemId": 3205,
+      "name": "松针土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10023,
+      "itemId": 3206,
+      "name": "褐土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10024,
+      "itemId": 3207,
+      "name": "潮土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10025,
+      "itemId": 3208,
+      "name": "页岩土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10026,
+      "itemId": 3209,
+      "name": "火山土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10027,
+      "itemId": 3210,
+      "name": "山泥土",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10028,
+      "itemId": 3212,
+      "name": "田泥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10029,
+      "itemId": 3301,
+      "name": "强光能量罐",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10030,
+      "itemId": 3302,
+      "name": "柔光能量罐",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10031,
+      "itemId": 3303,
+      "name": "微光能量罐",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10032,
+      "itemId": 1010,
+      "name": "加速卡",
+      "amount": 100,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10033,
+      "itemId": 1101,
+      "name": "百果券",
+      "amount": 100,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10034,
+      "itemId": 5,
+      "name": "水滴",
+      "amount": 100,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10035,
+      "itemId": 3110,
+      "name": "稻壳炭肥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    },
+    {
+      "id": 10036,
+      "itemId": 3211,
+      "name": "塘泥",
+      "amount": 10,
+      "price": 100,
+      "currencyId": 12
+    }
+  ]
+}

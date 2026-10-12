@@ -246,6 +246,7 @@ export interface GameConfig {
   }
 
   union: {
+    fmlShop: import('./fmlShopRules').FmlShopConfig
     redBag: { enabled: boolean }
     land: {
       harvest: boolean
