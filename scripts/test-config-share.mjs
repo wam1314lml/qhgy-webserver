@@ -67,6 +67,34 @@ test('平台奖励旧配置默认开启，关闭保存/分享可往返，旧码�
     assert.equal(old.basic.benefit.buff, true)
   }
 })
+test('满500友情币按余额停止延迟：默认关闭、独立保存和分享往返、旧码保留当前开关', () => {
+  const key = 'delayedHarvestStopAt500FriendCoin'
+  for (const normal of [false, true]) for (const elves of [false, true]) {
+    const current = fresh()
+    assert.equal(current.plant.flower[key], false)
+    assert.equal(current.plant.elves[key], false)
+    current.plant.flower[key] = normal
+    current.plant.elves[key] = elves
+    const saved = JSON.parse(JSON.stringify(current))
+    m.normalizeGameConfigSelects(saved)
+    const exported = adapter.exportConfig(saved)
+    const imported = adapter.preview(fresh(), exported).config
+    assert.equal(imported.plant.flower[key], normal)
+    assert.equal(imported.plant.elves[key], elves)
+    const old = adapter.preview(imported, payload({ plant: { flower: { delayedHarvestEnabled: true } } })).config
+    assert.equal(old.plant.flower[key], normal)
+    assert.equal(old.plant.elves[key], elves)
+  }
+  for (const value of [undefined, null, 'true', 'false', 0, 1]) {
+    const current = fresh()
+    current.plant.flower[key] = value
+    current.plant.elves[key] = value
+    m.normalizeGameConfigSelects(current)
+    assert.equal(current.plant.flower[key], false)
+    assert.equal(current.plant.elves[key], false)
+  }
+})
+
 test('铲除后种植旧配置默认开启，显式关闭和旧分享码不会被重置', () => {
   const missing = fresh()
   delete missing.plant.elves.clearBeforePlant

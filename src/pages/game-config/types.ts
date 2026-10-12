@@ -87,6 +87,7 @@ export interface GameConfig {
       plantEnabled: boolean
       delayedHarvestEnabled: boolean
       delayedHarvestMinutes: number
+      delayedHarvestStopAt500FriendCoin: boolean
       videoSpeedUp: boolean
       useSpeedUpTicket: boolean
       speedUpTicketScenes: Array<'normal' | 'elves'>
@@ -149,6 +150,7 @@ export interface GameConfig {
       selectedElvesIds: Array<number | string>
       delayedHarvestEnabled: boolean
       delayedHarvestMinutes: number
+      delayedHarvestStopAt500FriendCoin: boolean
       clearBeforePlant: boolean
       requestAid: boolean
       recvAid: boolean

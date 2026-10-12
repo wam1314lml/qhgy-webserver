@@ -231,6 +231,9 @@
               "delayedHarvestMinutes": {
                 "type": "number"
               },
+              "delayedHarvestStopAt500FriendCoin": {
+                "type": "boolean"
+              },
               "videoSpeedUp": {
                 "type": "boolean"
               },
@@ -460,6 +463,9 @@
               },
               "delayedHarvestMinutes": {
                 "type": "number"
+              },
+              "delayedHarvestStopAt500FriendCoin": {
+                "type": "boolean"
               },
               "clearBeforePlant": {
                 "type": "boolean"

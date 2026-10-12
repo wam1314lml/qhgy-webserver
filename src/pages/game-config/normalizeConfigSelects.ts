@@ -300,6 +300,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
 
   const flower = config.plant.flower
   flower.delayedHarvestEnabled = flower.delayedHarvestEnabled === true
+  flower.delayedHarvestStopAt500FriendCoin = flower.delayedHarvestStopAt500FriendCoin === true
   const flowerDelayedMinutes = Number(flower.delayedHarvestMinutes)
   flower.delayedHarvestMinutes = Number.isFinite(flowerDelayedMinutes)
     ? Math.min(999, Math.max(1, Math.floor(flowerDelayedMinutes)))
@@ -439,6 +440,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     QHGY_ELF_ID_SET,
   )
   config.plant.elves.clearBeforePlant = config.plant.elves.clearBeforePlant !== false
+  config.plant.elves.delayedHarvestStopAt500FriendCoin = config.plant.elves.delayedHarvestStopAt500FriendCoin === true
   const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)
   config.plant.elves.delayedHarvestMinutes = Number.isFinite(delayedHarvestMinutes)
     ? Math.min(999, Math.max(10, Math.floor(delayedHarvestMinutes)))

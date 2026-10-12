@@ -560,6 +560,15 @@
               />
             </CustomFormItem>
             <CustomFormItem
+              v-if="config.plant.flower.harvestEnabled && config.plant.flower.delayedHarvestEnabled"
+              class="config-sub-item config-sub-item--deep"
+              label="满500友情币停止延迟"
+              name="plant.flower.delayedHarvestStopAt500FriendCoin"
+              tooltip="当前友情币余额达到500时，成熟后正常收获；余额低于500时恢复延迟。按当前余额判断，不按当天累计所得。"
+            >
+              <Switch v-model:checked="config.plant.flower.delayedHarvestStopAt500FriendCoin" />
+            </CustomFormItem>
+            <CustomFormItem
               label="自动种植"
               name="plant.flower.plantEnabled"
               tooltip="自动完成土地浇水，加速，种植"
@@ -1216,6 +1225,14 @@
                 :step="1"
                 class="w-42! sm:w-48!"
               />
+            </CustomFormItem>
+            <CustomFormItem
+              v-if="config.plant.elves.enabled && config.plant.elves.delayedHarvestEnabled"
+              label="满500友情币停止延迟"
+              name="plant.elves.delayedHarvestStopAt500FriendCoin"
+              tooltip="当前友情币余额达到500时，成熟果灵正常收获；余额低于500时恢复延迟。按当前余额判断，不按当天累计所得。"
+            >
+              <Switch v-model:checked="config.plant.elves.delayedHarvestStopAt500FriendCoin" />
             </CustomFormItem>
             <CustomFormItem
               v-if="config.plant.elves.enabled"
