@@ -1588,6 +1588,7 @@
                 label="好友昵称 / ID"
                 name="plant.market.buyFriendNames"
                 tooltip="支持完整昵称或好友ID，可混填，输入后按回车添加；纯数字按ID匹配，昵称需包含区服前缀（如有）"
+                extra="支持好友ID或完整昵称，可混填，每项输入后按回车添加。纯数字按ID匹配，昵称需包含区服前缀（如有）。指定好友仅购买名单中的好友，排除好友跳过名单中的好友。"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.buyFriendNames"
