@@ -345,25 +345,33 @@
               <Switch v-model:checked="config.basic.randomEvent" />
             </CustomFormItem>
 
-            <Divider orientation="left">喂猫撸猫</Divider>
-            <CustomFormItem label="总开关" name="basic.feedCat.enabled">
-              <Switch v-model:checked="config.basic.feedCat.enabled" />
-            </CustomFormItem>
+            <div class="pet-settings">
+              <Divider orientation="left">宠物狗狗</Divider>
+              <CustomFormItem label="宠物总开关" name="basic.feedCat.enabled" tooltip="25级解锁；每60秒检查一次宠物状态">
+                <Switch v-model:checked="config.basic.feedCat.enabled" />
+              </CustomFormItem>
 
-            <template v-if="config.basic.feedCat.enabled">
-              <CustomFormItem label="自动召回" name="basic.feedCat.autoRecall">
-                <Switch v-model:checked="config.basic.feedCat.autoRecall" />
-              </CustomFormItem>
-              <CustomFormItem label="自动购买猫粮" name="basic.feedCat.autoBuyFood">
-                <Switch v-model:checked="config.basic.feedCat.autoBuyFood" />
-              </CustomFormItem>
-              <CustomFormItem label="自动喂猫" name="basic.feedCat.autoFeed" tooltip="保持猫粮盆满">
-                <Switch v-model:checked="config.basic.feedCat.autoFeed" />
-              </CustomFormItem>
-              <CustomFormItem label="自动撸猫" name="basic.feedCat.autoStroke">
-                <Switch v-model:checked="config.basic.feedCat.autoStroke" />
-              </CustomFormItem>
-            </template>
+              <template v-if="config.basic.feedCat.enabled">
+                <CustomFormItem label="首次宠物指引" name="basic.feedCat.autoGuide" tooltip="自动保存首次宠物教学，避免每次上线重复出现指引">
+                  <Switch v-model:checked="config.basic.feedCat.autoGuide" />
+                </CustomFormItem>
+                <CustomFormItem label="自动找回与处理事件" name="basic.feedCat.autoRecall" tooltip="免费处理走失和特殊事件；普通外出等待自然返回，不花勾玉召回">
+                  <Switch v-model:checked="config.basic.feedCat.autoRecall" />
+                </CustomFormItem>
+                <CustomFormItem label="自动购买狗粮" name="basic.feedCat.autoBuyFood" tooltip="自动喂食开启时，按食盆缺口购买普通狗粮，每份100金币，每天最多30份；不买勾玉粮">
+                  <Switch v-model:checked="config.basic.feedCat.autoBuyFood" />
+                </CustomFormItem>
+                <CustomFormItem label="自动喂狗狗" name="basic.feedCat.autoFeed" tooltip="用普通狗粮补满10格食盆，外出时也可提前备粮">
+                  <Switch v-model:checked="config.basic.feedCat.autoFeed" />
+                </CustomFormItem>
+                <CustomFormItem label="自动摸狗狗" name="basic.feedCat.autoStroke" tooltip="心情低于85且冷却结束时抚摸；睡眠或外出时等待">
+                  <Switch v-model:checked="config.basic.feedCat.autoStroke" />
+                </CustomFormItem>
+                <CustomFormItem label="查看外出记录" name="basic.feedCat.autoReadLog" tooltip="查看并清理已结算的外出记录；待处理事件会保留">
+                  <Switch v-model:checked="config.basic.feedCat.autoReadLog" />
+                </CustomFormItem>
+              </template>
+            </div>
           </div>
           <!-- 种植设置 -->
           <div v-if="activeTab === '种植'" class="config-section">
@@ -4119,6 +4127,16 @@ const applySharedConfig = (value: GameConfig) => {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
+  .pet-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label) {
+    flex: 0 0 170px;
+    max-width: 170px;
+    text-align: left;
+  }
+
+  .pet-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control) {
+    flex: 1;
+  }
+
   .config-container {
     max-width: 100%;
   }

@@ -50,3 +50,6 @@ temp/
 
 # 公会商店本地界面回归产物
 /artifacts/fml-shop-*
+
+# 宠物配置本地界面回归产物
+/artifacts/pet-*

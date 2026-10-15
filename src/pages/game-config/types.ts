@@ -49,10 +49,12 @@ export interface GameConfig {
     randomEvent: boolean
     feedCat: {
       enabled: boolean
+      autoGuide: boolean
       autoRecall: boolean
       autoBuyFood: boolean
       autoFeed: boolean
       autoStroke: boolean
+      autoReadLog: boolean
     }
     shop: {
       videoFreeGift: boolean

@@ -46,10 +46,12 @@ export const createDefaultGameConfig = (): GameConfig =>
       randomEvent: false,
       feedCat: {
         enabled: false,
+        autoGuide: true,
         autoRecall: false,
         autoBuyFood: false,
         autoFeed: false,
         autoStroke: false,
+        autoReadLog: true,
       },
       shop: {
         videoFreeGift: false,

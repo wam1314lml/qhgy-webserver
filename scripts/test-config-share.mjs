@@ -43,6 +43,32 @@ test('旧码仅改现有字段，新字段及当前其他设置保留', () => {
   assert.deepEqual(result.config, expected)
 })
 
+test('宠物新开关默认开启、旧开关保留、保存分享及旧码缺字段保值', () => {
+  const current = fresh()
+  assert.equal(current.basic.feedCat.enabled, false)
+  assert.equal(current.basic.feedCat.autoGuide, true)
+  assert.equal(current.basic.feedCat.autoReadLog, true)
+  for (const value of [false, true]) {
+    const config = fresh()
+    config.basic.feedCat = Object.fromEntries(Object.keys(config.basic.feedCat).map(key => [key, value]))
+    m.normalizeGameConfigSelects(config)
+    const imported = adapter.preview(fresh(), adapter.exportConfig(config)).config
+    assert.deepEqual(imported.basic.feedCat, config.basic.feedCat)
+    const old = adapter.preview(imported, payload({ basic: { feedCat: { autoFeed: !value } } })).config
+    assert.equal(old.basic.feedCat.autoGuide, value)
+    assert.equal(old.basic.feedCat.autoReadLog, value)
+    assert.equal(old.basic.feedCat.autoFeed, !value)
+  }
+  for (const value of [undefined, null, 'false', 0, 1]) {
+    const config = fresh()
+    config.basic.feedCat.autoGuide = value
+    config.basic.feedCat.autoReadLog = value
+    m.normalizeGameConfigSelects(config)
+    assert.equal(config.basic.feedCat.autoGuide, true)
+    assert.equal(config.basic.feedCat.autoReadLog, true)
+  }
+})
+
 test('平台奖励旧配置默认开启，关闭保存/分享可往返，旧码保留当前开关', () => {
   const load = setting => {
     const config = m.deepMerge(m.createDefaultGameConfig(), setting)

@@ -281,6 +281,15 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   // 旧配置默认继续领取平台奖励，保存/导入时保留用户明确关闭的设置。
   config.basic.benefit.platformRwd = config.basic.benefit.platformRwd !== false
 
+  // 沿用feedCat路径及旧开关；新指引/已读记录默认开启，明确false保存并可分享。
+  const pet = config.basic.feedCat
+  for (const key of ['autoGuide', 'autoReadLog'] as const) {
+    pet[key] = typeof pet[key] === 'boolean' ? pet[key] : true
+  }
+  for (const key of ['enabled', 'autoRecall', 'autoBuyFood', 'autoFeed', 'autoStroke'] as const) {
+    pet[key] = pet[key] === true
+  }
+
   // VIP 商店功能已下线，清理服务端遗留字段，避免旧配置继续生效。
   delete (config.basic.shop as unknown as Record<string, unknown>).vipShop
   const floralShop = config.basic.shop.floralShop

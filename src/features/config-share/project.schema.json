@@ -117,6 +117,9 @@
               "enabled": {
                 "type": "boolean"
               },
+              "autoGuide": {
+                "type": "boolean"
+              },
               "autoRecall": {
                 "type": "boolean"
               },
@@ -127,6 +130,9 @@
                 "type": "boolean"
               },
               "autoStroke": {
+                "type": "boolean"
+              },
+              "autoReadLog": {
                 "type": "boolean"
               }
             }

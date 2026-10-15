@@ -1,3 +1,9 @@
+## 果园宠物设置（2026-10-15）
+
+宠物继续用basic.feedCat，不能因狗狗文案改字段名或迁移已保存值。原enabled/autoRecall/autoBuyFood/autoFeed/autoStroke默认false保持；新增autoGuide/autoReadLog默认true但显式false保留，受总开关约束，隐藏不清子项。类型、默认、normalize及生成分享schema须同步，旧码缺字段保留接收方当前值。后端通用配置存储无需字段更新。
+
+页面规则以果园脚本PetMgr为准：25级/60秒，1117金币粮100/份日限30、10格缺口，喂食关闭不购粮；心情<85且CD结束才摸，睡眠/外出等待。普通外出不召回，仅处理走失/特殊事件免费分支；清已结算记录不重复领奖。首次教学保存131，无单独saveGuide132。验证scripts/test-config-share.mjs、tools/check-pet-ui.py（本地合成API）及生产构建；仅宠物组移动布局调整，不修改公共表单组件。
+
 ## 公会商店（2026-10-12）
 
 union.fmlShop默认关闭，FmlShopSettings复用花园配置交互但目录仅取果园club_shop/item的36种商品。fmlShopRules.js/fmlShopCatalog.json由果园脚本scripts/sync-fml-shop.mjs --frontend-root生成，不能手改为花园币种/商品。商品数组顺序即优先级，库存按道具个数且整组购买；隐藏不清子项，保存/分享/旧码保值复用原通道。五种条件、公会币保留、自动解锁及none/free/paid刷新类型配套维护；真实页面回归tools/check-fml-shop-ui.py只使用本地Vite和合成接口，产物在artifacts/fml-shop-*。
