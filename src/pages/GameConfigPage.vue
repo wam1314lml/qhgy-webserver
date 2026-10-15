@@ -1585,14 +1585,14 @@
                   config.plant.market.buyMode === 'friend' ||
                   config.plant.market.buyMode === 'excludeFriend'
                 "
-                label="好友名字"
+                label="好友昵称 / ID"
                 name="plant.market.buyFriendNames"
-                tooltip="可填多个好友名字，回车隔开，例如：曼东"
+                tooltip="支持完整昵称或好友ID，可混填，输入后按回车添加；纯数字按ID匹配，昵称需包含区服前缀（如有）"
               >
                 <CustomSelect
                   v-model:value="config.plant.market.buyFriendNames"
                   mode="tags"
-                  placeholder="例如：曼东"
+                  placeholder="例如：s1047.曼冬 或 12345678"
                   style="width: 100%"
                 />
               </CustomFormItem>

@@ -43,6 +43,26 @@ test('旧码仅改现有字段，新字段及当前其他设置保留', () => {
   assert.deepEqual(result.config, expected)
 })
 
+test('花市好友昵称和ID混填，保存重载和分享保留名单，旧码缺名单不覆盖', () => {
+  for (const buyMode of ['friend', 'excludeFriend']) {
+    for (const input of [[' 21001 ', 21002, '好友。二', '21001'], '21001，21002,好友。二']) {
+      const config = fresh()
+      Object.assign(config.plant.market, { autoBuyFromFriend: true, buyMode, buyFriendNames: input })
+      m.normalizeGameConfigSelects(config)
+      const expected = ['21001', '21002', '好友.二']
+      assert.deepEqual(config.plant.market.buyFriendNames, expected)
+      const reloaded = JSON.parse(JSON.stringify(config))
+      m.normalizeGameConfigSelects(reloaded)
+      const imported = adapter.preview(fresh(), adapter.exportConfig(reloaded)).config
+      assert.equal(imported.plant.market.buyMode, buyMode)
+      assert.deepEqual(imported.plant.market.buyFriendNames, expected)
+      const old = adapter.preview(imported, payload({ plant: { market: { minPutTimeDiff: 60 } } })).config
+      assert.deepEqual(old.plant.market.buyFriendNames, expected)
+      assert.equal(old.plant.market.buyMode, buyMode)
+    }
+  }
+})
+
 test('宠物新开关默认开启、旧开关保留、保存分享及旧码缺字段保值', () => {
   const current = fresh()
   assert.equal(current.basic.feedCat.enabled, false)

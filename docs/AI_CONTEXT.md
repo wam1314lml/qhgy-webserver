@@ -1,3 +1,7 @@
+## 好友市场昵称或ID（2026-10-15）
+
+好友市场friend/excludeFriend共用plant.market.buyFriendNames字符串数组，不另建ID字段；页面标签“好友昵称 / ID”，tags回车添加，可混填完整昵称和好友ID。纯数字由脚本只按UID匹配，非数字按完整昵称（含区服前缀），不要提示数字昵称也能匹配。原归一化、保存/分享schema及Web API通用存储保持；scripts/test-config-share.mjs覆盖混填保存重载/分享和旧码缺字段保值。
+
 ## 果园宠物设置（2026-10-15）
 
 宠物继续用basic.feedCat，不能因狗狗文案改字段名或迁移已保存值。原enabled/autoRecall/autoBuyFood/autoFeed/autoStroke默认false保持；新增autoGuide/autoReadLog默认true但显式false保留，受总开关约束，隐藏不清子项。类型、默认、normalize及生成分享schema须同步，旧码缺字段保留接收方当前值。后端通用配置存储无需字段更新。
