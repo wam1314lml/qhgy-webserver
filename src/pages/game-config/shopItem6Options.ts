@@ -63,6 +63,7 @@ export const orchardFruitOptions: ShopOption[] = [
 ]
 
 export const orchardCompanionOptions: ShopOption[] = [
+  { value: 10047, label: "花漾清芳(百果券×450)" },
   { value: 10049, label: "玉兔饮梅(百果券×450)" },
   { value: 10050, label: "荔猫嬉秋(百果券×450)" },
   { value: 10167, label: "鲜盅抱玉(百果券×450)" },
@@ -71,6 +72,7 @@ export const orchardCompanionOptions: ShopOption[] = [
   { value: 10044, label: "云畔萌啾(百果券×500)" },
   { value: 10045, label: "荷风载露(百果券×500)" },
   { value: 10149, label: "葵光小筑(百果券×500)" },
+  { value: 10150, label: "柔紫携芳(百果券×500)" },
   { value: 10152, label: "闲趣萌宠(百果券×500)" },
   { value: 10042, label: "灵花幻域(百果券×600)" },
 ]
