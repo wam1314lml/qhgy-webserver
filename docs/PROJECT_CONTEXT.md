@@ -1,5 +1,9 @@
 # 奇幻果园模块索引
 
+## 2026-10-22 公会图标目录
+
+src/data/guild-artwork.json记录本项目徽章/称号ID到原生资源的映射，public/guild-overview/qhgy-wechat-40/包含29张PNG和来源校验清单。AccountGuildSummary与accountGuild复用原公会快照，仅更新展示；scripts/test-guild-artwork.mjs校验组合及资源完整性。
+
 ## 2026-10-22 角色卡公会摘要
 
 新增 `src/components/AccountGuildSummary.vue` / `src/utils/accountGuild.ts`；由ScriptConfig复用账号记录里的guild完整快照，显示公会三态及竞赛次数；没有新增API或轮询。

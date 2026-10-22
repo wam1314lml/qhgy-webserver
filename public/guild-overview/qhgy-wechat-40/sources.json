@@ -1,0 +1,298 @@
+{
+  "game": "qhgy",
+  "sourceVersion": "wechat-40",
+  "assets": [
+    {
+      "file": "icon_4.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/07/07d7d5fa-d9aa-42b6-a20d-b018f651e69b.62f8d.png",
+      "bytes": 6272,
+      "sha256": "82d0ad6197fe860ec7fb52e0767b19a239c715177ea03ca9d57f90581de6cb46",
+      "size": [
+        83,
+        105
+      ]
+    },
+    {
+      "file": "mask1.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/0a/0a720898-ce68-4672-85bd-43ed5ae1a710.bfb91.png",
+      "bytes": 1999,
+      "sha256": "ff485ad5daf35d4b7d926ad549da23487010fa35ec1382b6a08ce5985a00c64e",
+      "size": [
+        133,
+        133
+      ]
+    },
+    {
+      "file": "xingzhuang_3.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/14/14395260-6e03-4555-b0e1-d77baaadab32.cb19b.png",
+      "bytes": 5458,
+      "sha256": "125e2e8a9758f01ffdb572e4ded20301baa80d921b827ad68b582fccc5c37ad2",
+      "size": [
+        166,
+        166
+      ]
+    },
+    {
+      "file": "title_1.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/16/16a2191d-f9cc-4ee8-9e74-462907e68ef3.40047.png",
+      "bytes": 17501,
+      "sha256": "9a7911093e1070aba36143ee9a5ec1788a344514bba1a4fbcc69390e697f485f",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "di_5.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/1e/1e901217-4cf1-4d48-83ab-9713ce8297cf.9cbd8.png",
+      "bytes": 7253,
+      "sha256": "13b2823ec38d47177738532485b73cdfd5d34c406607dd55da4d44d0c7164e4d",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "title_23.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/25/258800f2-d682-4263-bb2d-13301fdd8355.3b947.png",
+      "bytes": 31498,
+      "sha256": "dcce3b7d5a081e64885c065164b00d4a23c6e77839427f7900f0dad74216c4f7",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "title_12.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/2c/2cb892a8-16ec-41e5-bdb9-af182a267d5b.fa549.png",
+      "bytes": 33501,
+      "sha256": "faefd0c458aae7545adc50aa8a21aa082a7cc4f92e1688e4f1f5794aa93d5718",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "xingzhuang_1.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/2e/2e4abc53-8f6a-4e40-ba29-04b8b81c3609.a062b.png",
+      "bytes": 5733,
+      "sha256": "85f8df386f43e8aff67a228e78d6fb2bd2a6a8b86fff205f23e1c8e2743c3507",
+      "size": [
+        166,
+        166
+      ]
+    },
+    {
+      "file": "title_3.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/33/33e6b8d7-ea40-443f-bf06-5161626c081c.ab477.png",
+      "bytes": 24246,
+      "sha256": "b00ee82bcfca179f891174869b026edb1c3922af6af2d418d9e18b02aad066ee",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "di_4.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/37/376559cd-da8c-4c9e-a927-572d72fe371e.8ae66.png",
+      "bytes": 7485,
+      "sha256": "005f78374183b38d43c9e962c4b06d64e2fbe661b4b5ef99ec8d748bb00a8c28",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "di_6.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/3e/3e89b12a-5c95-4e49-b60a-045990c8fdec.5e737.png",
+      "bytes": 7707,
+      "sha256": "6804b4d223167bc0ea10d9856e59e176c659108aa8669d23ea9c9b15d09ca530",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "title_14.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/47/47cab9b3-4cae-46c9-a993-6627e05e24b0.6a34f.png",
+      "bytes": 36487,
+      "sha256": "b2dafeaefc950ebaf6b01ff1b04a51157c805a130eb8755f4949ebb874c20e0d",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "title_11.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/4e/4edfff73-5a9a-43eb-be1f-c4d65a48de48.498f1.png",
+      "bytes": 34191,
+      "sha256": "8fe428e327fb667a0b55c064fbd406ffd2ea742bbfb95948f205b408abc37453",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "icon_2.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/53/532672b6-c941-43f4-9dbf-6caacdabdcab.94457.png",
+      "bytes": 5819,
+      "sha256": "13f18d59dc4e298cdc41f9e41c36f0b0a17ea9ca1a7c3e80206698f4bc76b6fd",
+      "size": [
+        84,
+        92
+      ]
+    },
+    {
+      "file": "title_13.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/5a/5a1922ad-882d-4035-8e4d-671e08f1c6dd.998bb.png",
+      "bytes": 36636,
+      "sha256": "ba1a7c22fbd228422758e66e4620eb906b6ac8f8fcfb88428e7c31cfa2822195",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "icon_1.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/6d/6da0ac68-3662-49f4-bf4b-bb08bd6998b1.36aa0.png",
+      "bytes": 4850,
+      "sha256": "f7d9adeb5a00992103bc53b0eb9a8e86ce5c6bb80961b6750650470d9b01ce59",
+      "size": [
+        88,
+        91
+      ]
+    },
+    {
+      "file": "xingzhuang_2.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/72/7250b2d0-3a3b-4f51-a35e-7fca5ab27805.f5e8e.png",
+      "bytes": 5790,
+      "sha256": "5b462f66d69cff305b1e946045ddd1f5df9ad5397055b3357474d1f68b668343",
+      "size": [
+        167,
+        165
+      ]
+    },
+    {
+      "file": "di_3.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/76/768e18e8-dbcc-4fd6-9777-1c68803c4006.3ed5b.png",
+      "bytes": 6942,
+      "sha256": "bc6c2d4aa81185f004f904d635d48a5995eeeb327dbe023bbe6e82ce80e15c5a",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "title_24.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/83/8303fe8e-367b-4d63-a874-a8a909ef2bc7.3b947.png",
+      "bytes": 31498,
+      "sha256": "dcce3b7d5a081e64885c065164b00d4a23c6e77839427f7900f0dad74216c4f7",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "title_4.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/a2/a28c0cd3-ae63-4442-8a57-0da1afa2c714.ad673.png",
+      "bytes": 31564,
+      "sha256": "cd344aee484227861f086d8e6ef2490af8bccb8ce9ca2072059e8f327adc835e",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "di_7.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/a7/a77f2cee-742d-40c4-8bca-01c15f28a3ac.d74f8.png",
+      "bytes": 7279,
+      "sha256": "d8860043e53cd73c950754f8c0565bbfb6e6dddc2f79725ca16081e08b946a5d",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "mask2.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/ad/ad8fd4d6-dc4f-4c90-b298-2e6ec2c3836b.0e2fb.png",
+      "bytes": 2054,
+      "sha256": "447b0d52b6fcb5ea1958a483808d105b91bf7f78e9d4ddcc020716c60daa8d45",
+      "size": [
+        133,
+        133
+      ]
+    },
+    {
+      "file": "mask4.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/c4/c42cc67c-1124-483a-9574-623228f3a057.755bb.png",
+      "bytes": 2087,
+      "sha256": "b486dd85527c20ed3192df2b7fe1f02cac3b1de295cea3808336da0431cd47dc",
+      "size": [
+        137,
+        137
+      ]
+    },
+    {
+      "file": "title_2.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/c4/c4d68ada-fa13-4c54-b72b-a785c019b659.b9e70.png",
+      "bytes": 22171,
+      "sha256": "46de1dd96d29e0ea0410292d4d5f5b429e0c1edc6b6afc1502d422cea3a3ca1d",
+      "size": [
+        290,
+        112
+      ]
+    },
+    {
+      "file": "icon_3.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/ca/ca009677-2dbe-489a-90be-f0256d827fd3.6d73b.png",
+      "bytes": 5410,
+      "sha256": "bdd814941ff533f0a0b4f2c9c25fe1ae6d4623f026ba36037a77ec4fd3420fcd",
+      "size": [
+        112,
+        82
+      ]
+    },
+    {
+      "file": "di_2.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/d4/d4097ef6-10e8-4881-b413-0e23606fd7f8.b003c.png",
+      "bytes": 7500,
+      "sha256": "83ec2dfc6de6ea1ce24bffd82c794c7a2b298c157c8bd771e5dcfb700dfeb1fb",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "di_1.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/d7/d7d12cdb-c16e-428a-8bc1-a2adb616c645.f2c4d.png",
+      "bytes": 7055,
+      "sha256": "11fd4ea6fcd0523b0f38cc40b4ba018e939b50fd37367bab31ee8c746dd17283",
+      "size": [
+        134,
+        134
+      ]
+    },
+    {
+      "file": "xingzhuang_4.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/db/db735144-53ff-4b2c-9de4-b4d73680d522.2ebf7.png",
+      "bytes": 5792,
+      "sha256": "cf7c9a71ba27c0c248fe440c27e6323fc60bfe84ad8ef5cb3a8974b61cf5d683",
+      "size": [
+        168,
+        169
+      ]
+    },
+    {
+      "file": "mask3.png",
+      "source": "https://qihuan.jinzewenhua.com/mini/res/remote/subAsync/native/e0/e0def878-109b-4f88-b53d-3f1fab86bcc6.d6c73.png",
+      "bytes": 1929,
+      "sha256": "595e68d2397badfcdfcbff4ee018cd9fbc7a45fafc11dc58cae86c8b75014e7f",
+      "size": [
+        133,
+        133
+      ]
+    }
+  ],
+  "mappingEvidence": "通过当前 MiniApp MCP 对应的游戏 Runtime 读取 club_icon、club_chenghao、subAsync 资源路径和原生组装函数；从已确认的官方资源地址下载19张徽章分层原图、10张称号底图。icon 使用颜色ID_形状ID_图案ID，必须先查club_icon，不能按数字直接拼图名。当前界面3_8_12对应红底樱桃，标题2为丙级公会。颜色134×134、形状166×166、樱桃88×91，按原生尺寸比例居中，不能把各图层全部拉成同样大小。",
+  "limitations": "当前club_chenghao列出的10种称号均有对应底图；称号文字叠加使用原名称、颜色和描边。"
+}

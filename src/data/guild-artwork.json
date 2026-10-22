@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "game": "qhgy",
+  "sourceVersion": "wechat-40",
+  "icons": {
+    "1": {
+      "type": 1,
+      "asset": "di_1"
+    },
+    "2": {
+      "type": 1,
+      "asset": "di_2"
+    },
+    "3": {
+      "type": 1,
+      "asset": "di_3"
+    },
+    "4": {
+      "type": 1,
+      "asset": "di_4"
+    },
+    "5": {
+      "type": 1,
+      "asset": "di_5"
+    },
+    "6": {
+      "type": 1,
+      "asset": "di_6"
+    },
+    "7": {
+      "type": 1,
+      "asset": "di_7"
+    },
+    "8": {
+      "type": 2,
+      "asset": "xingzhuang_1",
+      "mask": "mask1"
+    },
+    "9": {
+      "type": 2,
+      "asset": "xingzhuang_2",
+      "mask": "mask2"
+    },
+    "10": {
+      "type": 2,
+      "asset": "xingzhuang_3",
+      "mask": "mask3"
+    },
+    "11": {
+      "type": 2,
+      "asset": "xingzhuang_4",
+      "mask": "mask4"
+    },
+    "12": {
+      "type": 3,
+      "asset": "icon_1"
+    },
+    "13": {
+      "type": 3,
+      "asset": "icon_2"
+    },
+    "14": {
+      "type": 3,
+      "asset": "icon_3"
+    },
+    "15": {
+      "type": 3,
+      "asset": "icon_4"
+    }
+  },
+  "titles": {
+    "1": {
+      "asset": "title_1",
+      "name": "丁级公会",
+      "color": "#F3FEFF",
+      "outline": "#46AD3E"
+    },
+    "2": {
+      "asset": "title_2",
+      "name": "丙级公会",
+      "color": "#F3FEFF",
+      "outline": "#3899D1"
+    },
+    "3": {
+      "asset": "title_3",
+      "name": "乙级公会",
+      "color": "#F3FEFF",
+      "outline": "#FF6968"
+    },
+    "4": {
+      "asset": "title_4",
+      "name": "甲级公会",
+      "color": "#F3FEFF",
+      "outline": "#E99310"
+    },
+    "11": {
+      "asset": "title_11",
+      "name": "甲级三冠王",
+      "color": "#fffeff",
+      "outline": "#7246bc"
+    },
+    "12": {
+      "asset": "title_12",
+      "name": "甲级三连冠",
+      "color": "#fffeff",
+      "outline": "#3e85ad"
+    },
+    "13": {
+      "asset": "title_13",
+      "name": "甲级五冠王",
+      "color": "#fffeff",
+      "outline": "#E68D00"
+    },
+    "14": {
+      "asset": "title_14",
+      "name": "甲级十冠王",
+      "color": "#fffeff",
+      "outline": "#F4391A"
+    },
+    "23": {
+      "asset": "title_23",
+      "name": "甲级五连冠",
+      "color": "#fffeff",
+      "outline": "#E04AFB"
+    },
+    "24": {
+      "asset": "title_24",
+      "name": "甲级十连冠",
+      "color": "#fffeff",
+      "outline": "#EF9800"
+    }
+  },
+  "assets": {
+    "icon_4": "/guild-overview/qhgy-wechat-40/icon_4.png",
+    "mask1": "/guild-overview/qhgy-wechat-40/mask1.png",
+    "xingzhuang_3": "/guild-overview/qhgy-wechat-40/xingzhuang_3.png",
+    "title_1": "/guild-overview/qhgy-wechat-40/title_1.png",
+    "di_5": "/guild-overview/qhgy-wechat-40/di_5.png",
+    "title_23": "/guild-overview/qhgy-wechat-40/title_23.png",
+    "title_12": "/guild-overview/qhgy-wechat-40/title_12.png",
+    "xingzhuang_1": "/guild-overview/qhgy-wechat-40/xingzhuang_1.png",
+    "title_3": "/guild-overview/qhgy-wechat-40/title_3.png",
+    "di_4": "/guild-overview/qhgy-wechat-40/di_4.png",
+    "di_6": "/guild-overview/qhgy-wechat-40/di_6.png",
+    "title_14": "/guild-overview/qhgy-wechat-40/title_14.png",
+    "title_11": "/guild-overview/qhgy-wechat-40/title_11.png",
+    "icon_2": "/guild-overview/qhgy-wechat-40/icon_2.png",
+    "title_13": "/guild-overview/qhgy-wechat-40/title_13.png",
+    "icon_1": "/guild-overview/qhgy-wechat-40/icon_1.png",
+    "xingzhuang_2": "/guild-overview/qhgy-wechat-40/xingzhuang_2.png",
+    "di_3": "/guild-overview/qhgy-wechat-40/di_3.png",
+    "title_24": "/guild-overview/qhgy-wechat-40/title_24.png",
+    "title_4": "/guild-overview/qhgy-wechat-40/title_4.png",
+    "di_7": "/guild-overview/qhgy-wechat-40/di_7.png",
+    "mask2": "/guild-overview/qhgy-wechat-40/mask2.png",
+    "mask4": "/guild-overview/qhgy-wechat-40/mask4.png",
+    "title_2": "/guild-overview/qhgy-wechat-40/title_2.png",
+    "icon_3": "/guild-overview/qhgy-wechat-40/icon_3.png",
+    "di_2": "/guild-overview/qhgy-wechat-40/di_2.png",
+    "di_1": "/guild-overview/qhgy-wechat-40/di_1.png",
+    "xingzhuang_4": "/guild-overview/qhgy-wechat-40/xingzhuang_4.png",
+    "mask3": "/guild-overview/qhgy-wechat-40/mask3.png"
+  },
+  "sizes": {
+    "icon_4": [
+      83,
+      105
+    ],
+    "mask1": [
+      133,
+      133
+    ],
+    "xingzhuang_3": [
+      166,
+      166
+    ],
+    "title_1": [
+      290,
+      112
+    ],
+    "di_5": [
+      134,
+      134
+    ],
+    "title_23": [
+      290,
+      112
+    ],
+    "title_12": [
+      290,
+      112
+    ],
+    "xingzhuang_1": [
+      166,
+      166
+    ],
+    "title_3": [
+      290,
+      112
+    ],
+    "di_4": [
+      134,
+      134
+    ],
+    "di_6": [
+      134,
+      134
+    ],
+    "title_14": [
+      290,
+      112
+    ],
+    "title_11": [
+      290,
+      112
+    ],
+    "icon_2": [
+      84,
+      92
+    ],
+    "title_13": [
+      290,
+      112
+    ],
+    "icon_1": [
+      88,
+      91
+    ],
+    "xingzhuang_2": [
+      167,
+      165
+    ],
+    "di_3": [
+      134,
+      134
+    ],
+    "title_24": [
+      290,
+      112
+    ],
+    "title_4": [
+      290,
+      112
+    ],
+    "di_7": [
+      134,
+      134
+    ],
+    "mask2": [
+      133,
+      133
+    ],
+    "mask4": [
+      137,
+      137
+    ],
+    "title_2": [
+      290,
+      112
+    ],
+    "icon_3": [
+      112,
+      82
+    ],
+    "di_2": [
+      134,
+      134
+    ],
+    "di_1": [
+      134,
+      134
+    ],
+    "xingzhuang_4": [
+      168,
+      169
+    ],
+    "mask3": [
+      133,
+      133
+    ]
+  }
+}
