@@ -1,3 +1,7 @@
+## 2026-10-22 角色卡整页回归
+
+角色卡接入公共组件时，模板只能引用本项目实际定义的方法；公会在线状态复用getAccountGameData(account).isOnline。修改需运行scripts/test-account-home-browser.py检查真实首页及生产dist中的账号列表，覆盖在线/离线、缺记录和空列表；构建成功或公共组件独立预览不能替代父组件集成验证。测试只用合成API并拦截外网。
+
 ## 2026-10-22 公会原生资源维护
 
 公会图片只由src/data/guild-artwork.json白名单解析；更新需核对本游戏原始配置、图片尺寸、透明遮罩及sources.json校验和，不能从账号字段拼任意URL。果园icon按下划线分隔的三个club_icon行ID解码。图层按原生尺寸相对边框缩放；称号底图须叠加原生名称。缺图保留文字，未知状态不推断入会；资源变更运行test-guild-artwork.mjs并检查手机布局。细节见HANDOFF本日原生资源条目。

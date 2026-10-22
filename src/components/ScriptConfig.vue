@@ -219,7 +219,7 @@
                 }}</span>
               </div>
             </div>
-            <AccountGuildSummary :record="account.record?.record?.guild" :online="getAccountOnlineStatus(account)" :race="getAccountGameData(account)" />
+            <AccountGuildSummary :record="account.record?.record?.guild" :online="getAccountGameData(account).isOnline" :race="getAccountGameData(account)" />
             <div class="flex justify-end items-baseline info-line expire-line">
               <div>
                 到期时间：<span

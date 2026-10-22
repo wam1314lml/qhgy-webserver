@@ -1,3 +1,10 @@
+## 2026-10-22 首页角色卡空白修复（授权Git交付，未部署）
+
+- 原因：同步公会框时，ScriptConfig模板引用本项目未定义的getAccountOnlineStatus；账号列表返回后渲染抛出TypeError，主内容变空。改为复用已有getAccountGameData(account).isOnline，沿用顶层及内层记录的在线状态口径。
+- 新增scripts/test-account-home-browser.py，运行真实首页入口、Dashboard、ScriptConfig及公会组件，全部API由合成数据拦截。覆盖7个角色、两种在线字段、离线快照、未入会、缺公会/record:null旧记录、未知图标和称号、图片404回退、空列表及1280/390/320宽度；不启动/停止或写入真实账号。
+- 从Git HEAD导出的隔离源码仅叠加本次修复，保留原生产混淆配置，npm run build及生产dist完整首页回归通过。此前单独公会组件预览未覆盖父级模板调用，本轮已补齐集成验证；产物见J:/CodeBuddy/garden-assistant-master/work/qhgy-card-regression-20261022/。
+- 沿用本轮Git交付授权，修复同步果园及花开，其他本地任务保留；未部署。
+
 ## 2026-10-22 公会原生徽章与称号资源（授权Git交付，未部署）
 
 - 通过当前 MiniApp MCP 对应的游戏 Runtime 读取 club_icon、club_chenghao、subAsync 资源路径和原生组装函数；从已确认的官方资源地址下载19张徽章分层原图、10张称号底图。icon 使用颜色ID_形状ID_图案ID，必须先查club_icon，不能按数字直接拼图名。当前界面3_8_12对应红底樱桃，标题2为丙级公会。颜色134×134、形状166×166、樱桃88×91，按原生尺寸比例居中，不能把各图层全部拉成同样大小。
