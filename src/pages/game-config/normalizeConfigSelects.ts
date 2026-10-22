@@ -292,6 +292,9 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   // 旧配置默认继续领取平台奖励，保存/导入时保留用户明确关闭的设置。
   config.basic.benefit.platformRwd = config.basic.benefit.platformRwd !== false
 
+  // 只接受显式布尔开启，旧账号缺字段保持关闭。
+  config.basic.bag = { openMaterials: asRecord(config.basic.bag)?.openMaterials === true }
+
   // 沿用feedCat路径及旧开关；新指引/已读记录默认开启，明确false保存并可分享。
   const pet = config.basic.feedCat
   for (const key of ['autoGuide', 'autoReadLog'] as const) {
@@ -407,6 +410,21 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   const currentTemplate = flower.freeStyleTemplate || flower.freeStyleList[0]?.name
   const matchedTemplate = flower.freeStyleList.find((item) => item.name === currentTemplate)
   flower.freeStyleTemplate = matchedTemplate?.name || flower.freeStyleList[0].name
+
+  // 与脚本ConfigMgr保持一致；旧账号缺节点默认关闭，隐藏子项保留。
+  const rawFriend = config.plant.friend
+  const friend = rawFriend && typeof rawFriend === 'object' && !Array.isArray(rawFriend) ? rawFriend : {} as Partial<GameConfig['plant']['friend']>
+  const friendLimit = (value: unknown) => {
+    const numberValue = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
+    return Number.isFinite(numberValue) ? Math.max(0, Math.min(999, Math.floor(numberValue))) : 0
+  }
+  config.plant.friend = {
+    enabled: friend.enabled === true,
+    rejectOnStart: friend.rejectOnStart === true,
+    maxFriends: friendLimit(friend.maxFriends),
+    deleteAfterMinutes: friendLimit(friend.deleteAfterMinutes),
+    deleteOfflineDays: friendLimit(friend.deleteOfflineDays),
+  }
 
   const friendSteal = config.plant.friendSteal
   friendSteal.stealQualities = normalizeFlowerQualities(friendSteal.stealQualities)

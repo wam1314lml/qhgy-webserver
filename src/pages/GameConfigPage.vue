@@ -154,6 +154,15 @@
             >
               <Switch v-model:checked="config.basic.task.achieve" />
             </CustomFormItem>
+            <Divider orientation="left">仓库道具</Divider>
+            <CustomFormItem
+              label="开材料"
+              name="basic.bag.openMaterials"
+              tooltip="自动打开随机药剂、随机肥料、随机土壤、随机培育材料和日常宝箱。每60秒检查，每类每轮最多99个，余量后续继续开启。"
+            >
+              <Switch v-model:checked="config.basic.bag.openMaterials" />
+            </CustomFormItem>
+
             <Divider orientation="left">邮件配置</Divider>
             <CustomFormItem label="自动领取" name="basic.mail" tooltip="自动领取邮件奖励">
               <Switch v-model:checked="config.basic.mail" />
@@ -967,6 +976,30 @@
                 />
               </CustomFormItem>
             </template>
+
+            <Divider orientation="left">好友处理</Divider>
+            <div class="friend-settings-group">
+              <CustomFormItem label="好友通过" name="plant.friend.enabled" tooltip="每30秒自动处理好友申请；关闭后同时停止本组的拒绝和删除操作">
+                <Switch v-model:checked="config.plant.friend.enabled" />
+              </CustomFormItem>
+              <template v-if="config.plant.friend.enabled">
+                <CustomFormItem label="启动时拒绝全部申请" name="plant.friend.rejectOnStart" tooltip="每次辅助启动时，拒绝启动快照中已有的申请，每项尝试一次；启动后新收到的申请仍会自动通过">
+                  <Switch v-model:checked="config.plant.friend.rejectOnStart" />
+                </CustomFormItem>
+                <CustomFormItem label="好友数上限" name="plant.friend.maxFriends" tooltip="当前好友数低于此值才通过申请；0表示不额外限制，仍受游戏好友位上限约束">
+                  <CustomInputNumber v-model:value="config.plant.friend.maxFriends" :min="0" :max="999" :precision="0" class="w-42! sm:w-48!" />
+                  <span class="ml-2">人</span>
+                </CustomFormItem>
+                <CustomFormItem label="自动删除" name="plant.friend.deleteAfterMinutes" tooltip="脚本自动通过的好友，达到指定分钟后删除；原有好友不计时，闺蜜保留。0表示关闭；删除失败次日再检查">
+                  <CustomInputNumber v-model:value="config.plant.friend.deleteAfterMinutes" :min="0" :max="999" :precision="0" class="w-42! sm:w-48!" />
+                  <span class="ml-2">分钟</span>
+                </CustomFormItem>
+                <CustomFormItem label="自动删除未上线好友" name="plant.friend.deleteOfflineDays" tooltip="每天首次检查时，清理超过指定天数未上线的好友，以头像下的最后在线时间为准；闺蜜保留，0表示关闭。当日失败不重试，次日再检查">
+                  <CustomInputNumber v-model:value="config.plant.friend.deleteOfflineDays" :min="0" :max="999" :precision="0" class="w-42! sm:w-48!" />
+                  <span class="ml-2">天</span>
+                </CustomFormItem>
+              </template>
+            </div>
 
             <Divider orientation="left">好友偷花</Divider>
             <CustomFormItem
@@ -4026,6 +4059,18 @@ const applySharedConfig = (value: GameConfig) => {
 
 // 桌面继承父表单的 8/16 标签列，不能给规则单独固定 145px。
 @media (max-width: 575px) {
+  .friend-settings-group :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
+  .friend-settings-group :deep(.ant-form-item .ant-form-item-row .ant-form-item-control) {
+    flex: 0 0 100%;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .friend-settings-group :deep(.ant-form-item-control-input-content) {
+    display: flex;
+    align-items: center;
+  }
+
   .fml-race-accept-rule-item :deep(.ant-form-item-label) {
     flex: 0 0 110px;
     max-width: 110px;

@@ -45,6 +45,14 @@
               }
             }
           },
+          "bag": {
+            "type": "object",
+            "properties": {
+              "openMaterials": {
+                "type": "boolean"
+              }
+            }
+          },
           "mail": {
             "type": "boolean"
           },
@@ -369,6 +377,26 @@
                 "item": {
                   "type": "scalar"
                 }
+              }
+            }
+          },
+          "friend": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "rejectOnStart": {
+                "type": "boolean"
+              },
+              "maxFriends": {
+                "type": "number"
+              },
+              "deleteAfterMinutes": {
+                "type": "number"
+              },
+              "deleteOfflineDays": {
+                "type": "number"
               }
             }
           },

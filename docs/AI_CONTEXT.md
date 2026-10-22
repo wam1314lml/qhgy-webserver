@@ -14,6 +14,14 @@
 
 角色卡接入 `AccountGuildSummary.vue` 与 `accountGuild.ts`，展示原生公会名称/编号/等级/称号、人数/容量、财富、公会币和原竞赛次数。未知与未入会单独显示，离线显示“上次同步”；徽章和称号使用本项目guild-artwork静态目录，未知编号或缺图才回退，不套用花园资源编号。复用原账号记录轮询。
 
+## 仓库开材料（2026-10-22）
+
+基础页“仓库道具 → 开材料”沿用花园basic.bag.openMaterials，仅布尔true开启，默认false/旧账号关闭。范围仅随机药剂、肥料、土壤、培育材料和日常宝箱，每60秒每类最多99个，余量后续处理。类型/默认/normalize/生成schema同步，旧分享码缺字段保留接收方值；由果园BagMgr执行，Web API通用JSON存储无需字段更新。页面用tools/check-bag-ui.py合成API回归，不连接真实账号。
+
+## 好友处理（2026-10-22）
+
+种植页plant.friend对应enabled/rejectOnStart/maxFriends/deleteAfterMinutes/deleteOfflineDays，布尔严格true且默认false、数字默认0并归一0~999整数。总开关关闭隐藏但不清子项，旧分享码缺字段保值；类型、默认、normalize和生成schema同步。定时删除仅脚本通过好友，离线清理每日一次，闺蜜保留；文案不能暗示0绕过游戏上限或原有好友也计时。手机组标签独占一行，输入与单位同行。执行端为果园FriendMgr，Web API通用存储无需字段更新。验证test-config-share、tools/check-friend-ui.py及生产构建，界面测试只用合成API。
+
 ## 好友市场昵称或ID（2026-10-15）
 
 好友市场friend/excludeFriend共用plant.market.buyFriendNames字符串数组，不另建ID字段；页面标签“好友昵称 / ID”，tags回车添加，可混填完整昵称和好友ID。纯数字由脚本只按UID匹配，非数字按完整昵称（含区服前缀），不要提示数字昵称也能匹配。原归一化、保存/分享schema及Web API通用存储保持；scripts/test-config-share.mjs覆盖混填保存重载/分享和旧码缺字段保值。

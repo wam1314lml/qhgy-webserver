@@ -21,6 +21,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         story: false,
         achieve: false,
       },
+      bag: { openMaterials: false },
       mail: false,
       benefit: {
         platformRwd: true,
@@ -145,6 +146,13 @@ export const createDefaultGameConfig = (): GameConfig =>
         lowStockExcludeFlowerIds: [],
         plantExcludeMigrated: false,
         plantExcludeFlowerIds: [],
+      },
+      friend: {
+        enabled: false,
+        rejectOnStart: false,
+        maxFriends: 0,
+        deleteAfterMinutes: 0,
+        deleteOfflineDays: 0,
       },
       friendSteal: {
         enabled: false,

@@ -53,3 +53,9 @@ temp/
 
 # 宠物配置本地界面回归产物
 /artifacts/pet-*
+
+# 好友配置本地界面回归产物
+/artifacts/friend-*
+
+# 开材料本地界面回归产物
+/artifacts/bag-*

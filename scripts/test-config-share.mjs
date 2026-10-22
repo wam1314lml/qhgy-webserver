@@ -43,6 +43,50 @@ test('旧码仅改现有字段，新字段及当前其他设置保留', () => {
   assert.deepEqual(result.config, expected)
 })
 
+test('开材料默认关闭、严格布尔、保存分享及旧码缺字段保值', () => {
+  for (const raw of [undefined, null, [], true, { openMaterials: 'true' }, { openMaterials: 1 }]) {
+    const config = fresh()
+    config.basic.bag = raw
+    m.normalizeGameConfigSelects(config)
+    assert.deepEqual(config.basic.bag, { openMaterials: false })
+  }
+  for (const value of [true, false]) {
+    const config = fresh()
+    config.basic.bag.openMaterials = value
+    const reloaded = JSON.parse(JSON.stringify(config))
+    m.normalizeGameConfigSelects(reloaded)
+    const imported = adapter.preview(fresh(), adapter.exportConfig(reloaded)).config
+    assert.equal(imported.basic.bag.openMaterials, value)
+    const old = adapter.preview(imported, payload({ basic: { mail: true } })).config
+    assert.equal(old.basic.bag.openMaterials, value)
+    const changed = adapter.preview(imported, payload({ basic: { bag: { openMaterials: !value } } })).config
+    assert.equal(changed.basic.bag.openMaterials, !value)
+  }
+})
+
+test('好友处理默认关闭、整数边界、保存分享及旧码缺字段保值', () => {
+  const config = fresh()
+  const defaults = { enabled: false, rejectOnStart: false, maxFriends: 0, deleteAfterMinutes: 0, deleteOfflineDays: 0 }
+  assert.deepEqual(config.plant.friend, defaults)
+  delete config.plant.friend
+  m.normalizeGameConfigSelects(config)
+  assert.deepEqual(config.plant.friend, defaults)
+  Object.assign(config.plant.friend, { enabled: true, rejectOnStart: true, maxFriends: '150.9', deleteAfterMinutes: 1000, deleteOfflineDays: -2 })
+  m.normalizeGameConfigSelects(config)
+  assert.deepEqual(config.plant.friend, { enabled: true, rejectOnStart: true, maxFriends: 150, deleteAfterMinutes: 999, deleteOfflineDays: 0 })
+  const imported = adapter.preview(fresh(), adapter.exportConfig(JSON.parse(JSON.stringify(config)))).config
+  assert.deepEqual(imported.plant.friend, config.plant.friend)
+  const old = adapter.preview(imported, payload({ plant: { friendSteal: { enabled: true } } })).config
+  assert.deepEqual(old.plant.friend, imported.plant.friend)
+  const disabled = adapter.preview(imported, payload({ plant: { friend: { enabled: false, maxFriends: 0 } } })).config
+  assert.equal(disabled.plant.friend.enabled, false)
+  assert.equal(disabled.plant.friend.maxFriends, 0)
+  assert.equal(disabled.plant.friend.deleteAfterMinutes, 999)
+  config.plant.friend = { enabled: 'true', rejectOnStart: 1, maxFriends: true, deleteAfterMinutes: 'bad', deleteOfflineDays: null }
+  m.normalizeGameConfigSelects(config)
+  assert.deepEqual(config.plant.friend, defaults)
+})
+
 test('花市好友昵称和ID混填，保存重载和分享保留名单，旧码缺名单不覆盖', () => {
   for (const buyMode of ['friend', 'excludeFriend']) {
     for (const input of [[' 21001 ', 21002, '好友。二', '21001'], '21001，21002,好友。二']) {

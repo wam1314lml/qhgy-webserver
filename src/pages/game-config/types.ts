@@ -24,6 +24,7 @@ export interface GameConfig {
       story: boolean
       achieve: boolean
     }
+    bag: { openMaterials: boolean }
     mail: boolean
     benefit: {
       platformRwd: boolean
@@ -125,6 +126,13 @@ export interface GameConfig {
       plantExcludeMigrated: boolean
       /** 兼容脚本端现有的当前模式排除列表。 */
       plantExcludeFlowerIds: Array<number | string>
+    }
+    friend: {
+      enabled: boolean
+      rejectOnStart: boolean
+      maxFriends: number
+      deleteAfterMinutes: number
+      deleteOfflineDays: number
     }
     friendSteal: {
       enabled: boolean

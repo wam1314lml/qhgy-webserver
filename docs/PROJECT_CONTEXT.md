@@ -8,6 +8,10 @@ src/data/guild-artwork.json记录本项目徽章/称号ID到原生资源的映�
 
 新增 `src/components/AccountGuildSummary.vue` / `src/utils/accountGuild.ts`；由ScriptConfig复用账号记录里的guild完整快照，显示公会三态及竞赛次数；没有新增API或轮询。
 
+- 仓库开材料（2026-10-22）：GameConfigPage基础页，basic.bag.openMaterials总开关，五种果园道具，默认关闭。类型/默认/归一化/分享schema同步，执行端BagMgr，无新Web API。验证tools/check-bag-ui.py和分享用例。
+
+- 好友处理（2026-10-22）：GameConfigPage种植页，plant.friend五项申请/上限/清理配置；类型/默认/归一化/分享schema及手机布局配套，果园FriendMgr执行，无新Web API。验证tools/check-friend-ui.py及scripts/test-config-share.mjs。
+
 - 宠物狗狗（2026-10-15）：GameConfigPage基础页，兼容basic.feedCat，新增首次指引autoGuide和已结算记录autoReadLog；类型/默认/归一化/分享schema配套，宠物组手机标签独立布局。执行端为果园PetMgr及QhgyBusinessBootstrap，无新Web API；见HANDOFF对应条目。
 
 - 公会商店（2026-10-12）：GameConfigPage公会页新增FmlShopSettings，配置union.fmlShop；36种果园商品、五种条件、排序/余额保留/解锁/刷新。脚本FmlShopConfig为规则源，生成前端规则/目录，类型/默认值/归一化/分享schema同步。无新Web API。
