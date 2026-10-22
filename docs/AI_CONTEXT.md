@@ -1,3 +1,11 @@
+## 2026-10-22 扫货好友过滤与公会同步约定
+
+`plant.market.buyFriendEnabled` / `excludeFriendEnabled` 为互斥布尔值，默认均关闭；指定优先处理异常的双开配置。所有扫货策略先叠加好友过滤，两个开关均关闭时仅按商品策略。旧 `buyMode=friend/excludeFriend` 迁到 `all` 加对应开关，原名单保留，不直接改写脚本账号对象。
+
+两个开关移到策略及其商品选项之后、最小上架时长之前；启用任一自动关闭另一个，共用原好友名单。保存、载入、分享导入均支持旧模式迁移，旧分享缺少新字段时保留当前值。
+
+角色卡接入 `AccountGuildSummary.vue` 与 `accountGuild.ts`，展示原生公会名称/编号/等级/称号、人数/容量、财富、公会币和原竞赛次数。未知与未入会单独显示，离线显示“上次同步”；徽章使用通用回退，不套用花园资源编号。复用原账号记录轮询。
+
 ## 好友市场昵称或ID（2026-10-15）
 
 好友市场friend/excludeFriend共用plant.market.buyFriendNames字符串数组，不另建ID字段；页面标签“好友昵称 / ID”，tags回车添加，可混填完整昵称和好友ID。纯数字由脚本只按UID匹配，非数字按完整昵称（含区服前缀），不要提示数字昵称也能匹配。原归一化、保存/分享schema及Web API通用存储保持；scripts/test-config-share.mjs覆盖混填保存重载/分享和旧码缺字段保值。

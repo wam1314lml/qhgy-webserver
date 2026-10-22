@@ -65,8 +65,6 @@ export const buyModeOptions = [
   { value: 'specific', label: '指定水果' },
   { value: 'quality', label: '指定品质' },
   { value: 'exclude', label: '排除水果' },
-  { value: 'friend', label: '指定好友' },
-  { value: 'excludeFriend', label: '排除好友' },
   { value: 'uncultivated', label: '只扫没有的种子' },
 ]
 

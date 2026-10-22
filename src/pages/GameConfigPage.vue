@@ -1574,29 +1574,11 @@
                     <Radio value="specific">指定水果</Radio>
                     <Radio value="quality">指定品质</Radio>
                     <Radio value="exclude">排除水果</Radio>
-                    <Radio value="friend">指定好友</Radio>
-                    <Radio value="excludeFriend">排除好友</Radio>
                     <Radio value="uncultivated">只扫没有的种子</Radio>
                   </Space>
                 </Radio.Group>
               </CustomFormItem>
-              <CustomFormItem
-                v-if="
-                  config.plant.market.buyMode === 'friend' ||
-                  config.plant.market.buyMode === 'excludeFriend'
-                "
-                label="好友昵称 / ID"
-                name="plant.market.buyFriendNames"
-                tooltip="支持完整昵称或好友ID，可混填，输入后按回车添加；纯数字按ID匹配，昵称需包含区服前缀（如有）"
-                extra="支持好友ID或完整昵称，可混填，每项输入后按回车添加。纯数字按ID匹配，昵称需包含区服前缀（如有）。指定好友仅购买名单中的好友，排除好友跳过名单中的好友。"
-              >
-                <CustomSelect
-                  v-model:value="config.plant.market.buyFriendNames"
-                  mode="tags"
-                  placeholder="例如：s1047.曼冬 或 12345678"
-                  style="width: 100%"
-                />
-              </CustomFormItem>
+
               <CustomFormItem
                 label="指定水果"
                 name="plant.market.buySpecificFlowerIds"
@@ -1640,6 +1622,26 @@
                   :options="getFlowerPickerOptions(config.plant.market.excludeFlowerIds)"
                   show-search
                   option-filter-prop="label"
+                  style="width: 100%"
+                />
+              </CustomFormItem>
+              <CustomFormItem label="指定好友" name="plant.market.buyFriendEnabled" tooltip="仅购买名单中的好友，与当前扫货策略同时生效；开启后自动关闭排除好友。名单为空时不购买。">
+                <Switch v-model:checked="config.plant.market.buyFriendEnabled" @change="checked => { if (checked) config.plant.market.excludeFriendEnabled = false }" />
+              </CustomFormItem>
+              <CustomFormItem label="排除好友" name="plant.market.excludeFriendEnabled" tooltip="跳过名单中的好友，与当前扫货策略同时生效；开启后自动关闭指定好友。">
+                <Switch v-model:checked="config.plant.market.excludeFriendEnabled" @change="checked => { if (checked) config.plant.market.buyFriendEnabled = false }" />
+              </CustomFormItem>
+              <CustomFormItem
+                v-if="config.plant.market.buyFriendEnabled || config.plant.market.excludeFriendEnabled"
+                label="好友昵称 / ID"
+                name="plant.market.buyFriendNames"
+                tooltip="支持完整昵称或好友ID，可混填，输入后按回车添加；纯数字按ID匹配，昵称需包含区服前缀（如有）"
+                extra="支持好友ID或完整昵称，可混填，每项输入后按回车添加。纯数字按ID匹配，昵称需包含区服前缀（如有）。指定好友仅购买名单中的好友，排除好友跳过名单中的好友。"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.market.buyFriendNames"
+                  mode="tags"
+                  placeholder="例如：s1047.曼冬 或 12345678"
                   style="width: 100%"
                 />
               </CustomFormItem>

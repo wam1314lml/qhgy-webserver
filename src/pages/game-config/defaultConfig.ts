@@ -224,6 +224,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         buySpecificFlowerIds: [],
         buyQualities: [],
         excludeFlowerIds: [],
+        buyFriendEnabled: false,
+        excludeFriendEnabled: false,
         buyFriendNames: [],
         minPutTimeDiff: 0,
       },

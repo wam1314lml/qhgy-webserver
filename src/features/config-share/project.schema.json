@@ -638,6 +638,12 @@
                   "type": "scalar"
                 }
               },
+              "buyFriendEnabled": {
+                "type": "boolean"
+              },
+              "excludeFriendEnabled": {
+                "type": "boolean"
+              },
               "buyFriendNames": {
                 "type": "array",
                 "item": {

@@ -273,6 +273,17 @@ export function migrateLegacyFlowerCompeteSelection(value: unknown): void {
   delete settings.selectFlowerId
 }
 
+/** 旧好友策略只迁移实际存在的字段，供保存和旧分享码共用。 */
+export function migrateMarketFriendFilters(config: any): void {
+  const market = config?.plant?.market
+  if (!market || typeof market !== 'object' || Array.isArray(market)) return
+  if (market.buyMode === 'friend' || market.buyMode === 'excludeFriend') {
+    market.buyFriendEnabled = market.buyMode === 'friend'
+    market.excludeFriendEnabled = market.buyMode === 'excludeFriend'
+    market.buyMode = 'all'
+  }
+}
+
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
 export function normalizeGameConfigSelects(config: GameConfig): void {
   migrateLegacyFmlRaceTaskPriority(config)
@@ -475,7 +486,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   // 旧账号缺失字段时沿用自动补做，必须保留用户显式关闭。
   config.plant.artSell.makeWhenInsufficient = config.plant.artSell.makeWhenInsufficient !== false
 
+  migrateMarketFriendFilters(config)
   const market = config.plant.market
+  market.buyFriendEnabled = market.buyFriendEnabled === true
+  market.excludeFriendEnabled = !market.buyFriendEnabled && market.excludeFriendEnabled === true
   market.putMode = ensureSingleSelectValue(market.putMode, putModeOptions)
   market.priceIndex = ensureSingleSelectValue(market.priceIndex, priceIndexOptions)
   market.buyMode = ensureSingleSelectValue(market.buyMode, buyModeOptions)

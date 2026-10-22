@@ -1,3 +1,4 @@
+import { migrateMarketFriendFilters } from '../../pages/game-config/normalizeConfigSelects'
 import { shareProject } from './project'
 import {
   SHARE_FORMAT, mergeConfig, projectPatch, sanitizeConfig, validatePayload,
@@ -22,6 +23,8 @@ export function createProjectShareAdapter<T>(normalize: (config: T) => T,
         input = clone(input)
         migratePatch((input as SharePayload).config)
       }
+      input = clone(input)
+      migrateMarketFriendFilters((input as SharePayload)?.config)
       const payload = validatePayload(input, shareProject)
       const ignored = sanitizeConfig((input as SharePayload).config, shareProject.schema).ignored
       const currentObject = current as unknown as ConfigObject

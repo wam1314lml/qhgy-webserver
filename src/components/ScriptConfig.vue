@@ -187,14 +187,7 @@
                 <span class="stat-label">喵币</span>
                 <span class="stat-value">{{ getAccountGameData(account).meowCoin }}</span>
               </div>
-              <div class="stat-item compact">
-                <span class="stat-label">公会竞赛</span>
-                <span class="stat-value"
-                  >{{ getAccountGameData(account).usedTaskNum }}/{{
-                    getAccountGameData(account).totalTaskNum
-                  }}</span
-                >
-              </div>
+
             </div>
             <div class="stats-grid task-stats">
               <div class="stat-item compact">
@@ -226,6 +219,7 @@
                 }}</span>
               </div>
             </div>
+            <AccountGuildSummary :record="account.record?.record?.guild" :online="getAccountOnlineStatus(account)" :race="getAccountGameData(account)" />
             <div class="flex justify-end items-baseline info-line expire-line">
               <div>
                 到期时间：<span
@@ -705,6 +699,7 @@
 </template>
 
 <script setup lang="ts">
+import AccountGuildSummary from './AccountGuildSummary.vue'
 import BatchAccountActions from './BatchAccountActions.vue'
 import { ref, onMounted, onUnmounted, watch, onBeforeUnmount, h, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'

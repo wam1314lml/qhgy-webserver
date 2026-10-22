@@ -54,11 +54,15 @@ test('花市好友昵称和ID混填，保存重载和分享保留名单，旧码
       const reloaded = JSON.parse(JSON.stringify(config))
       m.normalizeGameConfigSelects(reloaded)
       const imported = adapter.preview(fresh(), adapter.exportConfig(reloaded)).config
-      assert.equal(imported.plant.market.buyMode, buyMode)
+      assert.equal(imported.plant.market.buyMode, 'all')
+      assert.equal(imported.plant.market.buyFriendEnabled, buyMode === 'friend')
+      assert.equal(imported.plant.market.excludeFriendEnabled, buyMode === 'excludeFriend')
       assert.deepEqual(imported.plant.market.buyFriendNames, expected)
       const old = adapter.preview(imported, payload({ plant: { market: { minPutTimeDiff: 60 } } })).config
       assert.deepEqual(old.plant.market.buyFriendNames, expected)
-      assert.equal(old.plant.market.buyMode, buyMode)
+      assert.equal(old.plant.market.buyMode, 'all')
+      assert.equal(old.plant.market.buyFriendEnabled, buyMode === 'friend')
+      assert.equal(old.plant.market.excludeFriendEnabled, buyMode === 'excludeFriend')
     }
   }
 })

@@ -204,6 +204,8 @@ export interface GameConfig {
       buySpecificFlowerIds: Array<number | string>
       buyQualities: number[]
       excludeFlowerIds: Array<number | string>
+      buyFriendEnabled: boolean
+      excludeFriendEnabled: boolean
       buyFriendNames: string[]
       minPutTimeDiff: number
     }
