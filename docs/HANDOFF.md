@@ -1,3 +1,9 @@
+## 2026-10-23 MCP 新水果配置选项同步（未部署）
+
+- 来源为果园脚本当前MCP全库与export/qhgy-database导出。新增杨柳51089、湖畔灵塔53061、山海·青蛇缘54023，花瓶青蛇灵踪5423及完整配方542301；水果267→270、花瓶42→43、配方707→708，均保留全部旧选项和ID。
+- 复用generate-qhgy-game-config-options.mjs在node_modules/.cache/qhgy-db-20261023隔离生成并备份，只写回flowerOptions.ts、flowerArtOptions.ts、specifiedArtsFullOptions.ts，共5项新增。果灵、百果园、竞赛目录和默认/归一化/schema未变；原ScriptConfig试用资格及文档改动保留。
+- 三类1021项唯一ID及逐项来源一致性、16组配置分享与真实Vue模板/交互、vue-tsc/Vite生产构建通过，仅既有大包提示。未改变页面布局，未做新的浏览器视觉检查或真实账号配置写入。脚本数据库及导出已同步；发布对应前端后选项可见，无Web API迁移，未部署。
+
 ## 2026-10-22 首页角色卡空白修复（授权Git交付，未部署）
 
 - 原因：同步公会框时，ScriptConfig模板引用本项目未定义的getAccountOnlineStatus；账号列表返回后渲染抛出TypeError，主内容变空。改为复用已有getAccountGameData(account).isOnline，沿用顶层及内层记录的在线状态口径。

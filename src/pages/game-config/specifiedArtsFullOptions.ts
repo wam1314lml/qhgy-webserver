@@ -705,6 +705,7 @@ export const specifiedArtsFullOptions: Array<{ value: string; label: string }> =
   { value: "542201", label: "仙姝揽月果艺品(祈月共舞,桂树升月,太婆梨)" },
   { value: "542202", label: "仙姝揽月果艺品(祈月共舞,秋宵月影,太婆梨)" },
   { value: "542203", label: "仙姝揽月果艺品(祈月共舞,月亮天灯,太婆梨)" },
+  { value: "542301", label: "青蛇灵踪果艺品(山海·青蛇缘,湖畔灵塔,杨柳)" },
   { value: "544001", label: "幻梦之夜果艺品(仲夏幻梦,花溪鹿眠,翠霞星果)" },
   { value: "544002", label: "幻梦之夜果艺品(仲夏幻梦,荧夜斟星,翠霞星果)" },
 ]
