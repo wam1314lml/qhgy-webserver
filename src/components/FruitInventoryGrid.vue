@@ -1,5 +1,5 @@
 <template>
-  <div class="evt-fruit-grid" role="list" aria-label="已培育水果，按品质从高到低排列">
+  <div class="evt-fruit-grid" role="list" :aria-label="label">
     <div v-for="(item, index) in items" :key="item.itemId ?? index"
       class="evt-fruit-tile" :class="`evt-fruit-tile--quality-${qualityOf(item)}`" role="listitem">
       <div class="evt-fruit-artwork">
@@ -23,7 +23,7 @@ interface InventoryFruit {
   value: string | number
   quality?: number
 }
-defineProps<{ items: InventoryFruit[] }>()
+defineProps<{ items: InventoryFruit[]; label: string }>()
 
 const qualityNames = ['未知品质', '绿色', '蓝色', '紫色', '金色', '红色']
 const qualityOf = (item: InventoryFruit) => {

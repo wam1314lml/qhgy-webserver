@@ -1,3 +1,7 @@
+## 2026-10-23 水果库存全部分类使用图片
+
+最新用户要求覆盖此前“只有已培育显示图片”的范围：水果库存六个分类及独立折叠区全部使用FruitInventoryGrid，传入对应分类label作为无障碍名称；组件按传入items顺序渲染，不统一重排。数量/品质/500上下四视图、培育分类、搜索与全量复制各自沿用既有数据规则，缺cultivated字段的旧快照仍可看四种图片视图；其他模块和旧花卉库存继续原样。验证现有test-fruit-inventory-evt和test-evt-browser。
+
 ## 2026-10-23 水果图鉴与培育字段
 
 水果库存的已培育图片图鉴只消费脚本明确的cultivated:boolean，旧/部分快照缺字段则分类待同步；不能从正库存、种子或静态目录猜培育。FruitImage通过src/data/fruit-artwork.json解析同源PNG，使用BASE_URL、懒加载及失败占位，名称和数量始终保留；未知ID不拼URL。图鉴按品质5→1再itemId升序，搜索与复制分别使用筛选结果及完整原始清单；按数量等原四视图仍保持旧排序。资源更新用scripts/sync-fruit-artwork.mjs读取果园MCP静态bundle索引及正式数据库，核对sources.json。验证库存专项及test-evt-browser；其他模块和旧花卉库存不套用果园图片。

@@ -228,7 +228,8 @@
                 <span>{{ tab.label }}（{{ tab.items.length }} {{ isInventoryModule(card.module) ? '种' : '名' }}）</span>
                 <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
               </div>
-              <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && isCultivatedInventory(card, tab.key) && tab.items.length" :items="tab.items" />
+              <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && card.module === '水果库存' && tab.items.length"
+                :items="tab.items" :label="`水果库存 · ${tab.label}`" />
               <div v-else-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
                 <template v-for="(item, i) in tab.items" :key="`${tab.key}-${item.key ?? i}`">
                   <div v-if="item.dividerBefore" class="evt-rank-divider"><span>{{ item.dividerBefore }}</span></div>
@@ -276,7 +277,8 @@
                   {{ tab.label }}
                 </button>
               </div>
-              <FruitInventoryGrid v-if="isCultivatedInventory(card, activeRankTab(card)?.key) && activeRankTab(card)?.items.length" :items="activeRankTab(card)?.items || []" />
+              <FruitInventoryGrid v-if="card.module === '水果库存' && activeRankTab(card)?.items.length"
+                :items="activeRankTab(card)?.items || []" :label="`水果库存 · ${activeRankTab(card)?.label || '明细'}`" />
               <div v-else class="evt-rank-list evt-rank-list--tabs">
                 <div
                   v-for="(item, i) in activeRankTab(card)?.items || []"
@@ -530,7 +532,6 @@ const inventoryCategoryItems = (card: EvtCard, key?: string): LayoutRankItem[] =
   if (key !== 'cultivated' && key !== 'uncultivated') return items
   return inventoryCultivationKnown(card) ? items.filter(item => item.cultivated === (key === 'cultivated')) : []
 }
-const isCultivatedInventory = (card: EvtCard, key?: string) => card.module === '水果库存' && key === 'cultivated'
 const rankEmptyText = (card: EvtCard, key?: string): string => {
   if (!isInventoryModule(card.module)) return '暂无排名数据'
   const category = key === 'cultivated' ? '已培育' : key === 'uncultivated' ? '未培育' : ''

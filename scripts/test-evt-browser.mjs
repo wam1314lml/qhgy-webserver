@@ -43,7 +43,7 @@ const bundle = await build({
         const items = [{"itemId": 54023, "name": "山海·青蛇缘", "quality": 5, "value": 0, "cultivated": true}, {"itemId": 54001, "name": "圣域灵花", "quality": 5, "value": 250, "cultivated": true}, {"itemId": 54002, "name": "九尾仙狐", "quality": 5, "value": 375, "cultivated": true}, {"itemId": 54003, "name": "祥瑞灵鸾", "quality": 5, "value": 500, "cultivated": true}, {"itemId": 53061, "name": "湖畔灵塔", "quality": 4, "value": 625, "cultivated": true}, {"itemId": 53001, "name": "绿宝香瓜", "quality": 4, "value": 750, "cultivated": true}, {"itemId": 53002, "name": "月亮仙船", "quality": 4, "value": 875, "cultivated": true}, {"itemId": 53003, "name": "幻梦仙蝶", "quality": 4, "value": 1000, "cultivated": true}, {"itemId": 52001, "name": "总统西梅", "quality": 3, "value": 1125, "cultivated": true}, {"itemId": 52002, "name": "雾琉闻夜铃", "quality": 3, "value": 1250, "cultivated": true}, {"itemId": 52003, "name": "桃雾闻夜铃", "quality": 3, "value": 1375, "cultivated": true}, {"itemId": 52004, "name": "摸鱼入梦", "quality": 3, "value": 1500, "cultivated": true}, {"itemId": 51089, "name": "杨柳", "quality": 2, "value": 1625, "cultivated": true}, {"itemId": 51001, "name": "法兰西西梅", "quality": 2, "value": 1750, "cultivated": true}, {"itemId": 51002, "name": "蓝蜜西梅", "quality": 2, "value": 1875, "cultivated": true}, {"itemId": 51003, "name": "小太阳暖杏", "quality": 2, "value": 2000, "cultivated": true}, {"itemId": 50001, "name": "蛇果", "quality": 1, "value": 2125, "cultivated": true}, {"itemId": 50002, "name": "红颜草莓", "quality": 1, "value": 2250, "cultivated": true}, {"itemId": 50003, "name": "金煌芒", "quality": 1, "value": 2375, "cultivated": true}, {"itemId": 50004, "name": "红富士", "quality": 1, "value": 2500, "cultivated": true}, {"itemId": 999999, "name": "缺少图片的水果", "quality": 99, "value": 1234567890123, "cultivated": true}, {"itemId": 50010, "name": "未培育测试水果", "quality": 1, "value": 20, "cultivated": false}].reverse();
         if (mode === 'legacy') items.forEach(item => delete item.cultivated);
         if (mode === 'empty') items.forEach(item => item.cultivated = false);
-        if (mode === 'broken') items.forEach(item => item.cultivated = item.itemId === 50010);
+        if (mode === 'broken') items.forEach(item => { item.cultivated = item.itemId === 50010; if (item.cultivated) item.itemId = 50011; });
         store.replaceStates({'水果库存':{layout:{rankTabs:[{key:'count',label:'按数量',items}],rankTabDefault:'count',rankTabsMode:mode==='sections'?'sections':'tabs',rankListLabel:'水果明细'}}});
         modules.value = store.snapshot(); filter.value='水果库存'; await nextTick();
       },
@@ -254,12 +254,50 @@ try {
       await writeFile(path.resolve(process.argv[screenshot+1].replace('.png',`-${width}.png`)),Buffer.from(capture.data,'base64'))
     }
   }
+  // 六个分类均使用原生图片卡片；数量/品质和500分界仍按原规则排列。
+  const tiles = () => evaluate(`[...document.querySelectorAll('.evt-fruit-tile')].map(el=>({name:el.querySelector('.evt-fruit-name').textContent,count:Number(el.querySelector('.evt-fruit-stock b').textContent),quality:Number(el.className.match(/quality-(\\d+)/)[1])}))`)
+  for (const label of ['按数量','按品质','500库存↑','500库存↓','已培育','未培育']) {
+    await selectTab(label)
+    const rows = await tiles()
+    assert.equal(rows.length, (await names()).length, label+'不能回退文字列表')
+    assert.equal(await evaluate(`document.querySelector('.evt-fruit-grid').getAttribute('aria-label')`), '水果库存 · '+label)
+    assert.equal(await evaluate(`document.querySelectorAll('.evt-rank-item').length`), 0)
+    if (label === '按数量') {
+      assert.equal(rows.length, 22)
+      assert.ok(rows.every((row,index)=>index===0 || rows[index-1].count>=row.count))
+    }
+    if (label === '按品质') {
+      assert.equal(rows.length, 22)
+      const known = rows.filter(row=>row.quality>0)
+      assert.ok(known.every((row,index)=>index===0 || known[index-1].quality>row.quality || known[index-1].quality===row.quality && known[index-1].count>=row.count))
+    }
+    if (label === '500库存↑') {
+      assert.equal(rows.length, 18)
+      assert.ok(rows.every((row,index)=>row.count>=500 && (index===0 || rows[index-1].count>=row.count)))
+    }
+    if (label === '500库存↓') {
+      assert.equal(rows.length, 4)
+      assert.deepEqual(rows.map(row=>row.count), [0,20,250,375])
+    }
+    if (label === '已培育') assert.deepEqual(rows.map(row=>row.name), expectedNames)
+    if (label === '未培育') assert.deepEqual(rows.map(row=>row.name), ['未培育测试水果'])
+    assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth+1`), label+'窄屏溢出')
+  }
+  await selectTab('按数量')
+  const allScreenshot = process.argv.indexOf('--inventory-screenshot')
+  if (allScreenshot!==-1) {
+    await command('Emulation.setDeviceMetricsOverride', {width:390,height:900,deviceScaleFactor:1,mobile:true})
+    await sleep(200)
+    const capture = await command('Page.captureScreenshot', {format:'png',captureBeyondViewport:true})
+    await writeFile(path.resolve(process.argv[allScreenshot+1].replace('.png','-count-390.png')),Buffer.from(capture.data,'base64'))
+  }
   await selectTab('未培育'); assert.deepEqual(await names(), ['未培育测试水果'])
   await selectTab('已培育'); await search('没有这个水果')
   assert.match(await evaluate(`document.querySelector('.evt-rank-empty').textContent`),/未找到匹配/)
   await search(''); await evaluate(`window.evtTest.inventory('legacy')`)
   assert.equal(await evaluate(`document.querySelector('.evt-rank-empty').textContent`), '培育数据尚未同步，请等待库存更新')
   await selectTab('按数量'); assert.equal((await names()).length, 22)
+  assert.equal(await evaluate(`document.querySelectorAll('.evt-fruit-tile').length`), 22, '旧快照也使用图片显示数量页')
   await selectTab('已培育'); await evaluate(`window.evtTest.inventory('empty')`)
   assert.equal(await evaluate(`document.querySelector('.evt-rank-empty').textContent`), '暂无已培育水果库存')
   // 真正的 404 不影响库存文案；重新创建卡片后可正常加载。
@@ -268,13 +306,15 @@ try {
   assert.deepEqual(await names(), ['未培育测试水果'])
   assert.equal(await evaluate(`document.querySelectorAll('.fruit-image-fallback').length`), 1)
   failArtwork = false
-  await selectTab('按数量'); await selectTab('已培育'); await sleep(300)
+  await evaluate(`window.evtTest.inventory('empty')`); await evaluate(`window.evtTest.inventory('broken')`); await sleep(300)
   assert.equal(await evaluate(`document.querySelector('.fruit-image img').naturalWidth > 0`), true)
   await search('')
   await evaluate(`window.evtTest.inventory('sections')`)
   await evaluate(`(()=>{const el=[...document.querySelectorAll('.evt-section-toggle')].find(el=>el.textContent.includes('已培育'));if(el.textContent.includes('展开'))el.click()})()`)
-  assert.equal(await evaluate(`document.querySelectorAll('.evt-fruit-tile').length`), 21)
-  console.log('水果图鉴通过：20张真实图、五色排序、零库存、旧快照、搜索/刷新/完整复制、404占位、折叠分类及1280/390/320布局。')
+  const sections = await evaluate(`[...document.querySelectorAll('.evt-fruit-grid')].map(el=>({label:el.getAttribute('aria-label'),count:el.querySelectorAll('.evt-fruit-tile').length}))`)
+  assert.deepEqual(sections.map(section=>section.count), [22,22,18,4,21,1])
+  assert.deepEqual(sections.map(section=>section.label), ['按数量','按品质','500库存↑','500库存↓','已培育','未培育'].map(label=>'水果库存 · '+label))
+  console.log('水果图鉴通过：六分类图片/原排序/500边界，20张真实图、零库存、旧快照、搜索/复制、404占位、六区独立折叠及1280/390/320布局。')
   assert.deepEqual(exceptions, [])
   console.log('折叠/再次展开/切模块/切回全部通过；浏览器异常0。')
 } finally {

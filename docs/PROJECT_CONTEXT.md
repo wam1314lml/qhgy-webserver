@@ -2,7 +2,7 @@
 
 ## 2026-10-23 水果库存图鉴
 
-新增FruitImage.vue、FruitInventoryGrid.vue，由EventCardView的水果库存已培育分类使用；src/data/fruit-artwork.json与public/fruit-icons/保存270张果园原图及来源清单，scripts/sync-fruit-artwork.mjs维护。消费原EVT每行cultivated字段，支持名称搜索和六视图，不新增API或轮询，详细合同见HANDOFF。
+新增FruitImage.vue、FruitInventoryGrid.vue，由EventCardView的水果库存全部六个分类及独立折叠区使用；src/data/fruit-artwork.json与public/fruit-icons/保存270张果园原图及来源清单，scripts/sync-fruit-artwork.mjs维护。消费原EVT每行cultivated字段，支持名称搜索和六视图，不新增API或轮询，详细合同见HANDOFF。
 
 ## 2026-10-22 公会图标目录
 
