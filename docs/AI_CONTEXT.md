@@ -1,3 +1,7 @@
+## 2026-10-23 水果图鉴与培育字段
+
+水果库存的已培育图片图鉴只消费脚本明确的cultivated:boolean，旧/部分快照缺字段则分类待同步；不能从正库存、种子或静态目录猜培育。FruitImage通过src/data/fruit-artwork.json解析同源PNG，使用BASE_URL、懒加载及失败占位，名称和数量始终保留；未知ID不拼URL。图鉴按品质5→1再itemId升序，搜索与复制分别使用筛选结果及完整原始清单；按数量等原四视图仍保持旧排序。资源更新用scripts/sync-fruit-artwork.mjs读取果园MCP静态bundle索引及正式数据库，核对sources.json。验证库存专项及test-evt-browser；其他模块和旧花卉库存不套用果园图片。
+
 ## 2026-10-22 角色卡整页回归
 
 角色卡接入公共组件时，模板只能引用本项目实际定义的方法；公会在线状态复用getAccountGameData(account).isOnline。修改需运行scripts/test-account-home-browser.py检查真实首页及生产dist中的账号列表，覆盖在线/离线、缺记录和空列表；构建成功或公共组件独立预览不能替代父组件集成验证。测试只用合成API并拦截外网。

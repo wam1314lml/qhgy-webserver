@@ -22,7 +22,8 @@ assert.match(source, /@click="copyFlowerInventory\(card\)"/)
 // 只抽取真实 Vue 脚本中的库存展示/复制函数，在内存里执行；无浏览器、接口或真实剪贴板。
 const needed = new Set([
   'isInventoryModule', 'activeRankTabs', 'rankTabsFor', 'activeRankTab',
-  'setActiveRankTab', 'copyFlowerInventory',
+  'setActiveRankTab', 'copyFlowerInventory', 'fruitInventorySearch', 'inventoryItems',
+  'inventoryCultivationKnown', 'inventoryCategoryItems', 'inventoryTabsCache', 'rankEmptyText',
 ])
 const ast = ts.createSourceFile(filename, parsed.descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 const parts = []
@@ -50,6 +51,7 @@ const context = {
 }
 const helpers = vm.runInNewContext(`(() => { ${transformed.code}; return {
   isInventoryModule, rankTabsFor, activeRankTab, setActiveRankTab, copyFlowerInventory,
+  fruitInventorySearch, inventoryCategoryItems, rankEmptyText,
 }; })()`, context, { filename })
 const items = Object.freeze([
   { itemId: 50001, name: '零库存水果', value: 0, quality: 1, badge: '绿色', badgeColor: 'green' },
@@ -71,7 +73,7 @@ for (const module of ['水果库存', '花卉库存']) {
     },
   }
   const views = helpers.rankTabsFor(card)
-  assert.deepEqual(Array.from(views, view => view.key), ['count', 'quality', 'stockHigh', 'stockLow'])
+  assert.deepEqual(Array.from(views, view => view.key), module === '水果库存' ? ['count', 'quality', 'stockHigh', 'stockLow', 'cultivated', 'uncultivated'] : ['count', 'quality', 'stockHigh', 'stockLow'])
   assert.deepEqual(ids(views[0].items), [50004, 50003, 50002, 50005, 50001], '数量降序')
   assert.deepEqual(ids(views[1].items), [50003, 50004, 50002, 50005, 50001], '品质降序，同品质数量降序')
   assert.deepEqual(ids(views[2].items), [50004, 50003], '500 本身必须在高库存视图')
@@ -108,3 +110,21 @@ await helpers.copyFlowerInventory({ module: '水果库存', layout: { rankTabs: 
 assert.deepEqual(messages.at(-1), { level: 'error', text: '复制失败，请重试' })
 
 console.log('水果库存 EVT 前端测试通过：双模块兼容、单份数据四视图、500边界、零库存、复制全部、其他模块隔离、Vue 编译（全离线）。')
+
+const fruitCard = { module: '水果库存', layout: { rankTabs: [{ key: 'count', items: items.map(item => ({ ...item, cultivated: item.itemId !== 50005 })) }] } }
+const views = helpers.rankTabsFor(fruitCard)
+assert.deepEqual(ids(views[4].items), [50003, 50002, 50004, 50001], '图鉴品质降序，同品质编号升序，保留零库存')
+assert.deepEqual(ids(views[5].items), [50005])
+const oldCard = { module: '水果库存', layout: { rankTabs: [{ key: 'count', items }] } }
+assert.equal(helpers.rankTabsFor(oldCard)[4].items.length, 0)
+assert.equal(helpers.rankEmptyText(oldCard, 'cultivated'), '培育数据尚未同步，请等待库存更新')
+const partialCard = { module: '水果库存', layout: { rankTabs: [{ key: 'count', items: [{ ...items[0], cultivated: true }, items[1]] }] } }
+assert.equal(helpers.rankTabsFor(partialCard)[4].items.length, 0, '缺失状态不能显示为完整培育分类')
+helpers.fruitInventorySearch.value = '零库存'
+assert.deepEqual(ids(helpers.rankTabsFor(fruitCard)[4].items), [50001])
+clipboardFails = false
+await helpers.copyFlowerInventory(fruitCard)
+assert.equal(copied.at(-1).split('\n').length, 6, '搜索时复制全部仍使用完整数据')
+helpers.fruitInventorySearch.value = ''
+assert.equal(helpers.rankTabsFor(fruitCard)[4].items.length, 4)
+console.log('已培育图片分类：真实布尔状态、未知/部分/旧数据、稳定排序、名称搜索、完整复制通过。')

@@ -33,6 +33,15 @@
                 :title="`复制全部${card.module}`"
                 @click="copyFlowerInventory(card)"
               >复制全部</button>
+              <div v-if="card.module === '水果库存'" class="evt-inventory-search-group">
+                <input v-model="fruitInventorySearch" type="search" class="evt-inventory-search"
+                  placeholder="搜索水果名称" aria-label="搜索水果库存" @input="expandFruitInventory(card)" />
+                <button v-if="fruitInventorySearch" type="button" class="evt-inventory-clear"
+                  @click="clearFruitInventorySearch(card)">清空</button>
+                <span v-if="fruitInventorySearch.trim()" class="evt-inventory-matches" role="status">
+                  找到 {{ activeRankTab(card)?.items.length || 0 }} / {{ inventoryCategoryItems(card, activeRankTab(card)?.key).length }} 种
+                </span>
+              </div>
             </div>
             <!-- headerStats：右上角徽标 -->
             <div v-if="card.layout?.headerStats?.length" class="evt-header-stats">
@@ -216,10 +225,11 @@
           <template v-if="card.layout?.rankTabsMode === 'sections'">
             <template v-for="tab in rankTabsFor(card)" :key="tab.key">
               <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTab_' + tab.key)">
-                <span>{{ tab.label }}（{{ tab.items.length }} 名）</span>
+                <span>{{ tab.label }}（{{ tab.items.length }} {{ isInventoryModule(card.module) ? '种' : '名' }}）</span>
                 <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
               </div>
-              <div v-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
+              <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && isCultivatedInventory(card, tab.key) && tab.items.length" :items="tab.items" />
+              <div v-else-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
                 <template v-for="(item, i) in tab.items" :key="`${tab.key}-${item.key ?? i}`">
                   <div v-if="item.dividerBefore" class="evt-rank-divider"><span>{{ item.dividerBefore }}</span></div>
                   <div
@@ -244,13 +254,13 @@
                     <span>领先后一名 <b>{{ item.gapToNext == null ? '已是末位' : `${item.gapToNext}分` }}</b></span>
                   </div>
                 </template>
-                <div v-if="!tab.items.length" class="evt-rank-empty">暂无排名数据</div>
+                <div v-if="!tab.items.length" class="evt-rank-empty">{{ rankEmptyText(card, tab.key) }}</div>
               </div>
             </template>
           </template>
           <template v-else>
             <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankTabs')">
-              <span>{{ card.layout.rankListLabel || '排行榜' }}（{{ activeRankTab(card)?.items?.length || 0 }} 名）</span>
+              <span>{{ card.layout.rankListLabel || '排行榜' }}（{{ activeRankTab(card)?.items?.length || 0 }} {{ isInventoryModule(card.module) ? '种' : '名' }}）</span>
               <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTabs') ? '▲ 收起' : '▼ 展开' }}</span>
             </div>
             <template v-if="expanded(card.module, 'rankTabs')">
@@ -266,7 +276,8 @@
                   {{ tab.label }}
                 </button>
               </div>
-              <div class="evt-rank-list evt-rank-list--tabs">
+              <FruitInventoryGrid v-if="isCultivatedInventory(card, activeRankTab(card)?.key) && activeRankTab(card)?.items.length" :items="activeRankTab(card)?.items || []" />
+              <div v-else class="evt-rank-list evt-rank-list--tabs">
                 <div
                   v-for="(item, i) in activeRankTab(card)?.items || []"
                   :key="`${activeRankTab(card)?.key}-${i}`"
@@ -278,14 +289,14 @@
                   <span v-if="item.badge" class="evt-tag evt-tag--xs" :style="statStyle(item.badgeColor)">{{ item.badge }}</span>
                   <span class="evt-rank-value">{{ item.value }}</span>
                 </div>
-                <div v-if="!(activeRankTab(card)?.items?.length)" class="evt-rank-empty">暂无排名数据</div>
+                <div v-if="!(activeRankTab(card)?.items?.length)" class="evt-rank-empty">{{ rankEmptyText(card, activeRankTab(card)?.key) }}</div>
               </div>
             </template>
           </template>
         </template>
 
         <!-- ┌─ 组件区 8: rankList 排行榜 ─┐ -->
-        <template v-if="card.layout?.rankList?.length && !card.layout?.rankTabs?.length">
+        <template v-if="card.layout?.rankList?.length && !rankTabsFor(card).length">
           <div class="evt-section-toggle" @click="toggleSection(card.module, 'rankList')">
             <span>{{ card.layout.rankListLabel || '排行榜' }}</span>
             <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankList') ? '▲ 收起' : '▼ 展开' }}</span>
@@ -351,6 +362,7 @@ import { computed, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import type { EvtModuleView, EvtHistoryPage } from '../utils/evtHistoryStorage'
 import EvtTimeline from './EvtTimeline.vue'
+import FruitInventoryGrid from './FruitInventoryGrid.vue'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
 
@@ -428,6 +440,7 @@ interface LayoutRankItem {
   highlight?: boolean
   quality?: number
   itemId?: number
+  cultivated?: boolean
   expandable?: boolean
   level?: number
   memberCount?: number
@@ -495,23 +508,68 @@ const toggleSection = (module: string, section: string) => {
 
 const activeRankTabs = ref<Record<string, string>>({})
 const isInventoryModule = (module: string) => module === '水果库存' || module === '花卉库存'
+const fruitInventorySearch = ref('')
+const expandFruitInventory = (card: EvtCard) => {
+  expandedSet.value.add(`${card.module}:rankTabs`)
+  rankTabsFor(card).forEach(tab => expandedSet.value.add(`${card.module}:rankTab_${tab.key}`))
+}
+const clearFruitInventorySearch = (card: EvtCard) => {
+  fruitInventorySearch.value = ''
+  expandFruitInventory(card)
+}
+const inventoryItems = (card: EvtCard): LayoutRankItem[] => {
+  const tabs = card.layout?.rankTabs ?? []
+  const source = tabs.find(tab => tab.key === 'count') ?? tabs.reduce<LayoutRankTab | null>((selected, tab) =>
+    (tab.items?.length ?? 0) > (selected?.items?.length ?? -1) ? tab : selected, null)
+  return source?.items ?? card.layout?.rankList ?? []
+}
+// 培育状态只认脚本从 flowerList 写出的布尔字段，旧快照缺失时不从数量或静态表猜测。
+const inventoryCultivationKnown = (card: EvtCard) => inventoryItems(card).every(item => typeof item.cultivated === 'boolean')
+const inventoryCategoryItems = (card: EvtCard, key?: string): LayoutRankItem[] => {
+  const items = inventoryItems(card)
+  if (key !== 'cultivated' && key !== 'uncultivated') return items
+  return inventoryCultivationKnown(card) ? items.filter(item => item.cultivated === (key === 'cultivated')) : []
+}
+const isCultivatedInventory = (card: EvtCard, key?: string) => card.module === '水果库存' && key === 'cultivated'
+const rankEmptyText = (card: EvtCard, key?: string): string => {
+  if (!isInventoryModule(card.module)) return '暂无排名数据'
+  const category = key === 'cultivated' ? '已培育' : key === 'uncultivated' ? '未培育' : ''
+  if (category && !inventoryCultivationKnown(card)) return '培育数据尚未同步，请等待库存更新'
+  if (card.module === '水果库存' && fruitInventorySearch.value.trim()) return `未找到匹配的${category}水果`
+  return category ? `暂无${category}水果库存` : '暂无库存数据'
+}
+const inventoryTabsCache = new WeakMap<Layout, { query: string; tabs: LayoutRankTab[] }>()
 const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
   const tabs = card.layout?.rankTabs ?? []
-  if (!isInventoryModule(card.module) || !tabs.length) return tabs
-
-  const items = tabs[0].items ?? []
-  const byCount = [...items].sort((a, b) => Number(b.value) - Number(a.value))
+  if (!isInventoryModule(card.module)) return tabs
+  if (!tabs.length && !Array.isArray(card.layout?.rankList)) return []
+  const query = card.module === '水果库存' ? fruitInventorySearch.value.trim().toLocaleLowerCase() : ''
+  const cached = card.layout ? inventoryTabsCache.get(card.layout) : undefined
+  if (cached?.query === query) return cached.tabs
+  const matches = (item: LayoutRankItem) => !query || String(item.name ?? '').toLocaleLowerCase().includes(query)
+  const byCount = inventoryItems(card).filter(matches).sort((a, b) => Number(b.value) - Number(a.value))
+  const items = byCount
   const byQuality = [...items].sort((a, b) => {
     const qualityDiff = Number(b.quality ?? 0) - Number(a.quality ?? 0)
     return qualityDiff || Number(b.value) - Number(a.value)
   })
 
-  return [
+  const result = [
     { key: 'count', label: '按数量', items: byCount },
     { key: 'quality', label: '按品质', items: byQuality },
     { key: 'stockHigh', label: '500库存↑', items: byCount.filter(item => Number(item.value) >= 500) },
     { key: 'stockLow', label: '500库存↓', items: [...byCount].reverse().filter(item => Number(item.value) < 500) },
   ]
+  if (card.module === '水果库存') {
+    const quality = (item: LayoutRankItem) => Number.isInteger(Number(item.quality)) && Number(item.quality) >= 1 && Number(item.quality) <= 5 ? Number(item.quality) : 0
+    // 图鉴同品质按编号稳定排列，库存变化不改变图片位置。
+    const cultivated = inventoryCategoryItems(card, 'cultivated').filter(matches).sort((a, b) =>
+      quality(b) - quality(a) || Number(a.itemId ?? Number.MAX_SAFE_INTEGER) - Number(b.itemId ?? Number.MAX_SAFE_INTEGER) || String(a.name).localeCompare(String(b.name), 'zh-CN'))
+    result.push({ key: 'cultivated', label: '已培育', items: cultivated },
+      { key: 'uncultivated', label: '未培育', items: inventoryCategoryItems(card, 'uncultivated').filter(matches).sort((a, b) => Number(b.value) - Number(a.value)) })
+  }
+  if (card.layout) inventoryTabsCache.set(card.layout, { query, tabs: result })
+  return result
 }
 const activeRankTab = (card: EvtCard): LayoutRankTab | null => {
   const tabs = rankTabsFor(card)
@@ -568,12 +626,7 @@ async function writeClipboardText(text: string): Promise<void> {
 }
 
 async function copyFlowerInventory(card: EvtCard) {
-  const tabs = card.layout?.rankTabs ?? []
-  const sourceTab = tabs.reduce<LayoutRankTab | null>((selected, tab) => {
-    if (!selected) return tab
-    return tab.items.length > selected.items.length ? tab : selected
-  }, null)
-  const items = sourceTab?.items ?? []
+  const items = inventoryItems(card)
   if (!items.length) {
     message.warning('暂无库存数据')
     return
@@ -788,7 +841,7 @@ const formatTime = (ts: number) => {
 .evt-table tr:hover td { background:#f9fafb; }
 
 /* ── 排行榜 ── */
-.evt-rank-tabs { display:flex; gap:6px; padding:10px 14px 2px; }
+.evt-rank-tabs { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px 2px; }
 .evt-rank-tab { border:0; border-radius:14px; padding:5px 16px; background:#f3f4f6; color:#6b7280; font-size:12px; font-weight:600; cursor:pointer; }
 .evt-rank-tab--active { background:linear-gradient(135deg,#9333ea,#c026d3); color:#fff; box-shadow:0 2px 6px rgba(147,51,234,.25); }
 .evt-rank-list { padding:8px 14px 10px; display:flex; flex-direction:column; gap:3px; }
@@ -923,4 +976,9 @@ const formatTime = (ts: number) => {
     white-space: nowrap;
   }
 }
+.evt-inventory-search-group { display:flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; max-width:100%; }
+.evt-inventory-search { width:160px; max-width:100%; min-width:0; border:1px solid #d1d5db; border-radius:4px; padding:4px 8px; font-size:12px; background:#fff; color:#111827; box-sizing:border-box; }
+.evt-inventory-search:focus { outline:2px solid #bfdbfe; border-color:#3b82f6; }
+.evt-inventory-clear { border:0; background:transparent; color:#2563eb; padding:4px; font-size:12px; cursor:pointer; }
+.evt-inventory-matches { font-size:12px; color:#6b7280; }
 </style>
