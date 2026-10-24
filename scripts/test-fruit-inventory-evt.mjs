@@ -24,6 +24,7 @@ const needed = new Set([
   'isInventoryModule', 'activeRankTabs', 'rankTabsFor', 'activeRankTab',
   'setActiveRankTab', 'copyFlowerInventory', 'fruitInventorySearch', 'inventoryItems',
   'inventoryCultivationKnown', 'inventoryCategoryItems', 'inventoryTabsCache', 'rankEmptyText',
+  'lowStockCultivation',
 ])
 const ast = ts.createSourceFile(filename, parsed.descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 const parts = []
@@ -51,7 +52,7 @@ const context = {
 }
 const helpers = vm.runInNewContext(`(() => { ${transformed.code}; return {
   isInventoryModule, rankTabsFor, activeRankTab, setActiveRankTab, copyFlowerInventory,
-  fruitInventorySearch, inventoryCategoryItems, rankEmptyText,
+  fruitInventorySearch, inventoryCategoryItems, rankEmptyText, lowStockCultivation,
 }; })()`, context, { filename })
 const items = Object.freeze([
   { itemId: 50001, name: '零库存水果', value: 0, quality: 1, badge: '绿色', badgeColor: 'green' },
@@ -128,3 +129,17 @@ assert.equal(copied.at(-1).split('\n').length, 6, '搜索时复制全部仍使�
 helpers.fruitInventorySearch.value = ''
 assert.equal(helpers.rankTabsFor(fruitCard)[4].items.length, 4)
 console.log('已培育图片分类：真实布尔状态、未知/部分/旧数据、稳定排序、名称搜索、完整复制通过。')
+
+helpers.lowStockCultivation.value = 'cultivated'
+assert.deepEqual(ids(helpers.rankTabsFor(fruitCard)[3].items), [50001,50002], '低库存已培育保留0/499，排除500')
+helpers.lowStockCultivation.value = 'uncultivated'
+assert.deepEqual(ids(helpers.rankTabsFor(fruitCard)[3].items), [50005], '同一快照切换必须更新缓存')
+assert.equal(helpers.inventoryCategoryItems(fruitCard, 'stockLow').length, 1)
+assert.deepEqual(ids(helpers.rankTabsFor({...fruitCard,module:'花卉库存'})[3].items), [50001,50005,50002], '旧花卉模块不受水果筛选影响')
+for (const unknown of [oldCard,partialCard]) {
+  assert.equal(helpers.rankTabsFor(unknown)[3].items.length, 0)
+  assert.equal(helpers.rankEmptyText(unknown, 'stockLow'), '培育数据尚未同步，请等待库存更新')
+}
+helpers.lowStockCultivation.value = 'all'
+assert.deepEqual(ids(helpers.rankTabsFor(fruitCard)[3].items), [50001,50005,50002])
+console.log('低库存培育切换：0/499/500、同快照缓存、搜索分母、未知/部分数据及旧模块隔离通过。')

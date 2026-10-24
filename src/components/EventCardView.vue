@@ -228,6 +228,13 @@
                 <span>{{ tab.label }}（{{ tab.items.length }} {{ isInventoryModule(card.module) ? '种' : '名' }}）</span>
                 <span class="evt-toggle-arrow">{{ expanded(card.module, 'rankTab_' + tab.key) ? '▲ 收起' : '▼ 展开' }}</span>
               </div>
+              <div v-if="expanded(card.module, 'rankTab_' + tab.key) && card.module === '水果库存' && tab.key === 'stockLow'"
+                class="evt-inventory-cultivation" role="group" aria-label="500库存以下培育状态">
+                <span>培育状态</span>
+                <button v-for="option in inventoryCultivationOptions" :key="option.key" type="button"
+                  class="evt-inventory-cultivation-option" :aria-pressed="lowStockCultivation === option.key"
+                  @click="lowStockCultivation = option.key">{{ option.label }}</button>
+              </div>
               <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && card.module === '水果库存' && tab.items.length"
                 :items="tab.items" :label="`水果库存 · ${tab.label}`" />
               <div v-else-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
@@ -276,6 +283,13 @@
                 >
                   {{ tab.label }}
                 </button>
+              </div>
+              <div v-if="card.module === '水果库存' && activeRankTab(card)?.key === 'stockLow'"
+                class="evt-inventory-cultivation" role="group" aria-label="500库存以下培育状态">
+                <span>培育状态</span>
+                <button v-for="option in inventoryCultivationOptions" :key="option.key" type="button"
+                  class="evt-inventory-cultivation-option" :aria-pressed="lowStockCultivation === option.key"
+                  @click="lowStockCultivation = option.key">{{ option.label }}</button>
               </div>
               <FruitInventoryGrid v-if="card.module === '水果库存' && activeRankTab(card)?.items.length"
                 :items="activeRankTab(card)?.items || []" :label="`水果库存 · ${activeRankTab(card)?.label || '明细'}`" />
@@ -511,6 +525,13 @@ const toggleSection = (module: string, section: string) => {
 const activeRankTabs = ref<Record<string, string>>({})
 const isInventoryModule = (module: string) => module === '水果库存' || module === '花卉库存'
 const fruitInventorySearch = ref('')
+const inventoryCultivationOptions = [
+  { key: 'all', label: '全部' },
+  { key: 'cultivated', label: '已培育' },
+  { key: 'uncultivated', label: '未培育' },
+] as const
+type InventoryCultivation = typeof inventoryCultivationOptions[number]['key']
+const lowStockCultivation = ref<InventoryCultivation>('all')
 const expandFruitInventory = (card: EvtCard) => {
   expandedSet.value.add(`${card.module}:rankTabs`)
   rankTabsFor(card).forEach(tab => expandedSet.value.add(`${card.module}:rankTab_${tab.key}`))
@@ -528,25 +549,31 @@ const inventoryItems = (card: EvtCard): LayoutRankItem[] => {
 // 培育状态只认脚本从 flowerList 写出的布尔字段，旧快照缺失时不从数量或静态表猜测。
 const inventoryCultivationKnown = (card: EvtCard) => inventoryItems(card).every(item => typeof item.cultivated === 'boolean')
 const inventoryCategoryItems = (card: EvtCard, key?: string): LayoutRankItem[] => {
-  const items = inventoryItems(card)
-  if (key !== 'cultivated' && key !== 'uncultivated') return items
-  return inventoryCultivationKnown(card) ? items.filter(item => item.cultivated === (key === 'cultivated')) : []
+  let items = inventoryItems(card)
+  const category = key === 'stockLow' && card.module === '水果库存' ? lowStockCultivation.value : key
+  if (category === 'cultivated' || category === 'uncultivated') {
+    items = inventoryCultivationKnown(card) ? items.filter(item => item.cultivated === (category === 'cultivated')) : []
+  }
+  return key === 'stockLow' ? items.filter(item => Number(item.value) < 500) : items
 }
 const rankEmptyText = (card: EvtCard, key?: string): string => {
   if (!isInventoryModule(card.module)) return '暂无排名数据'
-  const category = key === 'cultivated' ? '已培育' : key === 'uncultivated' ? '未培育' : ''
+  const categoryKey = key === 'stockLow' && card.module === '水果库存' ? lowStockCultivation.value : key
+  const category = categoryKey === 'cultivated' ? '已培育' : categoryKey === 'uncultivated' ? '未培育' : ''
   if (category && !inventoryCultivationKnown(card)) return '培育数据尚未同步，请等待库存更新'
+  if (key === 'stockLow' && card.module === '水果库存') return `${fruitInventorySearch.value.trim() ? '未找到匹配的' : '暂无'}库存不足 500 的${category}水果`
   if (card.module === '水果库存' && fruitInventorySearch.value.trim()) return `未找到匹配的${category}水果`
   return category ? `暂无${category}水果库存` : '暂无库存数据'
 }
-const inventoryTabsCache = new WeakMap<Layout, { query: string; tabs: LayoutRankTab[] }>()
+const inventoryTabsCache = new WeakMap<Layout, { query: string; cultivation: InventoryCultivation; tabs: LayoutRankTab[] }>()
 const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
   const tabs = card.layout?.rankTabs ?? []
   if (!isInventoryModule(card.module)) return tabs
   if (!tabs.length && !Array.isArray(card.layout?.rankList)) return []
   const query = card.module === '水果库存' ? fruitInventorySearch.value.trim().toLocaleLowerCase() : ''
+  const cultivation = card.module === '水果库存' ? lowStockCultivation.value : 'all'
   const cached = card.layout ? inventoryTabsCache.get(card.layout) : undefined
-  if (cached?.query === query) return cached.tabs
+  if (cached?.query === query && cached.cultivation === cultivation) return cached.tabs
   const matches = (item: LayoutRankItem) => !query || String(item.name ?? '').toLocaleLowerCase().includes(query)
   const byCount = inventoryItems(card).filter(matches).sort((a, b) => Number(b.value) - Number(a.value))
   const items = byCount
@@ -559,7 +586,7 @@ const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
     { key: 'count', label: '按数量', items: byCount },
     { key: 'quality', label: '按品质', items: byQuality },
     { key: 'stockHigh', label: '500库存↑', items: byCount.filter(item => Number(item.value) >= 500) },
-    { key: 'stockLow', label: '500库存↓', items: [...byCount].reverse().filter(item => Number(item.value) < 500) },
+    { key: 'stockLow', label: '500库存↓', items: inventoryCategoryItems(card, 'stockLow').filter(matches).sort((a, b) => Number(b.value) - Number(a.value)).reverse() },
   ]
   if (card.module === '水果库存') {
     const quality = (item: LayoutRankItem) => Number.isInteger(Number(item.quality)) && Number(item.quality) >= 1 && Number(item.quality) <= 5 ? Number(item.quality) : 0
@@ -569,7 +596,7 @@ const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
     result.push({ key: 'cultivated', label: '已培育', items: cultivated },
       { key: 'uncultivated', label: '未培育', items: inventoryCategoryItems(card, 'uncultivated').filter(matches).sort((a, b) => Number(b.value) - Number(a.value)) })
   }
-  if (card.layout) inventoryTabsCache.set(card.layout, { query, tabs: result })
+  if (card.layout) inventoryTabsCache.set(card.layout, { query, cultivation, tabs: result })
   return result
 }
 const activeRankTab = (card: EvtCard): LayoutRankTab | null => {
@@ -845,6 +872,11 @@ const formatTime = (ts: number) => {
 .evt-rank-tabs { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px 2px; }
 .evt-rank-tab { border:0; border-radius:14px; padding:5px 16px; background:#f3f4f6; color:#6b7280; font-size:12px; font-weight:600; cursor:pointer; }
 .evt-rank-tab--active { background:linear-gradient(135deg,#9333ea,#c026d3); color:#fff; box-shadow:0 2px 6px rgba(147,51,234,.25); }
+.evt-inventory-cultivation { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 14px 2px; color:#6b7280; font-size:12px; }
+.evt-inventory-cultivation > span { margin-right:2px; }
+.evt-inventory-cultivation-option { border:1px solid #e5e7eb; border-radius:12px; padding:4px 12px; background:#fff; color:#6b7280; font-size:12px; cursor:pointer; white-space:nowrap; }
+.evt-inventory-cultivation-option[aria-pressed="true"] { border-color:#c084fc; background:#f3e8ff; color:#7e22ce; font-weight:600; }
+.evt-inventory-cultivation-option:focus-visible { outline:2px solid #9333ea; outline-offset:2px; }
 .evt-rank-list { padding:8px 14px 10px; display:flex; flex-direction:column; gap:3px; }
 .evt-rank-list--tabs { gap:0; }
 .evt-rank-item { display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; font-size:12px; }
