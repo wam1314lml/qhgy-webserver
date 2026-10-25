@@ -24,7 +24,7 @@ for (const field of newFields) assert.equal(defaults.activity.hdReward[field], f
 assert.equal(defaults.union.redBag.enabled, false)
 const page = await loadSharePageModel(root)
 for (let mask = 0; mask < 512; mask++) {
-  const expected = Object.fromEntries(fields.map((key, index) => [key, !!(mask & (1 << index))]))
+  const expected = { ...defaults.activity.hdReward, ...Object.fromEntries(fields.map((key, index) => [key, !!(mask & (1 << index))])) }
   const enabled = !!(mask & 256)
   const config = load({ activity: { hdReward: expected }, union: { redBag: { enabled } } })
   const saved = load(JSON.parse(JSON.stringify(config)))

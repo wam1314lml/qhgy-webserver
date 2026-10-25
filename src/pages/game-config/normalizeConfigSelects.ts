@@ -697,6 +697,10 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     hd42SignEnabled: hdReward?.hd42SignEnabled === true,
     hd44TaskRewardEnabled: hdReward?.hd44TaskRewardEnabled === true,
     hd44GiftEnabled: hdReward?.hd44GiftEnabled === true,
+    hd3010SignEnabled: hdReward?.hd3010SignEnabled === true,
+    hd3009TaskRewardEnabled: hdReward?.hd3009TaskRewardEnabled === true,
+    hd3009DrawEnabled: hdReward?.hd3009DrawEnabled === true,
+    hd3009GiftEnabled: hdReward?.hd3009GiftEnabled === true,
   }
   const flowerCompete = asRecord(config.activity.flowerCompete)
   const rawSelectIndex = flowerCompete && Object.hasOwn(flowerCompete, 'selectIndex') ? flowerCompete.selectIndex : 0

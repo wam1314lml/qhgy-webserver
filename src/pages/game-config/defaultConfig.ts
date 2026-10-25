@@ -443,6 +443,10 @@ export const createDefaultGameConfig = (): GameConfig =>
         hd42SignEnabled: false,
         hd44TaskRewardEnabled: false,
         hd44GiftEnabled: false,
+        hd3010SignEnabled: false,
+        hd3009TaskRewardEnabled: false,
+        hd3009DrawEnabled: false,
+        hd3009GiftEnabled: false,
       },
       flowerCompete: {
         autoSelect: false,

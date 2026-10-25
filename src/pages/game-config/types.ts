@@ -427,6 +427,10 @@ export interface GameConfig {
       hd42SignEnabled: boolean
       hd44TaskRewardEnabled: boolean
       hd44GiftEnabled: boolean
+      hd3010SignEnabled: boolean
+      hd3009TaskRewardEnabled: boolean
+      hd3009DrawEnabled: boolean
+      hd3009GiftEnabled: boolean
     }
     flowerCompete: {
       autoSelect: boolean

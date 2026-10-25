@@ -2645,6 +2645,25 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">绮梦云游</Divider>
+            <CustomFormItem label="七日福利签到" name="activity.hdReward.hd3010SignEnabled"
+              tooltip="默认关闭。领取登录有礼中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd3010SignEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="莓光筑翼每日任务领奖" name="activity.hdReward.hd3009TaskRewardEnabled"
+              tooltip="默认关闭。领取每日任务、广告任务、全部任务奖励，以及68、198、520筑翼值的进度奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd3009TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动筑翼" name="activity.hdReward.hd3009DrawEnabled"
+              tooltip="默认关闭。有云翼晶核时按50、10、1次自动筑翼；达到520后仍会使用已有晶核领取道具奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd3009DrawEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动购买筑翼礼包" name="activity.hdReward.hd3009GiftEnabled"
+              tooltip="需开启自动筑翼。先用已有晶核，用完后用勾玉逐包购买并继续筑翼；筑翼值达到520立即停止购买。本期每包50勾玉换10个晶核，每日限购10次，实际以游戏为准。">
+              <Switch :checked="config.activity.hdReward.hd3009GiftEnabled"
+                :disabled="!config.activity.hdReward.hd3009DrawEnabled"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd3009GiftEnabled', checked === true)" />
+            </CustomFormItem>
             <Divider orientation="left">王国庆典</Divider>
             <CustomFormItem label="登录有礼签到领奖" name="activity.hdReward.hd42SignEnabled"
               tooltip="默认关闭。领取王国庆典中已达到登录天数、尚未领取的签到奖励。">
@@ -3093,6 +3112,7 @@ type DiamondCostSwitchPath =
   | 'union.fmlRace.diamondRefreshTask'
   | 'activity.flowerEmbroidery.refreshEnabled'
   | 'activity.hdReward.hd44GiftEnabled'
+  | 'activity.hdReward.hd3009GiftEnabled'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {
