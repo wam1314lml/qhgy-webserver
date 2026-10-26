@@ -26,6 +26,7 @@ import {
   unionLandPlantModeOptions,
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
+import { normalizeSelectedElvesIds } from './elfPlantRules'
 import { floralShopAllOptions } from './shopItem6Options'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
 import { normalizeFmlRaceAcceptRules } from './fmlRaceAcceptRules'
@@ -473,11 +474,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   if (!HHmmRegex.test(friendSteal.noStealStart as string)) friendSteal.noStealStart = '01:00'
   if (!HHmmRegex.test(friendSteal.noStealEnd as string))   friendSteal.noStealEnd   = '07:00'
 
-  config.plant.elves.selectedElvesIds = normalizeAllowedMultiSelect(
-    config.plant.elves.selectedElvesIds,
-    elfOptions,
-    QHGY_ELF_ID_SET,
-  )
+  config.plant.elves.selectedElvesIds = normalizeSelectedElvesIds(config.plant.elves.selectedElvesIds)
   config.plant.elves.clearBeforePlant = config.plant.elves.clearBeforePlant !== false
   config.plant.elves.delayedHarvestStopAt500FriendCoin = config.plant.elves.delayedHarvestStopAt500FriendCoin === true
   const delayedHarvestMinutes = Number(config.plant.elves.delayedHarvestMinutes)

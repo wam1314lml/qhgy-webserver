@@ -6,6 +6,8 @@
  * 用法：
  *   node scripts/generate-qhgy-game-config-options.mjs
  *   node scripts/generate-qhgy-game-config-options.mjs --source <export/qhgy-database>
+ *   node scripts/generate-qhgy-game-config-options.mjs --only-elf-plants
+ *   node scripts/generate-qhgy-game-config-options.mjs --only-elves
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,12 +18,17 @@ const projectRoot = path.resolve(scriptDir, '..');
 const defaultSource = path.resolve(projectRoot, '..', '..', 'qhgy-assistant-master', 'export', 'qhgy-database');
 const outputDir = path.join(projectRoot, 'src', 'pages', 'game-config');
 
-function readSourceArg(argv) {
-  if (argv.length === 0) return defaultSource;
-  if (argv.length !== 2 || argv[0] !== '--source' || !argv[1]) {
-    throw new Error('用法：node scripts/generate-qhgy-game-config-options.mjs [--source <导出目录>]');
+function readArgs(argv) {
+  let source = defaultSource;
+  let onlyElfPlants = false;
+  let onlyElves = false;
+  for (let index = 0; index < argv.length; index++) {
+    if (argv[index] === '--source' && argv[index + 1]) source = path.resolve(argv[++index]);
+    else if (argv[index] === '--only-elf-plants') onlyElfPlants = true;
+    else if (argv[index] === '--only-elves') onlyElves = true;
+    else throw new Error('用法：node scripts/generate-qhgy-game-config-options.mjs [--source <导出目录>] [--only-elves|--only-elf-plants]');
   }
-  return path.resolve(argv[1]);
+  return { source, onlyElfPlants, onlyElves };
 }
 
 function readJson(sourceDir, filename) {
@@ -44,16 +51,31 @@ function makeSimpleOptions(constName, rows, labelOf) {
 }
 
 function writeFile(filename, content) {
+  if (args.onlyElfPlants && filename !== 'elfPlantOptions.ts') return;
+  if (args.onlyElves && !['elfOptions.ts', 'elfPlantOptions.ts'].includes(filename)) return;
   fs.writeFileSync(path.join(outputDir, filename), content, 'utf8');
 }
 
-const sourceDir = readSourceArg(process.argv.slice(2));
+const args = readArgs(process.argv.slice(2));
+const sourceDir = args.source;
 const fruits = readJson(sourceDir, 'fruits.json');
 const vases = readJson(sourceDir, 'vases.json');
 const flowerArts = readJson(sourceDir, 'flower-arts.json');
 const fruitElves = readJson(sourceDir, 'fruit-elves.json');
 const exchangeItems = readJson(sourceDir, 'orchard-exchange-items.json');
 const guildRaceTaskTypes = readJson(sourceDir, 'guild-race-task-types.json');
+
+// title、ID 必须从同源导出保留到每个展示入口，不能退回仅名称造成同名误选。
+for (const row of fruitElves) {
+  if (!row.title || !row.displayName || row.displayName !== `【${row.title}】${row.name}（ID：${row.id}）`) {
+    throw new Error(`果灵 ${row.id} 缺少完整 title/ID 展示身份，请先更新脚本数据库导出`);
+  }
+  for (const book of row.bookEntries ?? []) {
+    if (!book.title || book.title !== book.mainFruitName) {
+      throw new Error(`果灵 ${row.id} 图鉴 ${book.bookId} 缺少匹配主果的 title，请重新导出`);
+    }
+  }
+}
 
 writeFile('flowerOptions.ts', makeSimpleOptions('flowerOptions', fruits, row => row.name));
 writeFile('flowerArtOptions.ts', makeSimpleOptions('flowerArtOptions', vases, row => row.name));
@@ -69,15 +91,46 @@ writeFile(
   }),
 );
 
-const elfLines = fruitElves.map(row => `  ${quote(row.id)}: ${quote(row.name)},`);
+const elfLines = fruitElves.map(row => `  ${quote(row.id)}: ${quote(row.displayName)},`);
+const elfIdentities = Object.fromEntries(fruitElves.map(row => [row.id, {
+  title: row.title, titleSource: row.titleSource,
+  mainFruitName: row.bookEntries?.[0]?.mainFruitName || row.sourceNames?.[0] || '',
+  secondaryFruitName: row.bookEntries?.[0]?.secondaryFruitName || row.sourceNames?.[1] || '',
+}]));
 writeFile('elfOptions.ts', [
   '// 此文件由 scripts/generate-qhgy-game-config-options.mjs 从奇幻果园导出生成，请勿手工维护。',
   'export const ELVES: Record<string, string> = {',
   ...elfLines,
   '}',
   '',
-  'export const elfOptions = Object.entries(ELVES).map(([value, label]) => ({ value, label }))\n',
+  'export const ELF_IDENTITIES: Record<string, { title: string; titleSource: string; mainFruitName: string; secondaryFruitName: string }> =',
+  JSON.stringify(elfIdentities, null, 2),
+  '',
+  'export const elfOptions = Object.entries(ELVES).map(([value, label]) => ({ value, label, title: label }))\n',
 ].join('\n'));
+
+// 偷取可用物品目录保持完整；种植只能使用当前图鉴的非隐藏、完整主副果组合。
+const positiveId = value => Number.isSafeInteger(Number(value)) && Number(value) > 0;
+const elfPlantRows = fruitElves.flatMap(row => (row.bookEntries ?? [])
+  .filter(book => Number(book.hidden) !== 1
+    && [row.id, book.bookId, book.mainFruitId, book.secondaryFruitId].every(positiveId))
+  .map(book => ({
+    value: String(row.id),
+    name: String(row.name),
+    seriesTitle: String(book.title),
+    bookId: Number(book.bookId),
+    mainFruitId: Number(book.mainFruitId),
+    secondaryFruitId: Number(book.secondaryFruitId),
+    label: `【${book.title}】${row.name}（ID：${row.id}；副果：${book.secondaryFruitName}）`,
+    title: `【${book.title}】${row.name}（ID：${row.id}；主果：${book.mainFruitName}；副果：${book.secondaryFruitName}；图鉴ID：${book.bookId}）`,
+  })))
+  .sort((left, right) => left.bookId - right.bookId);
+writeFile('elfPlantOptions.ts', [
+  '// 此文件由 scripts/generate-qhgy-game-config-options.mjs 从有效果灵图鉴生成，请勿手工维护。\n',
+  'export const elfPlantOptions = ',
+  JSON.stringify(elfPlantRows, null, 2),
+  '\n',
+].join(''));
 
 const makeShopRows = itemType => exchangeItems
   .filter(row => row.itemType === itemType)
@@ -118,4 +171,6 @@ writeFile('fmlRaceTaskTypes.ts', [
   '}\n',
 ].join('\n'));
 
-console.log(`奇幻果园配置选项生成完成：水果 ${fruits.length}、花瓶 ${vases.length}、果艺 ${flowerArts.length}、果灵 ${fruitElves.length}、百果园 ${exchangeItems.length}、竞赛类型 ${guildRaceTaskTypes.length}`);
+console.log(args.onlyElfPlants || args.onlyElves
+  ? `果灵选项生成完成：有效图鉴组合 ${elfPlantRows.length}；仅写入指定果灵目录`
+  : `奇幻果园配置选项生成完成：水果 ${fruits.length}、花瓶 ${vases.length}、果艺 ${flowerArts.length}、果灵 ${fruitElves.length}、种植组合 ${elfPlantRows.length}、百果园 ${exchangeItems.length}、竞赛类型 ${guildRaceTaskTypes.length}`);

@@ -1,5 +1,13 @@
 # 奇幻果园模块索引
 
+## 2026-10-27 果灵展示身份持续约定
+
+elfOptions由脚本QhgyElfIdentity同源导出生成完整显示名称与ELF_IDENTITIES，elfPlantOptions为可种组合子集。GameConfigPage种植和好友两处共用“系列title+名称+真实ID”身份，旧选择与警告不丢系列。后续库更新使用生成器--only-elves同步两份目录，字段完整性校验必过；详见AI_CONTEXT本日节。
+
+## 2026-10-27 果灵种植选择
+
+新增src/pages/game-config/elfPlantOptions.ts（有效图鉴组合目录）与elfPlantRules.ts（保留已选ID、选项和解释），GameConfigPage及原配置归一化共用。生成器支持--only-elf-plants，只更新种植组合；完整elfOptions仍供好友偷取。空选/有效指定/全无效行为及验证见AI_CONTEXT、HANDOFF本日节，无新配置字段或API。
+
 ## 2026-10-23 水果库存图鉴
 
 新增FruitImage.vue、FruitInventoryGrid.vue，由EventCardView的水果库存全部六个分类及独立折叠区使用；src/data/fruit-artwork.json与public/fruit-icons/保存270张果园原图及来源清单，scripts/sync-fruit-artwork.mjs维护。消费原EVT每行cultivated字段，支持名称搜索和六视图，不新增API或轮询，详细合同见HANDOFF。

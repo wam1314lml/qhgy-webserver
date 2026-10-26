@@ -1052,7 +1052,7 @@
                 v-if="config.plant.friendSteal.stealElves"
                 label="只偷指定果灵"
                 name="plant.friendSteal.onlyStealSpecifiedElves"
-                tooltip="开启后只偷选中的果灵种类"
+                tooltip="开启后只偷选中的果灵ID；同名果灵按【主果系列】名称和ID区分"
               >
                 <Switch v-model:checked="config.plant.friendSteal.onlyStealSpecifiedElves" />
               </CustomFormItem>
@@ -1069,6 +1069,8 @@
                   mode="multiple"
                   placeholder="请选择果灵"
                   :options="elfOptions"
+                  class="elf-identity-select"
+                  wide
                   show-search
                   option-filter-prop="label"
                   style="width: 100%"
@@ -1227,7 +1229,7 @@
             <CustomFormItem
               label="自动种果灵"
               name="plant.elves.enabled"
-              tooltip="优先种植指定果灵；未指定时，从当期双倍名单中选择主果和副果都已培育的一款种植（默认8块主果，其余副果）。需要开启种植系统的自动收获和自动种植；当期没有可种组合或今日已收获与地里已生成待收获的果灵合计达到上限时，恢复原有种植模式。"
+              tooltip="有指定时按选择顺序使用首个有效组合；指定项全部无效时暂停果灵种植，不自动改选双倍。只有未指定时，才按本周双倍名单选择主果和副果都已培育的一款（默认8块主果，其余副果）。需要开启自动收获和自动种植；无可种组合或今日已收获与地里待收果灵合计达限时，按原土地策略种植。"
             >
               <Switch v-model:checked="config.plant.elves.enabled" />
             </CustomFormItem>
@@ -1235,12 +1237,20 @@
               label="指定果灵"
               name="plant.elves.selectedElvesIds"
               v-if="config.plant.elves.enabled"
+              class="elf-plant-selection"
+              :extra="elfPlantSelectionNotice.text"
+              :validate-status="elfPlantSelectionNotice.type === 'warning' ? 'warning' : undefined"
+              tooltip="按【主果系列】名称和ID区分同名果灵，旧系列不会自动替换为同名新系列。此选择决定种植组合；清空选择后才启用本周双倍自动选择。"
             >
               <CustomSelect
                 v-model:value="config.plant.elves.selectedElvesIds"
                 mode="multiple"
-                placeholder="请选择果灵"
-                :options="elfOptions"
+                placeholder="留空：按本周双倍自动选择"
+                :options="elfPlantPickerOptions"
+                :tag-render="renderElfPlantTag"
+                allow-empty
+                allow-clear
+                wide
                 show-search
                 option-filter-prop="label"
                 style="width: 100%"
@@ -2969,6 +2979,7 @@ import {
   Checkbox,
   Space,
   Modal,
+  Tag,
 } from 'ant-design-vue'
 import axios from '../utils/axios'
 import ConfigShareDialog from '../features/config-share/ConfigShareDialog.vue'
@@ -2982,6 +2993,7 @@ import CustomFormItem from '../components/CustomFormItem.vue'
 import CustomSelect from '../components/CustomSelect.vue'
 import CustomInputNumber from '../components/CustomInputNumber.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
+import { getElfPlantOptions, getElfPlantSelectionNotice } from './game-config/elfPlantRules'
 import {
   actElimSpeedOptions,
   defaultFmlRaceTaskTypePriority,
@@ -3057,6 +3069,23 @@ const formRules = {
 
 const config = ref<GameConfig>(createDefaultGameConfig())
 normalizeGameConfigSelects(config.value)
+
+const elfPlantPickerOptions = computed(() => getElfPlantOptions(config.value.plant.elves.selectedElvesIds))
+const elfPlantSelectionNotice = computed(() => getElfPlantSelectionNotice(config.value.plant.elves.selectedElvesIds))
+// 无效项不能在下拉框重新选择，但已保存的标签仍允许用户主动移除。
+const renderElfPlantTag = ({ label, value }: { label: string; value: string | number }) => h(Tag, {
+  class: 'elf-plant-tag',
+  title: elfPlantPickerOptions.value.find(option => option.value === String(value))?.title ?? label,
+  color: elfPlantPickerOptions.value.find(option => option.value === String(value))?.disabled ? 'orange' : undefined,
+  closable: true,
+  onMousedown: (event: MouseEvent) => { event.preventDefault(); event.stopPropagation() },
+  onClose: (event: MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    config.value.plant.elves.selectedElvesIds = config.value.plant.elves.selectedElvesIds
+      .filter(id => String(id) !== String(value))
+  },
+}, () => label)
 
 // 只改变当前可用状态，保留原勾选供关闭小号升级/刷新后恢复。
 const fmlRaceSmallAccountMode = computed(() => {
@@ -3782,6 +3811,32 @@ const applySharedConfig = (value: GameConfig) => {
 </script>
 
 <style lang="scss" scoped>
+.elf-identity-select :deep(.ant-select-selection-item) {
+  height: auto;
+  white-space: normal;
+}
+
+.elf-identity-select :deep(.ant-select-selection-item-content) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.elf-plant-selection :deep(.elf-plant-tag) {
+  max-width: 100%;
+  margin-block: 2px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.elf-plant-selection :deep(.ant-form-item-extra) {
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.elf-plant-selection.ant-form-item-has-warning :deep(.ant-form-item-extra) {
+  color: #ad6800;
+}
+
 .activity-task-help {
   margin: 0 0 16px;
   padding-left: 24px;
