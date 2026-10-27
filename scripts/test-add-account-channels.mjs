@@ -39,20 +39,22 @@ const transpile = text => ts.transpileModule(text, {
 }).outputText
 const utilities = vm.createContext({ exports: {} })
 vm.runInContext(transpile(await readFile(new URL('../src/utils/accountPasswordLogin.ts', import.meta.url), 'utf8')), utilities)
-const names = new Set(['handleMainButton', 'handleNextStep', 'handleLogin', 'handleAlipayLogin'])
+const names = new Set(['isConversionChannel', 'handleMainButton', 'handleNextStep', 'handleLogin', 'handleAlipayLogin', 'handleWxLogin', 'normalizeWxQrcodeImage'])
 const ast = ts.createSourceFile('modal.ts', parsed.descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true)
 const declarations = ast.statements.filter(statement => ts.isVariableStatement(statement) &&
   statement.declarationList.declarations.some(declaration => names.has(declaration.name.getText())))
   .map(statement => statement.getText()).join('\n')
-assert.equal(declarations.match(/const handle/g).length, names.size)
+for (const name of names) assert.ok(declarations.includes(`const ${name} =`))
 function createPage(success = true) {
   const calls = [], warnings = [], errors = [], qrEvents = []
   const selectedChannel = { value: 1 }
   const page = vm.createContext({
-    isConversionChannel: { get value() { return [2, 3].includes(selectedChannel.value) } },
+    computed: getter => ({ get value() { return getter() } }),
     currentStep: { value: 'channel' }, selectedChannel,
     loading: { value: false }, alipayLoginData: { value: null },
     qrcodeUrl: { value: '' }, qrcodeImage: { value: '' },
+    wxFlowId: { value: '' }, wxQrcodeImage: { value: '' }, wxLoginData: { value: null },
+    isWxQrLoading: { value: false }, wxScanStatus: { value: '' },
     isAccountPasswordPlatform: utilities.exports.isAccountPasswordPlatform,
     console: { log() {}, error() {} },
     message: { warning: text => warnings.push(text), error: text => errors.push(text), success() {} },
@@ -60,8 +62,15 @@ function createPage(success = true) {
     finishAlipayQrLoading: reveal => { reveal(); qrEvents.push('shown') },
     resetAlipayQrLoading: () => qrEvents.push('reset'),
     startAlipayPolling: () => qrEvents.push('polling'),
+    clearWxState: () => {}, cancelWxFlow: async () => qrEvents.push('cancel'),
+    startWxPolling: () => qrEvents.push('wx-polling'),
     axios: { post: async (url, body) => {
       calls.push({ url, body })
+      if (url === '/api/game-accounts/wx/qrcode') {
+        return { data: { success, message: '扫码服务暂时不可用', data: {
+          flow_id: 'offline-wx-flow', image_base64: 'offline-image',
+        } } }
+      }
       return { data: { success, message: '扫码服务暂时不可用', data: { qrcodeUrl: 'https://example.invalid/offline-qr' } } }
     } },
   })
@@ -105,7 +114,7 @@ assert.match(styles, /\.channel-options\s*\{[^}]*caret-color: transparent;[^}]*u
 assert.match(scriptConfigSource, /return \[1, 2, 3\]\.includes\(platform\) \? accountName : maskOfficialAccountName\(accountName\)/)
 assert.match(styles, /\.sms-verify-input\s*\{[^}]*flex: 0 1 140px;[^}]*min-width: 0;/)
 assert.match(styles, /@media \(max-width: 768px\)[\s\S]*\.sms-verify-input\s*\{[^}]*flex-basis: 130px;/)
-for (const channel of [2, 3]) {
+for (const channel of [2]) {
   const { page, calls } = createPage();
   page.selectedChannel.value = channel;
   await page.api.handleNextStep();
@@ -114,6 +123,23 @@ for (const channel of [2, 3]) {
   assert.equal(page.currentStep.value, 'login');
   assert.equal(calls.length, 0);
 }
+for (const success of [true, false]) {
+  const { page, calls, errors, qrEvents } = createPage(success)
+  page.selectedChannel.value = 3
+  await page.api.handleNextStep()
+  await page.api.handleNextStep()
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [{ url: '/api/game-accounts/wx/qrcode', body: {} }])
+  assert.equal(page.isWxQrLoading.value, false)
+  assert.equal(errors.length, success ? 0 : 1)
+  assert.deepEqual(qrEvents, success ? ['wx-polling'] : [])
+  if (success) {
+    assert.equal(page.wxQrcodeImage.value, 'data:image/jpeg;base64,offline-image')
+    page.wxLoginData.value = { servers: [{ serverId: '7' }] }
+    await page.api.handleNextStep()
+    assert.equal(page.currentStep.value, 'server')
+    assert.equal(calls.length, 1, '微信扫码完成后进入选服，不重复获取二维码')
+  }
+}
 assert.match(source, /https:\/\/www.kdocs.cn\/l\/cglzU54HkUHa/);
 assert.match(source, /v-if="!\(currentStep === 'login' && isConversionChannel\)"/);
-console.log('添加账号渠道测试通过：四渠道下一步、非法渠道门禁、支付宝二维码请求及失败恢复/已扫码选服、Vue编译。HTTP为内存替身。')
+console.log('添加账号渠道测试通过：四渠道下一步、非法渠道门禁、微信/支付宝二维码请求及失败恢复/已扫码选服、抖音拦截、Vue编译。HTTP为内存替身。')

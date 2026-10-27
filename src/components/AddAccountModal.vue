@@ -59,7 +59,7 @@
           <h4>登录游戏账号</h4>
 
           <div v-if="isConversionChannel" class="channel-conversion-notice">
-            <p>{{ selectedChannel === 3 ? '微信' : '抖音' }}小程序因扫码登陆不稳定已取消，请用户转成账号密码，使用账号密码渠道登陆，账号密码转换图文教程在下方连接：</p>
+            <p>抖音小程序因扫码登陆不稳定已取消，请用户转成账号密码，使用账号密码渠道登陆，账号密码转换图文教程在下方连接：</p>
             <a href="https://www.kdocs.cn/l/cglzU54HkUHa" target="_blank" rel="noopener noreferrer">账号密码转换图文教程</a>
           </div>
 
@@ -102,6 +102,45 @@
                 <p v-if="isPolling" style="color: #1890ff">请在2分钟内完成扫码...</p>
                 <p v-else-if="alipayLoginData" style="color: #52c41a">✅ 扫码登录成功！</p>
                 <p v-else style="color: #faad14">📱 请使用支付宝扫描上方二维码</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 微信扫码登录界面 -->
+          <div v-else-if="selectedChannel === 3" class="alipay-login">
+            <div v-if="isWxQrLoading" class="scan-qrcode-loading">
+              <p class="scan-qrcode-loading-text">正在获取微信二维码...</p>
+            </div>
+            <div v-else-if="!wxQrcodeImage" class="qrcode-placeholder">
+              <p>点击"获取二维码"开始微信扫码登录</p>
+            </div>
+            <div v-else class="qrcode-container">
+              <h5>请使用微信扫描二维码并在手机上确认</h5>
+              <div class="qrcode-display">
+                <div class="qrcode-wrapper">
+                  <div class="qrcode-content">
+                    <img
+                      :src="wxQrcodeImage"
+                      alt="微信登录二维码"
+                      style="width: 200px; height: 200px; border-radius: 8px"
+                    />
+                    <p class="qrcode-status-text">
+                      <span v-if="wxScanStatus === 'pending'">⏳ 等待微信扫码...</span>
+                      <span v-else-if="wxScanStatus === 'scanned'">✅ 已扫码，正在获取角色信息...</span>
+                      <span v-else-if="wxScanStatus === 'completed'">🎉 扫码成功！</span>
+                      <span v-else-if="wxScanStatus === 'expired'" style="color: #ff4d4f">
+                        ⚠️ 二维码已过期，请重新获取
+                      </span>
+                      <span v-else-if="wxScanStatus === 'error'" style="color: #ff4d4f">
+                        ❌ 扫码失败，请重试
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="qrcode-status">
+                <p v-if="isWxPolling" style="color: #1890ff">请在5分钟内完成扫码...</p>
+                <p v-else-if="wxLoginData" style="color: #52c41a">✅ 已取得角色区服，请继续</p>
               </div>
             </div>
           </div>
@@ -232,7 +271,7 @@
           {{
             currentStep === 'login' && selectedChannel === 2 && isDouyinQrLoading
               ? '正在获取二维码...'
-              : currentStep === 'login' && selectedChannel === 1 && isAlipayQrLoading
+              : currentStep === 'login' && ((selectedChannel === 1 && isAlipayQrLoading) || (selectedChannel === 3 && isWxQrLoading))
                 ? '正在获取二维码...'
                 : loading
                   ? '处理中...'
@@ -612,7 +651,7 @@ const password = computed({
   },
 })
 const selectedChannel = ref<number>(0)
-const isConversionChannel = computed(() => [2, 3].includes(selectedChannel.value))
+const isConversionChannel = computed(() => selectedChannel.value === 2)
 const selectedServer = ref<ServerInfo | null>(null)
 const serverList = ref<ServerInfo[]>([])
 const loading = ref(false)
@@ -1728,7 +1767,7 @@ watch(
   (isOpen) => {
     if (isOpen) {
       fetchScriptServers()
-      // 账号密码为首选入口；微信和抖音只提供转换教程。
+      // 账号密码为首选入口；抖音只提供转换教程，微信允许扫码。
       selectedChannel.value = 0
     } else {
       resetForm()

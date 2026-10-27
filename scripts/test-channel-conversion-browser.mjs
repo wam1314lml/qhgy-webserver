@@ -18,13 +18,20 @@ if (!executable) throw Error('需要本机已有的 Edge/Chrome；不会自动�
 
 let css = await readFile(path.join(root,'node_modules/ant-design-vue/dist/reset.css'),'utf8')
 const mock = `
-const f=window.channelFixture={requests:[]};
+const f=window.channelFixture={requests:[],wxStatus:'PENDING',wxQrCount:0,failWxQr:false};
 async function call(method,url,body){f.requests.push({method,url,body});
  if(url==='/api/game-accounts/script-servers')return {success:true,data:[{id:1,name:'合成服务器'}]};
  if(url==='/api/game-accounts/alipay_get_qrcode2')return {success:true,data:{qrcodeUrl:'https://example.invalid/offline-qr'}};
+ if(url==='/api/game-accounts/wx/qrcode'){
+   await new Promise(resolve=>setTimeout(resolve,350));
+   if(f.failWxQr)return {success:false,message:'模拟二维码获取失败'};
+   return {success:true,data:{flow_id:'offline-wx-'+(++f.wxQrCount),image_base64:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aEt8AAAAASUVORK5CYII='}};
+ }
+ if(url==='/api/game-accounts/wx/poll')return {success:true,data:{status:f.wxStatus,...(f.wxStatus==='COMPLETED'?{servers:[{serverId:'7',roleName:'离线角色'}]}:{})}};
+ if(url==='/api/game-accounts/wx/cancel'||url==='/api/game-accounts/bind_wx')return {success:true};
  throw Error('Unexpected endpoint '+url)
 }
-export default {get:async u=>({data:await call('GET',u)}),post:async(u,b)=>({data:await call('POST',u,b)})};
+export default {get:async(u,c)=>({data:await call('GET',u,c?.params)}),post:async(u,b)=>({data:await call('POST',u,b)})};
 `
 const bundle=await build({absWorkingDir:root,stdin:{resolveDir:root,contents:`
 import {createApp,h,ref} from 'vue';import Antd from 'ant-design-vue';import AddAccountModal from './src/components/AddAccountModal.vue';
@@ -69,6 +76,10 @@ async function evaluate(expression) {
   return result.result.value
 }
 const text = () => evaluate('document.body.innerText')
+async function waitForText(value) {
+  for (let i=0;i<60;i++) { if ((await text()).includes(value)) return; await sleep(100) }
+  assert.fail('未出现预期文案：'+value)
+}
 async function click(label) {
   await evaluate(`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.replace(/\\s/g,'')===${JSON.stringify(label)});if(!e)throw Error('Missing button');e.click()})()`)
   await sleep(150)
@@ -126,24 +137,50 @@ try {
     assert.ok(await evaluate("[...document.querySelectorAll('.ant-steps-item-title')].every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1})"));
     await capture('channel-order-'+width);
     await click('下一步');assert.ok((await text()).includes('游戏密码'));await click('上一步');
-    for(const channel of [2,3]){
+    for(const channel of [2]){
       await choose(channel);await click('下一步');
-      const body=await text();assert.ok(body.includes((channel===3?'微信':'抖音')+'小程序因扫码登陆不稳定已取消'));
+      const body=await text();assert.ok(body.includes('抖音小程序因扫码登陆不稳定已取消'));
       assert.ok(!body.includes('获取二维码'));assert.ok(!body.includes('下一步'));
       assert.deepEqual(await evaluate("[...document.querySelectorAll('.modal-actions button')].map(e=>e.textContent.replace(/\\s/g,''))"),['上一步']);
       assert.equal(await evaluate("document.querySelector('.channel-conversion-notice a').href"),'https://www.kdocs.cn/l/cglzU54HkUHa');
       assert.ok(await evaluate("(()=>{const e=document.querySelector('.channel-conversion-notice'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&e.scrollWidth<=e.clientWidth+1})()"));
       await capture('conversion-'+channel+'-'+width);await click('上一步');
     }
+    await choose(3);await click('下一步');
+    assert.equal(await evaluate("document.querySelector('.channel-conversion-notice')"),null);
+    assert.ok((await text()).includes('开始微信扫码登录'));
+    await click('获取二维码');
+    assert.ok((await text()).includes('正在获取微信二维码'));
+    await waitForText('等待微信扫码');
+    assert.ok(await evaluate("(()=>{const e=document.querySelector('img[alt=微信登录二维码]'),r=e.getBoundingClientRect();return e.complete&&e.naturalWidth>0&&r.left>=0&&r.right<=innerWidth+1})()"));
+    assert.ok(await evaluate("[...document.querySelectorAll('.modal-actions button')].find(e=>e.textContent.includes('等待扫码')).disabled"));
+    assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
+    await capture('wechat-scan-'+width);await click('上一步');
     await choose(0);
   }
-  assert.equal((await evaluate('window.channelFixture.requests')).filter(x=>x.method==='POST').length,0);
+  assert.equal((await evaluate('window.channelFixture.requests')).filter(x=>x.url.includes('douyin')).length,0);
+  assert.equal((await evaluate('window.channelFixture.requests')).filter(x=>x.url.endsWith('/wx/cancel')).length,3);
+  // 实际按钮覆盖失败重取、过期重扫、扫码完成选服和绑定。
+  await choose(3);await click('下一步');
+  await evaluate('window.channelFixture.failWxQr=true');await click('获取二维码');await waitForText('模拟二维码获取失败');
+  assert.equal(await evaluate("[...document.querySelectorAll('.modal-actions button')].find(e=>e.textContent.includes('获取二维码')).disabled"),false);
+  await evaluate('window.channelFixture.failWxQr=false');await click('获取二维码');await waitForText('等待微信扫码');
+  await evaluate("window.channelFixture.wxStatus='EXPIRED'");await waitForText('二维码已过期');
+  await evaluate("window.channelFixture.wxStatus='SCANNED'");await click('重新扫码');await waitForText('正在获取角色信息');
+  await evaluate("window.channelFixture.wxStatus='COMPLETED'");await waitForText('确认绑定');
+  const expectedFlow=await evaluate("'offline-wx-'+window.channelFixture.wxQrCount");
+  await evaluate("document.querySelector('.server-form .ant-select-selector').dispatchEvent(new MouseEvent('mousedown',{bubbles:true}))");await sleep(200);
+  await evaluate("document.querySelector('.ant-select-item-option').click()");await sleep(100);
+  await capture('wechat-server-320');await click('确认绑定');await waitForText('微信账号绑定成功');
+  assert.deepEqual((await evaluate('window.channelFixture.requests')).filter(x=>x.url.endsWith('/bind_wx')).map(x=>x.body),[{flow_id:expectedFlow,server_id:'7'}]);
+  await evaluate('window.openFixture()');await sleep(200);
+  assert.equal(await evaluate("document.querySelector('input[type=radio]:checked').value"),'0');
   await choose(1);await click('下一步');await click('获取二维码');await sleep(1600);
-  assert.equal((await evaluate('window.channelFixture.requests')).filter(x=>x.method==='POST').length,1);
+  assert.equal((await evaluate('window.channelFixture.requests')).filter(x=>x.url.endsWith('/alipay_get_qrcode2')).length,1);
   assert.ok((await text()).includes('支付宝扫描二维码'));
   await capture('alipay-retained-320');
   assert.deepEqual(exceptions,[]);
-  console.log('PASS 果园真实Vue渠道顺序、默认账号密码、两种教程仅返回、零停用渠道请求、支付宝扫码及1280/390/320布局');
+  console.log('PASS 果园真实Vue微信二维码/失败重试/过期重扫/选服绑定/返回取消、默认账号密码、抖音仅教程、支付宝扫码及1280/390/320布局');
 } finally {
   if (socket?.readyState === WebSocket.OPEN) { try { await command('Browser.close') } catch {}; socket.close() }
   if (child && child.exitCode === null) { await Promise.race([new Promise(resolve => child.once('exit', resolve)), sleep(3000)]); if (child.exitCode === null) child.kill() }

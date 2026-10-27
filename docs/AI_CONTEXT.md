@@ -1,3 +1,7 @@
+## 2026-10-27 重新开放新增账号微信扫码
+
+当前用户要求恢复 `AddAccountModal` 的微信渠道（platform=3）扫码：展示二维码、等待/已扫码/过期/失败状态，复用原 `/wx/qrcode`、`/wx/poll`、`/wx/cancel`、`/bind_wx` 流程。转换教程及处理器守卫仅限抖音（platform=2），覆盖2026-10-08对微信的禁用约定；默认账号密码、0/1/2/3顺序与已有账号重认证保持。浏览器只持短期flow_id，绑定仅传flow_id/server_id，不恢复客户端游戏凭据。渠道及密码专项从实际组件提取转换条件，避免模拟条件仍拦截微信；真实Vue浏览器专项覆盖获取失败重试、过期重扫、选服绑定、返回取消和1280/390/320布局。
+
 ## 2026-10-27 果灵系列title/ID必须持续保留
 
 用户要求所有果灵展示统一`【系列title】名称（ID：真实物品ID）`，以区分旧210111摩羯·汐月星帘与新210311甜苹华舞。完整elfOptions（好友）、有效elfPlantOptions（种植）、已选标签、警告和title提示都必须携带身份，不能只改种植下拉。配置值仍只存原ID，不能按同名迁移。旧项明确“当前图鉴未收录有效种植组合”，描述只用于显示旧主副果，不恢复为可种。
@@ -80,7 +84,7 @@ AddAccountModal的账号密码绑定请求使用handleErrorLocally:true，HTTP�
 
 ## 果园新增账号扫码入口取消（2026-10-08）
 
-`AddAccountModal` 的2/3渠道仅展示转换教程并允许返回；默认平台0，顺序0/1/2/3。不得恢复二维码主按钮或绕过处理器守卫。已有账号重验不在此改动范围；支付宝与账号密码逻辑保持。离线验证入口 `scripts/test-add-account-channels.mjs`、`test-account-password-login.mjs`、`test-channel-conversion-browser.mjs`，后者可传 `--screenshots DIR`。
+历史决定：当时 `AddAccountModal` 的2/3渠道仅展示转换教程并允许返回。2026-10-27用户要求重新开放微信，现只有抖音（2）保留转换教程和处理器守卫，微信（3）以本文件最新约定为准。默认平台0，顺序0/1/2/3；已有账号重验、支付宝与账号密码逻辑保持。离线验证入口 `scripts/test-add-account-channels.mjs`、`test-account-password-login.mjs`、`test-channel-conversion-browser.mjs`，后者可传 `--screenshots DIR`。
 
 # 配置分享维护规范
 

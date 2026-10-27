@@ -11,6 +11,9 @@ const compile = source => ts.transpileModule(source, {
 const utilContext = vm.createContext({ exports: {} })
 vm.runInContext(compile(await read('src/utils/wxReauth.ts')), utilContext)
 const { isWxReauthRequired, getSafeWxReauthError } = utilContext.exports
+const recordContext = vm.createContext({ exports: {} })
+vm.runInContext(compile(await read('src/utils/playerRecordRetry.ts')), recordContext)
+const { isAccountAlreadyRunning } = recordContext.exports
 
 assert.equal(isWxReauthRequired({ code: 'WX_REAUTH_REQUIRED' }), true)
 assert.equal(isWxReauthRequired({ code: 'DOUYIN_REAUTH_REQUIRED' }), false)
@@ -78,6 +81,7 @@ for (const filename of ['src/components/ScriptConfig.vue', 'src/components/WxRea
 
 // 提取并执行实际页面函数，HTTP、时钟和 Vue ref 用离线替身，不触发真实认证。
 const names = new Set([
+  'batchBusy', 'isDisposed', 'accountRecordVersions', 'markAccountStarted',
   'handleToggleAccount', 'isAccountAlreadyRunningError', 'completeReauthAfterScan',
   'getWxReauthData', 'getWxReauthStatus', 'getWxReauthError', 'getWxReauthQrImage',
   'cancelWxReauthRemote', 'resumeWxReauthRecovery', 'stopWxReauthPolling', 'resetWxReauthView',
@@ -111,7 +115,7 @@ function createPage(options = {}) {
     return { data: result }
   }
   const context = vm.createContext({
-    isWxReauthRequired, getSafeWxReauthError, Promise, Set, AbortController,
+    isWxReauthRequired, getSafeWxReauthError, isAccountAlreadyRunning, Promise, Set, AbortController,
     console: { error: (...args) => messages.push(args.join(' ')), warn: (...args) => messages.push(args.join(' ')) },
     Date: class extends Date { static now() { return now } },
     setInterval: fn => { timers.set(++timerId, fn); return timerId },
@@ -120,7 +124,7 @@ function createPage(options = {}) {
     accounts: { value: [{ id: 7, platform: 3, record: { isStarted: false } }] },
     operatingAccounts: { value: new Set() },
     getAccountStartedStatus: account => account.record?.isStarted === true,
-    fetchAndUpdateSingleAccountRecord: async id => calls.push({ method: 'record', id }),
+    fetchAndUpdateSingleAccountRecord: async id => { calls.push({ method: 'record', id }); return true },
     wait: async () => {},
     message: Object.fromEntries(['success', 'info', 'error', 'warning'].map(type => [type, text => messages.push(text)])),
     axios: { post: (url, payload) => request('POST', url, payload), get: (url, options) => request('GET', url, options?.params) },

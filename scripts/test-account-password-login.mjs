@@ -49,6 +49,7 @@ assert.deepEqual(compileTemplate({
   compilerOptions: { bindingMetadata: compiledScript.bindings },
 }).errors, [])
 const names = new Set([
+  'isConversionChannel',
   'clearAccountPasswordState', 'handleLogin', 'handleAccountPasswordBind', 'handleBind',
   'handleNextStep', 'resetForm', 'handleClose', 'handlePreviousStep',
   'clearLoginProgressTimer', 'resetLoginProgress', 'startLoginProgress',
@@ -85,6 +86,7 @@ function createPage(queue = {}) {
   for (const name of ['serverList', 'douyinServers']) refs[name] = { value: [] }
   for (const name of ['selectedServer', 'selectedScriptServer', 'alipayLoginData', 'wxLoginData']) refs[name] = { value: null }
   const context = vm.createContext({
+    computed: getter => ({ get value() { return getter() } }),
     ...refs, Promise, Set, String, Number,
     isAccountPasswordPlatform, normalizeAccountPasswordLogin, getSafeAccountPasswordError,
     isWxReauthRequired: () => false, isTokenInvalidError: () => false,
@@ -115,7 +117,6 @@ function createPage(queue = {}) {
     } },
   })
   vm.runInContext(`
-    const isConversionChannel = { get value() { return [2, 3].includes(selectedChannel.value) } };
     const username = { get value() { return loginForm.value.username }, set value(v) { loginForm.value.username = v } };
     const password = { get value() { return loginForm.value.password }, set value(v) { loginForm.value.password = v } };
   `, context)
@@ -273,7 +274,14 @@ for (const platform of [2, 3]) {
   page.wxLoginData.value = { ready: true }
   page.wxFlowId.value = 'synthetic-flow'
   await api.handleBind()
-  assert.equal(calls.length, 0, "已停用渠道即使残留扫码状态也不能绑定")
+  if (platform === 2) {
+    assert.equal(calls.length, 0, '抖音即使残留扫码状态也不能绑定')
+  } else {
+    assert.deepEqual(calls, [{ url: '/api/game-accounts/bind_wx', payload: {
+      flow_id: 'synthetic-flow', server_id: '1',
+    } }])
+    assert.ok(messages.some(message => message.value === duplicateMessage))
+  }
   assert.equal(page.loading.value, false)
 }
 
