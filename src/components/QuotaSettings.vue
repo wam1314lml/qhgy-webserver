@@ -14,6 +14,7 @@
 
     <!-- 主要内容 -->
     <template v-else>
+      <a-alert type="info" show-icon style="margin-bottom:16px"><template #message>这里管理普通配额套餐。公会集结活动配额请在 <a-button type="link" size="small" @click="$emit('open-activities')">活动管理</a-button> 中配置。</template></a-alert>
       <div class="quota-settings-header">
         <h2>配额设置管理</h2>
         <a-button class="btn-add" type="primary" @click="handleAddNew"> + 添加配额选项 </a-button>
@@ -181,6 +182,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+defineEmits<{ 'open-activities': [] }>()
 
 const settings = ref<QuotaSetting[]>([])
 const loading = ref(true)

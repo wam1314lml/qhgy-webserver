@@ -64,8 +64,9 @@
               配额设置
             </span>
           </template>
-          <QuotaSettings :user="user" :token="token" />
+          <QuotaSettings :user="user" :token="token" @open-activities="activeAdminTab = 'activities'" />
         </a-tab-pane>
+        <a-tab-pane key="activities" tab="活动管理" v-if="isAdminRole"><ActivityAdmin :token="token" /></a-tab-pane>
 
         <!-- 权限设置 -->
         <a-tab-pane key="permissions" v-if="hasModuleAccess('permission_settings')">
@@ -2138,6 +2139,7 @@ import {
 import { message, Button, Space, Popconfirm, Modal } from 'ant-design-vue'
 import type { FormInstance } from 'ant-design-vue'
 import QuotaSettings from './QuotaSettings.vue'
+import ActivityAdmin from '@/features/activities/ActivityAdmin.vue'
 import QuotaTransferAdmin from './admin/QuotaTransferAdmin.vue'
 import PermissionSettings from './PermissionSettings.vue'
 import AdminPaymentSettings from './AdminPaymentSettings.vue'

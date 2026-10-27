@@ -39,9 +39,7 @@
           @select="emit('menu-select', $event)"
         >
           <a-menu-item key="script" class="nav-tab"> 首页 </a-menu-item>
-          <a-menu-item v-if="user?.permissions?.welfare_panel" key="welfare" class="nav-tab">
-            福利
-          </a-menu-item>
+          <a-menu-item v-if="user?.role === 'admin' || user?.permissions?.welfare_panel" key="welfare" class="nav-tab"><WelfareNavLabel :active="hasActiveActivities" /></a-menu-item>
           <a-menu-item key="quota-transfer" class="nav-tab">转移配额</a-menu-item>
           <a-sub-menu v-if="isMobile && managementItems.length" key="more">
             <template #title><EllipsisOutlined aria-label="更多功能" /></template>
@@ -102,6 +100,8 @@
 </template>
 
 <script setup lang="ts">
+import WelfareNavLabel from '@/features/activities/WelfareNavLabel.vue'
+import { clearWelfareNotifications, useWelfareNotifications } from '@/features/activities/useWelfareNotifications'
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 import { useRouter } from 'vue-router'
@@ -144,6 +144,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const { hasActiveActivities } = useWelfareNotifications()
 
 // 用户信息状态
 const user = ref<User | null>(null)
@@ -192,6 +193,8 @@ const handleUserInfoUpdated = (e: CustomEvent) => {
 
 // 处理退出登录
 const handleLogout = () => {
+  clearWelfareNotifications()
+  window.dispatchEvent(new CustomEvent('logout'))
   localStorage.removeItem('token')
   localStorage.removeItem('user')
   localStorage.removeItem('adminToken')

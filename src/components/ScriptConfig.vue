@@ -337,6 +337,9 @@
       width="560px"
     >
       <div class="quota-info">
+        <a-alert v-if="user?.role === 'admin' || user?.permissions?.welfare_panel" type="info" show-icon style="margin-bottom:14px">
+          <template #message>公会集结配额可参与活动、解锁奖励。<a-button type="link" size="small" @click="showQuotaModal = false; router.push('/welfare')">查看活动配额</a-button></template>
+        </a-alert>
         <p style="display: flex; align-items: center; gap: 8px">
           当前配额: <span class="points">{{ userPoints }}</span>
           <a-button
@@ -3081,6 +3084,7 @@ const startFirstAccountTour = () => {
 onMounted(async () => {
   document.addEventListener('visibilitychange', refreshVisibleAccountStates)
   window.addEventListener('pageshow', refreshVisibleAccountStates)
+  window.addEventListener('activityAccountsUpdated', refreshVisibleAccountStates)
   refreshTeamOrderDay()
   document.addEventListener('visibilitychange', refreshTeamOrderDay)
   window.addEventListener('pageshow', refreshTeamOrderDay)
@@ -3108,6 +3112,7 @@ onUnmounted(() => {
   isDisposed = true
   document.removeEventListener('visibilitychange', refreshVisibleAccountStates)
   window.removeEventListener('pageshow', refreshVisibleAccountStates)
+  window.removeEventListener('activityAccountsUpdated', refreshVisibleAccountStates)
   if (teamOrderDayTimer !== null) window.clearTimeout(teamOrderDayTimer)
   teamOrderDayTimer = null
   document.removeEventListener('visibilitychange', refreshTeamOrderDay)

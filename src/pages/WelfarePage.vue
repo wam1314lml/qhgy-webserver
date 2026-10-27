@@ -14,7 +14,11 @@
       </div>
 
       <!-- 标签切换 -->
-      <a-tabs v-model:activeKey="activeTab" centered>
+      <a-alert class="activity-load-error" v-if="activityLoadFailed" type="warning" show-icon message="活动信息加载失败" style="margin-bottom:16px"><template #description><a-button size="small" @click="refreshActivities">重试加载活动</a-button></template></a-alert>
+      <a-empty v-if="!availableActivityTabs.length && !activityLoadFailed" description="暂无开放的福利活动" />
+      <a-tabs v-model:activeKey="activeTab" centered class="welfare-tabs">
+        <a-tab-pane v-if="activeActivityTypes.includes('guild_rally')" key="guild_rally" tab="公会集结"><ActivityWelfare v-if="activeTab === 'guild_rally'" type="guild_rally" /></a-tab-pane>
+        <a-tab-pane v-if="activeActivityTypes.includes('sign_in')" key="sign_in" tab="签到活动"><ActivityWelfare v-if="activeTab === 'sign_in'" type="sign_in" /></a-tab-pane>
         <a-tab-pane key="daily" tab="日常福利" v-if="lotteryInfo.dailyEnabled">
           <div class="tab-content">
             <!-- 日常福利次数显示 -->
@@ -119,7 +123,7 @@
       </a-tabs>
 
       <!-- 抽奖记录 -->
-      <div class="lottery-records">
+      <div v-if="activeTab === 'daily' || activeTab === 'recharge'" class="lottery-records">
         <h3>我的记录</h3>
         <a-table
           :columns="recordColumns"
@@ -178,7 +182,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import ActivityWelfare from '@/features/activities/ActivityWelfare.vue'
+import { useWelfareNotifications } from '@/features/activities/useWelfareNotifications'
 import { message } from 'ant-design-vue'
 import axios from '@/utils/axios'
 import LotteryWheel from '@/components/LotteryWheel.vue'
@@ -215,7 +221,9 @@ interface LotteryRecord {
   new_points: number | null
 }
 
-const activeTab = ref('daily')
+const activeTab = ref('')
+const activitiesLoading = ref(true)
+const { activeActivityTypes, activityLoadFailed, refresh: refreshActivities } = useWelfareNotifications()
 const SHOW_WELFARE_MINI_PROGRAM_PROMOTION = false
 const dailyWheelRef = ref()
 const rechargeWheelRef = ref()
@@ -407,14 +415,10 @@ const formatTime = (time: string) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadLotteryInfo(), loadPrizes(), loadAccounts(), loadRecords()])
+  await Promise.all([loadLotteryInfo(), loadPrizes(), loadAccounts(), loadRecords(), refreshActivities()])
+  activitiesLoading.value = false
 
-  // 根据启用状态自动选择活动标签
-  if (!lotteryInfo.value.dailyEnabled && lotteryInfo.value.rechargeEnabled) {
-    activeTab.value = 'recharge'
-  } else if (lotteryInfo.value.dailyEnabled) {
-    activeTab.value = 'daily'
-  }
+  selectAvailableTab()
 
   // 默认选中第一个账号（如果有）
   if (accounts.value.length > 0) {
@@ -422,6 +426,18 @@ onMounted(async () => {
     selectedRechargeAccountId.value = accounts.value[0].id // 充值福利也默认选中
   }
 })
+
+const availableActivityTabs = computed(() => [
+  ...activeActivityTypes.value,
+  ...(lotteryInfo.value.dailyEnabled ? ['daily'] : []),
+  ...(lotteryInfo.value.rechargeEnabled ? ['recharge'] : []),
+])
+function selectAvailableTab() {
+  if (activitiesLoading.value) return
+  if (!availableActivityTabs.value.includes(activeTab.value)) activeTab.value = availableActivityTabs.value[0] || ''
+}
+watch(availableActivityTabs, selectAvailableTab)
+
 </script>
 
 <style scoped>
@@ -570,4 +586,9 @@ onMounted(async () => {
     align-items: flex-start;
   }
 }
+
+.welfare-container { max-width: 1100px; }
+.welfare-container:has(.activity-welfare) { width: calc(100% - 32px); }
+@media (max-width: 600px) { .welfare-container { padding: 14px !important; } }
+
 </style>
