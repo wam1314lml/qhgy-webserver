@@ -2,6 +2,10 @@
 
 脚本当前TableMgr同源导出生成284水果、46花瓶、713完整果艺选项。新增新绿/晨金/暮紫四叶草、油柑、虎尾兰、红绡玉露、霓裳醉乐、山河映月、贵妃醉酒，配套荔满琼筵521401和华清醉晚542401。51061官方新名广佛手及九条配方材料名同步；全部旧选项ID保留。原生水果图片白名单284项，新增9张取当前MCP subAsync索引，旧275张未变；52102/52103/52104仍缺官方资源并使用占位。全量生成执行果灵title/ID校验，96完整果灵/36种植组合保持原内容，不能因更新回退裸名称或替换旧指定。1043选项逐项来源核对、284图片哈希及新图目视检查通过，无配置字段或Web API变化。
 
+## 2026-10-29 缤纷果趣
+
+activity.actBfgq为独立活动配置：enabled默认false、autoClaimReward默认true、maxMultiple默认100，支持1/5/10/25/100；自动选择已解锁且不超过上限的档位，积分门槛取本期配置。shop独立默认false，提前5分钟、默认百果券1101，可选加速卡1010/随机培育材料1004，尾款转百果券（本期不足20币保留），没有金币商品。ActivityShopSettings尾款提示从目录读取商品名，原其他商店仍显示金币。关闭合成保留倍率/领奖子项并禁用控件，商店仍可开。类型/默认/normalize/schema及保存分享同步，Web API无需改动。手机bfgq-settings标签整行，宽文本选择器复用现有能力。脚本为ActBfgqMgr，真实写回包及物理模拟边界见脚本QHGY_BFGQ_HANDOFF，不能将合成API浏览器测试视作实号验证。
+
 ## 2026-10-29 御前献珍
 
 activity.imperialTribute新增taskRewardEnabled/tributeEnabled/jadeRefreshEnabled，均默认false且严格布尔。宫廷委托领奖独立，进贡按品质取已培育最高库存，前三次优先红色并使用服务器广告；勾玉默认关闭，需进贡开启，沿用付费确认，关闭进贡保留子项。免费广告用完后按服务器6小时冷却等待，不能把金币筹办贡运或每日御贡混入该设置。类型/默认/normalize/生成schema同步，旧分享码缺字段保值。手机标签整行；配套ActImperialTributeMgr和协议边界见脚本QHGY_IMPERIAL_TRIBUTE_HANDOFF，Web API无需改动。验证test-imperial-tribute.mjs与tools/check-imperial-tribute-ui.py。

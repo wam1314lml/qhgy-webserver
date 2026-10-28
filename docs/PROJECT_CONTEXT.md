@@ -1,5 +1,9 @@
 # 奇幻果园模块索引
 
+## 2026-10-29 缤纷果趣设置
+
+GameConfigPage活动页新增缤纷果趣的合成、领奖、自动升倍上限和独立临期商店；activity.actBfgq默认/类型/归一化/分享schema同步。ActivityShopSettings按商品目录显示尾款兑换名称，缤纷果趣为百果券。执行端ActBfgqMgr，前端136组专项、真实页面保存及三种宽度验证见HANDOFF同日节。
+
 ## 2026-10-29 御前献珍设置
 
 GameConfigPage活动页新增御前献珍三开关：宫廷委托领奖、最高库存水果进贡、可选勾玉刷新。activity.imperialTribute类型/默认/归一化/分享schema配套，复用付费确认和现有配置保存。执行端为ActImperialTributeMgr，详细规则及验证见AI_CONTEXT、HANDOFF同日节。

@@ -348,6 +348,12 @@ export interface GameConfig {
       maxFinshCntPerBatch: number
       shop: import('./activityShop').ActivityShopConfig
     }
+    actBfgq: {
+      enabled: boolean
+      autoClaimReward: boolean
+      maxMultiple: number
+      shop: import('./activityShop').ActivityShopConfig
+    }
     fishMerge: {
       enabled: boolean
       showResult: boolean

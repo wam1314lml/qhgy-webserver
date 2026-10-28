@@ -717,6 +717,16 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
   }
   const cyclicStory = asRecord(config.activity.actCyclicStory)
+  const bfgq = asRecord(config.activity.actBfgq)
+  const rawMultiple = bfgq?.maxMultiple
+  const bfgqMultiple = (typeof rawMultiple === 'number' || typeof rawMultiple === 'string' && rawMultiple.trim())
+    ? Number(rawMultiple) : NaN
+  config.activity.actBfgq = {
+    enabled: bfgq?.enabled === true,
+    autoClaimReward: bfgq?.autoClaimReward == null ? true : bfgq.autoClaimReward === true,
+    maxMultiple: [1, 5, 10, 25, 100].includes(bfgqMultiple) ? bfgqMultiple : 100,
+    shop: normalizeActivityShop(bfgq?.shop, 'actBfgq'),
+  }
   const rawStoryLimit = cyclicStory?.maxFinshCntPerBatch
   const storyLimit = (typeof rawStoryLimit === 'number' || typeof rawStoryLimit === 'string' && rawStoryLimit.trim())
     ? Number(rawStoryLimit) : NaN

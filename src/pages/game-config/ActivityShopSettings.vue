@@ -9,6 +9,7 @@ import { getActivityShopOptions, normalizeShopConfig, type ActivityShopConfig, t
 const props = defineProps<{ modelValue: ActivityShopConfig; catalog: ActivityShopCatalog; configPath: string; wide?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: ActivityShopConfig] }>()
 const options = computed(() => getActivityShopOptions(props.catalog))
+const fallbackName = computed(() => props.catalog.items.find(item => item.shopItemId === props.catalog.fallbackShopItemId)?.name)
 function update(key: keyof ActivityShopConfig, value: unknown) {
   emit('update:modelValue', normalizeShopConfig({ ...props.modelValue, [key]: value }, props.catalog.items, props.catalog.defaultShopItemId))
 }
@@ -29,7 +30,7 @@ function update(key: keyof ActivityShopConfig, value: unknown) {
     </CustomFormItem>
     <p class="activity-shop-help">
       按服务器活动结束时间倒推，尽量将{{ catalog.currencyName }}兑换为所选商品。
-      <template v-if="catalog.fallbackShopItemId != null">余额不足所选商品一组时转兑金币，仍不足兑换的余额保留。</template>
+      <template v-if="fallbackName">余额不足所选商品一组时转兑{{ fallbackName }}，仍不足兑换的余额保留。</template>
       <template v-else>余额不足一组时停止，剩余兑换币保留。</template>
       仅消耗{{ catalog.currencyName }}，不消耗勾玉。本期未上架所选商品时保留余额。请保持账号运行，脚本将在设置时间内检查兑换。
     </p>

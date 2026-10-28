@@ -11,6 +11,17 @@
       { "shopItemId": 4, "name": "金币", "amount": 1000, "price": 25 }
     ]
   },
+  "actBfgq": {
+    "name": "缤纷果趣活动商店",
+    "currencyName": "活动币",
+    "defaultShopItemId": 1101,
+    "fallbackShopItemId": 1101,
+    "items": [
+      { "shopItemId": 1101, "name": "百果券" },
+      { "shopItemId": 1010, "name": "加速卡" },
+      { "shopItemId": 1004, "name": "随机培育材料" }
+    ]
+  },
   "actCyclicStory": {
     "name": "序曲商店",
     "currencyName": "序曲积分",

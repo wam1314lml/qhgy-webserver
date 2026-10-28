@@ -364,6 +364,12 @@ export const createDefaultGameConfig = (): GameConfig =>
         maxFinshCntPerBatch: 0,
         shop: createDefaultActivityShop('actCyclicStory'),
       },
+      actBfgq: {
+        enabled: false,
+        autoClaimReward: true,
+        maxMultiple: 100,
+        shop: createDefaultActivityShop('actBfgq'),
+      },
       fishMerge: {
         enabled: false,
         showResult: false,

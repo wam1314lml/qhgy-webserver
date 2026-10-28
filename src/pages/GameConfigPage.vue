@@ -2761,6 +2761,25 @@
               <p class="activity-task-help">免费广告刷新只用于红色绝品。勾玉刷新关闭时，广告用完后按各品质的服务器冷却等待，当前为6小时。</p>
             </div>
 
+            <div class="bfgq-settings">
+              <Divider orientation="left">缤纷果趣</Divider>
+              <CustomFormItem label="自动合成水果" name="activity.actBfgq.enabled"
+                tooltip="自动投放并优先合成同级水果，满盘结算后继续；中断时先恢复未完成的结算。">
+                <Switch v-model:checked="config.activity.actBfgq.enabled" />
+              </CustomFormItem>
+              <CustomFormItem label="自动领取任务及进度奖励" name="activity.actBfgq.autoClaimReward">
+                <Switch v-model:checked="config.activity.actBfgq.autoClaimReward" :disabled="!config.activity.actBfgq.enabled" />
+              </CustomFormItem>
+              <CustomFormItem label="自动升倍上限" name="activity.actBfgq.maxMultiple"
+                tooltip="按本期积分门槛自动使用已解锁且不超过上限的倍率；体力不足时等待。">
+                <Select v-model:value="config.activity.actBfgq.maxMultiple"
+                  :options="[1, 5, 10, 25, 100].map(value => ({ value, label: `${value}倍` }))"
+                  :disabled="!config.activity.actBfgq.enabled" style="width: 100%" />
+              </CustomFormItem>
+              <ActivityShopSettings v-model="config.activity.actBfgq.shop" wide
+                :catalog="activityShopCatalogs.actBfgq" config-path="activity.actBfgq.shop" />
+              <p class="activity-task-help">商店可独立清仓。先兑换所选商品，再将余额兑换百果券；本期不足20活动币的余额会保留，价格以活动实际配置为准。</p>
+            </div>
             <div class="cyclic-story-settings">
               <Divider orientation="left">悦果序曲</Divider>
               <CustomFormItem label="自动提交订单及领取积分奖励" name="activity.actCyclicStory.enabled">
@@ -4292,6 +4311,8 @@ const applySharedConfig = (value: GameConfig) => {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
+  .bfgq-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
+  .bfgq-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control),
   .imperial-tribute-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
   .imperial-tribute-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control),
   .cyclic-story-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
@@ -4301,12 +4322,15 @@ const applySharedConfig = (value: GameConfig) => {
     text-align: left;
   }
 
+  .bfgq-settings :deep(.ant-form-item-label > label),
   .imperial-tribute-settings :deep(.ant-form-item-label > label),
   .cyclic-story-settings :deep(.ant-form-item-label > label) {
     height: auto;
     min-height: 32px;
   }
 
+  .bfgq-settings .activity-task-help,
+  .bfgq-settings :deep(.activity-shop-help),
   .imperial-tribute-settings .activity-task-help,
   .cyclic-story-settings .activity-task-help,
   .cyclic-story-settings :deep(.activity-shop-help) {
