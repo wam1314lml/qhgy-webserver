@@ -6,7 +6,7 @@ import CustomSelect from '../../components/CustomSelect.vue'
 import CustomInputNumber from '../../components/CustomInputNumber.vue'
 import { getActivityShopOptions, normalizeShopConfig, type ActivityShopConfig, type ActivityShopCatalog } from './activityShop'
 
-const props = defineProps<{ modelValue: ActivityShopConfig; catalog: ActivityShopCatalog; configPath: string }>()
+const props = defineProps<{ modelValue: ActivityShopConfig; catalog: ActivityShopCatalog; configPath: string; wide?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: ActivityShopConfig] }>()
 const options = computed(() => getActivityShopOptions(props.catalog))
 function update(key: keyof ActivityShopConfig, value: unknown) {
@@ -24,7 +24,7 @@ function update(key: keyof ActivityShopConfig, value: unknown) {
         class="w-42! sm:w-48!" @update:value="update('beforeEndMinutes', $event)" />
     </CustomFormItem>
     <CustomFormItem label="兑换商品" :name="`${configPath}.shopItemId`">
-      <CustomSelect :value="modelValue.shopItemId" :options="options" class="w-64! sm:w-80!"
+      <CustomSelect :value="modelValue.shopItemId" :options="options" :wide="wide" :class="wide ? '' : 'w-64! sm:w-80!'"
         @update:value="update('shopItemId', $event)" />
     </CustomFormItem>
     <p class="activity-shop-help">

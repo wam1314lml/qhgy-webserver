@@ -1,3 +1,7 @@
+## 2026-10-28 悦果序曲
+
+activity.actCyclicStory沿用旧配置路径，总开关/refreshEnabled/shop.enabled默认false且严格布尔。maxFinshCntPerBatch显示“停止交单积分”，0不限、0–9999999整数，按累计积分而非订单数；达标仍领奖及独立临期兑换。shop默认提前5分钟/水滴5，选项1010/5/1101/2是奖励物品ID，服务端本期决定商品行ID与价格；旧码缺shop保留当前值。种植优先级显示悦果序曲但保留旧键莳花纪闻和原值，0不补种，默认3与脚本对齐。勾玉刷新清CD不换水果，复用确认弹窗；关闭自动交单保留子项，商店独立。新组手机标签整行，ActivityShopSettings可选wide沿用CustomSelect宽文本能力，其余商店默认样式不变。验证scripts/test-cyclic-story.mjs、tools/check-cyclic-story-ui.py与原分享/构建；脚本协议和实号边界见对应QHGY_CYCLIC_STORY_HANDOFF。
+
 ## 2026-10-27 重新开放新增账号微信扫码
 
 当前用户要求恢复 `AddAccountModal` 的微信渠道（platform=3）扫码：展示二维码、等待/已扫码/过期/失败状态，复用原 `/wx/qrcode`、`/wx/poll`、`/wx/cancel`、`/bind_wx` 流程。转换教程及处理器守卫仅限抖音（platform=2），覆盖2026-10-08对微信的禁用约定；默认账号密码、0/1/2/3顺序与已有账号重认证保持。浏览器只持短期flow_id，绑定仅传flow_id/server_id，不恢复客户端游戏凭据。渠道及密码专项从实际组件提取转换条件，避免模拟条件仍拦截微信；真实Vue浏览器专项覆盖获取失败重试、过期重扫、选服绑定、返回取消和1280/390/320布局。

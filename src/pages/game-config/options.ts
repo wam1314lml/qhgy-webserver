@@ -137,7 +137,7 @@ export const taskPriorityKeys: Array<{ key: string; defaultValue: number }> = [
   { key: '顾客订单', defaultValue: 1 },
   { key: '居民订单', defaultValue: 2 },
   { key: '花艺售卖', defaultValue: 6 },
-  { key: '莳花纪闻', defaultValue: 3 },
+  { key: '莳花纪闻', defaultValue: 3 }, // 悦果序曲，兼容旧账号和分享码的配置键
   { key: '宫廷订单', defaultValue: 4 },
   { key: '公会竞赛', defaultValue: 3 },
 ]

@@ -1188,6 +1188,20 @@
               },
               "maxFinshCntPerBatch": {
                 "type": "number"
+              },
+              "shop": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "beforeEndMinutes": {
+                    "type": "number"
+                  },
+                  "shopItemId": {
+                    "type": "number"
+                  }
+                }
               }
             }
           },

@@ -770,9 +770,9 @@
                       class="w-24!"
                     />
                   </div>
-                  <!-- 莳花纪闻任务优先级暂时隐藏，保留底层配置以便后续恢复。
+                  <!-- 悦果序曲沿用旧配置键，保留已保存优先级。 -->
                   <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm">莳花纪闻</span>
+                    <span class="text-sm">悦果序曲</span>
                     <CustomInputNumber
                       v-model:value="config.plant.flower.taskPriorityConfig['莳花纪闻']"
                       :min="0"
@@ -780,7 +780,6 @@
                       class="w-24!"
                     />
                   </div>
-                  -->
                   <div class="flex items-center justify-between gap-2">
                     <span class="text-sm">特供订单</span>
                     <CustomInputNumber
@@ -2743,6 +2742,28 @@
               <Switch v-model:checked="config.activity.flowerCompete.autoClaimRewards" />
             </CustomFormItem>
 
+            <div class="cyclic-story-settings">
+              <Divider orientation="left">悦果序曲</Divider>
+              <CustomFormItem label="自动提交订单及领取积分奖励" name="activity.actCyclicStory.enabled">
+                <Switch v-model:checked="config.activity.actCyclicStory.enabled" />
+              </CustomFormItem>
+              <CustomFormItem label="勾玉刷新订单冷却" name="activity.actCyclicStory.refreshEnabled"
+                tooltip="使用勾玉清除冷却中的订单，不更换水果。费用随剩余冷却时间变化，每槽每轮最多刷新一次；达到下方积分上限后停止。默认关闭。">
+                <Switch :checked="config.activity.actCyclicStory.refreshEnabled"
+                  @change="(checked) => handleDiamondCostSwitchChange('activity.actCyclicStory.refreshEnabled', checked === true)"
+                  :disabled="!config.activity.actCyclicStory.enabled" />
+              </CustomFormItem>
+              <CustomFormItem label="停止交单积分" name="activity.actCyclicStory.maxFinshCntPerBatch"
+                tooltip="本期累计积分达到此值后，停止交单、勾玉刷新和任务补种；0为不限。按积分判断，不是订单次数，最后一单可能超过设置值。已达标积分奖励和临期商店继续处理。">
+                <CustomInputNumber v-model:value="config.activity.actCyclicStory.maxFinshCntPerBatch"
+                  :min="0" :max="9999999" :precision="0" class="w-42! sm:w-48!" />
+              </CustomFormItem>
+              <p class="activity-task-help">补种需同时开启自动种植、任务模式，并在种植优先级中设置“悦果序曲”大于0。按库存与在途产量补足已结束冷却的订单，积分达标后停止补种。经验订单额度以本期活动为准，达到经验额度仍可获得积分。</p>
+              <p class="activity-task-help">序曲商店：活动结束前兑换已有积分，可单独开启，不受停止交单积分限制。</p>
+              <ActivityShopSettings v-model="config.activity.actCyclicStory.shop" wide
+                :catalog="activityShopCatalogs.actCyclicStory" config-path="activity.actCyclicStory.shop" />
+            </div>
+
             <Divider orientation="left">果香绘色</Divider>
             <CustomFormItem label="自动领取任务及进度奖励" name="activity.flowerEmbroidery.enabled">
               <Switch v-model:checked="config.activity.flowerEmbroidery.enabled" />
@@ -3140,6 +3161,7 @@ type DiamondCostSwitchPath =
   | 'union.fmlRace.onlyDiamondUpgradeTask'
   | 'union.fmlRace.diamondRefreshTask'
   | 'activity.flowerEmbroidery.refreshEnabled'
+  | 'activity.actCyclicStory.refreshEnabled'
   | 'activity.hdReward.hd44GiftEnabled'
   | 'activity.hdReward.hd3009GiftEnabled'
 
@@ -4250,6 +4272,23 @@ const applySharedConfig = (value: GameConfig) => {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
+  .cyclic-story-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
+  .cyclic-story-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control) {
+    flex: 0 0 100%;
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .cyclic-story-settings :deep(.ant-form-item-label > label) {
+    height: auto;
+    min-height: 32px;
+  }
+
+  .cyclic-story-settings .activity-task-help,
+  .cyclic-story-settings :deep(.activity-shop-help) {
+    padding-left: 0;
+  }
+
   .pet-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label) {
     flex: 0 0 170px;
     max-width: 170px;

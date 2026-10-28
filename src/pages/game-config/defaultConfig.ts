@@ -357,6 +357,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabled: false,
         refreshEnabled: false,
         maxFinshCntPerBatch: 0,
+        shop: createDefaultActivityShop('actCyclicStory'),
       },
       fishMerge: {
         enabled: false,

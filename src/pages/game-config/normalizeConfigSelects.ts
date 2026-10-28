@@ -710,6 +710,16 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     autoLike: flowerCompete?.autoLike === true,
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }
+  const cyclicStory = asRecord(config.activity.actCyclicStory)
+  const rawStoryLimit = cyclicStory?.maxFinshCntPerBatch
+  const storyLimit = (typeof rawStoryLimit === 'number' || typeof rawStoryLimit === 'string' && rawStoryLimit.trim())
+    ? Number(rawStoryLimit) : NaN
+  config.activity.actCyclicStory = {
+    enabled: cyclicStory?.enabled === true,
+    refreshEnabled: cyclicStory?.refreshEnabled === true,
+    maxFinshCntPerBatch: Number.isFinite(storyLimit) ? Math.min(9999999, Math.max(0, Math.floor(storyLimit))) : 0,
+    shop: normalizeActivityShop(cyclicStory?.shop, 'actCyclicStory'),
+  }
   const flowerEmbroidery = asRecord(config.activity.flowerEmbroidery)
   const embroideryGuard = (value: unknown) => {
     const guard = asRecord(value)

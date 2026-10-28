@@ -11,6 +11,18 @@
       { "shopItemId": 4, "name": "金币", "amount": 1000, "price": 25 }
     ]
   },
+  "actCyclicStory": {
+    "name": "序曲商店",
+    "currencyName": "序曲积分",
+    "defaultShopItemId": 5,
+    "fallbackShopItemId": 2,
+    "items": [
+      { "shopItemId": 1010, "name": "加速卡" },
+      { "shopItemId": 5, "name": "水滴" },
+      { "shopItemId": 1101, "name": "百果券" },
+      { "shopItemId": 2, "name": "金币" }
+    ]
+  },
   "flowerEmbroidery": {
     "name": "花绣商店",
     "currencyName": "时花绣",

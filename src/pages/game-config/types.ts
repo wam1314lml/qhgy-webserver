@@ -341,6 +341,7 @@ export interface GameConfig {
       enabled: boolean
       refreshEnabled: boolean
       maxFinshCntPerBatch: number
+      shop: import('./activityShop').ActivityShopConfig
     }
     fishMerge: {
       enabled: boolean
