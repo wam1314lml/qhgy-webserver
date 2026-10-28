@@ -2742,6 +2742,25 @@
               <Switch v-model:checked="config.activity.flowerCompete.autoClaimRewards" />
             </CustomFormItem>
 
+            <div class="imperial-tribute-settings">
+              <Divider orientation="left">御前献珍</Divider>
+              <CustomFormItem label="宫廷委托奖励自动领取" name="activity.imperialTribute.taskRewardEnabled"
+                tooltip="自动领取已达标的宫廷委托奖励，可独立开启。">
+                <Switch v-model:checked="config.activity.imperialTribute.taskRewardEnabled" />
+              </CustomFormItem>
+              <CustomFormItem label="自动进贡珍果" name="activity.imperialTribute.tributeEnabled"
+                tooltip="每个品质选择已培育且库存最多的水果。先提交红色绝品并使用服务器提供的前三次免费广告刷新，再处理其他品质；库存不足时等待。">
+                <Switch v-model:checked="config.activity.imperialTribute.tributeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem label="勾玉刷新进贡冷却" name="activity.imperialTribute.jadeRefreshEnabled"
+                tooltip="开启后，在有足够水果可再次提交时，使用勾玉刷新各品质冷却。费用随剩余冷却变化，持续开启会持续消耗勾玉。默认关闭。">
+                <Switch :checked="config.activity.imperialTribute.jadeRefreshEnabled"
+                  @change="(checked) => handleDiamondCostSwitchChange('activity.imperialTribute.jadeRefreshEnabled', checked === true)"
+                  :disabled="!config.activity.imperialTribute.tributeEnabled" />
+              </CustomFormItem>
+              <p class="activity-task-help">免费广告刷新只用于红色绝品。勾玉刷新关闭时，广告用完后按各品质的服务器冷却等待，当前为6小时。</p>
+            </div>
+
             <div class="cyclic-story-settings">
               <Divider orientation="left">悦果序曲</Divider>
               <CustomFormItem label="自动提交订单及领取积分奖励" name="activity.actCyclicStory.enabled">
@@ -3162,6 +3181,7 @@ type DiamondCostSwitchPath =
   | 'union.fmlRace.diamondRefreshTask'
   | 'activity.flowerEmbroidery.refreshEnabled'
   | 'activity.actCyclicStory.refreshEnabled'
+  | 'activity.imperialTribute.jadeRefreshEnabled'
   | 'activity.hdReward.hd44GiftEnabled'
   | 'activity.hdReward.hd3009GiftEnabled'
 
@@ -4272,6 +4292,8 @@ const applySharedConfig = (value: GameConfig) => {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
+  .imperial-tribute-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
+  .imperial-tribute-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control),
   .cyclic-story-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-label),
   .cyclic-story-settings :deep(.ant-form-item .ant-form-item-row .ant-form-item-control) {
     flex: 0 0 100%;
@@ -4279,11 +4301,13 @@ const applySharedConfig = (value: GameConfig) => {
     text-align: left;
   }
 
+  .imperial-tribute-settings :deep(.ant-form-item-label > label),
   .cyclic-story-settings :deep(.ant-form-item-label > label) {
     height: auto;
     min-height: 32px;
   }
 
+  .imperial-tribute-settings .activity-task-help,
   .cyclic-story-settings .activity-task-help,
   .cyclic-story-settings :deep(.activity-shop-help) {
     padding-left: 0;

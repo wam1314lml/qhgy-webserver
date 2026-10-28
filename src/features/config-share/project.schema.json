@@ -1177,6 +1177,20 @@
               }
             }
           },
+          "imperialTribute": {
+            "type": "object",
+            "properties": {
+              "taskRewardEnabled": {
+                "type": "boolean"
+              },
+              "tributeEnabled": {
+                "type": "boolean"
+              },
+              "jadeRefreshEnabled": {
+                "type": "boolean"
+              }
+            }
+          },
           "actCyclicStory": {
             "type": "object",
             "properties": {

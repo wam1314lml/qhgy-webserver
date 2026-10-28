@@ -337,6 +337,11 @@ export interface GameConfig {
         timeRanges: Array<{ start: string; end: string }>
       }
     }
+    imperialTribute: {
+      taskRewardEnabled: boolean
+      tributeEnabled: boolean
+      jadeRefreshEnabled: boolean
+    }
     actCyclicStory: {
       enabled: boolean
       refreshEnabled: boolean

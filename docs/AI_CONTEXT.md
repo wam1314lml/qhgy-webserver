@@ -1,3 +1,11 @@
+## 2026-10-29 新果、新果艺静态数据
+
+脚本当前TableMgr同源导出生成284水果、46花瓶、713完整果艺选项。新增新绿/晨金/暮紫四叶草、油柑、虎尾兰、红绡玉露、霓裳醉乐、山河映月、贵妃醉酒，配套荔满琼筵521401和华清醉晚542401。51061官方新名广佛手及九条配方材料名同步；全部旧选项ID保留。原生水果图片白名单284项，新增9张取当前MCP subAsync索引，旧275张未变；52102/52103/52104仍缺官方资源并使用占位。全量生成执行果灵title/ID校验，96完整果灵/36种植组合保持原内容，不能因更新回退裸名称或替换旧指定。1043选项逐项来源核对、284图片哈希及新图目视检查通过，无配置字段或Web API变化。
+
+## 2026-10-29 御前献珍
+
+activity.imperialTribute新增taskRewardEnabled/tributeEnabled/jadeRefreshEnabled，均默认false且严格布尔。宫廷委托领奖独立，进贡按品质取已培育最高库存，前三次优先红色并使用服务器广告；勾玉默认关闭，需进贡开启，沿用付费确认，关闭进贡保留子项。免费广告用完后按服务器6小时冷却等待，不能把金币筹办贡运或每日御贡混入该设置。类型/默认/normalize/生成schema同步，旧分享码缺字段保值。手机标签整行；配套ActImperialTributeMgr和协议边界见脚本QHGY_IMPERIAL_TRIBUTE_HANDOFF，Web API无需改动。验证test-imperial-tribute.mjs与tools/check-imperial-tribute-ui.py。
+
 ## 2026-10-28 悦果序曲
 
 activity.actCyclicStory沿用旧配置路径，总开关/refreshEnabled/shop.enabled默认false且严格布尔。maxFinshCntPerBatch显示“停止交单积分”，0不限、0–9999999整数，按累计积分而非订单数；达标仍领奖及独立临期兑换。shop默认提前5分钟/水滴5，选项1010/5/1101/2是奖励物品ID，服务端本期决定商品行ID与价格；旧码缺shop保留当前值。种植优先级显示悦果序曲但保留旧键莳花纪闻和原值，0不补种，默认3与脚本对齐。勾玉刷新清CD不换水果，复用确认弹窗；关闭自动交单保留子项，商店独立。新组手机标签整行，ActivityShopSettings可选wide沿用CustomSelect宽文本能力，其余商店默认样式不变。验证scripts/test-cyclic-story.mjs、tools/check-cyclic-story-ui.py与原分享/构建；脚本协议和实号边界见对应QHGY_CYCLIC_STORY_HANDOFF。

@@ -353,6 +353,11 @@ export const createDefaultGameConfig = (): GameConfig =>
           timeRanges: [{ start: '00:00', end: '21:00' }],
         },
       },
+      imperialTribute: {
+        taskRewardEnabled: false,
+        tributeEnabled: false,
+        jadeRefreshEnabled: false,
+      },
       actCyclicStory: {
         enabled: false,
         refreshEnabled: false,

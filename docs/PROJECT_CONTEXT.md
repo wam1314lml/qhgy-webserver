@@ -1,5 +1,9 @@
 # 奇幻果园模块索引
 
+## 2026-10-29 御前献珍设置
+
+GameConfigPage活动页新增御前献珍三开关：宫廷委托领奖、最高库存水果进贡、可选勾玉刷新。activity.imperialTribute类型/默认/归一化/分享schema配套，复用付费确认和现有配置保存。执行端为ActImperialTributeMgr，详细规则及验证见AI_CONTEXT、HANDOFF同日节。
+
 ## 2026-10-27 果灵展示身份持续约定
 
 elfOptions由脚本QhgyElfIdentity同源导出生成完整显示名称与ELF_IDENTITIES，elfPlantOptions为可种组合子集。GameConfigPage种植和好友两处共用“系列title+名称+真实ID”身份，旧选择与警告不丢系列。后续库更新使用生成器--only-elves同步两份目录，字段完整性校验必过；详见AI_CONTEXT本日节。

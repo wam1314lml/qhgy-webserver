@@ -710,6 +710,12 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     autoLike: flowerCompete?.autoLike === true,
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }
+  const imperialTribute = asRecord(config.activity.imperialTribute)
+  config.activity.imperialTribute = {
+    taskRewardEnabled: imperialTribute?.taskRewardEnabled === true,
+    tributeEnabled: imperialTribute?.tributeEnabled === true,
+    jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
+  }
   const cyclicStory = asRecord(config.activity.actCyclicStory)
   const rawStoryLimit = cyclicStory?.maxFinshCntPerBatch
   const storyLimit = (typeof rawStoryLimit === 'number' || typeof rawStoryLimit === 'string' && rawStoryLimit.trim())
