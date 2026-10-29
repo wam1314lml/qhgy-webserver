@@ -10,7 +10,7 @@
 
       <a-alert
         message="权限说明"
-        description="admin 角色默认拥有所有管理面板权限，无需配置。其他角色可以通过此页面配置各个管理面板模块的访问权限。"
+        description="admin 角色默认拥有所有管理面板权限，无需配置。subadmin 及其他角色均可配置所有管理模块；授权包含该模块的查询和操作，保存勾选项会同时开启管理面板入口。subadmin 保留固定公告权限。"
         type="info"
         show-icon
         style="margin-bottom: 16px"
@@ -29,7 +29,7 @@
               v-for="role in availableRoles"
               :key="role.id"
               :value="role.id"
-              :disabled="role.name === 'admin'"
+              :disabled="role.name === 'admin' || role.name === 'user'"
             >
               {{ role.name }} (等级: {{ role.level }})
               <span v-if="role.name === 'admin'" style="color: #999; margin-left: 8px">
@@ -76,7 +76,7 @@
               :lg="6"
             >
               <a-card size="small" :class="{ 'module-card-selected': permissionsForm[module.key] }">
-                <a-checkbox v-model:checked="permissionsForm[module.key]">
+                <a-checkbox v-model:checked="permissionsForm[module.key]" :disabled="currentRole.name === 'subadmin' && module.key === 'announcements'">
                   <strong>{{ module.name }}</strong>
                 </a-checkbox>
                 <div style="font-size: 12px; color: #999; margin-top: 4px">
@@ -105,6 +105,7 @@ import {
 const props = defineProps<{
   token: string
 }>()
+const emit = defineEmits<{ saved: [] }>()
 
 // 数据
 const loading = ref(false)
@@ -189,7 +190,7 @@ const selectAll = () => {
 // 全不选
 const unselectAll = () => {
   adminPanelModules.value.forEach((module) => {
-    permissionsForm[module.key] = false
+    permissionsForm[module.key] = currentRole.value?.name === 'subadmin' && module.key === 'announcements'
   })
 }
 
@@ -210,6 +211,7 @@ const handleSavePermissions = async () => {
 
     if (response.data.success) {
       message.success('权限配置保存成功')
+      emit('saved')
     }
   } catch (error: any) {
     console.error('保存权限配置失败:', error)

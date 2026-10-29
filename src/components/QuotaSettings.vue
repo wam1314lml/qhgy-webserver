@@ -3,7 +3,7 @@
     <!-- 权限检查 -->
     <div v-if="!isAdmin" class="no-permission">
       <h3>权限不足</h3>
-      <p>只有管理员才能访问配额设置</p>
+      <p>需要配额设置模块授权</p>
       <p>当前用户: {{ user?.username || '未知' }}</p>
       <p>当前角色: {{ user?.role || '未知' }}</p>
       <p>当前状态: {{ user?.status || '未知' }}</p>
@@ -14,7 +14,7 @@
 
     <!-- 主要内容 -->
     <template v-else>
-      <a-alert type="info" show-icon style="margin-bottom:16px"><template #message>这里管理普通配额套餐。公会集结活动配额请在 <a-button type="link" size="small" @click="$emit('open-activities')">活动管理</a-button> 中配置。</template></a-alert>
+      <a-alert type="info" show-icon style="margin-bottom:16px"><template #message>这里管理普通配额套餐。公会集结活动配额请在 <a-button v-if="canManageActivities" type="link" size="small" @click="$emit('open-activities')">活动管理</a-button><span v-else>活动管理</span> 中配置。</template></a-alert>
       <div class="quota-settings-header">
         <h2>配额设置管理</h2>
         <a-button class="btn-add" type="primary" @click="handleAddNew"> + 添加配额选项 </a-button>
@@ -179,6 +179,8 @@ interface QuotaSetting {
 interface Props {
   user: any
   token: string
+  moduleAuthorized?: boolean
+  canManageActivities?: boolean
 }
 
 const props = defineProps<Props>()
@@ -247,18 +249,8 @@ const columns = [
   },
 ]
 
-// 检查管理员权限
-console.log('QuotaSettings - 用户信息:', props.user)
-console.log('QuotaSettings - 用户角色:', props.user?.role, '用户状态:', props.user?.status)
-
-const isAdmin = computed(() => {
-  return (
-    props.user &&
-    (props.user.role === 'admin' ||
-      props.user.status === 'admin' ||
-      props.user.username === 'admin')
-  )
-})
+// 父管理面板使用服务端实时返回的模块权限，不能由用户名或账号状态推断。
+const isAdmin = computed(() => props.moduleAuthorized === true)
 
 const fetchSettings = async () => {
   try {

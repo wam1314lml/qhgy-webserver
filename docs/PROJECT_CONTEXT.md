@@ -1,5 +1,9 @@
 # 奇幻果园模块索引
 
+## 2026-10-29 管理面板模块授权
+
+AdminPanel.vue、AdminPanelPermissions.vue、QuotaSettings.vue、TopNavBar.vue统一按服务端有效权限控制入口及模块；所有29个管理页签对应后端30项授权目录（含合并展示的统计/月报）。scripts/test-admin-permissions-browser.py提供生产dist的真实浏览器验证，不访问线上接口。详情见AI_CONTEXT及HANDOFF同日节。
+
 ## 2026-10-29 缤纷果趣设置
 
 GameConfigPage活动页新增缤纷果趣的合成、领奖、自动升倍上限和独立临期商店；activity.actBfgq默认/类型/归一化/分享schema同步。ActivityShopSettings按商品目录显示尾款兑换名称，缤纷果趣为百果券。执行端ActBfgqMgr，前端136组专项、真实页面保存及三种宽度验证见HANDOFF同日节。

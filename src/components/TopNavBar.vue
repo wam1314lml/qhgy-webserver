@@ -153,7 +153,7 @@ const managementItems = computed(() => {
   const items: { key: string; label: string }[] = []
   if (user.value?.permissions?.invite_system) items.push({ key: 'performance', label: '业绩管理' })
   if (user.value?.role === 'vip1' || user.value?.role === 'vip2') items.push({ key: 'agent', label: '代理后台' })
-  if (user.value?.role === 'admin' || user.value?.role === 'subadmin') items.push({ key: 'admin', label: '管理面板' })
+  if (user.value?.role === 'admin' || user.value?.role === 'subadmin' || (user.value?.role !== 'user' && user.value?.permissions?.admin_panel === true)) items.push({ key: 'admin', label: '管理面板' })
   return items
 })
 

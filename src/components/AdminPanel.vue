@@ -5,7 +5,7 @@
       <h2>访问被拒绝</h2>
       <p>您没有权限访问管理面板</p>
       <p>当前用户角色: {{ user?.role || '未定义' }}</p>
-      <p>需要: admin 角色或 admin_panel 权限</p>
+      <p>需要: 管理角色或已授权的管理面板权限</p>
     </div>
 
     <div v-else>
@@ -14,7 +14,7 @@
         <p>系统管理和配置</p>
       </div>
 
-      <a-tabs default-active-key="users" @change="onTabChange">
+      <a-tabs v-model:activeKey="activeAdminTab" @change="onTabChange">
         <!-- 用户管理 -->
         <a-tab-pane key="users" v-if="hasModuleAccess('user_management')">
           <template #tab>
@@ -52,7 +52,7 @@
           </a-card>
         </a-tab-pane>
 
-        <a-tab-pane key="quota-transfers" tab="玩家交易配额" v-if="isAdminRole">
+        <a-tab-pane key="quota-transfers" tab="玩家交易配额" v-if="hasModuleAccess('quota_transfers')">
           <QuotaTransferAdmin :token="token" />
         </a-tab-pane>
 
@@ -64,9 +64,9 @@
               配额设置
             </span>
           </template>
-          <QuotaSettings :user="user" :token="token" @open-activities="activeAdminTab = 'activities'" />
+          <QuotaSettings :user="user" :token="token" :module-authorized="hasModuleAccess('quota_settings')" :can-manage-activities="hasModuleAccess('activity_management')" @open-activities="activeAdminTab = 'activities'" />
         </a-tab-pane>
-        <a-tab-pane key="activities" tab="活动管理" v-if="isAdminRole"><ActivityAdmin :token="token" /></a-tab-pane>
+        <a-tab-pane key="activities" tab="活动管理" v-if="hasModuleAccess('activity_management')"><ActivityAdmin :token="token" /></a-tab-pane>
 
         <!-- 权限设置 -->
         <a-tab-pane key="permissions" v-if="hasModuleAccess('permission_settings')">
@@ -155,7 +155,7 @@
         </a-tab-pane>
 
         <!-- 卡密系统 -->
-        <a-tab-pane key="card-key" v-if="hasModuleAccess('recharge_packages')">
+        <a-tab-pane key="card-key" v-if="hasModuleAccess('card_keys')">
           <template #tab>
             <span>
               <KeyOutlined />
@@ -237,7 +237,7 @@
         </a-tab-pane>
 
         <!-- 修改密码 -->
-        <a-tab-pane key="change-password">
+        <a-tab-pane key="change-password" v-if="hasModuleAccess('change_password')">
           <template #tab>
             <span>
               <SettingOutlined />
@@ -448,7 +448,7 @@
         </a-tab-pane>
 
         <!-- 充值统计 -->
-        <a-tab-pane key="recharge-statistics" v-if="hasModuleAccess('recharge_records')">
+        <a-tab-pane key="recharge-statistics" v-if="hasModuleAccess('recharge_records') || hasModuleAccess('monthly_report') || hasModuleAccess('statistics')">
           <template #tab>
             <span>
               <DollarOutlined />
@@ -682,7 +682,7 @@
         </a-tab-pane>
 
         <!-- 脚本服务器管理 -->
-        <a-tab-pane key="script-servers" v-if="isAdminRole">
+        <a-tab-pane key="script-servers" v-if="hasModuleAccess('script_servers')">
           <template #tab>
             <span>
               <CloudServerOutlined />
@@ -1028,11 +1028,11 @@
             </span>
           </template>
           
-          <AdminPanelPermissions :token="token" />
+          <AdminPanelPermissions :token="token" @saved="fetchAdminPanelPermissions" />
         </a-tab-pane>
 
         <!-- IP封锁管理 -->
-        <a-tab-pane key="ip-lock-manage" v-if="hasModuleAccess('user_management')">
+        <a-tab-pane key="ip-lock-manage" v-if="hasModuleAccess('login_lock')">
           <template #tab>
             <span>
               <StopOutlined />
@@ -1143,7 +1143,7 @@
         </a-tab-pane>
 
         <!-- 账号服务器迁移 -->
-        <a-tab-pane key="account-migrate" v-if="isAdminRole">
+        <a-tab-pane key="account-migrate" v-if="hasModuleAccess('server_migration')">
           <template #tab>
             <span>
               <SwapOutlined />
@@ -1304,7 +1304,7 @@
         </a-tab-pane>
 
         <!-- 域名跳转配置 -->
-        <a-tab-pane key="domain-redirect" v-if="isAdminRole">
+        <a-tab-pane key="domain-redirect" v-if="hasModuleAccess('domain_redirect')">
           <template #tab>
             <span>
               <SwapOutlined />
@@ -1353,7 +1353,7 @@
         </a-tab-pane>
 
         <!-- 玩家操作记录 -->
-        <a-tab-pane key="player-logs" v-if="hasModuleAccess('user_management')">
+        <a-tab-pane key="player-logs" v-if="hasModuleAccess('player_records')">
           <template #tab>
             <span>
               <FileTextOutlined />
@@ -2320,6 +2320,21 @@ const expiredAccountsCurrentPage = ref(1) // 过期账号表格当前页
 // 管理面板权限相关
 const adminPanelPermissions = ref<Record<string, boolean>>({})
 const isAdminRole = ref(false)
+const activeAdminTab = ref('')
+// 顺序与模板一致，用于首次载入及撤权后选择可见模块。
+const adminTabs: [string, string[]][] = [
+  ['users', ['user_management']], ['invites', ['vip_invites']], ['quota-transfers', ['quota_transfers']],
+  ['quota', ['quota_settings']], ['activities', ['activity_management']], ['permissions', ['permission_settings']],
+  ['recharge', ['recharge_packages']], ['packages', ['recharge_packages']], ['lottery', ['lottery_system']],
+  ['card-key', ['card_keys']], ['invite-settings', ['invite_settings']], ['payment-settings', ['payment_settings']],
+  ['change-password', ['change_password']], ['batch-filter', ['batch_filter_users']], ['announcements', ['announcements']],
+  ['customer-service', ['customer_service']], ['recharge-statistics', ['recharge_records', 'monthly_report', 'statistics']],
+  ['order-user-lookup', ['order_user_search']], ['other-settings', ['group_chat_qr']], ['expired-accounts', ['expired_accounts']],
+  ['script-servers', ['script_servers']], ['account-migration', ['account_migration']], ['operation-logs', ['operation_logs']],
+  ['game-accounts-stats', ['game_accounts_stats']], ['admin-panel-permissions', ['admin_panel_permissions']],
+  ['ip-lock-manage', ['login_lock']], ['account-migrate', ['server_migration']], ['domain-redirect', ['domain_redirect']],
+  ['player-logs', ['player_records']]
+]
 
 // 域名跳转配置
 const domainRedirectLoading = ref(false)
@@ -2369,12 +2384,12 @@ const saveDomainRedirect = async () => {
 
 // 检查是否有管理面板访问权限
 const hasAdminPanelAccess = computed(() => {
-  // admin 角色始终有权限
-  if (props.user?.role === 'admin') {
+  // subadmin 保留面板入口，模块权限由服务端逐项返回。
+  if (props.user?.role === 'admin' || props.user?.role === 'subadmin') {
     return true
   }
   // 检查其他角色是否有 admin_panel 权限
-  return props.user?.permissions?.admin_panel === true
+  return props.user?.role !== 'user' && props.user?.permissions?.admin_panel === true
 })
 
 // 未续费账号管理相关
@@ -4981,8 +4996,16 @@ const fetchAdminPanelPermissions = async () => {
       const { isAdmin, permissions } = response.data.data
       isAdminRole.value = isAdmin
       adminPanelPermissions.value = permissions
+      const allowedTabs = adminTabs.filter(([, keys]) => keys.some(hasModuleAccess))
+      if (!allowedTabs.some(([key]) => key === activeAdminTab.value)) {
+        activeAdminTab.value = allowedTabs[0]?.[0] || ''
+        if (activeAdminTab.value) onTabChange(activeAdminTab.value)
+      }
     }
   } catch (error) {
+    isAdminRole.value = false
+    adminPanelPermissions.value = {}
+    activeAdminTab.value = ''
     console.error('获取管理面板权限失败:', error)
   }
 }

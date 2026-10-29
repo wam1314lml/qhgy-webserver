@@ -1,3 +1,9 @@
+## 2026-10-29 全部管理模块授权
+
+用户要求所有管理模块可向subadmin等角色授权；AdminPanel全部页签使用my-admin-panel-permissions返回值，不再对服务器/迁移/域名/活动/配额转移写死isAdminRole。新增独立player_records/login_lock/card_keys等键，旧权限展开由后端负责；前端不能自行给subadmin全量权限。配额设置通过moduleAuthorized传入服务端权限，禁止用username/status判断管理员。
+
+管理页先读取权限，再选择首个允许的页签并加载；保存配置后重取当前权限，撤权时切到剩余页签。管理模块目录由API提供30项，subadmin固定公告在表单禁改，普通user不可选。自定义角色有admin_panel才显示导航。充值统计依赖的总览/月统计由后端兼容statistics/recharge_records/monthly_report三种授权。与qhgy-web API配套发布；回归scripts/test-admin-permissions-browser.py使用生产dist和合成接口。
+
 ## 2026-10-29 御前献珍金币与特选优先
 
 activity.imperialTribute新增goldTributeEnabled默认false，只接受true，独立于水果进贡和勾玉刷新。界面为“筹办贡运金币提交”，说明当前30/60/90/120万四档共300万，余额不足或末档完成停止，金额以服务器为准；不使用广告/勾玉/CD。水果提示改为每品质优先足够库存的当期特选，再普通最高库存，红色广告规则不变，旧配置开启tributeEnabled即用新优先级，无额外策略开关。默认/类型/normalize/分享schema同步，旧分享码含御前献珍但无金币键仍保留接收方当前金币开关。26组专项、16组分享、真实页面独立金币保存重载及1100/390/320布局、生产构建通过；执行端细节和真实写响应边界见脚本QHGY_IMPERIAL_TRIBUTE_HANDOFF。
