@@ -714,6 +714,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   config.activity.imperialTribute = {
     taskRewardEnabled: imperialTribute?.taskRewardEnabled === true,
     tributeEnabled: imperialTribute?.tributeEnabled === true,
+    goldTributeEnabled: imperialTribute?.goldTributeEnabled === true,
     jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
   }
   const cyclicStory = asRecord(config.activity.actCyclicStory)

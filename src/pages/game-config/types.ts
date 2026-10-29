@@ -340,6 +340,7 @@ export interface GameConfig {
     imperialTribute: {
       taskRewardEnabled: boolean
       tributeEnabled: boolean
+      goldTributeEnabled: boolean
       jadeRefreshEnabled: boolean
     }
     actCyclicStory: {

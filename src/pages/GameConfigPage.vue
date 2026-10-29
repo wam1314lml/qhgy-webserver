@@ -2749,8 +2749,12 @@
                 <Switch v-model:checked="config.activity.imperialTribute.taskRewardEnabled" />
               </CustomFormItem>
               <CustomFormItem label="自动进贡珍果" name="activity.imperialTribute.tributeEnabled"
-                tooltip="每个品质选择已培育且库存最多的水果。先提交红色绝品并使用服务器提供的前三次免费广告刷新，再处理其他品质；库存不足时等待。">
+                tooltip="每个品质优先提交库存足够的当期特选水果，获取双倍奖励；多个特选中选库存最多的，没有可提交的特选时选该品质库存最多的水果。先提交红色绝品并使用前三次免费广告刷新，再处理其他品质。">
                 <Switch v-model:checked="config.activity.imperialTribute.tributeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem label="筹办贡运金币提交" name="activity.imperialTribute.goldTributeEnabled"
+                tooltip="独立开启后，按服务器档位依次提交金币。当前四档分别消耗30万、60万、90万、120万金币，共300万；余额不足或全部完成时停止，不使用广告或勾玉刷新。">
+                <Switch v-model:checked="config.activity.imperialTribute.goldTributeEnabled" />
               </CustomFormItem>
               <CustomFormItem label="勾玉刷新进贡冷却" name="activity.imperialTribute.jadeRefreshEnabled"
                 tooltip="开启后，在有足够水果可再次提交时，使用勾玉刷新各品质冷却。费用随剩余冷却变化，持续开启会持续消耗勾玉。默认关闭。">
@@ -2758,7 +2762,7 @@
                   @change="(checked) => handleDiamondCostSwitchChange('activity.imperialTribute.jadeRefreshEnabled', checked === true)"
                   :disabled="!config.activity.imperialTribute.tributeEnabled" />
               </CustomFormItem>
-              <p class="activity-task-help">免费广告刷新只用于红色绝品。勾玉刷新关闭时，广告用完后按各品质的服务器冷却等待，当前为6小时。</p>
+              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。免费广告刷新只用于红色绝品；勾玉刷新关闭时，广告用完后等待自然冷却，当前为6小时。</p>
             </div>
 
             <div class="bfgq-settings">

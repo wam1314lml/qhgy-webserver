@@ -16,10 +16,10 @@ const load = raw => {
   return config
 }
 const page = await loadSharePageModel(root), defaults = load({})
-assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, jadeRefreshEnabled: false })
+assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, goldTributeEnabled: false, jadeRefreshEnabled: false })
 let checks = 1
-for (let mask = 0; mask < 8; mask++) {
-  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4) }
+for (let mask = 0; mask < 16; mask++) {
+  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4), goldTributeEnabled: !!(mask & 8) }
   const config = load({ activity: { imperialTribute: value } })
   assert.deepEqual(config.activity.imperialTribute, value)
   assert.deepEqual(load(JSON.parse(JSON.stringify(config))).activity.imperialTribute, value)
@@ -31,7 +31,13 @@ for (let mask = 0; mask < 8; mask++) {
   checks++
 }
 for (const bad of [1, 0, 'true', 'false', null, [], {}]) {
-  const config = load({ activity: { imperialTribute: { taskRewardEnabled: bad, tributeEnabled: bad, jadeRefreshEnabled: bad } } })
+  const config = load({ activity: { imperialTribute: { taskRewardEnabled: bad, tributeEnabled: bad, goldTributeEnabled: bad, jadeRefreshEnabled: bad } } })
   assert.deepEqual(config.activity.imperialTribute, defaults.activity.imperialTribute); checks++
 }
-console.log(`PASS 御前献珍前端 ${checks}组：八种开关组合、保存/分享、旧码和部分字段保值、严格布尔`)
+const legacy = { format: 1, project: 'qhgy', schemaVersion: 1, config: { activity: { imperialTribute: { taskRewardEnabled: true, tributeEnabled: true, jadeRefreshEnabled: false } } } }
+for (const enabled of [false, true]) {
+  const receiver = load({ activity: { imperialTribute: { goldTributeEnabled: enabled } } })
+  assert.equal(page.adapter.preview(receiver, legacy).config.activity.imperialTribute.goldTributeEnabled, enabled)
+  checks++
+}
+console.log(`PASS 御前献珍前端 ${checks}组：十六种开关组合、金币独立、保存/分享、旧码缺金币字段保值、严格布尔`)

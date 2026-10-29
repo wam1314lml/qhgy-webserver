@@ -6,7 +6,7 @@ GameConfigPage活动页新增缤纷果趣的合成、领奖、自动升倍上限
 
 ## 2026-10-29 御前献珍设置
 
-GameConfigPage活动页新增御前献珍三开关：宫廷委托领奖、最高库存水果进贡、可选勾玉刷新。activity.imperialTribute类型/默认/归一化/分享schema配套，复用付费确认和现有配置保存。执行端为ActImperialTributeMgr，详细规则及验证见AI_CONTEXT、HANDOFF同日节。
+GameConfigPage活动页新增御前献珍四开关：宫廷委托领奖、特选优先/普通最高库存水果进贡、独立金币筹办贡运、可选勾玉刷新。activity.imperialTribute类型/默认/归一化/分享schema配套，复用付费确认和现有配置保存。执行端为ActImperialTributeMgr，详细规则及验证见AI_CONTEXT、HANDOFF同日节。
 
 ## 2026-10-27 果灵展示身份持续约定
 

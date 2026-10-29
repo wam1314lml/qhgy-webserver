@@ -73,16 +73,23 @@ with sync_playwright() as p:
         expect(page.get_by_role('dialog')).to_be_hidden()
 
     load()
+    expect(page.locator('.imperial-tribute-settings .activity-task-help')).to_contain_text('当期特选水果')
     reward = field('宫廷委托奖励自动领取').get_by_role('switch')
     auto = field('自动进贡珍果').get_by_role('switch')
+    gold = field('筹办贡运金币提交').get_by_role('switch')
     refresh = field('勾玉刷新进贡冷却').get_by_role('switch')
-    for control in [reward, auto, refresh]:
+    for control in [reward, auto, gold, refresh]:
         expect(control).to_have_attribute('aria-checked', 'false')
     expect(refresh).to_be_disabled()
     reward.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'jadeRefreshEnabled': False}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False}
+    gold.click()
+    save()
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False}
     load()
+    expect(gold).to_have_attribute('aria-checked', 'true')
+    expect(gold).to_be_enabled()
     auto.click()
     refresh.click()
     page.get_by_role('dialog').get_by_role('button', name=re.compile(r'^取\s*消$')).click()
@@ -100,13 +107,14 @@ with sync_playwright() as p:
     load()
     expect(refresh).to_be_disabled()
     expect(reward).to_have_attribute('aria-checked', 'true')
+    expect(gold).to_have_attribute('aria-checked', 'true')
     auto.click()
     for width in (1100, 390, 320):
         page.set_viewport_size({'width': width, 'height': 1000})
         page.get_by_role('tab', name='活动', exact=True).click()
         expect(reward).to_be_visible()
         page.locator('.imperial-tribute-settings').evaluate("el => {el.style.scrollMarginTop='140px'; el.scrollIntoView({block:'start'});}")
-        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '勾玉刷新进贡冷却'):
+        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却'):
             box = field(label).bounding_box()
             assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1, (width, label, box)
             assert field(label).locator('.label-text').evaluate('(el) => el.scrollWidth <= el.clientWidth + 1'), (width, label)
@@ -115,4 +123,4 @@ with sync_playwright() as p:
     assert not errors, errors
     assert not unexpected, unexpected
     browser.close()
-print('PASS 御前献珍真实页面：独立领奖、勾玉确认/取消、配置保值、保存重载及1100/390/320布局')
+print('PASS 御前献珍真实页面：独立领奖及金币提交、勾玉确认/取消、配置保值、保存重载及1100/390/320布局')

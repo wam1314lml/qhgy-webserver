@@ -356,6 +356,7 @@ export const createDefaultGameConfig = (): GameConfig =>
       imperialTribute: {
         taskRewardEnabled: false,
         tributeEnabled: false,
+        goldTributeEnabled: false,
         jadeRefreshEnabled: false,
       },
       actCyclicStory: {
