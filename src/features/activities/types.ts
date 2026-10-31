@@ -71,7 +71,7 @@ export interface RewardState {
 export interface ActivityView extends ActivityConfig {
   status: 'upcoming' | 'active' | 'ended' | 'disabled'
   guilds: GuildProgress[]
-  signIn?: { signedToday: boolean; totalDays: number; canSignIn: boolean; days?: string[]; today?: string }
+  signIn?: { signedToday: boolean; totalDays: number; canSignIn: boolean; reason?: string; days?: string[]; today?: string }
   rewardStates: RewardState[]
 }
 export interface ActivityData {

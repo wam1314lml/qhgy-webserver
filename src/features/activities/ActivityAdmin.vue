@@ -51,7 +51,7 @@
             <a-col :xs="24" :sm="8"><a-form-item label="每角色本期可分配次数" required><a-input-number v-model:value="form.quota.maxPerRole" :min="1" :max="100" :precision="0" :disabled="locked || saving" /></a-form-item></a-col>
           </a-row>
         </fieldset>
-        <a-alert v-else message="签到按网站账号统计，北京时间每日一次；累计天数无需连续，未绑定游戏角色也可签到。" type="info" show-icon class="admin-activity-notice" />
+        <a-alert v-else message="签到按网站账号统计，北京时间每日一次；累计天数无需连续，名下至少有一个未过期角色才能签到。" type="info" show-icon class="admin-activity-notice" />
 
         <div class="admin-reward-title"><h3>奖励档位</h3><a-button :disabled="locked || saving || form.rewards.length >= 30" @click="addReward">添加奖励档位</a-button></div>
         <p class="muted">每档支持 1～3 个不同类型的可选奖励，玩家任选一项。福利卡面额为点数，不限制兑换人。</p>

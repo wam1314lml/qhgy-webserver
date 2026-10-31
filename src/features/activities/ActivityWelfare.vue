@@ -63,7 +63,7 @@
 
     <a-modal v-model:open="claimOpen" title="选择本档奖励" :confirm-loading="!!busy" :mask-closable="!busy" :closable="!busy" :cancel-button-props="{ disabled: !!busy }" ok-text="确认领取" cancel-text="取消" @ok="claimReward">
       <template v-if="claimSelection"><p>{{ claimSelection.activity.title }} · {{ claimSelection.reward.label }}</p><a-radio-group v-model:value="selectedOptionId" class="claim-option-group"><a-radio v-for="option in claimSelection.reward.options" :key="option.id" :value="option.id" :disabled="!!busy"><RewardIcon :type="option.type" /> {{ rewardText(option.type, option.value) }}</a-radio></a-radio-group><p class="muted">本档只能领取一次，确认后不能更换奖励。</p>
-        <template v-if="selectedOption?.type === 'time'"><label for="activity-target-account" class="field-label">增加时长的角色</label><a-select id="activity-target-account" v-model:value="targetAccountId" class="activity-select" placeholder="选择名下角色（已过期也可）" :disabled="!!busy" :options="accountOptions" /><p v-if="!accounts.length" class="muted">签到无需绑定角色；领取时长时请先绑定角色，或选择点数、卡密奖励。</p></template>
+        <template v-if="selectedOption?.type === 'time'"><label for="activity-target-account" class="field-label">增加时长的角色</label><a-select id="activity-target-account" v-model:value="targetAccountId" class="activity-select" placeholder="选择名下角色（已过期也可）" :disabled="!!busy" :options="accountOptions" /><p v-if="!accounts.length" class="muted">领取时长时请先绑定角色，或选择点数、卡密奖励。</p></template>
         <a-alert v-else-if="selectedOption?.type === 'card'" message="领取后生成一张点数福利卡，不限制兑换人。卡密可在下方奖励记录查看、复制。" type="info" show-icon />
         <a-alert v-else-if="selectedOption?.type === 'points'" message="点数将直接加入当前网站账号余额。" type="info" show-icon />
       </template>

@@ -10,7 +10,7 @@
 
 签到只展示进行中活动；管理员按服务端 `canDelete` 删除到期活动，调用 `DELETE /admin/:id`。需配套后端的 `deleted_at/deleted_by` 缺失字段初始化；删除不影响历史奖励。签到日历读取 `signIn.days/today`，不通过客户端累计或伪造签到状态。
 
-`SignInCalendar.vue/.css` 与 `calendar.ts` 从服务端日期和 rewardStates 生成整月日历，`RewardIcon.vue` 提供三类图标；无角色/全过期仍可签到。运行 `node --test scripts/test-activity-calendar.mjs` 验证日期边界。
+`SignInCalendar.vue/.css` 与 `calendar.ts` 从服务端日期和 rewardStates 生成整月日历，`RewardIcon.vue` 提供三类图标；签到需名下至少一个未过期角色，按钮遵循服务端 canSignIn 并显示 reason；无角色/全过期不可签到，已签到奖励仍可补领。运行 `node --test scripts/test-activity-calendar.mjs` 验证日期边界。
 
 `ActivityArtwork.vue` 的默认主题按当前项目配置（花园携带右半主题，其他目标站默认无图，管理员可上传）；`imageUpload.ts` 压缩上传，地址经活动配置保存。需要配套后端 `welfare_activity_images` 初始化、上传路由及公开只读图片路由。背景不属于锁定奖励规则。
 

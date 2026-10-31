@@ -36,9 +36,17 @@ test('已领与暂停状态不可点击，只有签到记录不会自行推断�
   assert.equal(days[27].label, '已领取'); assert.equal(days[27].action, null)
   assert.ok(buildCalendar(activity({ status: 'disabled' }), '2028-02').filter(Boolean).every(day => !day.action))
 })
-test('只有累计奖仍能签到；无角色字段不影响资格与服务端日期', () => {
+test('只有累计奖仍能签到；签到资格与日期均使用服务端结果', () => {
   const a = activity({ rewards: [] }), days = buildCalendar(a, '2028-02').filter(Boolean)
   assert.equal(days[27].action, 'sign')
   assert.equal(days[27].today, true)
   assert.equal(initialMonth(activity({ signIn: { today: '2029-01-01' } })), '2028-02')
+})
+test('无有效角色时禁止今日签到，已签到未领奖仍能补领；续期刷新后恢复签到', () => {
+  const a = activity({ signIn: { today: '2028-02-28', days: ['2028-02-27'], canSignIn: false, reason: '名下至少需要一个未过期角色才能签到' }, rewardStates: [{ rewardId: 'daily', day: '2028-02-27', eligible: true, claimed: false }] })
+  const days = buildCalendar(a, '2028-02').filter(Boolean)
+  assert.equal(days[27].action, null)
+  assert.equal(days[26].action, 'claim')
+  a.signIn.canSignIn = true
+  assert.equal(buildCalendar(a, '2028-02').filter(Boolean)[27].action, 'sign')
 })

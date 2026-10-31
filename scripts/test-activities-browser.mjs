@@ -190,10 +190,20 @@ try{
  await evaluate("activityFixture.activities.unshift({...JSON.parse(JSON.stringify(activityFixture.activities[0])),id:1,type:'guild_rally',title:'秋日公会集结',description:'与公会伙伴集结，解锁每一份心意。',quota:{days:30,points:30,maxPerRole:1},guilds:[{accountId:11,nickname:'山间听雨',unionName:'青山妖盟',participants:3,allocationCount:1,canAllocate:false,reason:'本期分配次数已用完'}],rewards:[{id:'g5',label:'集结五人礼',kind:'guild',threshold:5,options:[{id:'points',type:'points',value:10}]},{id:'g10',label:'集结十人礼',kind:'guild',threshold:10,options:[{id:'card',type:'card',value:20},{id:'points',type:'points',value:20},{id:'time',type:'time',value:24}]}],rewardStates:[]});activityTest.vm.activeTab='guild_rally'");
  await evaluate('activityTest.refresh()');await waitFor("!!document.querySelector('.guild-progress')");await layout(1280,'page-guild');await layout(390,'page-guild');await layout(320,'page-guild');
  await evaluate("activityFixture.accounts=[];activityTest.mode('sign_in')");await waitFor("activityTest.vm.accounts.length===0 && !!document.querySelector('.signin-calendar')");
- await evaluate("const a=activityFixture.activities.find(a=>a.type==='sign_in');a.signIn.signedToday=false;a.signIn.canSignIn=true;activityTest.vm.load(true)");
+ // 服务端拒绝无有效角色；按钮和今日日期均不可签到，不能发出签到请求。
+ const signCallsBefore = await evaluate("activityFixture.calls.filter(c=>c.url.endsWith('/sign-in')).length");
+ for (const expired of [false,true]) {
+  await evaluate(`activityFixture.accounts=${expired ? "[{id:11,nickname:'已过期角色',serverName:'测试服',expireTime:'2020-01-01T00:00:00Z'}]" : "[]"};(()=>{const a=activityFixture.activities.find(a=>a.type==='sign_in');Object.assign(a.signIn,{signedToday:false,canSignIn:false,reason:'名下至少需要一个未过期角色才能签到，请先绑定角色并开通或续期配额'});a.rewardStates=[]})();activityTest.vm.load(true)`);
+  await waitFor("document.querySelector('.signin-cta').disabled && document.body.innerText.includes('请先绑定角色并开通或续期配额')");
+  await evaluate("document.querySelector('.signin-cta').click()");
+  assert.equal(await evaluate("activityFixture.calls.filter(c=>c.url.endsWith('/sign-in')).length"),signCallsBefore);
+  assert.ok(await evaluate("document.querySelector('.calendar-day.day-today').disabled"));
+  await layout(320,expired?'signin-expired-role':'signin-no-role');
+ }
+ await evaluate("activityFixture.accounts=[{id:11,nickname:'已续期角色',serverName:'测试服',expireTime:new Date(Date.now()+86400000).toISOString()}];(()=>{const a=activityFixture.activities.find(a=>a.type==='sign_in');Object.assign(a.signIn,{canSignIn:true,reason:''})})();activityTest.vm.load(true)");
  await waitFor("!document.querySelector('.signin-cta').disabled");
  await click('立即签到');await waitFor("document.querySelector('.signin-cta').disabled");
- assert.ok(await evaluate("document.body.innerText.includes('无需未到期角色')"));
+ assert.ok(await evaluate("document.body.innerText.includes('签到需名下至少一个未过期角色')"));
  // 旧版列表也只开放进行中的类型，奖励领完、无角色不能隐藏入口。
  await evaluate("activityFixture.summaryMode='legacy';activityFixture.activities.forEach(a=>{a.enabled=false;a.status='disabled'});activityFixture.summary=false;activityTest.mode('page')");
  await waitFor("activityTest.vm.activeTab==='recharge'");
@@ -279,7 +289,7 @@ try{
  assert.equal(await evaluate("document.getElementById('notification').innerText"),'无待办');
  assert.equal(await evaluate("!!document.querySelector('.welfare-new')"),false);
  assert.equal(await evaluate("document.querySelectorAll('.welfare-tabs [role=tab]').length"),0);
- assert.deepEqual(exceptions,[]);console.log('PASS 活动真实浏览器：320/390/1280布局、公会分配、卡密/点数/时长领奖、签到重试幂等、目标角色必选、奖励历史、管理员创建双类型/三选一/锁定规则、待办摘要与活动new、签到仅进行中、到期删除及保留奖励、福利页完整布局、整月奖励日历/三类图标/无角色签到、背景上传预览、未开放入口隐藏/单类型开放/停用切换/全部关闭空状态、旧摘要缺字段兼容/明确空数组/摘要失败回退/鉴权拒绝不回退/失败提示及重试/退出丢弃延迟响应');
+ assert.deepEqual(exceptions,[]);console.log('PASS 活动真实浏览器：320/390/1280布局、公会分配、卡密/点数/时长领奖、签到重试幂等、目标角色必选、奖励历史、管理员创建双类型/三选一/锁定规则、待办摘要与活动new、签到仅进行中、到期删除及保留奖励、福利页完整布局、整月奖励日历/三类图标/无角色及全过期禁止签到/续期恢复、背景上传预览、未开放入口隐藏/单类型开放/停用切换/全部关闭空状态、旧摘要缺字段兼容/明确空数组/摘要失败回退/鉴权拒绝不回退/失败提示及重试/退出丢弃延迟响应');
 }finally{
  if(socket?.readyState===WebSocket.OPEN){try{await command('Browser.close')}catch{}socket.close()}
  if(child&&child.exitCode===null){await Promise.race([new Promise(r=>child.once('exit',r)),sleep(3000)]);if(child.exitCode===null)child.kill()}
