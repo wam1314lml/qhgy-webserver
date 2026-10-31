@@ -10,7 +10,7 @@
 
 签到只展示进行中活动；管理员按服务端 `canDelete` 删除到期活动，调用 `DELETE /admin/:id`。需配套后端的 `deleted_at/deleted_by` 缺失字段初始化；删除不影响历史奖励。签到日历读取 `signIn.days/today`，不通过客户端累计或伪造签到状态。
 
-`SignInCalendar.vue/.css` 与 `calendar.ts` 从服务端日期和 rewardStates 生成整月日历，`RewardIcon.vue` 提供三类图标；签到需名下至少一个未过期角色，按钮遵循服务端 canSignIn 并显示 reason；无角色/全过期不可签到，已签到奖励仍可补领。运行 `node --test scripts/test-activity-calendar.mjs` 验证日期边界。
+`SignInCalendar.vue/.css` 与 `calendar.ts` 从服务端日期和 rewardStates 生成整月日历，`RewardIcon.vue` 提供三类图标；签到需名下至少一个未过期角色，按钮遵循服务端 canSignIn 并显示 reason；无角色/全过期不可签到，已签到的点数/卡密仍可补领，时长奖励需选择未过期角色。运行 `node --test scripts/test-activity-calendar.mjs` 验证日期边界。
 
 `ActivityArtwork.vue` 的默认主题按当前项目配置（花园携带右半主题，其他目标站默认无图，管理员可上传）；`imageUpload.ts` 压缩上传，地址经活动配置保存。需要配套后端 `welfare_activity_images` 初始化、上传路由及公开只读图片路由。背景不属于锁定奖励规则。
 
@@ -21,3 +21,5 @@
 `WelfareNavLabel.vue` 替换旧福利红点，接收 `hasActiveActivities`：集结或签到任一进行中就在福利右下角显示跳动的 new，与待领取/充值次数无关。迁移须携带组件并合并 TopNavBar 的 import/模板接线；退出清空，减少动态效果时不跳动。
 
 `GuildAllocation.vue` 接收 activity/guild/busy，向 ActivityWelfare 发出 working/changed：有效角色整套分配，到期/缺公会/手动更新时先付款一天，再启动或重启角色并等待公会同步，自动补足余量。进度和金额由后端 preparation 提供，首日不计参与；prepare/status/complete 三接口及 welfare_activity_allocations 初始化必须配套迁移。已有启动接口的鉴权/限流/认证检查保留。卸载/退出/切号停止后续自动请求，恢复时读取数据库进度；不能仅用浏览器内存或本地存储防止重复首日收费。
+
+`rewardAccounts.ts` 统一时长领奖目标资格：仅未过期角色可选，确认按钮及提交前均检查；归属和最新有效期最终由后端决定。没有有效角色时显示开通/续期提示。运行 `node --test scripts/test-activity-rewards.mjs`；此限制不改变点数和点数福利卡规则。

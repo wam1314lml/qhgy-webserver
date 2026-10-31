@@ -61,9 +61,9 @@
       <a-pagination v-if="claimTotal > 20" :current="historyPage" :total="claimTotal" :page-size="20" :show-size-changer="false" size="small" @change="loadHistory" />
     </section>
 
-    <a-modal v-model:open="claimOpen" title="选择本档奖励" :confirm-loading="!!busy" :mask-closable="!busy" :closable="!busy" :cancel-button-props="{ disabled: !!busy }" ok-text="确认领取" cancel-text="取消" @ok="claimReward">
+    <a-modal v-model:open="claimOpen" title="选择本档奖励" :confirm-loading="!!busy" :mask-closable="!busy" :closable="!busy" :cancel-button-props="{ disabled: !!busy }" :ok-button-props="{ disabled: selectedOption?.type === 'time' && !accountOptions.some(account => account.value === targetAccountId) }" ok-text="确认领取" cancel-text="取消" @ok="claimReward">
       <template v-if="claimSelection"><p>{{ claimSelection.activity.title }} · {{ claimSelection.reward.label }}</p><a-radio-group v-model:value="selectedOptionId" class="claim-option-group"><a-radio v-for="option in claimSelection.reward.options" :key="option.id" :value="option.id" :disabled="!!busy"><RewardIcon :type="option.type" /> {{ rewardText(option.type, option.value) }}</a-radio></a-radio-group><p class="muted">本档只能领取一次，确认后不能更换奖励。</p>
-        <template v-if="selectedOption?.type === 'time'"><label for="activity-target-account" class="field-label">增加时长的角色</label><a-select id="activity-target-account" v-model:value="targetAccountId" class="activity-select" placeholder="选择名下角色（已过期也可）" :disabled="!!busy" :options="accountOptions" /><p v-if="!accounts.length" class="muted">领取时长时请先绑定角色，或选择点数、卡密奖励。</p></template>
+        <template v-if="selectedOption?.type === 'time'"><label for="activity-target-account" class="field-label">增加时长的角色</label><a-select id="activity-target-account" v-model:value="targetAccountId" class="activity-select" placeholder="选择未过期的名下角色" :disabled="!!busy" :options="accountOptions" /><p class="muted">时长奖励只能领取到有效期内的角色。<template v-if="!accountOptions.length">暂无可领取角色，请先绑定角色并开通或续期配额。</template></p></template>
         <a-alert v-else-if="selectedOption?.type === 'card'" message="领取后生成一张点数福利卡，不限制兑换人。卡密可在下方奖励记录查看、复制。" type="info" show-icon />
         <a-alert v-else-if="selectedOption?.type === 'points'" message="点数将直接加入当前网站账号余额。" type="info" show-icon />
       </template>
@@ -81,6 +81,7 @@ import RewardIcon from './RewardIcon.vue'
 import GuildAllocation from './GuildAllocation.vue'
 import { getCurrentUser, updateUserBalance } from '@/utils/userUtils'
 import { activitiesApi, activityError, formatActivityTime, rewardText } from './api'
+import { canReceiveTimeReward } from './rewardAccounts'
 import { notifyWelfareChanged, useWelfareNotifications } from './useWelfareNotifications'
 import type { ActivityAccount, ActivityClaim, ActivityReward, ActivityType, ActivityView, RewardState } from './types'
 
@@ -103,7 +104,8 @@ const claimSelection = ref<{ activity: ActivityView; reward: ActivityReward; sta
 const selectedOptionId = ref('')
 const targetAccountId = ref<number>()
 const selectedOption = computed(() => claimSelection.value?.reward.options.find(item => item.id === selectedOptionId.value))
-const accountOptions = computed(() => accounts.value.map(account => ({ value: account.id, label: `${account.serverName || '未知大区'} · ${account.nickname}` })))
+const claimTime = ref(Date.now())
+const accountOptions = computed(() => accounts.value.filter(account => canReceiveTimeReward(account, claimTime.value)).map(account => ({ value: account.id, label: `${account.serverName || '未知大区'} · ${account.nickname}` })))
 const statusLabels = { upcoming: '即将开始', active: '进行中', ended: '已结束', disabled: '已停用' }
 let disposed = false
 let loadPromise: Promise<void> | undefined
@@ -156,6 +158,8 @@ async function load(showLoading = false) {
         if (disposed || identity !== getCurrentUser()?.id) return
         activities.value = result.activities
         accounts.value = result.accounts
+        claimTime.value = Date.now()
+        if (targetAccountId.value !== undefined && !canReceiveTimeReward(accounts.value.find(account => account.id === targetAccountId.value), claimTime.value)) targetAccountId.value = undefined
         error.value = ''
       } catch (err) {
         if (!disposed && identity === getCurrentUser()?.id) error.value = activityError(err)
@@ -195,6 +199,7 @@ async function signIn(activity: ActivityView) {
   finally { busy.value = '' }
 }
 function openClaim(activity: ActivityView, reward: ActivityReward, state: RewardState) {
+  claimTime.value = Date.now()
   claimSelection.value = { activity, reward, state }
   selectedOptionId.value = reward.options[0]?.id || ''
   targetAccountId.value = undefined
@@ -204,6 +209,13 @@ async function claimReward() {
   const selection = claimSelection.value
   if (!selection || !selectedOption.value || busy.value) return
   if (selectedOption.value.type === 'time' && !targetAccountId.value) { message.warning('请选择增加时长的角色'); return }
+  claimTime.value = Date.now()
+  if (selectedOption.value.type === 'time' && !canReceiveTimeReward(accounts.value.find(account => account.id === targetAccountId.value), claimTime.value)) {
+    targetAccountId.value = undefined
+    message.warning('领取时长奖励的角色必须在有效期内，请先续期后再领取')
+    void load()
+    return
+  }
   busy.value = 'claim'
   try {
     await activitiesApi.claim(selection.activity.id, {

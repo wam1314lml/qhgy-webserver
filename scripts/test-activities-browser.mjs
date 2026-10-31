@@ -131,8 +131,20 @@ try{
  // 网络未知重试应复用同一 requestId。
  await evaluate('activityFixture.failNext=true');await click('立即签到');await waitFor("!activityTest.vm.busy");await click('立即签到');await waitFor("document.body.innerText.includes('今日已签到')");
  assert.equal(await evaluate("(()=>{const calls=activityFixture.calls.filter(c=>c.url.endsWith('/sign-in'));return calls.length===2&&calls[0].body.requestId===calls[1].body.requestId})()"),true);
- await evaluate("document.querySelector('.calendar-day.day-today').click()");await waitFor('activityTest.vm.claimOpen');await evaluate("activityTest.vm.selectedOptionId='time'");await click('确认领取');
+ await evaluate("document.querySelector('.calendar-day.day-today').click()");await waitFor('activityTest.vm.claimOpen');await evaluate("activityTest.vm.selectedOptionId='time'");assert.ok(await evaluate("Array.from(document.querySelectorAll('.ant-modal-footer button')).find(b=>b.innerText.includes('确认领取')).disabled"));await evaluate('activityTest.vm.claimReward()');
  assert.equal(await evaluate("activityFixture.calls.filter(c=>c.url==='/api/activities/2/claim').length"),0,'选择时长必须选择自己的目标角色');
+ // 领取时长的目标角色必须有效，不能借其他有效角色替过期角色领取。
+ await evaluate("activityFixture.accounts.push({id:12,nickname:'过期角色',serverName:'测试服',expireTime:'2020-01-01T00:00:00Z'});activityTest.vm.load(true)");
+ assert.deepEqual(await evaluate('activityTest.vm.accountOptions.map(a=>a.value)'),[11]);
+ await evaluate('activityTest.vm.targetAccountId=12;activityTest.vm.claimReward()');
+ assert.equal(await evaluate("activityFixture.calls.filter(c=>c.url==='/api/activities/2/claim').length"),0);
+ await evaluate("activityFixture.accounts[0].expireTime='2020-01-01T00:00:00Z';activityTest.vm.load(true)");
+ assert.equal(await evaluate('activityTest.vm.accountOptions.length'),0);
+ assert.equal(await evaluate('activityTest.vm.targetAccountId == null'),true,'过期或移除后清空目标，不能显示裸角色ID');
+ assert.ok(await evaluate("document.body.innerText.includes('暂无可领取角色')"));
+ await layout(320,'time-reward-expired-role');
+ await evaluate("activityFixture.accounts[0].expireTime=new Date(Date.now()+86400000).toISOString();activityTest.vm.load(true)");
+ assert.deepEqual(await evaluate('activityTest.vm.accountOptions.map(a=>a.value)'),[11]);
  await evaluate('activityTest.vm.targetAccountId=11');await click('确认领取');await waitFor("document.body.innerText.includes('已到账角色')");
  await click('选择奖励');await evaluate("activityTest.vm.selectedOptionId='points'");await click('确认领取');await waitFor("activityFixture.claims.length===3");await layout(390,'signin-claimed');
  await evaluate('activityFixture.summary=false;activityTest.refresh()');assert.equal(await evaluate("document.getElementById('notification').innerText"),'无待办');

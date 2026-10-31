@@ -29,7 +29,7 @@
           <div><strong>{{ activity.signIn?.signedToday ? '今日已签到' : '今日还未签到' }}</strong><p>{{ activity.signIn?.reason || '北京时间 00:00 更新，已签到奖励可在活动结束前补领。' }}</p></div>
           <button class="signin-cta" type="button" :disabled="!activity.signIn?.canSignIn || !!busy || activity.status !== 'active'" @click="emit('signIn')"><LoadingOutlined v-if="busy === `signin-${activity.id}`" />{{ activity.signIn?.signedToday ? '今日已签到' : '立即签到' }}</button>
         </div>
-        <p class="signin-access-note">签到需名下至少一个未过期角色。已签到奖励可继续领取；时长可发给名下角色，已过期角色也支持。</p>
+        <p class="signin-access-note">签到需名下至少一个未过期角色。已签到的点数和福利卡可继续领取；时长奖励须选择名下未过期角色。</p>
       </div>
       <aside class="calendar-milestones" aria-label="累计签到奖励">
         <div class="milestone-heading"><GiftOutlined /><h4>累计签到礼</h4><span>每档任选一项</span></div>
