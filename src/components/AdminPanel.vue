@@ -1860,10 +1860,10 @@
           <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
             <a-button @click="() => { reportModalOpen = false }">关闭</a-button>
             <a-button
-              :disabled="reportSelectedKeys.length === 0"
+              :disabled="reportSelectedKeys.length === 0 || reportExporting"
               @click="doExportReport(false)"
             >导出选中（{{ reportSelectedKeys.length }}次）</a-button>
-            <a-button type="primary" @click="doExportReport(true)">导出全部历史</a-button>
+            <a-button type="primary" :loading="reportExporting" @click="doExportReport(true)">导出全部历史</a-button>
           </div>
         </template>
       </a-modal>
@@ -3027,6 +3027,7 @@ watch(announcementModalOpen, (open) => {
 })
 
 onBeforeUnmount(() => {
+  reportModalOpen.value = false
   announcementEditor.value?.destroy()
 })
 
@@ -4796,6 +4797,7 @@ const reportTarget = ref<InviteRelation | null>(null)
 const reportBatches = ref<any[]>([])
 const reportBatchesLoading = ref(false)
 const reportSelectedKeys = ref<string[]>([])
+const reportExporting = ref(false)
 
 // 批次列表表格列定义
 const reportBatchColumns = [
@@ -4850,40 +4852,63 @@ const exportReport = async (user: InviteRelation, latestBatchTime?: string) => {
 // 执行导出
 // exportAll=true：导出全部历史（batchTime=all）
 // exportAll=false：导出选中的批次（逐个下载）
-const doExportReport = (exportAll: boolean) => {
-  if (!reportTarget.value) return
-  const base = `/api/admin/commission-report?agentId=${reportTarget.value.id}&token=${encodeURIComponent(props.token)}`
-
-  const downloadUrl = (url: string, delay = 0) => {
-    setTimeout(() => {
+const doExportReport = async (exportAll: boolean) => {
+  if (!reportTarget.value || reportExporting.value) return
+  const target = reportTarget.value
+  const user = props.user
+  const batches = exportAll ? ['all'] : [...reportSelectedKeys.value]
+  if (batches.length === 0) return
+  const isCurrent = () => reportModalOpen.value && reportTarget.value === target && props.user === user
+  reportExporting.value = true
+  try {
+    for (const batchTime of batches) {
+      if (!isCurrent()) return
+      // 后台只接受 Bearer 认证；先取得文件，再下载本地 Blob，不能把 Token 放进 URL。
+      const response = await axios.get<Blob>('/api/admin/commission-report', {
+        params: { agentId: target.id, batchTime },
+        headers: { Authorization: `Bearer ${props.token}` },
+        responseType: 'blob',
+        handleErrorLocally: true,
+      })
+      if (!isCurrent()) return
+      const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase()
+      if (contentType !== 'text/csv') {
+        throw Object.assign(new Error('报表响应格式异常，请稍后重试'), { response })
+      }
+      const disposition = String(response.headers['content-disposition'] || '')
+      const encodedName = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"|filename=([^;]+)/i.exec(disposition)
+      let filename = '结算报表.csv'
+      try {
+        if (encodedName) filename = decodeURIComponent(encodedName[1] || encodedName[2] || encodedName[3])
+      } catch { /* 使用默认文件名 */ }
+      filename = filename.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_')
+      const url = URL.createObjectURL(response.data)
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', '')
+      link.download = filename
       link.style.display = 'none'
       document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }, delay)
-  }
-
-  if (exportAll) {
-    downloadUrl(`${base}&batchTime=all`)
-    reportModalOpen.value = false
-    return
-  }
-
-  // 逐个下载选中批次（间隔 400ms 避免浏览器阻止）
-  if (reportSelectedKeys.value.length === 0) return
-  if (reportSelectedKeys.value.length === 1) {
-    downloadUrl(`${base}&batchTime=${encodeURIComponent(reportSelectedKeys.value[0])}`)
-    reportModalOpen.value = false
-  } else {
-    // 多选时合并为 all 模式同样用 batchTime=all，但只导出选中的批次
-    // 此处逐个下载（多次）
-    reportSelectedKeys.value.forEach((bt, i) => {
-      downloadUrl(`${base}&batchTime=${encodeURIComponent(bt)}`, i * 500)
-    })
-    reportModalOpen.value = false
+      try { link.click() } finally {
+        document.body.removeChild(link)
+        // 给浏览器时间接管下载，再释放临时文件。
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+      }
+    }
+    if (isCurrent()) reportModalOpen.value = false
+  } catch (error: any) {
+    let detail = error?.response?.data
+    try {
+      if (detail instanceof Blob) detail = JSON.parse(await detail.text())
+    } catch { detail = null }
+    if (!isCurrent()) return
+    const status = error?.response?.status
+    const reason = detail?.message || (status === 401 ? '登录已失效，请重新登录'
+      : status === 403 ? '没有导出报表的权限'
+      : status >= 400 ? `服务器响应异常（HTTP ${status}）`
+      : status ? '服务器未返回 CSV 报表' : '网络异常，请稍后重试')
+    message.error(`报表导出失败：${reason}`)
+  } finally {
+    reportExporting.value = false
   }
 }
 
