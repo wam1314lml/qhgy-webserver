@@ -460,6 +460,10 @@ export const createDefaultGameConfig = (): GameConfig =>
         hd3009TaskRewardEnabled: false,
         hd3009DrawEnabled: false,
         hd3009GiftEnabled: false,
+        hd1002SignEnabled: false,
+        hd1002TaskRewardEnabled: false,
+        hd1002DrawEnabled: false,
+        hd1002GiftEnabled: false,
       },
       flowerCompete: {
         autoSelect: false,

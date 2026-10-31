@@ -1,5 +1,11 @@
 # 限时活动领奖开关（2026-09-09）
 
+## 2026-10-31 万圣狂想
+
+四个独立开关：hd1002SignEnabled（七日福利）、hd1002TaskRewardEnabled（普通/广告/全部任务奖和68/198/520进度奖）、hd1002DrawEnabled（已有糖果桶捣蛋）、hd1002GiftEnabled（勾玉礼包），均在activity.hdReward下且默认false。购买依赖捣蛋，520前按开关购买、520后停购，已有库存继续用；沿用勾玉确认，关闭捣蛋保留购买设置。
+
+类型、默认、归一化、生成分享schema及真实页面保存重载已配套；新旧分享与32组合、原筑翼/分享、生产构建及1100/390/320页面验证通过。未实号消费或部署。协议和运行时证据见脚本QHGY_HD_REWARD_HANDOFF同日节，入口HD1002、签到cfg.signRwd、糖果桶1172、捣蛋Draw2；前端不自行推算库存或活动日限。
+
 ## 2026-09-30 王国庆典
 
 - 新增activity.hdReward.hd42SignEnabled（登录有礼）、hd44TaskRewardEnabled（果骑集结每日/视频/全部任务/进度奖）、hd44GiftEnabled（勾玉礼包与集结），三个开关均默认false，独立于仲夏夜enabled。

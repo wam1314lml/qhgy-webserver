@@ -1499,6 +1499,18 @@
               },
               "hd3009GiftEnabled": {
                 "type": "boolean"
+              },
+              "hd1002SignEnabled": {
+                "type": "boolean"
+              },
+              "hd1002TaskRewardEnabled": {
+                "type": "boolean"
+              },
+              "hd1002DrawEnabled": {
+                "type": "boolean"
+              },
+              "hd1002GiftEnabled": {
+                "type": "boolean"
               }
             }
           },

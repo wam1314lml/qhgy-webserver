@@ -1,3 +1,7 @@
+## 2026-10-31 万圣狂想
+
+activity.hdReward新增hd1002SignEnabled/hd1002TaskRewardEnabled/hd1002DrawEnabled/hd1002GiftEnabled，独立默认false、仅接受true。四项为七日福利、任务及68/198/520进度领奖、糖果桶自动捣蛋、勾玉礼包。购买依赖捣蛋并复用勾玉确认，关闭捣蛋保留购买值；用户确认520前依开关购买，达到后停购，已有桶继续使用。当前50勾玉10桶、每日10包，执行端按Info校验。默认/类型/归一化/生成分享schema同步，旧码缺字段保留当前值。配套脚本复用HdRewardMgr的HD1002、Draw2和signRwd，不自动操作幽夜奇遇；无需新增Web API。
+
 ## 2026-10-29 全部管理模块授权
 
 用户要求所有管理模块可向subadmin等角色授权；AdminPanel全部页签使用my-admin-panel-permissions返回值，不再对服务器/迁移/域名/活动/配额转移写死isAdminRole。新增独立player_records/login_lock/card_keys等键，旧权限展开由后端负责；前端不能自行给subadmin全量权限。配额设置通过moduleAuthorized传入服务端权限，禁止用username/status判断管理员。

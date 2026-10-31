@@ -2654,6 +2654,25 @@
                 :disabled="!config.activity.hdReward.enabled"
               />
             </CustomFormItem>
+            <Divider orientation="left">万圣狂想</Divider>
+            <CustomFormItem label="万圣七日福利签到" name="activity.hdReward.hd1002SignEnabled"
+              tooltip="默认关闭。领取万圣狂想中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd1002SignEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="讨糖闹趣任务领奖" name="activity.hdReward.hd1002TaskRewardEnabled"
+              tooltip="默认关闭。领取每日任务、广告任务、全部任务奖励，以及68、198、520捣蛋分数的进度奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd1002TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动捣蛋" name="activity.hdReward.hd1002DrawEnabled"
+              tooltip="默认关闭。有糖果桶时按50、10、1次自动捣蛋；达到520后仍会使用已有糖果桶领取道具奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd1002DrawEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动购买捣蛋礼包" name="activity.hdReward.hd1002GiftEnabled"
+              tooltip="需开启自动捣蛋。先用已有糖果桶，用完后用勾玉逐包购买并继续捣蛋；捣蛋分数达到520立即停止购买。本期每包50勾玉换10个糖果桶，每日限购10次，实际以游戏为准。">
+              <Switch :checked="config.activity.hdReward.hd1002GiftEnabled"
+                :disabled="!config.activity.hdReward.hd1002DrawEnabled"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd1002GiftEnabled', checked === true)" />
+            </CustomFormItem>
             <Divider orientation="left">绮梦云游</Divider>
             <CustomFormItem label="七日福利签到" name="activity.hdReward.hd3010SignEnabled"
               tooltip="默认关闭。领取登录有礼中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励。">
@@ -3207,6 +3226,7 @@ type DiamondCostSwitchPath =
   | 'activity.imperialTribute.jadeRefreshEnabled'
   | 'activity.hdReward.hd44GiftEnabled'
   | 'activity.hdReward.hd3009GiftEnabled'
+  | 'activity.hdReward.hd1002GiftEnabled'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {
