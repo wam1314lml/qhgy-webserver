@@ -1,5 +1,9 @@
 # 奇幻果园模块索引
 
+## 2026-10-31 万圣节水果与果艺目录
+
+generate-qhgy-game-config-options从脚本同源导出生成288水果/47花瓶/715果艺，新增万圣幻夜及两套配方；sync-fruit-artwork从当前MCP资源索引同步288张原生图。生成目录、fruit-artwork和sources.json配套更新，无新API或配置字段。校验及原有果灵title/ID约束见AI_CONTEXT和HANDOFF同日节。
+
 ## 2026-10-31 万圣狂想设置
 
 GameConfigPage活动页新增万圣狂想四独立开关，支持七日签到、任务/进度领奖、自动捣蛋及520停购。activity.hdReward默认、类型、归一化与分享schema配套，礼包复用勾玉确认和捣蛋依赖。执行端HdRewardMgr使用HD1002，验证见test-halloween-activities.mjs和check-halloween-ui.py。
