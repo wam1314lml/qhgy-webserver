@@ -1077,16 +1077,15 @@
               </CustomFormItem>
               <CustomFormItem
                 label="偷花模式"
+                class="friend-steal-mode form-item--stack-mobile"
                 name="plant.friendSteal.stealMode"
                 tooltip="排除已有种子：选择此项就会不偷自己可以种的水果，只偷不能种的"
               >
-                <Radio.Group v-model:value="config.plant.friendSteal.stealMode">
-                  <Space>
+                <Radio.Group class="friend-steal-mode-options" v-model:value="config.plant.friendSteal.stealMode">
                     <Radio value="quality">指定品质 </Radio>
                     <Radio value="specific">指定水果 </Radio>
                     <Radio value="exclude">排除水果 </Radio>
                     <Radio value="excludeCultivating">排除已有种子</Radio>
-                  </Space>
                 </Radio.Group>
               </CustomFormItem>
               <CustomFormItem
@@ -4406,6 +4405,24 @@ const applySharedConfig = (value: GameConfig) => {
 
   .form-item--stack-mobile :deep(.ant-form-item-label) {
     padding-bottom: 4px;
+  }
+}
+/* 手机模式选项整项换行，昵称式纵排不会出现；保留原值与互斥行为。 */
+.friend-steal-mode-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.friend-steal-mode-options :deep(.ant-radio-wrapper) {
+  white-space: nowrap;
+  margin-inline-end: 0;
+  flex: 0 0 auto;
+}
+@media (max-width: 768px) {
+  .friend-steal-mode-options {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 10px 12px;
   }
 }
 </style>
