@@ -536,6 +536,7 @@
       @cancel="handleDouyinReauthCancel"
     >
       <DouyinReauthModal
+        :key="douyinReauthSid"
         :qr-b64="douyinReauthQrB64"
         :scan-status="douyinReauthScanStatus"
         :sid="douyinReauthSid"
@@ -2475,6 +2476,8 @@ const stopDouyinReauthPolling = () => {
 
 const handleDouyinReauthCancel = () => {
   douyinReauthVisible.value = false
+  douyinReauthSid.value = ''
+  douyinReauthAccountId.value = 0
   douyinReauthScanStatus.value = ''
   douyinReauthQrB64.value = ''
   douyinReauthHandled.value = false
@@ -2486,16 +2489,26 @@ const handleDouyinReauthSubmitSms = async (
   sid: string,
   code: string,
 ): Promise<{ ok: boolean; msg?: string }> => {
+  const accountId = douyinReauthAccountId.value
+  const isCurrentSession = () => douyinReauthVisible.value && !douyinReauthHandled.value &&
+    !!sid && douyinReauthSid.value === sid && douyinReauthAccountId.value === accountId && accountId > 0
+  if (!isCurrentSession()) return { ok: false }
   try {
-    const res = await axios.post('/api/douyin/scan/verify', { sid, code })
+    const res = await axios.post('/api/douyin/scan/verify', { sid, code, accountId }, {
+      handleErrorLocally: true,
+    })
+    if (!isCurrentSession()) return { ok: false }
     if (res.data.ok) {
       message.success('验证码已提交，等待确认...')
       return { ok: true }
     }
-    message.error(res.data.msg || '验证码提交失败')
-    return { ok: false, msg: res.data.msg }
+    const msg = res.data.err || res.data.msg || '验证码提交失败'
+    message.error(msg)
+    return { ok: false, msg }
   } catch (err: any) {
-    const msg = err.response?.data?.err || '提交验证码失败'
+    // 关闭/更换二维码后的旧响应不再提示；401 继续由统一拦截器处理。
+    if (!isCurrentSession() || err.response?.status === 401) return { ok: false }
+    const msg = err.response?.data?.err || err.response?.data?.msg || '提交验证码失败'
     message.error(msg)
     return { ok: false, msg }
   }

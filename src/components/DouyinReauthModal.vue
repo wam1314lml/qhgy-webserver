@@ -66,11 +66,13 @@ const statusText = computed(() => {
 })
 
 const handleSubmitSms = async () => {
-  if (!smsCode.value.trim() || !props.sid) return
+  const code = smsCode.value.trim()
+  const sid = props.sid
+  if (submitting.value || !code || !sid) return
   submitting.value = true
   try {
-    await props.onSubmitSms(props.sid, smsCode.value.trim())
-    smsCode.value = ''
+    const result = await props.onSubmitSms(sid, code)
+    if (result.ok && props.sid === sid && smsCode.value.trim() === code) smsCode.value = ''
   } finally {
     submitting.value = false
   }

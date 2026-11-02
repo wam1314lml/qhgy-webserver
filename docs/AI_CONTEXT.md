@@ -1,3 +1,7 @@
+## 2026-11-02 抖音重认证短信提交
+
+重认证短信仍调用 `/api/douyin/scan/verify`，同时提交当前弹窗的 sid、code、accountId；后端按重认证 Redis 元数据验证账号，不能靠前端传值授权。该请求使用已有 `handleErrorLocally: true`，错误只由当前弹窗提示，401 保留全局处理；返回前后检查弹窗、sid、账号和完成状态，忽略取消/换码/换号后的旧结果。取消清理会话，子弹窗按 sid 重建，提交中防重复回车，失败保留输入，成功只清空本次提交值。专项 `node scripts/test-douyin-reauth-sms.mjs` 执行实际组件处理函数及 Axios 拦截器，禁止使用真实验证码或认证服务。
+
 ## 2026-11-02 支付宝与其他服静态库分离
 
 渠道只认账号表的 platform 数字 1 或字符串 '1' 为支付宝；其余值全部兼容微信库。GameConfigPage/FreeStylePlantingPage 先读 setting 响应顶层 platform，旧API缺字段时按账号ID查询 /list；不得从可编辑/可分享的 setting 推断渠道，也不能沿用上一个账号。渠道确认后才展示表单；切账号、离开页面及旧异步响应由 accountPlatform.ts 版本守卫隔离，分享弹窗随账号重建。
