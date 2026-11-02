@@ -1,5 +1,4 @@
-import { flowerOptions } from './flowerOptions'
-import { specifiedArtsFullOptions } from './specifiedArtsFullOptions'
+import { getGameCatalog } from './channelCatalog'
 
 export type PickerOption = { value: string; label: string }
 
@@ -28,12 +27,14 @@ export function getPickerOptions(
 
 export function getFlowerPickerOptions(
   selectedIds?: Array<string | number> | null,
+  platform?: unknown,
 ): PickerOption[] {
-  return getPickerOptions(flowerOptions, selectedIds)
+  return getPickerOptions(getGameCatalog(platform).flowerOptions, selectedIds)
 }
 
 export function getSpecifiedArtsFullPickerOptions(
   selectedIds?: Array<string | number> | null,
+  platform?: unknown,
 ): PickerOption[] {
-  return getPickerOptions(specifiedArtsFullOptions, selectedIds)
+  return getPickerOptions(getGameCatalog(platform).specifiedArtsFullOptions, selectedIds)
 }

@@ -10,10 +10,10 @@
       >
         <template #right-prefix>
           <Space>
-            <a-button :disabled="loading" @click="openConfigShare">分享</a-button>
+            <a-button :disabled="loading || !configLoaded" @click="openConfigShare">分享</a-button>
             <a-button
               :loading="importConfigLoading"
-              :disabled="loading"
+              :disabled="loading || !configLoaded"
               @click="openImportConfigModal"
             >
               导入
@@ -21,7 +21,7 @@
             <a-button
               @click="onSave"
               class="save-button"
-              :disabled="loading || importConfigLoading"
+              :disabled="loading || !configLoaded || importConfigLoading"
               type="primary"
             >
               保存
@@ -62,6 +62,7 @@
 
         <!-- 配置表单 -->
         <Form
+          v-if="configLoaded"
           ref="formRef"
           :model="config"
           :rules="formRules"
@@ -3036,6 +3037,8 @@
       </div>
     </Modal>
     <ConfigShareDialog
+      v-if="configLoaded"
+      :key="accountId"
       v-model:open="configShareVisible"
       :current="config"
       :adapter="configShareAdapter"
@@ -3046,7 +3049,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, h } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   Form,
@@ -3074,21 +3077,18 @@ import CustomFormItem from '../components/CustomFormItem.vue'
 import CustomSelect from '../components/CustomSelect.vue'
 import CustomInputNumber from '../components/CustomInputNumber.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
+import { getGameCatalog } from './game-config/channelCatalog'
+import { resolveAccountPlatform, createAccountLoadGuard } from './game-config/accountPlatform'
 import { getElfPlantOptions, getElfPlantSelectionNotice } from './game-config/elfPlantRules'
 import {
   actElimSpeedOptions,
-  defaultFmlRaceTaskTypePriority,
-  elfOptions,
-  flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
-  getFlowerPickerOptions,
-  getSpecifiedArtsFullPickerOptions,
-  fmlRaceTaskTypes,
+  getFlowerPickerOptions as getChannelFlowerPickerOptions,
+  getSpecifiedArtsFullPickerOptions as getChannelArtPickerOptions,
   landGroupSizeOptions,
   tabs,
 } from './game-config/options'
-import { floralShopAllOptions } from './game-config/shopItem6Options'
 import { deepMerge } from './game-config/utils'
 import {
   migrateLegacyFloralShopCatalog,
@@ -3114,9 +3114,24 @@ const router = useRouter()
 // 从路由参数获取数据
 const accountId = computed(() => Number(route.params.accountId))
 
+const accountPlatform = ref<unknown>(undefined)
+const configLoaded = ref(false)
+const loadGuard = createAccountLoadGuard()
+const catalog = computed(() => getGameCatalog(accountPlatform.value))
+const elfOptions = computed(() => catalog.value.elfOptions)
+const flowerArtOptions = computed(() => catalog.value.flowerArtOptions)
+const floralShopAllOptions = computed(() => catalog.value.floralShopAllOptions)
+const fmlRaceTaskTypes = computed(() => catalog.value.fmlRaceTaskTypes)
+const getFlowerPickerOptions = (ids?: Array<string | number> | null) => getChannelFlowerPickerOptions(ids, accountPlatform.value)
+const getSpecifiedArtsFullPickerOptions = (ids?: Array<string | number> | null) => getChannelArtPickerOptions(ids, accountPlatform.value)
+const loadAccounts = async () => {
+  const response = await axios.get('/api/game-accounts/list')
+  if (!response.data?.success || !Array.isArray(response.data.data)) throw new Error('获取账号渠道失败')
+  return response.data.data
+}
 const loading = ref(false)
 let configCopyDisposed = false
-onBeforeUnmount(() => { configCopyDisposed = true })
+onBeforeUnmount(() => { configCopyDisposed = true; loadGuard.invalidate() })
 const configCopyMode = ref<'in' | 'out'>('in')
 const copyTargetAccountIds = ref<number[]>([])
 const copyConfigProgress = ref('')
@@ -3125,7 +3140,7 @@ const importConfigLoading = ref(false)
 const importConfigModalVisible = ref(false)
 const importAccountListLoading = ref(false)
 const importSourceAccountId = ref<number | undefined>()
-const importAccountOptions = ref<Array<{ value: number; label: string }>>([])
+const importAccountOptions = ref<Array<{ value: number; label: string; platform?: unknown }>>([])
 const guildMembersLoading = ref(false)
 const guildMemberOptions = ref<Array<{ value: string; label: string }>>([])
 const selectedGuildMember = ref<string | undefined>()
@@ -3149,10 +3164,10 @@ const formRules = {
 }
 
 const config = ref<GameConfig>(createDefaultGameConfig())
-normalizeGameConfigSelects(config.value)
+normalizeGameConfigSelects(config.value, accountPlatform.value)
 
-const elfPlantPickerOptions = computed(() => getElfPlantOptions(config.value.plant.elves.selectedElvesIds))
-const elfPlantSelectionNotice = computed(() => getElfPlantSelectionNotice(config.value.plant.elves.selectedElvesIds))
+const elfPlantPickerOptions = computed(() => getElfPlantOptions(config.value.plant.elves.selectedElvesIds, accountPlatform.value))
+const elfPlantSelectionNotice = computed(() => getElfPlantSelectionNotice(config.value.plant.elves.selectedElvesIds, accountPlatform.value))
 // 无效项不能在下拉框重新选择，但已保存的标签仍允许用户主动移除。
 const renderElfPlantTag = ({ label, value }: { label: string; value: string | number }) => h(Tag, {
   class: 'elf-plant-tag',
@@ -3316,7 +3331,7 @@ const applyFmlRaceQuickSetup = async () => {
   fmlRace.acceptRules = normalizeFmlRaceAcceptRules(fmlRaceQuickSetupRules.value)
   fmlRace.specifiedUpgradePlayers = [...fmlRaceQuickSetupMembers.value]
   fmlRace.avoidProgressTask = true
-  fmlRace.taskTypePriority = { ...defaultFmlRaceTaskTypePriority }
+  fmlRace.taskTypePriority = { ...catalog.value.defaultFmlRaceTaskTypePriority }
   fmlRace.upgradeTask = fmlRaceQuickSetupUseDiamondUpgrade.value
 
   const flower = config.value.plant.flower
@@ -3556,6 +3571,13 @@ const forceCollectMinute = computed({
 
 // 获取配置
 const fetchConfig = async () => {
+  const requestedId = accountId.value
+  const requestVersion = loadGuard.begin()
+  const current = () => loadGuard.isCurrent(requestVersion) && requestedId === accountId.value
+  configLoaded.value = false
+  accountPlatform.value = undefined
+  configShareVisible.value = false
+  importConfigModalVisible.value = false
   if (!accountId.value) {
     console.error('缺少必要参数:', { accountId: accountId.value })
     return
@@ -3563,19 +3585,22 @@ const fetchConfig = async () => {
 
   loading.value = true
   try {
-    console.log('🔄 开始获取配置，accountId:', accountId.value)
-    const response = await axios.get(`/api/game-accounts/${accountId.value}/setting`)
-    console.log('🔄 获取配置=====:', response.data.data)
+    const response = await axios.get(`/api/game-accounts/${requestedId}/setting`)
+    if (!current()) return
 
     if (response.status === 200) {
       if (response.data && !response.data['未找到账号']) {
-        // 使用深度合并确保所有默认字段都存在
+        const platform = await resolveAccountPlatform(requestedId, response.data, loadAccounts)
+        if (!current()) return
+        accountPlatform.value = platform
+        // 使用账号所属渠道归一化，不能从分享数据或上一账号继承渠道。
         migrateLegacyFmlRaceTaskPriority(response.data.data)
         migrateLegacyFloralShopCatalog(response.data.data)
         migrateLegacyFlowerCompeteSelection(response.data.data)
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
-        normalizeGameConfigSelects(mergedConfig)
+        normalizeGameConfigSelects(mergedConfig, accountPlatform.value)
         config.value = mergedConfig
+        configLoaded.value = true
         console.log('✅ 配置加载成功')
       } else {
         console.log('⚠️ 未找到账号配置，使用默认配置')
@@ -3593,6 +3618,7 @@ const fetchConfig = async () => {
       }
     }
   } catch (error) {
+    if (!current()) return
     console.error('获取配置失败:', error)
 
     // 使用 Modal 弹窗提示错误
@@ -3606,7 +3632,7 @@ const fetchConfig = async () => {
       },
     })
   } finally {
-    loading.value = false
+    if (current()) loading.value = false
   }
 }
 
@@ -3622,6 +3648,10 @@ function showConfigNoticeModal(title: string, contentHtml: string, okText = '确
 
 // 保存配置
 const saveConfig = async () => {
+  if (!configLoaded.value || loading.value) return
+  const targetId = accountId.value
+  const version = loadGuard.capture()
+  const current = () => loadGuard.isCurrent(version) && targetId === accountId.value
   clampFmlRaceSelfUpgradeMinScore(config.value.union.fmlRace.acceptRules)
   const rangeError = validateFmlRaceScoreRanges(config.value.union.fmlRace.acceptRules)
   if (rangeError) {
@@ -3635,9 +3665,10 @@ const saveConfig = async () => {
       configSize: JSON.stringify(config.value).length,
     })
 
-    normalizeGameConfigSelects(config.value)
+    normalizeGameConfigSelects(config.value, accountPlatform.value)
 
-    const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
+    const response = await axios.put(`/api/game-accounts/${targetId}/setting`, config.value)
+    if (!current()) return
 
     console.log('📨 服务器响应:', response.data)
 
@@ -3648,7 +3679,7 @@ const saveConfig = async () => {
       message.error(response.data.message || '保存失败')
     }
   } finally {
-    loading.value = false
+    if (current()) loading.value = false
   }
 }
 
@@ -3685,9 +3716,11 @@ const fetchImportAccountOptions = async () => {
           username?: string
           server_name?: string
           server_id?: string
+          platform?: unknown
         }) => ({
           value: account.id,
           label: formatImportAccountLabel(account),
+          platform: account.platform,
         }),
       )
   } catch (error) {
@@ -3717,6 +3750,10 @@ const openFreeStylePage = () => {
 }
 
 const importConfigFromSelectedAccount = async () => {
+  if (!configLoaded.value) return
+  const targetId = accountId.value
+  const version = loadGuard.capture()
+  const current = () => !configCopyDisposed && loadGuard.isCurrent(version) && targetId === accountId.value
   if (importConfigLoading.value || importAccountListLoading.value) return
   if (!importSourceAccountId.value) {
     message.warning('请选择要复制配置的账号')
@@ -3738,11 +3775,12 @@ const importConfigFromSelectedAccount = async () => {
       return
     }
 
+    if (!current()) return
     migrateLegacyFmlRaceTaskPriority(sourceResponse.data.data)
     migrateLegacyFloralShopCatalog(sourceResponse.data.data)
     migrateLegacyFlowerCompeteSelection(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
-    normalizeGameConfigSelects(payload)
+    normalizeGameConfigSelects(payload, accountPlatform.value)
     const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
     if (rangeError) {
       message.warning(rangeError)
@@ -3755,8 +3793,9 @@ const importConfigFromSelectedAccount = async () => {
       return
     }
 
+    if (!current()) return
     config.value = payload
-    normalizeGameConfigSelects(config.value)
+    normalizeGameConfigSelects(config.value, accountPlatform.value)
     importConfigModalVisible.value = false
     showConfigNoticeModal('配置导入成功', '请注意：导入配置后，需要先停止再启动才能生效。')
   } catch (error) {
@@ -3768,10 +3807,12 @@ const importConfigFromSelectedAccount = async () => {
 }
 
 const copyConfigToSelectedAccounts = async () => {
+  if (!configLoaded.value) return
   if (importConfigLoading.value || importAccountListLoading.value) return
   const sourceId = accountId.value
+  const version = loadGuard.capture()
   const owner = localStorage.getItem('token')
-  const current = () => !configCopyDisposed && sourceId === accountId.value && owner === localStorage.getItem('token')
+  const current = () => !configCopyDisposed && loadGuard.isCurrent(version) && sourceId === accountId.value && owner === localStorage.getItem('token')
   const allowed = new Set(importAccountOptions.value.map((option) => option.value))
   const ids = [...new Set(copyTargetAccountIds.value)].filter(
     (id) => id !== sourceId && allowed.has(id),
@@ -3803,7 +3844,7 @@ const copyConfigToSelectedAccounts = async () => {
     migrateLegacyFloralShopCatalog(raw)
     migrateLegacyFlowerCompeteSelection(raw)
     const payload = deepMerge(createDefaultGameConfig(), raw)
-    normalizeGameConfigSelects(payload)
+    normalizeGameConfigSelects(payload, accountPlatform.value)
     const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
     if (rangeError) throw new Error(rangeError)
     const failed: number[] = []
@@ -3811,9 +3852,11 @@ const copyConfigToSelectedAccounts = async () => {
       if (!current()) return
       copyConfigProgress.value = `正在复制 ${index + 1}/${ids.length}`
       try {
+        const targetPayload = JSON.parse(JSON.stringify(payload))
+        normalizeGameConfigSelects(targetPayload, importAccountOptions.value.find(option => option.value === ids[index])?.platform)
         const saved = await axios.put(
           `/api/game-accounts/${ids[index]}/setting`,
-          JSON.parse(JSON.stringify(payload)),
+          targetPayload,
         )
         if (!saved.data?.success) throw new Error('复制失败')
       } catch {
@@ -3858,6 +3901,8 @@ const onSave = async () => {
   }
 }
 
+watch(accountId, () => { void fetchConfig() })
+
 onMounted(() => {
   if (accountId.value) {
     fetchConfig()
@@ -3876,14 +3921,17 @@ const configShareVisible = ref(false)
 const configShareAdapter = createProjectShareAdapter<GameConfig>((value) => {
   const error = validateFmlRaceScoreRanges(value.union.fmlRace.acceptRules)
   if (error) throw new Error(error)
-  normalizeGameConfigSelects(value)
+  normalizeGameConfigSelects(value, accountPlatform.value)
   return value
 }, migrateLegacyFlowerCompeteSelection)
 const configShareApi = createConfigShareApi(configShareAdapter.project.id)
 const openConfigShare = () => {
+  if (!configLoaded.value || loading.value) return
   configShareVisible.value = true
 }
 const applySharedConfig = (value: GameConfig) => {
+  if (!configLoaded.value || !configShareVisible.value) return
+  normalizeGameConfigSelects(value, accountPlatform.value)
   config.value = value
   Modal.success({
     title: '分享配置已应用',

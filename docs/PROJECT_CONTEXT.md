@@ -1,3 +1,7 @@
+## 2026-11-02 按账号渠道读取配置目录
+
+新增 game-config/channelCatalog.ts、accountPlatform.ts 和独立 zfb/ 生成目录。platform=1/'1' 用支付宝库，其余默认微信；配置页与64地页、picker、果灵规则、归一化及分享/复制共用。setting 顶层platform来自Web API账号表，旧API兼容/list。生成器 --channel zfb 与脚本 export/qhgy-database-zfb 配套；详情及验证见AI_CONTEXT、HANDOFF同日节。
+
 # 奇幻果园模块索引
 
 ## 2026-10-31 万圣节水果与果艺目录

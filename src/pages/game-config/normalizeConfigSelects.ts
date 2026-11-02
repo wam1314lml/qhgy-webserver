@@ -8,13 +8,9 @@ import {
   actSpoolSpeedOptions,
   artSellModeOptions,
   buyModeOptions,
-  defaultFmlRaceTaskTypePriority,
-  elfOptions,
   fishFunSpeedOptions,
-  flowerArtOptions,
   flowerCountOptions,
   flowerQualityOptions,
-  fmlRaceTaskTypes,
   landGroupSizeOptions,
   getFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions,
@@ -27,7 +23,7 @@ import {
 } from './options'
 import { ensureMultiSelectValue, ensureSingleSelectValue } from '../../utils/selectDefaults'
 import { normalizeSelectedElvesIds } from './elfPlantRules'
-import { floralShopAllOptions } from './shopItem6Options'
+import { getGameCatalog } from './channelCatalog'
 import { QHGY_FLORAL_SHOP_CATALOG_VERSION } from './migrationVersions'
 import { normalizeFmlRaceAcceptRules } from './fmlRaceAcceptRules'
 
@@ -42,15 +38,6 @@ const FIXED_FREE_STYLE_TEMPLATE_NAMES = [
   '我的方案D',
   '我的方案E',
 ]
-const QHGY_FLOWER_OPTIONS = getFlowerPickerOptions()
-const QHGY_FLOWER_ID_SET = new Set(QHGY_FLOWER_OPTIONS.map((option) => String(option.value)))
-const QHGY_ELF_ID_SET = new Set(elfOptions.map((option) => String(option.value)))
-const QHGY_VASE_ID_SET = new Set(flowerArtOptions.map((option) => String(option.value)))
-const QHGY_ART_OPTIONS = getSpecifiedArtsFullPickerOptions()
-const QHGY_ART_ID_SET = new Set(QHGY_ART_OPTIONS.map((option) => String(option.value)))
-const QHGY_FLORAL_SHOP_ID_SET = new Set(
-  floralShopAllOptions.flatMap((group) => group.options).map((option) => String(option.value)),
-)
 const QHGY_FREE_STYLE_LAND_ID_SET = new Set(
   Array.from({ length: 64 }, (_, index) => String(1001 + index)),
 )
@@ -128,14 +115,14 @@ function normalizeAllowedMultiSelect(
   return ensureMultiSelectValue(normalizeAllowedStringIds(value, allowedValues), options)
 }
 
-function normalizeFreeStyleLands(value: unknown): Record<string, number | string> {
+function normalizeFreeStyleLands(value: unknown, flowerIds: Set<string>): Record<string, number | string> {
   const source = asRecord(value)
   if (!source) return {}
 
   const lands: Record<string, number | string> = {}
   for (const [landId, flowerId] of Object.entries(source)) {
     const normalizedFlowerId = String(flowerId ?? '').trim()
-    if (!QHGY_FREE_STYLE_LAND_ID_SET.has(landId) || !QHGY_FLOWER_ID_SET.has(normalizedFlowerId)) {
+    if (!QHGY_FREE_STYLE_LAND_ID_SET.has(landId) || !flowerIds.has(normalizedFlowerId)) {
       continue
     }
     lands[landId] = Number(normalizedFlowerId)
@@ -143,7 +130,8 @@ function normalizeFreeStyleLands(value: unknown): Record<string, number | string
   return lands
 }
 
-function normalizeFmlRaceTaskTypePriority(value: unknown): Record<string, number> {
+function normalizeFmlRaceTaskTypePriority(value: unknown, platform?: unknown): Record<string, number> {
+  const { fmlRaceTaskTypes, defaultFmlRaceTaskTypePriority } = getGameCatalog(platform)
   const source = asRecord(value) ?? {}
   const normalized = Object.fromEntries(fmlRaceTaskTypes.map(({ key }) => {
     const numberValue = Number(source[key])
@@ -286,7 +274,18 @@ export function migrateMarketFriendFilters(config: any): void {
 }
 
 /** 配置页所有单选/多选为空时，补齐为对应选项列表的第一项 */
-export function normalizeGameConfigSelects(config: GameConfig): void {
+export function normalizeGameConfigSelects(config: GameConfig, platform?: unknown): void {
+  const { elfOptions, flowerArtOptions, floralShopAllOptions } = getGameCatalog(platform)
+  const QHGY_FLOWER_OPTIONS = getFlowerPickerOptions(undefined, platform)
+  const QHGY_FLOWER_ID_SET = new Set(QHGY_FLOWER_OPTIONS.map((option) => String(option.value)))
+  const QHGY_ELF_ID_SET = new Set(elfOptions.map((option) => String(option.value)))
+  const QHGY_VASE_ID_SET = new Set(flowerArtOptions.map((option) => String(option.value)))
+  const QHGY_ART_OPTIONS = getSpecifiedArtsFullPickerOptions(undefined, platform)
+  const QHGY_ART_ID_SET = new Set(QHGY_ART_OPTIONS.map((option) => String(option.value)))
+  const QHGY_FLORAL_SHOP_ID_SET = new Set(
+    floralShopAllOptions.flatMap((group) => group.options).map((option) => String(option.value)),
+  )
+
   migrateLegacyFmlRaceTaskPriority(config)
   migrateLegacyFloralShopCatalog(config)
 
@@ -399,7 +398,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
     .slice(0, MAX_FREE_STYLE_TEMPLATES)
     .map((item, index) => ({
       name: String(item?.name || FIXED_FREE_STYLE_TEMPLATE_NAMES[index]),
-      lands: normalizeFreeStyleLands(item?.lands),
+      lands: normalizeFreeStyleLands(item?.lands, QHGY_FLOWER_ID_SET),
     }))
   while (flower.freeStyleList.length < MAX_FREE_STYLE_TEMPLATES) {
     const index = flower.freeStyleList.length
@@ -643,7 +642,7 @@ export function normalizeGameConfigSelects(config: GameConfig): void {
   fmlRace.avoidProgressTask = !!fmlRace.avoidProgressTask
   fmlRace.keepProgressTask = fmlRace.keepProgressTask === true
   fmlRace.specifiedUpgradePlayers = normalizePlayerNames(fmlRace.specifiedUpgradePlayers)
-  fmlRace.taskTypePriority = normalizeFmlRaceTaskTypePriority(fmlRace.taskTypePriority)
+  fmlRace.taskTypePriority = normalizeFmlRaceTaskTypePriority(fmlRace.taskTypePriority, platform)
   fmlRace.harvestTaskFlowerFilterEnabled = !!fmlRace.harvestTaskFlowerFilterEnabled
   fmlRace.harvestTaskFlowerIds = normalizeAllowedStringIds(
     fmlRace.harvestTaskFlowerIds,

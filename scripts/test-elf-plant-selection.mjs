@@ -319,6 +319,7 @@ await test('实际页面失效标签可主动移除，最后一项移除后保�
         const Tag = 'tag-host';
         export function createTagModel(initial) {
           const config = ref(initial);
+          const accountPlatform = ref(3);
           ${needed.map(name => declarations.get(name)).join('\n')}
           return { config, render: ${renderName} };
         }

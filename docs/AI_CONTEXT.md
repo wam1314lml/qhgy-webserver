@@ -1,3 +1,11 @@
+## 2026-11-02 支付宝与其他服静态库分离
+
+渠道只认账号表的 platform 数字 1 或字符串 '1' 为支付宝；其余值全部兼容微信库。GameConfigPage/FreeStylePlantingPage 先读 setting 响应顶层 platform，旧API缺字段时按账号ID查询 /list；不得从可编辑/可分享的 setting 推断渠道，也不能沿用上一个账号。渠道确认后才展示表单；切账号、离开页面及旧异步响应由 accountPlatform.ts 版本守卫隔离，分享弹窗随账号重建。
+
+channelCatalog.ts 为水果/花瓶/完整配方/完整果灵/有效种植组合/百果园/竞赛目录的统一入口，支付宝文件在 game-config/zfb/，其他服沿用原文件。options picker、elfPlantRules、normalizeGameConfigSelects 均显式接收 platform；保存、复制到目标角色、分享导入及64地页面使用接收方渠道。保持原始ID、旧无效果灵、顺序、title+ID显示，不按名称迁移。公会商店 club_shop 及36项物品数据相同，现有活动商店显示名也未命中渠道改名，沿用共用目录。
+
+更新库后先运行脚本 npm run export:qhgy-db 和 npm run export:qhgy-db -- --db src/game/config/db/qhgy-database-zfb.json --out export/qhgy-database-zfb，再分别运行前端 node scripts/generate-qhgy-game-config-options.mjs 和带 --channel zfb 的命令；--only-elves/--only-elf-plants 可与渠道合用，禁止把支付宝导出覆盖微信目录。验证 scripts/test-channel-database.mjs、test-elf-plant-selection.mjs、test-config-share.mjs 与生产构建。渠道不写入业务配置或分享schema。库存名称由脚本EVT提供，本次未替换原生图片资源，也未添加动态活动数据抓取。
+
 ## 2026-10-31 结算报表下载
 
 管理报表使用现有 Axios、当前管理员 Bearer 和 Blob 下载，禁止把 Token 放入链接或为下载放宽服务端认证。先核验 text/csv 再下载，保留 BOM/服务端文件名并释放对象 URL；批量逐个处理，失败/弹窗关闭/身份或目标变化时停止，保持统一401退出。修改需运行 scripts/test-commission-report.mjs、生产构建和 scripts/test-commission-report-browser.py；浏览器测试只用合成接口。

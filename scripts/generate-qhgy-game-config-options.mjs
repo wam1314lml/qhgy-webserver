@@ -7,6 +7,7 @@
  *   node scripts/generate-qhgy-game-config-options.mjs
  *   node scripts/generate-qhgy-game-config-options.mjs --source <export/qhgy-database>
  *   node scripts/generate-qhgy-game-config-options.mjs --only-elf-plants
+ *   node scripts/generate-qhgy-game-config-options.mjs --channel zfb
  *   node scripts/generate-qhgy-game-config-options.mjs --only-elves
  */
 import fs from 'node:fs';
@@ -16,19 +17,22 @@ import { fileURLToPath } from 'node:url';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
 const defaultSource = path.resolve(projectRoot, '..', '..', 'qhgy-assistant-master', 'export', 'qhgy-database');
-const outputDir = path.join(projectRoot, 'src', 'pages', 'game-config');
+const configDir = path.join(projectRoot, 'src', 'pages', 'game-config');
 
 function readArgs(argv) {
   let source = defaultSource;
   let onlyElfPlants = false;
   let onlyElves = false;
+  let channel = 'wx';
   for (let index = 0; index < argv.length; index++) {
     if (argv[index] === '--source' && argv[index + 1]) source = path.resolve(argv[++index]);
     else if (argv[index] === '--only-elf-plants') onlyElfPlants = true;
     else if (argv[index] === '--only-elves') onlyElves = true;
-    else throw new Error('用法：node scripts/generate-qhgy-game-config-options.mjs [--source <导出目录>] [--only-elves|--only-elf-plants]');
+    else if (argv[index] === '--channel' && ['wx', 'zfb'].includes(argv[index + 1])) channel = argv[++index];
+    else throw new Error('用法：node scripts/generate-qhgy-game-config-options.mjs [--source <导出目录>] [--channel wx|zfb] [--only-elves|--only-elf-plants]');
   }
-  return { source, onlyElfPlants, onlyElves };
+  if (channel === 'zfb' && source === defaultSource) source = `${defaultSource}-zfb`;
+  return { source, onlyElfPlants, onlyElves, channel };
 }
 
 function readJson(sourceDir, filename) {
@@ -57,6 +61,8 @@ function writeFile(filename, content) {
 }
 
 const args = readArgs(process.argv.slice(2));
+const outputDir = args.channel === 'zfb' ? path.join(configDir, 'zfb') : configDir;
+fs.mkdirSync(outputDir, { recursive: true });
 const sourceDir = args.source;
 const fruits = readJson(sourceDir, 'fruits.json');
 const vases = readJson(sourceDir, 'vases.json');

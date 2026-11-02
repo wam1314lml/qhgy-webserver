@@ -1,6 +1,6 @@
 <template>
   <div class="free-style-page">
-    <main class="free-style-card">
+    <main v-if="configLoaded" class="free-style-card">
       <h2 class="free-style-title">🌲 种花设置</h2>
 
       <div class="free-style-plan-row">
@@ -80,17 +80,19 @@
         ← 返回主页
       </button>
     </main>
+    <div v-else class="free-style-card">{{ loading ? '正在读取账号配置…' : '读取配置失败，请返回重试' }}<button class="home-btn" @click="goBack">← 返回主页</button></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Input, Modal, message } from 'ant-design-vue'
 import axios from '../utils/axios'
 import CustomSelect from '../components/CustomSelect.vue'
 import { createDefaultGameConfig } from './game-config/defaultConfig'
-import { getFlowerPickerOptions } from './game-config/options'
+import { getFlowerPickerOptions as getChannelFlowerPickerOptions } from './game-config/options'
+import { resolveAccountPlatform, createAccountLoadGuard } from './game-config/accountPlatform'
 import { deepMerge } from './game-config/utils'
 import {
   migrateLegacyFloralShopCatalog,
@@ -102,6 +104,16 @@ import type { GameConfig } from './game-config/types'
 const route = useRoute()
 const router = useRouter()
 const accountId = computed(() => Number(route.params.accountId))
+const accountPlatform = ref<unknown>(undefined)
+const configLoaded = ref(false)
+const loadGuard = createAccountLoadGuard()
+const getFlowerPickerOptions = (ids?: Array<string | number> | null) => getChannelFlowerPickerOptions(ids, accountPlatform.value)
+const loadAccounts = async () => {
+  const response = await axios.get('/api/game-accounts/list')
+  if (!response.data?.success || !Array.isArray(response.data.data)) throw new Error('获取账号渠道失败')
+  return response.data.data
+}
+onBeforeUnmount(() => loadGuard.invalidate())
 const config = ref<GameConfig>(createDefaultGameConfig())
 const loading = ref(false)
 const selectedFlowerId = ref<string | number>(getFlowerPickerOptions()[0]?.value ?? '50001')
@@ -246,23 +258,37 @@ function clearCurrentPlan() {
 }
 
 async function fetchConfig() {
+  const requestedId = accountId.value
+  const requestVersion = loadGuard.begin()
+  const current = () => loadGuard.isCurrent(requestVersion) && requestedId === accountId.value
+  configLoaded.value = false
+  accountPlatform.value = undefined
+  savedSnapshot.value = ''
   if (!accountId.value) return
 
   loading.value = true
   try {
-    const response = await axios.get(`/api/game-accounts/${accountId.value}/setting`)
+    const response = await axios.get(`/api/game-accounts/${requestedId}/setting`)
+    if (!current()) return
     if (response.status === 200 && response.data && !response.data['未找到账号']) {
+      const platform = await resolveAccountPlatform(requestedId, response.data, loadAccounts)
+      if (!current()) return
+      accountPlatform.value = platform
       migrateLegacyFmlRaceTaskPriority(response.data.data)
       migrateLegacyFloralShopCatalog(response.data.data)
       const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
-      normalizeGameConfigSelects(mergedConfig)
+      normalizeGameConfigSelects(mergedConfig, accountPlatform.value)
       config.value = mergedConfig
+      configLoaded.value = true
+      selectedFlowerId.value = getFlowerPickerOptions()[0]?.value ?? '50001'
       savedSnapshot.value = currentSnapshot.value
     }
   } catch (error) {
+    if (!current()) return
     console.error('获取配置失败:', error)
     message.error('获取配置失败')
   } finally {
+    if (!current()) return
     if (!savedSnapshot.value) {
       savedSnapshot.value = currentSnapshot.value
     }
@@ -271,13 +297,17 @@ async function fetchConfig() {
 }
 
 async function saveConfig() {
-  if (!accountId.value) return false
+  if (!accountId.value || !configLoaded.value || loading.value) return false
+  const targetId = accountId.value
+  const version = loadGuard.capture()
+  const current = () => loadGuard.isCurrent(version) && targetId === accountId.value
 
   loading.value = true
   try {
     config.value.plant.flower.plantingMode = 'freeStyle'
-    normalizeGameConfigSelects(config.value)
-    const response = await axios.put(`/api/game-accounts/${accountId.value}/setting`, config.value)
+    normalizeGameConfigSelects(config.value, accountPlatform.value)
+    const response = await axios.put(`/api/game-accounts/${targetId}/setting`, config.value)
+    if (!current()) return
     if (response.data?.success) {
       savedSnapshot.value = currentSnapshot.value
       message.success('保存成功')
@@ -287,16 +317,17 @@ async function saveConfig() {
       return false
     }
   } catch (error) {
+    if (!current()) return
     console.error('保存配置失败:', error)
     message.error('保存失败')
     return false
   } finally {
-    loading.value = false
+    if (current()) loading.value = false
   }
 }
 
 function goBack() {
-  if (hasUnsavedChanges.value) {
+  if (configLoaded.value && hasUnsavedChanges.value) {
     Modal.confirm({
       title: '是否保存当前设置？',
       content: '你还有未保存的土地设置，保存后再返回主页吗？',
@@ -320,6 +351,7 @@ function goBack() {
   router.push(`/game-config/${accountId.value}`)
 }
 
+watch(accountId, () => { void fetchConfig() })
 onMounted(fetchConfig)
 </script>
 

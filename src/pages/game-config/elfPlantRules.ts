@@ -1,9 +1,11 @@
-import { ELVES, ELF_IDENTITIES } from './elfOptions'
-import { elfPlantOptions } from './elfPlantOptions'
+import { getGameCatalog } from './channelCatalog'
 
-const byId = new Map(elfPlantOptions.map(option => [option.value, option]))
-const byBookId = new Map(elfPlantOptions.map(option => [String(option.bookId), option]))
-const findOption = (id: string) => byId.get(id) ?? byBookId.get(id)
+function getIndexes(platform?: unknown) {
+  const { elfPlantOptions } = getGameCatalog(platform)
+  const byId = new Map(elfPlantOptions.map(option => [option.value, option]))
+  const byBookId = new Map(elfPlantOptions.map(option => [String(option.bookId), option]))
+  return { byId, findOption: (id: string) => byId.get(id) ?? byBookId.get(id) }
+}
 
 /** 保留旧或未知指定以供用户重选，绝不能清空后意外启用周双倍。 */
 export function normalizeSelectedElvesIds(value: unknown): string[] {
@@ -15,36 +17,40 @@ export function normalizeSelectedElvesIds(value: unknown): string[] {
     .filter(Boolean))]
 }
 
-function invalidLabel(id: string): string {
+function invalidLabel(id: string, platform?: unknown): string {
+  const { ELVES } = getGameCatalog(platform)
   return `${ELVES[id] ?? `【系列待确认】未知果灵（ID：${id}）`}（当前图鉴未收录有效种植组合，请重新选择）`
 }
 
-function invalidDetail(id: string): string {
+function invalidDetail(id: string, platform?: unknown): string {
+  const { ELF_IDENTITIES } = getGameCatalog(platform)
   const identity = ELF_IDENTITIES[id]
   const source = identity?.titleSource === 'description'
     ? `；物品说明组合：${identity.mainFruitName} + ${identity.secondaryFruitName}` : ''
-  return `${invalidLabel(id)}${source}`
+  return `${invalidLabel(id, platform)}${source}`
 }
 
 /** 无效旧项仅用于显示当前选择，不提供为新的可选种植目标。 */
-export function getElfPlantOptions(selected: unknown) {
+export function getElfPlantOptions(selected: unknown, platform?: unknown) {
+  const { byId, findOption } = getIndexes(platform)
   const options: Array<{ value: string; label: string; title?: string; disabled?: boolean }> = [...byId.values()]
   for (const id of normalizeSelectedElvesIds(selected)) {
     if (byId.has(id)) continue
     const option = findOption(id)
     options.push(option
       ? { value: id, label: `${option.label}（已保存图鉴ID：${id}）`, title: option.title }
-      : { value: id, label: invalidLabel(id), title: invalidDetail(id), disabled: true })
+      : { value: id, label: invalidLabel(id, platform), title: invalidDetail(id, platform), disabled: true })
   }
   return options
 }
 
-export function getElfPlantSelectionNotice(selected: unknown): { type: 'info' | 'warning'; text: string } {
+export function getElfPlantSelectionNotice(selected: unknown, platform?: unknown): { type: 'info' | 'warning'; text: string } {
+  const { findOption } = getIndexes(platform)
   const ids = normalizeSelectedElvesIds(selected)
   if (ids.length === 0) return { type: 'info', text: '未指定果灵：按本周双倍名单，选择主果和副果都已培育的首个组合；没有可种组合时，按原土地策略种植。' }
   const firstValid = ids.map(findOption).find(Boolean)
   const invalidIds = ids.filter(id => !findOption(id))
-  const invalidText = invalidIds.map(invalidDetail).join('、')
+  const invalidText = invalidIds.map(id => invalidDetail(id, platform)).join('、')
   if (!firstValid) return { type: 'warning', text: `指定项 ${invalidText}。暂停果灵种植，不自动改选本周双倍；仍按原土地策略种植。` }
   const selectedText = `按选择顺序使用首个有效指定：${firstValid.label}。需主果和副果都已培育，不自动改选本周双倍。`
   return invalidIds.length
