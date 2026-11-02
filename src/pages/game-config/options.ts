@@ -38,6 +38,12 @@ export const plantingModeOptions = [
   { value: 'freeStyle', label: '64块地模式' },
 ]
 
+// —— 库存模式补充顺序 ——
+export const lowStockPriorityOptions = [
+  { value: 'lowest', label: '优先补最低库存' },
+  { value: 'closest', label: '优先补快满库存' },
+]
+
 // —— 偷花模式 ——
 export const stealModeOptions = [
   { value: 'quality', label: '指定品质' },

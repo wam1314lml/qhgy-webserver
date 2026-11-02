@@ -1,3 +1,7 @@
+## 2026-11-02 个人土地库存补充优先级
+
+`plant.flower.lowStockPriority` 只接受 `lowest` / `closest`，旧配置缺失及非法值归 `lowest`；只在个人土地库存模式显示，其他模式隐藏保值，不扩展到 `union.land`。`lowest` 先补最低库存，`closest` 仅在库存低于 `lowStockThreshold` 的可种、未排除候选里先补最接近目标者；“快满”指配置的库存目标，不能写成仓库容量。类型、默认值、归一化和生成分享 schema 同步，保存、跨渠道复制与分享复用原路径，旧分享码缺此字段必须保留接收方选择。验证 `scripts/test-low-stock-priority.mjs`、原分享/渠道专项、`tools/check-low-stock-priority-ui.py` 及生产构建；浏览器只使用合成接口。需配套更新果园脚本，无新增 Web API。
+
 ## 2026-11-02 抖音重认证短信提交
 
 重认证短信仍调用 `/api/douyin/scan/verify`，同时提交当前弹窗的 sid、code、accountId；后端按重认证 Redis 元数据验证账号，不能靠前端传值授权。该请求使用已有 `handleErrorLocally: true`，错误只由当前弹窗提示，401 保留全局处理；返回前后检查弹窗、sid、账号和完成状态，忽略取消/换码/换号后的旧结果。取消清理会话，子弹窗按 sid 重建，提交中防重复回车，失败保留输入，成功只清空本次提交值。专项 `node scripts/test-douyin-reauth-sms.mjs` 执行实际组件处理函数及 Axios 拦截器，禁止使用真实验证码或认证服务。

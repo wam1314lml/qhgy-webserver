@@ -303,6 +303,9 @@
               "lowStockThreshold": {
                 "type": "number"
               },
+              "lowStockPriority": {
+                "type": "string"
+              },
               "freeStyleTemplate": {
                 "type": "string"
               },

@@ -111,6 +111,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         },
         plantingMode: 'count',
         lowStockThreshold: 500,
+        lowStockPriority: 'lowest',
         freeStyleTemplate: '我的方案A',
         freeStyleList: [
           {

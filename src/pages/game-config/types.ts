@@ -108,6 +108,7 @@ export interface GameConfig {
       taskPriorityConfig: Record<string, number>
       plantingMode: 'quality' | 'count' | 'specific' | 'lowStock' | 'freeStyle' | string
       lowStockThreshold: number
+      lowStockPriority: 'lowest' | 'closest'
       freeStyleTemplate: string
       freeStyleList: Array<{
         name: string

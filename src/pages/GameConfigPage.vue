@@ -916,7 +916,7 @@
               <CustomFormItem
                 label="最低库存"
                 name="plant.flower.lowStockThreshold"
-                tooltip="比如设置了500，那么就种植库存不足500的花，无视限制水果等级，所有花库存都有500了就不会种植了，适合小号存水。"
+                tooltip="库存补充目标。例如设为500，只种库存不足500的水果；达到目标即跳过，全部达标后停止补种。此模式无视限制水果等级。"
                 v-if="config.plant.flower.plantingMode === 'lowStock'"
               >
                 <CustomInputNumber
@@ -924,6 +924,19 @@
                   :min="1"
                   :max="999999"
                   class="w-42! sm:w-48!"
+                />
+              </CustomFormItem>
+              <CustomFormItem
+                label="补库存优先级"
+                name="plant.flower.lowStockPriority"
+                class="form-item--stack-mobile"
+                tooltip="仅比较库存未达目标的水果。优先补最低库存：先补库存最少的；优先补快满库存：先补最接近上方库存目标的。已达标和已排除的水果均跳过。"
+                v-if="config.plant.flower.plantingMode === 'lowStock'"
+              >
+                <CustomSelect
+                  v-model:value="config.plant.flower.lowStockPriority"
+                  :options="lowStockPriorityOptions"
+                  wide
                 />
               </CustomFormItem>
               <CustomFormItem
@@ -3083,6 +3096,7 @@ import { getElfPlantOptions, getElfPlantSelectionNotice } from './game-config/el
 import {
   actElimSpeedOptions,
   flowerCountOptions,
+  lowStockPriorityOptions,
   flowerQualityOptions,
   getFlowerPickerOptions as getChannelFlowerPickerOptions,
   getSpecifiedArtsFullPickerOptions as getChannelArtPickerOptions,
