@@ -8,6 +8,7 @@ import Help from '../components/HelpPage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
 import AgentManagement from '../components/AgentManagement.vue'
 import { updateUserBalance } from '@/utils/userUtils'
+import { isSecondLevelAgentRole } from '@/utils/agentRoles'
 
 const routes = [
   {
@@ -88,12 +89,11 @@ router.beforeEach((to, from, next) => {
   if (!['Login', 'Register'].includes(to.name as string) && localStorage.token) {
     updateUserBalance()
   }
-  // 二级代理专属页面权限守卫（vip1/vip2 可访问）
+  // 二级代理专属页面权限守卫，VIP3 与 VIP2 使用相同入口。
   if (to.meta?.requiresSubadmin) {
     try {
       const userInfo = JSON.parse(localStorage.getItem('user') || '{}')
-      const SECOND_LEVEL_ROLES = ['vip1', 'vip2']
-      if (!SECOND_LEVEL_ROLES.includes(userInfo.role)) {
+      if (!isSecondLevelAgentRole(userInfo.role)) {
         return next({ name: 'Dashboard' })
       }
     } catch {

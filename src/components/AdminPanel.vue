@@ -2154,6 +2154,7 @@ import AdminPanelPermissions from './AdminPanelPermissions.vue'
 import CustomTable from './CustomTable.vue'
 import OrderUserLookup from './OrderUserLookup.vue'
 import axios from '../utils/axios'
+import { isSecondLevelAgentRole } from '@/utils/agentRoles'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -2990,7 +2991,7 @@ const withdrawForm = ref({
 
 // 当前提现弹窗用户是否是二级代理
 const selectedUserIsSecondLevel = computed(() =>
-  ['vip1', 'vip2'].includes(selectedUser.value?.role || '')
+  isSecondLevelAgentRole(selectedUser.value?.role)
 )
 
 // 表单对象
@@ -3149,7 +3150,7 @@ const inviteColumns = computed(() => [
     title: '操作',
     key: 'action',
     customRender: ({ record }: { record: InviteRelation }) => {
-      const isSecondLevel = ['vip1', 'vip2'].includes(record.role)
+      const isSecondLevel = isSecondLevelAgentRole(record.role)
       const selfAvailable = parseFloat(record.available_commission?.toString() || '0') || 0
       const subAvailable = parseFloat(record.sub_agents_available?.toString() || '0') || 0
       const canWithdraw = selfAvailable > 0 || (isSecondLevel && subAvailable > 0)

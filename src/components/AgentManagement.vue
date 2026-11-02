@@ -326,6 +326,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import axiosInstance from '../utils/axios'
+import { isSecondLevelAgentRole } from '@/utils/agentRoles'
 
 // 使用项目 axios 实例（自动带 challenge 签名头 + token）
 async function apiFetch(path: string, opts: { method?: string; body?: string } = {}) {
@@ -363,7 +364,7 @@ function statusLabel(s: string) {
   return map[s] || s
 }
 function getRoleClass(role: string) {
-  if (['vip2', 'vip1'].includes(role)) return 'role-subadmin'
+  if (isSecondLevelAgentRole(role)) return 'role-subadmin'
   if (role === 'agent3') return 'role-vip'
   if (role === 'vip') return 'role-vip'
   if (role === 'admin' || role === 'subadmin') return 'role-admin'
@@ -373,7 +374,7 @@ function getRoleClass(role: string) {
 function getRoleLabel(role: string) {
   const map: Record<string, string> = {
     admin: '管理员', subadmin: '总代',
-    vip1: '二级代理', vip2: '二级代理',
+    vip1: '二级代理', vip2: '二级代理', vip3: '二级代理',
     agent3: '三级代理', vip: 'VIP', user: '普通用户',
   }
   return map[role] || role
@@ -381,7 +382,7 @@ function getRoleLabel(role: string) {
 
 // 判断用户是否是二级代理（不可被任命为三级代理）
 function isSecondLevel(role: string) {
-  return ['vip1', 'vip2', 'admin', 'subadmin'].includes(role)
+  return isSecondLevelAgentRole(role) || ['admin', 'subadmin'].includes(role)
 }
 
 // 判断搜索结果中的用户是否不可选

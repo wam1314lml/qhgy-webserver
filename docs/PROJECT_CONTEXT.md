@@ -1,3 +1,7 @@
+## 2026-11-02 二级代理界面角色定义
+
+新增 `src/utils/agentRoles.ts`，统一 vip1/vip2/vip3 的界面身份判断；路由、TopNavBar、AgentManagement、PerformanceManagement 与 AdminPanel 共用。`scripts/test-agent-vip3.mjs` 验证实际入口/角色标签/目标保护/旗下操作并编译相关 SFC。无新页面或接口，后端配套权限修复与发布说明见 HANDOFF 同日节。
+
 ## 2026-11-02 按账号渠道读取配置目录
 
 新增 game-config/channelCatalog.ts、accountPlatform.ts 和独立 zfb/ 生成目录。platform=1/'1' 用支付宝库，其余默认微信；配置页与64地页、picker、果灵规则、归一化及分享/复制共用。setting 顶层platform来自Web API账号表，旧API兼容/list。生成器 --channel zfb 与脚本 export/qhgy-database-zfb 配套；详情及验证见AI_CONTEXT、HANDOFF同日节。

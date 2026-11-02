@@ -49,7 +49,7 @@
         </a-form-item>
 
         <template v-if="agentConfigForm.action === 'appoint'">
-          <a-form-item label="上级代理（vip1/vip2）">
+          <a-form-item label="上级代理（vip1/vip2/vip3）">
             <a-select
               v-model:value="agentConfigForm.parent_agent_id"
               placeholder="请选择上级代理"

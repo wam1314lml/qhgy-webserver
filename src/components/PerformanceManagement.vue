@@ -25,7 +25,7 @@
       <div class="performance-content">
         <!-- 二级代理身份卡片 -->
         <div
-          v-if="inviteStats?.agentInfo?.role === 'vip1' || inviteStats?.agentInfo?.role === 'vip2'"
+          v-if="isSecondLevelAgentRole(inviteStats?.agentInfo?.role)"
           class="performance-card agent-identity-card"
         >
           <div class="agent-identity-content">
@@ -255,6 +255,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import axios from '../utils/axios'
+import { isSecondLevelAgentRole } from '@/utils/agentRoles'
 import { message } from 'ant-design-vue'
 
 interface User {
@@ -440,6 +441,7 @@ const getRoleDisplayName = (role: string) => {
       return '管理员'
     case 'subadmin':
       return '总代'
+    case 'vip3':
     case 'vip2':
       return '二级代理'
     case 'vip1':

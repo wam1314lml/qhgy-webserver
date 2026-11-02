@@ -1,3 +1,7 @@
+## 2026-11-02 VIP3 二级代理入口
+
+`src/utils/agentRoles.ts` 与后端明确角色集合保持一致：vip1/vip2/vip3 均属二级代理。导航、`/agent` 路由守卫、代理标签/招纳目标保护、业绩身份卡及管理员旗下提现/报表操作复用判断，不能按角色等级推断或在各页面重新硬编码 vip1/vip2。前端只控制展示，实际权限仍由后端每请求查库验证；VIP3 不自动获得管理员模块，分成仍由后端读取 VIP3 自身配置。专项 `scripts/test-agent-vip3.mjs` 执行实际组件/路由函数并编译相关 SFC，配套后端先发布。
+
 ## 2026-11-02 个人土地库存补充优先级
 
 `plant.flower.lowStockPriority` 只接受 `lowest` / `closest`，旧配置缺失及非法值归 `lowest`；只在个人土地库存模式显示，其他模式隐藏保值，不扩展到 `union.land`。`lowest` 先补最低库存，`closest` 仅在库存低于 `lowStockThreshold` 的可种、未排除候选里先补最接近目标者；“快满”指配置的库存目标，不能写成仓库容量。类型、默认值、归一化和生成分享 schema 同步，保存、跨渠道复制与分享复用原路径，旧分享码缺此字段必须保留接收方选择。验证 `scripts/test-low-stock-priority.mjs`、原分享/渠道专项、`tools/check-low-stock-priority-ui.py` 及生产构建；浏览器只使用合成接口。需配套更新果园脚本，无新增 Web API。
