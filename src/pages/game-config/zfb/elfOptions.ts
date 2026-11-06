@@ -90,7 +90,7 @@ export const ELVES: Record<string, string> = {
   "210704": "【巨蟹・汐浪星徊】紫心海菜花果灵（ID：210704）",
   "210705": "【巨蟹・汐浪星徊】绛羽杰奎琳果灵（ID：210705）",
   "210706": "【巨蟹・汐浪星徊】天青龙面果灵（ID：210706）",
-  "210707": "【巨蟹・汐浪星徊】赤日扶桑果灵（ID：210707）",
+  "210707": "【巨蟹・汐浪星徊】曦光星瓣果果灵（ID：210707）",
   "210708": "【巨蟹・汐浪星徊】橘红嗡月季果灵（ID：210708）",
   "210709": "【巨蟹・汐浪星徊】柠黄嗡月季果灵（ID：210709）",
   "210710": "【巨蟹・汐浪星徊】橙焰大花蕙兰果灵（ID：210710）",
@@ -644,7 +644,7 @@ export const ELF_IDENTITIES: Record<string, { title: string; titleSource: string
     "title": "巨蟹・汐浪星徊",
     "titleSource": "description",
     "mainFruitName": "巨蟹・汐浪星徊",
-    "secondaryFruitName": "赤日扶桑"
+    "secondaryFruitName": "曦光星瓣果"
   },
   "210708": {
     "title": "巨蟹・汐浪星徊",
