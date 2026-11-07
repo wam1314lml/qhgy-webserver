@@ -1,3 +1,7 @@
+## 2026-11-07 仲夏夜之梦七日福利与勾玉礼包
+
+现有GameConfigPage活动页新增hd3013SignEnabled/hd3013GiftEnabled两开关及对应默认、类型、归一化、分享schema；七日签到独立，礼包依赖原任务/抽奖并经勾玉确认。复用通用setting API，无新页面或后端路由。配套脚本HdRewardMgr负责520停购、限购余额和实际协议，MCP实时核验待连接恢复；验证记录见HANDOFF。
+
 ## 2026-11-02 二级代理界面角色定义
 
 新增 `src/utils/agentRoles.ts`，统一 vip1/vip2/vip3 的界面身份判断；路由、TopNavBar、AgentManagement、PerformanceManagement 与 AdminPanel 共用。`scripts/test-agent-vip3.mjs` 验证实际入口/角色标签/目标保护/旗下操作并编译相关 SFC。无新页面或接口，后端配套权限修复与发布说明见 HANDOFF 同日节。

@@ -435,6 +435,8 @@ export interface GameConfig {
     hdReward: {
       enabled: boolean
       hd3013DrawEnabled: boolean
+      hd3013SignEnabled: boolean
+      hd3013GiftEnabled: boolean
       hd90TaskRewardEnabled: boolean
       hd90DrawEnabled: boolean
       hd91SignEnabled: boolean

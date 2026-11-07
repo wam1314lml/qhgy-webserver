@@ -2650,6 +2650,10 @@
               <Switch v-model:checked="config.activity.actCardCollect.enabledCardCollect" />
             </CustomFormItem>
             <Divider orientation="left">仲夏夜之梦 · 萤夜蝶舞</Divider>
+            <CustomFormItem label="七日福利签到" name="activity.hdReward.hd3013SignEnabled"
+              tooltip="默认关闭。领取仲夏夜之梦中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励；可独立开启。">
+              <Switch v-model:checked="config.activity.hdReward.hd3013SignEnabled" />
+            </CustomFormItem>
             <CustomFormItem
               label="自动领取任务奖励"
               name="activity.hdReward.enabled"
@@ -2660,12 +2664,18 @@
             <CustomFormItem
               label="活动抽奖"
               name="activity.hdReward.hd3013DrawEnabled"
-              tooltip="默认关闭。开启后使用活动内已有蝶舞瓶逐次放飞，不购买道具，不消耗幻梦蝴蝶。需开启自动领取任务奖励。"
+              tooltip="默认关闭。使用活动内已有蝶舞瓶逐次放飞；满520后仍会使用已有蝶舞瓶，不消耗幻梦蝴蝶。需开启自动领取任务奖励，购买礼包需另行开启。"
             >
               <Switch
                 v-model:checked="config.activity.hdReward.hd3013DrawEnabled"
                 :disabled="!config.activity.hdReward.enabled"
               />
+            </CustomFormItem>
+            <CustomFormItem label="自动购买勾玉礼包" name="activity.hdReward.hd3013GiftEnabled"
+              tooltip="默认关闭，需开启自动领取任务奖励和活动抽奖。先用已有蝶舞瓶，用完后用勾玉逐包购买并继续放飞；放飞进度达到520立即停止购买。价格和限购次数以游戏当期礼包配置为准。">
+              <Switch :checked="config.activity.hdReward.hd3013GiftEnabled"
+                :disabled="!config.activity.hdReward.enabled || !config.activity.hdReward.hd3013DrawEnabled"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd3013GiftEnabled', checked === true)" />
             </CustomFormItem>
             <Divider orientation="left">万圣狂想</Divider>
             <CustomFormItem label="万圣七日福利签到" name="activity.hdReward.hd1002SignEnabled"
@@ -3255,6 +3265,7 @@ type DiamondCostSwitchPath =
   | 'activity.hdReward.hd44GiftEnabled'
   | 'activity.hdReward.hd3009GiftEnabled'
   | 'activity.hdReward.hd1002GiftEnabled'
+  | 'activity.hdReward.hd3013GiftEnabled'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {

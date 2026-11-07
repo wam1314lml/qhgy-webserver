@@ -688,6 +688,8 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
   config.activity.hdReward = {
     enabled: (hdReward?.enabled ?? true) === true,
     hd3013DrawEnabled: hdReward?.hd3013DrawEnabled === true,
+    hd3013SignEnabled: hdReward?.hd3013SignEnabled === true,
+    hd3013GiftEnabled: hdReward?.hd3013GiftEnabled === true,
     hd90TaskRewardEnabled: hdReward?.hd90TaskRewardEnabled === true,
     hd90DrawEnabled: hdReward?.hd90DrawEnabled === true,
     hd91SignEnabled: hdReward?.hd91SignEnabled === true,

@@ -451,6 +451,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       hdReward: {
         enabled: true,
         hd3013DrawEnabled: false,
+        hd3013SignEnabled: false,
+        hd3013GiftEnabled: false,
         hd90TaskRewardEnabled: false,
         hd90DrawEnabled: false,
         hd91SignEnabled: false,
