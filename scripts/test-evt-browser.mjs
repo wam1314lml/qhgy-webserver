@@ -43,6 +43,7 @@ const bundle = await build({
         const items = [{"itemId": 54023, "name": "山海·青蛇缘", "quality": 5, "value": 0, "cultivated": true}, {"itemId": 54001, "name": "圣域灵花", "quality": 5, "value": 250, "cultivated": true}, {"itemId": 54002, "name": "九尾仙狐", "quality": 5, "value": 375, "cultivated": true}, {"itemId": 54003, "name": "祥瑞灵鸾", "quality": 5, "value": 500, "cultivated": true}, {"itemId": 53061, "name": "湖畔灵塔", "quality": 4, "value": 625, "cultivated": true}, {"itemId": 53001, "name": "绿宝香瓜", "quality": 4, "value": 750, "cultivated": true}, {"itemId": 53002, "name": "月亮仙船", "quality": 4, "value": 875, "cultivated": true}, {"itemId": 53003, "name": "幻梦仙蝶", "quality": 4, "value": 1000, "cultivated": true}, {"itemId": 52001, "name": "总统西梅", "quality": 3, "value": 1125, "cultivated": true}, {"itemId": 52002, "name": "雾琉闻夜铃", "quality": 3, "value": 1250, "cultivated": true}, {"itemId": 52003, "name": "桃雾闻夜铃", "quality": 3, "value": 1375, "cultivated": true}, {"itemId": 52004, "name": "摸鱼入梦", "quality": 3, "value": 1500, "cultivated": true}, {"itemId": 51089, "name": "杨柳", "quality": 2, "value": 1625, "cultivated": true}, {"itemId": 51001, "name": "法兰西西梅", "quality": 2, "value": 1750, "cultivated": true}, {"itemId": 51002, "name": "蓝蜜西梅", "quality": 2, "value": 1875, "cultivated": true}, {"itemId": 51003, "name": "小太阳暖杏", "quality": 2, "value": 2000, "cultivated": true}, {"itemId": 50001, "name": "蛇果", "quality": 1, "value": 2125, "cultivated": true}, {"itemId": 50002, "name": "红颜草莓", "quality": 1, "value": 2250, "cultivated": true}, {"itemId": 50003, "name": "金煌芒", "quality": 1, "value": 2375, "cultivated": true}, {"itemId": 50004, "name": "红富士", "quality": 1, "value": 2500, "cultivated": true}, {"itemId": 999999, "name": "缺少图片的水果", "quality": 99, "value": 1234567890123, "cultivated": true}, {"itemId": 50010, "name": "未培育测试水果", "quality": 1, "value": 20, "cultivated": false}].reverse();
         if (mode === 'legacy') items.forEach(item => delete item.cultivated);
         if (mode === 'empty') items.forEach(item => item.cultivated = false);
+        if (mode === 'noRed') items.splice(0, items.length, ...items.filter(item => item.quality !== 5));
         if (mode === 'broken') items.forEach(item => { item.cultivated = item.itemId === 50010; if (item.cultivated) item.itemId = 50011; });
         store.replaceStates({'水果库存':{layout:{rankTabs:[{key:'count',label:'按数量',items}],rankTabDefault:'count',rankTabsMode:mode==='sections'?'sections':'tabs',rankListLabel:'水果明细'}}});
         modules.value = store.snapshot(); filter.value='水果库存'; await nextTick();
@@ -220,6 +221,8 @@ try {
   await evaluate(`[...document.querySelectorAll('.evt-section-toggle')].find(el=>el.textContent.includes('水果明细')).click()`)
   const selectTab = async label => { await evaluate(`[...document.querySelectorAll('.evt-rank-tab')].find(el=>el.textContent===${JSON.stringify(label)}).click()`); await sleep(100) }
   const selectCultivation = label => evaluate(`[...document.querySelectorAll('.evt-inventory-cultivation-option')].find(el=>el.textContent.trim()===${JSON.stringify(label)}).click();window.evtTest.flush()`)
+  const selectQuality = label => evaluate(`[...document.querySelectorAll('.evt-inventory-quality-option')].find(el=>el.textContent.trim()===${JSON.stringify(label)}).click();window.evtTest.flush()`)
+  const selectQualitySort = label => evaluate(`[...document.querySelectorAll('.evt-inventory-quality-sort-option')].find(el=>el.textContent.trim()===${JSON.stringify(label)}).click();window.evtTest.flush()`)
   const names = () => evaluate(`[...document.querySelectorAll('.evt-fruit-name,.evt-rank-name')].map(el=>el.textContent)`)
   const search = async text => { await evaluate(`(()=>{const el=document.querySelector('.evt-inventory-search');el.value=${JSON.stringify(text)};el.dispatchEvent(new Event('input',{bubbles:true}))})()`); await sleep(100) }
   await selectTab('已培育')
@@ -284,6 +287,36 @@ try {
     if (label === '未培育') assert.deepEqual(rows.map(row=>row.name), ['未培育测试水果'])
     assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth+1`), label+'窄屏溢出')
   }
+  await selectTab('按品质')
+  assert.deepEqual(await evaluate(`[...document.querySelectorAll('.evt-fruit-quality-heading > span:first-child')].map(el=>el.textContent)`), ['红色品质','金色品质','紫色品质','蓝色品质','绿色品质','未知品质'])
+  for (const [label, q] of [['红',5],['金',4],['紫',3],['蓝',2],['绿',1]]) {
+    await selectQuality(label)
+    assert.ok((await tiles()).every(row=>row.quality===q))
+    assert.equal(await evaluate(`document.querySelectorAll('.evt-fruit-quality-heading').length`), 1)
+  }
+  await selectQuality('红'); await selectQualitySort('从少到多 ↑')
+  assert.deepEqual(await names(), ['山海·青蛇缘','圣域灵花','九尾仙狐','祥瑞灵鸾'])
+  await search('山海')
+  assert.match(await evaluate(`document.querySelector('.evt-inventory-matches').textContent`), /找到 1 \/ 4 种/)
+  await search('蛇果')
+  assert.equal(await evaluate(`document.querySelector('.evt-rank-empty').textContent`), '未找到匹配的红色水果')
+  await selectQuality('绿'); assert.deepEqual(await names(), ['蛇果'])
+  await search(''); await selectQuality('红'); await evaluate(`window.evtTest.inventory()`)
+  assert.deepEqual(await names(), ['山海·青蛇缘','圣域灵花','九尾仙狐','祥瑞灵鸾'])
+  await evaluate(`document.querySelector('.evt-copy-inventory-btn').click();window.evtTest.flush()`)
+  assert.match(await evaluate('window.inventoryCopied'), /蛇果/)
+  await selectTab('按数量'); assert.equal((await names()).length,22)
+  assert.equal(await evaluate(`document.querySelectorAll('.evt-inventory-quality-option').length`),0)
+  await selectTab('按品质')
+  assert.deepEqual(await names(), ['山海·青蛇缘','圣域灵花','九尾仙狐','祥瑞灵鸾'])
+  for (const width of [1280,390,320]) {
+    await command('Emulation.setDeviceMetricsOverride', {width,height:1000,deviceScaleFactor:1,mobile:width<640})
+    assert.ok(await evaluate(`[...document.querySelectorAll('.evt-inventory-quality-option,.evt-inventory-quality-sort-option')].every(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=${width}})`))
+  }
+  await evaluate(`window.evtTest.inventory('noRed')`)
+  assert.equal(await evaluate(`document.querySelector('.evt-rank-empty').textContent`), '暂无红色水果')
+  await selectQuality('全部'); await selectQualitySort('从多到少 ↓'); await evaluate(`window.evtTest.inventory()`)
+  console.log('品质筛选、升降序、搜索交集、空结果恢复、刷新/切页保留、全量复制及窄屏通过。')
   await selectTab('500库存↓')
   await selectCultivation('已培育')
   assert.deepEqual(await names(), ['山海·青蛇缘','圣域灵花','九尾仙狐'])
@@ -353,6 +386,10 @@ try {
   const sections = await evaluate(`[...document.querySelectorAll('.evt-fruit-grid')].map(el=>({label:el.getAttribute('aria-label'),count:el.querySelectorAll('.evt-fruit-tile').length}))`)
   assert.deepEqual(sections.map(section=>section.count), [22,22,18,4,21,1])
   assert.deepEqual(sections.map(section=>section.label), ['按数量','按品质','500库存↑','500库存↓','已培育','未培育'].map(label=>'水果库存 · '+label))
+  await selectQuality('红'); await selectQualitySort('从少到多 ↑')
+  assert.deepEqual(await evaluate(`[...document.querySelector('[aria-label="水果库存 · 按品质"]').querySelectorAll('.evt-fruit-name')].map(el=>el.textContent)`), ['山海·青蛇缘','圣域灵花','九尾仙狐','祥瑞灵鸾'])
+  assert.equal(await evaluate(`document.querySelector('[aria-label="水果库存 · 按数量"]').querySelectorAll('.evt-fruit-tile').length`),22)
+  await selectQuality('全部'); await selectQualitySort('从多到少 ↓')
   await selectCultivation('已培育')
   assert.deepEqual(await evaluate(`[...document.querySelector('[aria-label="水果库存 · 500库存↓"]').querySelectorAll('.evt-fruit-name')].map(el=>el.textContent)`), ['山海·青蛇缘','圣域灵花','九尾仙狐'])
   await selectCultivation('未培育')

@@ -235,8 +235,10 @@
                   class="evt-inventory-cultivation-option" :aria-pressed="lowStockCultivation === option.key"
                   @click="lowStockCultivation = option.key">{{ option.label }}</button>
               </div>
-              <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && card.module === '水果库存' && tab.items.length"
-                :items="tab.items" :label="`水果库存 · ${tab.label}`" />
+              <FruitInventoryGrid v-if="expanded(card.module, 'rankTab_' + tab.key) && card.module === '水果库存' && (tab.items.length || tab.key === 'quality')"
+                :items="tab.items" :label="`水果库存 · ${tab.label}`" :show-quality-controls="tab.key === 'quality'"
+                v-model:quality="inventoryQualityFilter" v-model:stock-sort="inventoryQualitySort"
+                :empty-text="rankEmptyText(card, tab.key)" />
               <div v-else-if="expanded(card.module, 'rankTab_' + tab.key)" class="evt-rank-list evt-rank-list--tabs">
                 <template v-for="(item, i) in tab.items" :key="`${tab.key}-${item.key ?? i}`">
                   <div v-if="item.dividerBefore" class="evt-rank-divider"><span>{{ item.dividerBefore }}</span></div>
@@ -291,8 +293,11 @@
                   class="evt-inventory-cultivation-option" :aria-pressed="lowStockCultivation === option.key"
                   @click="lowStockCultivation = option.key">{{ option.label }}</button>
               </div>
-              <FruitInventoryGrid v-if="card.module === '水果库存' && activeRankTab(card)?.items.length"
-                :items="activeRankTab(card)?.items || []" :label="`水果库存 · ${activeRankTab(card)?.label || '明细'}`" />
+              <FruitInventoryGrid v-if="card.module === '水果库存' && (activeRankTab(card)?.items.length || activeRankTab(card)?.key === 'quality')"
+                :items="activeRankTab(card)?.items || []" :label="`水果库存 · ${activeRankTab(card)?.label || '明细'}`"
+                :show-quality-controls="activeRankTab(card)?.key === 'quality'"
+                v-model:quality="inventoryQualityFilter" v-model:stock-sort="inventoryQualitySort"
+                :empty-text="rankEmptyText(card, activeRankTab(card)?.key)" />
               <div v-else class="evt-rank-list evt-rank-list--tabs">
                 <div
                   v-for="(item, i) in activeRankTab(card)?.items || []"
@@ -379,6 +384,7 @@ import { message } from 'ant-design-vue'
 import type { EvtModuleView, EvtHistoryPage } from '../utils/evtHistoryStorage'
 import EvtTimeline from './EvtTimeline.vue'
 import FruitInventoryGrid from './FruitInventoryGrid.vue'
+import { inventoryQualityOf, inventoryQualityNames, type InventoryQualityFilter, type InventoryQualitySort } from '../utils/fruitInventoryQuality'
 
 // ── 类型定义 ────────────────────────────────────────────────────────────────
 
@@ -525,6 +531,8 @@ const toggleSection = (module: string, section: string) => {
 const activeRankTabs = ref<Record<string, string>>({})
 const isInventoryModule = (module: string) => module === '水果库存' || module === '花卉库存'
 const fruitInventorySearch = ref('')
+const inventoryQualityFilter = ref<InventoryQualityFilter>('all')
+const inventoryQualitySort = ref<InventoryQualitySort>('stockDesc')
 const inventoryCultivationOptions = [
   { key: 'all', label: '全部' },
   { key: 'cultivated', label: '已培育' },
@@ -554,10 +562,17 @@ const inventoryCategoryItems = (card: EvtCard, key?: string): LayoutRankItem[] =
   if (category === 'cultivated' || category === 'uncultivated') {
     items = inventoryCultivationKnown(card) ? items.filter(item => item.cultivated === (category === 'cultivated')) : []
   }
-  return key === 'stockLow' ? items.filter(item => Number(item.value) < 500) : items
+  if (key === 'stockLow') return items.filter(item => Number(item.value) < 500)
+  if (key === 'quality' && card.module === '水果库存' && inventoryQualityFilter.value !== 'all') {
+    return items.filter(item => inventoryQualityOf(item) === inventoryQualityFilter.value)
+  }
+  return items
 }
 const rankEmptyText = (card: EvtCard, key?: string): string => {
   if (!isInventoryModule(card.module)) return '暂无排名数据'
+  if (key === 'quality' && card.module === '水果库存' && inventoryQualityFilter.value !== 'all') {
+    return `${fruitInventorySearch.value.trim() ? '未找到匹配的' : '暂无'}${inventoryQualityNames[inventoryQualityFilter.value]}水果`
+  }
   const categoryKey = key === 'stockLow' && card.module === '水果库存' ? lowStockCultivation.value : key
   const category = categoryKey === 'cultivated' ? '已培育' : categoryKey === 'uncultivated' ? '未培育' : ''
   if (category && !inventoryCultivationKnown(card)) return '培育数据尚未同步，请等待库存更新'
@@ -565,19 +580,27 @@ const rankEmptyText = (card: EvtCard, key?: string): string => {
   if (card.module === '水果库存' && fruitInventorySearch.value.trim()) return `未找到匹配的${category}水果`
   return category ? `暂无${category}水果库存` : '暂无库存数据'
 }
-const inventoryTabsCache = new WeakMap<Layout, { query: string; cultivation: InventoryCultivation; tabs: LayoutRankTab[] }>()
+const inventoryTabsCache = new WeakMap<Layout, { query: string; cultivation: InventoryCultivation; quality: InventoryQualityFilter; qualitySort: InventoryQualitySort; tabs: LayoutRankTab[] }>()
 const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
   const tabs = card.layout?.rankTabs ?? []
   if (!isInventoryModule(card.module)) return tabs
   if (!tabs.length && !Array.isArray(card.layout?.rankList)) return []
   const query = card.module === '水果库存' ? fruitInventorySearch.value.trim().toLocaleLowerCase() : ''
   const cultivation = card.module === '水果库存' ? lowStockCultivation.value : 'all'
+  const quality = card.module === '水果库存' ? inventoryQualityFilter.value : 'all'
+  const qualitySort = card.module === '水果库存' ? inventoryQualitySort.value : 'stockDesc'
   const cached = card.layout ? inventoryTabsCache.get(card.layout) : undefined
-  if (cached?.query === query && cached.cultivation === cultivation) return cached.tabs
+  if (cached?.query === query && cached.cultivation === cultivation
+    && cached.quality === quality && cached.qualitySort === qualitySort) return cached.tabs
   const matches = (item: LayoutRankItem) => !query || String(item.name ?? '').toLocaleLowerCase().includes(query)
   const byCount = inventoryItems(card).filter(matches).sort((a, b) => Number(b.value) - Number(a.value))
   const items = byCount
-  const byQuality = [...items].sort((a, b) => {
+  const byQuality = card.module === '水果库存'
+    ? inventoryCategoryItems(card, 'quality').filter(matches).sort((a, b) =>
+      inventoryQualityOf(b) - inventoryQualityOf(a) ||
+      (qualitySort === 'stockAsc' ? Number(a.value) - Number(b.value) : Number(b.value) - Number(a.value)) ||
+      Number(a.itemId ?? Number.MAX_SAFE_INTEGER) - Number(b.itemId ?? Number.MAX_SAFE_INTEGER) || String(a.name).localeCompare(String(b.name), 'zh-CN'))
+    : [...items].sort((a, b) => {
     const qualityDiff = Number(b.quality ?? 0) - Number(a.quality ?? 0)
     return qualityDiff || Number(b.value) - Number(a.value)
   })
@@ -589,14 +612,13 @@ const rankTabsFor = (card: EvtCard): LayoutRankTab[] => {
     { key: 'stockLow', label: '500库存↓', items: inventoryCategoryItems(card, 'stockLow').filter(matches).sort((a, b) => Number(b.value) - Number(a.value)).reverse() },
   ]
   if (card.module === '水果库存') {
-    const quality = (item: LayoutRankItem) => Number.isInteger(Number(item.quality)) && Number(item.quality) >= 1 && Number(item.quality) <= 5 ? Number(item.quality) : 0
     // 图鉴同品质按编号稳定排列，库存变化不改变图片位置。
     const cultivated = inventoryCategoryItems(card, 'cultivated').filter(matches).sort((a, b) =>
-      quality(b) - quality(a) || Number(a.itemId ?? Number.MAX_SAFE_INTEGER) - Number(b.itemId ?? Number.MAX_SAFE_INTEGER) || String(a.name).localeCompare(String(b.name), 'zh-CN'))
+      inventoryQualityOf(b) - inventoryQualityOf(a) || Number(a.itemId ?? Number.MAX_SAFE_INTEGER) - Number(b.itemId ?? Number.MAX_SAFE_INTEGER) || String(a.name).localeCompare(String(b.name), 'zh-CN'))
     result.push({ key: 'cultivated', label: '已培育', items: cultivated },
       { key: 'uncultivated', label: '未培育', items: inventoryCategoryItems(card, 'uncultivated').filter(matches).sort((a, b) => Number(b.value) - Number(a.value)) })
   }
-  if (card.layout) inventoryTabsCache.set(card.layout, { query, cultivation, tabs: result })
+  if (card.layout) inventoryTabsCache.set(card.layout, { query, cultivation, quality, qualitySort, tabs: result })
   return result
 }
 const activeRankTab = (card: EvtCard): LayoutRankTab | null => {

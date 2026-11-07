@@ -24,7 +24,7 @@ const needed = new Set([
   'isInventoryModule', 'activeRankTabs', 'rankTabsFor', 'activeRankTab',
   'setActiveRankTab', 'copyFlowerInventory', 'fruitInventorySearch', 'inventoryItems',
   'inventoryCultivationKnown', 'inventoryCategoryItems', 'inventoryTabsCache', 'rankEmptyText',
-  'lowStockCultivation',
+  'lowStockCultivation', 'inventoryQualityFilter', 'inventoryQualitySort',
 ])
 const ast = ts.createSourceFile(filename, parsed.descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 const parts = []
@@ -39,6 +39,8 @@ for (const node of ast.statements) {
 }
 assert.deepEqual([...needed], [])
 const transformed = await transform(parts.join('\n'), { loader: 'ts', target: 'es2022' })
+const qualitySource = await readFile(new URL('../src/utils/fruitInventoryQuality.ts', import.meta.url), 'utf8')
+const qualityHelpers = await transform(qualitySource.replace(/^export /gm, ''), { loader: 'ts', target: 'es2022' })
 const messages = []
 const copied = []
 let clipboardFails = false
@@ -50,9 +52,9 @@ const context = {
     copied.push(text)
   },
 }
-const helpers = vm.runInNewContext(`(() => { ${transformed.code}; return {
+const helpers = vm.runInNewContext(`(() => { ${qualityHelpers.code}; ${transformed.code}; return {
   isInventoryModule, rankTabsFor, activeRankTab, setActiveRankTab, copyFlowerInventory,
-  fruitInventorySearch, inventoryCategoryItems, rankEmptyText, lowStockCultivation,
+  fruitInventorySearch, inventoryCategoryItems, rankEmptyText, lowStockCultivation, inventoryQualityFilter, inventoryQualitySort,
 }; })()`, context, { filename })
 const items = Object.freeze([
   { itemId: 50001, name: '零库存水果', value: 0, quality: 1, badge: '绿色', badgeColor: 'green' },
@@ -143,3 +145,34 @@ for (const unknown of [oldCard,partialCard]) {
 helpers.lowStockCultivation.value = 'all'
 assert.deepEqual(ids(helpers.rankTabsFor(fruitCard)[3].items), [50001,50005,50002])
 console.log('低库存培育切换：0/499/500、同快照缓存、搜索分母、未知/部分数据及旧模块隔离通过。')
+
+const qualityItems = Object.freeze([
+  ...items, { itemId: 50006, name: '金色水果', value: 8, quality: 4 },
+  { itemId: 50007, name: '同数红果', value: 500, quality: 5 },
+  { itemId: 50008, name: '零库存红果', value: 0, quality: 5 },
+  { itemId: 50009, name: '未知品质水果', value: 9000, quality: 99 },
+].reverse())
+const qualityCard = { module: '水果库存', layout: { rankTabs: [{ key: 'count', items: qualityItems }] } }
+const qualityIds = () => ids(helpers.rankTabsFor(qualityCard)[1].items)
+assert.deepEqual(qualityIds(), [50003,50007,50008,50006,50004,50002,50005,50001,50009])
+for (const [quality, expected] of [[5,[50003,50007,50008]], [4,[50006]], [3,[50004,50002]], [2,[50005]], [1,[50001]]]) {
+  helpers.inventoryQualityFilter.value = quality
+  assert.deepEqual(qualityIds(), expected, '同一快照切换品质更新缓存')
+}
+helpers.inventoryQualityFilter.value = 5
+helpers.inventoryQualitySort.value = 'stockAsc'
+assert.deepEqual(qualityIds(), [50008,50003,50007], '数值字符串、零库存、同数按ID稳定')
+helpers.fruitInventorySearch.value = '零库存'
+assert.deepEqual(qualityIds(), [50008])
+assert.equal(helpers.inventoryCategoryItems(qualityCard, 'quality').length, 3, '分母使用当前品质')
+await helpers.copyFlowerInventory(qualityCard)
+assert.match(copied.at(-1), /金色水果/)
+helpers.fruitInventorySearch.value = '不存在'
+assert.equal(qualityIds().length, 0)
+assert.equal(helpers.rankEmptyText(qualityCard, 'quality'), '未找到匹配的红色水果')
+helpers.fruitInventorySearch.value = ''
+assert.deepEqual(ids(helpers.rankTabsFor({ ...qualityCard, module: '花卉库存' })[1].items), [50009,50007,50003,50008,50006,50004,50002,50005,50001], '兼容旧花卉模块不受新筛选/排序影响')
+assert.equal(helpers.rankTabsFor(qualityCard)[0].items.length, 9, '数量分类不受品质筛选影响')
+helpers.inventoryQualityFilter.value = 'all'
+assert.deepEqual(qualityIds(), [50008,50003,50007,50006,50002,50004,50005,50001,50009], '升序保持品质分组，未知品质末组')
+console.log('品质单选、组内升降序、未知末组、零库存/同数稳定、搜索、全量复制及旧模块隔离通过。')

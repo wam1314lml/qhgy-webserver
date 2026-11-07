@@ -1,3 +1,7 @@
+## 2026-11-07 水果库存品质视图
+
+新增utils/fruitInventoryQuality.ts，统一品质选项、名称、归一化及排序类型，供EventCardView/FruitInventoryGrid静态复用。水果库存“按品质”支持全部/单品质、组内库存升降序及分组标题；复用现有水果图片、快照、搜索与完整复制，无新API或脚本字段。tools/check-inventory-quality-ui.py验证正式dist，产物放node_modules/.cache/inventory-quality-20261107。
+
 ## 2026-11-07 仲夏夜之梦七日福利与勾玉礼包
 
 现有GameConfigPage活动页新增hd3013SignEnabled/hd3013GiftEnabled两开关及对应默认、类型、归一化、分享schema；七日签到独立，礼包依赖原任务/抽奖并经勾玉确认。复用通用setting API，无新页面或后端路由。配套脚本HdRewardMgr负责520停购、限购余额和实际协议，MCP实时核验待连接恢复；验证记录见HANDOFF。

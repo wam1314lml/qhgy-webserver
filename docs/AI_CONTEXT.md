@@ -1,3 +1,9 @@
+## 2026-11-07 水果库存品质筛选与组内库存排序
+
+“按品质”增加全部/红/金/紫/蓝/绿单选，默认全部；组内库存从少到多/从多到少，默认从多到少。全部始终按5红→4金→3紫→2蓝→1绿分组，未知品质归0放末组，同库存按itemId/名字稳定排列，零库存保留。仅水果品质页采用新规则，原已培育编号排序、500库存↓培育交集及兼容旧花卉模块保持。
+
+搜索与品质取交集、匹配分母使用当前品质；空结果也保留品质/排序控件。库存更新、搜索清空及切页保留选择，日志换账号沿原组件key重置；复制全部仍取完整快照。EventCardView缓存键包含品质/排序，FruitInventoryGrid复用页签和独立折叠控件/品质标题；映射与选项统一在utils/fruitInventoryQuality.ts并静态导入，不能改变脚本上报或渠道名称。维护库存逻辑/EVT浏览器专项及tools/check-inventory-quality-ui.py正式混淆dist检查。
+
 ## 2026-11-07 仲夏夜之梦签到与礼包开关
 
 activity.hdReward.hd3013SignEnabled与hd3013GiftEnabled默认false、严格布尔，必须同时维护defaultConfig/types/normalize和分享schema。七日签到独立于原enabled；勾玉礼包需要enabled与hd3013DrawEnabled，沿用handleDiamondCostSwitchChange确认弹窗，依赖关闭仅禁用不清勾选，后端亦复核。520为放飞进度停购目标，不是清道具或停止放飞；提示不能承诺硬编码价格/每日包数。新增逻辑属于现有配置页与通用setting，MCP是协议取证工具，不新增“MCP配置入口”。本轮实时MCP待重连，脚本协议/配置限制见其活动领奖专项。
