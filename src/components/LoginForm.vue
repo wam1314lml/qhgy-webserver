@@ -292,6 +292,7 @@
 </template>
 
 <script setup lang="ts">
+import { showLoginAnnouncements } from '../utils/loginAnnouncements'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
@@ -646,7 +647,7 @@ const onSubmit = async () => {
     }
 
     // 触发登录成功事件，启动全局自动登出定时器
-    window.dispatchEvent(new CustomEvent('loginSuccess'))
+    window.dispatchEvent(new CustomEvent('loginSuccess', { detail: { fresh: true } }))
 
     console.log('准备调用fetchAndShowAnnouncements函数')
     fetchAndShowAnnouncements()
@@ -696,53 +697,8 @@ const handleGlobalLogout = () => {
   }, 3000)
 }
 
-// 获取并显示公告
-const fetchAndShowAnnouncements = async () => {
-  console.log('🎯 fetchAndShowAnnouncements函数被调用了！')
-  try {
-    console.log('开始获取公告...')
-    const response = await axios.get('/api/admin/announcements/active')
-    console.log('公告接口响应状态:', response.status)
-
-    if (response.status === 200) {
-      const result = response.data
-      console.log('公告接口返回数据:', result)
-
-      if (result.success && result.data && result.data.length > 0) {
-        console.log('找到公告，准备显示通知:', result.data.length, '条公告')
-
-        result.data.forEach((announcement: Announcement, index: number) => {
-          setTimeout(() => {
-            notification.open({
-              message: `📢 ${announcement.title}`,
-              description: h('div', {
-                innerHTML: sanitizeHtml(announcement.content),
-                style: { maxHeight: '200px', overflow: 'auto' },
-              }),
-              duration: announcement.display_duration,
-              placement: 'top',
-              top: '40px',
-              style: {
-                width: '400px',
-              },
-              onClick: () => {
-                console.log('公告通知被点击')
-              },
-            })
-          }, index * 1000)
-        })
-
-        console.log('公告通知已显示')
-      } else {
-        console.log('没有启用的公告或数据为空')
-      }
-    } else {
-      console.error('获取公告失败，状态码:', response.status)
-    }
-  } catch (error) {
-    console.error('获取公告失败:', error)
-  }
-}
+// 获取并显示公告（含按用户和北京时间自然日持久化的免提示选项）
+const fetchAndShowAnnouncements = showLoginAnnouncements
 
 // 显示下一个公告
 const showNextAnnouncement = () => {

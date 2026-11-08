@@ -1,3 +1,4 @@
+import { createIdleLogout } from './utils/idleLogout'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -102,16 +103,9 @@ if (window.__SHOULD_REDIRECT__) {
   app.mount('#app')
 }
 
-// 全局自动登出相关变量
-let globalAutoLogoutTimer: ReturnType<typeof setInterval> | null = null
-let isUserActivityListenerActive = false
-let lastActiveTimestamp = Date.now() // 最后活动时间戳
-const AUTO_LOGOUT_DURATION = 15 * 60 * 1000 // 15分钟 (毫秒)
-const CHECK_INTERVAL = 5 * 1000 // 每5秒检查一次
-
 // 执行登出操作
 const performLogout = () => {
-  message.error('登录已超时，请重新登录')
+  message.error('连续30分钟无操作，请重新登录')
 
   // 清理所有登录相关数据
   localStorage.removeItem('token')
@@ -135,89 +129,13 @@ const performLogout = () => {
   }
 }
 
-// 启动全局自动超时计时器（每5秒检查时间戳）
-const startGlobalAutoLogoutTimer = () => {
-  if (globalAutoLogoutTimer) {
-    clearInterval(globalAutoLogoutTimer)
-    globalAutoLogoutTimer = null
-  }
-
-  // 检查是否已登录
-  const token = localStorage.getItem('token')
-  const user = localStorage.getItem('user')
-
-  if (!token || !user) {
-    return // 未登录，不启动定时器
-  }
-
-  // 重置最后活动时间戳
-  lastActiveTimestamp = Date.now()
-
-  // 每5秒检查一次是否超时
-  globalAutoLogoutTimer = setInterval(() => {
-    const currentTime = Date.now()
-    const timeSinceLastActivity = currentTime - lastActiveTimestamp
-
-    // 检查是否还在登录状态（防止已经手动登出但定时器还在运行）
-    const currentToken = localStorage.getItem('token')
-    const currentUser = localStorage.getItem('user')
-
-    if (!currentToken || !currentUser) {
-      clearGlobalAutoLogoutTimer()
-      return
-    }
-
-    // 如果超过15分钟，执行登出
-    if (timeSinceLastActivity >= AUTO_LOGOUT_DURATION) {
-      performLogout()
-    }
-  }, CHECK_INTERVAL)
-
-  // 启动用户活动监听
-  startUserActivityListeners()
-}
-
-// 用户活动处理函数
-const handleUserActivity = () => {
-  // 更新最后活动时间戳
-  lastActiveTimestamp = Date.now()
-}
-
-// 启动用户活动监听器
-const startUserActivityListeners = () => {
-  if (isUserActivityListenerActive) {
-    return // 避免重复添加监听器
-  }
-
-  // 监听触摸和鼠标事件
-  document.addEventListener('touchstart', handleUserActivity, { passive: true })
-  document.addEventListener('mousedown', handleUserActivity, { passive: true })
-
-  isUserActivityListenerActive = true
-}
-
-// 移除用户活动监听器
-const removeUserActivityListeners = () => {
-  if (!isUserActivityListenerActive) {
-    return
-  }
-
-  document.removeEventListener('touchstart', handleUserActivity)
-  document.removeEventListener('mousedown', handleUserActivity)
-
-  isUserActivityListenerActive = false
-}
-
-// 清理全局自动登出定时器
-const clearGlobalAutoLogoutTimer = () => {
-  if (globalAutoLogoutTimer) {
-    clearInterval(globalAutoLogoutTimer)
-    globalAutoLogoutTimer = null
-  }
-
-  // 同时移除用户活动监听器
-  removeUserActivityListeners()
-}
+// Only human activity extends the 30-minute idle window; preserve original logout cleanup.
+const idleLogout = createIdleLogout({ project: 'qhgy', onTimeout: performLogout })
+const startGlobalAutoLogoutTimer = () => idleLogout.start()
+const clearGlobalAutoLogoutTimer = () => idleLogout.stop(true)
+// Retain the existing window API for callers; starts are idempotent.
+const startUserActivityListeners = startGlobalAutoLogoutTimer
+const removeUserActivityListeners = () => idleLogout.stop()
 
 // 导出函数供其他地方使用
 declare global {
@@ -230,8 +148,8 @@ declare global {
 }
 
 // 监听登录成功事件
-window.addEventListener('loginSuccess', () => {
-  startGlobalAutoLogoutTimer()
+window.addEventListener('loginSuccess', (event: Event) => {
+  idleLogout.start((event as CustomEvent).detail?.fresh === true)
 })
 
 // 监听退出登录事件
