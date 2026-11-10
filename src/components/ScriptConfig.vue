@@ -495,7 +495,7 @@
           您即将删除游戏账号：<strong>{{ deleteAccountName }}</strong>
         </p>
         <p class="warning-text">
-          此操作不可撤销，该角色卡的剩余时间和所有配置数据将被永久删除！不可恢复！
+          此操作不可撤销，该角色卡用配额分配的时间和所有配置数据将被永久删除！不可恢复！
         </p>
         <div v-if="deleteCountdown > 0" class="countdown-info">
           <p>
