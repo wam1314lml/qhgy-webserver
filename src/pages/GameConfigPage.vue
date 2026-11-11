@@ -940,6 +940,15 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                label="避开果灵图鉴"
+                name="plant.flower.lowStockAvoidElves"
+                class="form-item--stack-mobile"
+                tooltip="仅普通补库存生效。按当前果灵图鉴，已种主果时暂不种对应副果，已种副果时暂不种主果；本轮选种也互相避让，按补库存优先级继续尝试后面的水果。没有合适候选时暂留空地，收获后重新判断。"
+                v-if="config.plant.flower.plantingMode === 'lowStock'"
+              >
+                <Switch v-model:checked="config.plant.flower.lowStockAvoidElves" />
+              </CustomFormItem>
+              <CustomFormItem
                 label="排除水果"
                 name="plant.flower.lowStockExcludeEnabled"
                 tooltip="设置了排除的水果就算库存0也不会种"

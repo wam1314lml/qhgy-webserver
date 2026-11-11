@@ -306,6 +306,9 @@
               "lowStockPriority": {
                 "type": "string"
               },
+              "lowStockAvoidElves": {
+                "type": "boolean"
+              },
               "freeStyleTemplate": {
                 "type": "string"
               },

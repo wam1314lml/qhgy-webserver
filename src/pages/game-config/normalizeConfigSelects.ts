@@ -392,6 +392,7 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
   )
   flower.lowStockThreshold = normalizeThreshold(flower.lowStockThreshold)
   flower.lowStockPriority = flower.lowStockPriority === 'closest' ? 'closest' : 'lowest'
+  flower.lowStockAvoidElves = flower.lowStockAvoidElves === true
   if (!Array.isArray(flower.freeStyleList) || flower.freeStyleList.length === 0) {
     flower.freeStyleList = [{ name: DEFAULT_FREE_STYLE_TEMPLATE, lands: {} }]
   }

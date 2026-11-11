@@ -22,7 +22,27 @@ for (const platform of [1, 3]) {
   const page = await loadSharePageModel(root, { platform })
   assert.equal(load({}, platform).plant.flower.lowStockPriority, 'lowest')
   assert.equal('lowStockPriority' in load({}, platform).union.land, false)
+  assert.equal(load({}, platform).plant.flower.lowStockAvoidElves, false)
+  assert.equal('lowStockAvoidElves' in load({}, platform).union.land, false)
   checks++
+  for (const value of [undefined, null, '', 'true', 'false', 0, 1, false, true, [], {}]) {
+    const config = load({ plant: { flower: { lowStockAvoidElves: value } } }, platform)
+    assert.equal(config.plant.flower.lowStockAvoidElves, value === true)
+    checks++
+  }
+  for (const value of [true, false]) {
+    const config = load({ plant: { flower: { plantingMode: 'lowStock', lowStockAvoidElves: value } } }, platform)
+    const reload = load(JSON.parse(JSON.stringify(config)), platform)
+    assert.equal(reload.plant.flower.lowStockAvoidElves, value)
+    const shared = page.adapter.preview(load({}, platform), page.adapter.exportConfig(reload)).config
+    assert.equal(shared.plant.flower.lowStockAvoidElves, value)
+    const old = page.adapter.preview(shared, payload({ lowStockThreshold: 600 })).config
+    assert.equal(old.plant.flower.lowStockAvoidElves, value, '旧分享码缺字段不得清掉接收方选择')
+    shared.plant.flower.plantingMode = 'count'
+    assert.equal(load(shared, platform === 1 ? 3 : 1).plant.flower.lowStockAvoidElves, value)
+    assert.equal(page.adapter.preview(shared, payload({ lowStockAvoidElves: !value })).config.plant.flower.lowStockAvoidElves, !value)
+    checks++
+  }
   for (const bad of [undefined, null, '', 'unknown', 'Closest', 0, 1, false, true, [], {}]) {
     const config = load({ plant: { flower: { lowStockPriority: bad } } }, platform)
     assert.equal(config.plant.flower.lowStockPriority, 'lowest')
@@ -52,4 +72,4 @@ for (const platform of [1, 3]) {
     checks++
   }
 }
-console.log(`PASS 库存补充优先级 ${checks} 组：双渠道、旧配置默认、非法值、保存重载、分享、旧码保值、隐藏保值、复制及公会隔离`)
+console.log(`PASS 库存补充优先级与果灵避让 ${checks} 组：双渠道、旧配置默认、非法值、保存重载、分享、旧码保值、隐藏保值、复制及公会隔离`)

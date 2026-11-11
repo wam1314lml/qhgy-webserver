@@ -26,7 +26,7 @@ await router.push('/game-config/1'); createApp({render:()=>h(RouterView)}).use(r
 </script></html>''', encoding='utf-8')
 saved = {
     '1': {'plant': {'flower': {'plantEnabled': True, 'plantingMode': 'lowStock', 'lowStockThreshold': 500}}},
-    '2': {'plant': {'flower': {'plantEnabled': True, 'plantingMode': 'lowStock', 'lowStockPriority': 'closest', 'lowStockThreshold': 600}}},
+    '2': {'plant': {'flower': {'plantEnabled': True, 'plantingMode': 'lowStock', 'lowStockPriority': 'closest', 'lowStockThreshold': 600, 'lowStockAvoidElves': True}}},
 }
 errors, unexpected, writes = [], [], []
 
@@ -90,6 +90,7 @@ with sync_playwright() as p:
     load()
     print('检查默认选项与保存', flush=True)
     expect(field('补库存优先级')).to_contain_text('优先补最低库存')
+    expect(field('避开果灵图鉴').get_by_role('switch')).to_have_attribute('aria-checked', 'false')
     for width in (1100, 390, 320):
         page.set_viewport_size({'width': width, 'height': 1000})
         field('最低库存').evaluate("el => el.scrollIntoView({block:'center'})")
@@ -97,21 +98,30 @@ with sync_playwright() as p:
         page.screenshot(path=str(OUT / f'low-stock-priority-default-{width}.png'))
     page.set_viewport_size({'width': 1100, 'height': 1000})
     priority('优先补快满库存')
+    field('避开果灵图鉴').get_by_role('switch').click()
     save()
     assert writes[-1][1]['plant']['flower']['lowStockPriority'] == 'closest'
+    assert writes[-1][1]['plant']['flower']['lowStockAvoidElves'] is True
     assert 'lowStockPriority' not in writes[-1][1]['union']['land']
+    assert 'lowStockAvoidElves' not in writes[-1][1]['union']['land']
     load()
     print('检查重载与隐藏保值', flush=True)
     expect(field('补库存优先级')).to_contain_text('优先补快满库存')
+    expect(field('避开果灵图鉴').get_by_role('switch')).to_have_attribute('aria-checked', 'true')
     page.get_by_role('radio', name='指定种类', exact=True).click()
     expect(field('补库存优先级')).to_have_count(0)
+    expect(field('避开果灵图鉴')).to_have_count(0)
     save()
     assert writes[-1][1]['plant']['flower']['lowStockPriority'] == 'closest'
+    assert writes[-1][1]['plant']['flower']['lowStockAvoidElves'] is True
     page.get_by_role('radio', name='库存模式', exact=True).click()
     expect(field('补库存优先级')).to_contain_text('优先补快满库存')
     priority('优先补最低库存')
+    expect(field('避开果灵图鉴').get_by_role('switch')).to_have_attribute('aria-checked', 'true')
+    field('避开果灵图鉴').get_by_role('switch').click()
     save()
     assert writes[-1][1]['plant']['flower']['lowStockPriority'] == 'lowest'
+    assert writes[-1][1]['plant']['flower']['lowStockAvoidElves'] is False
     # 真实“从其他号导入”处理器，支付宝合成号复制到微信合成号。
     page.get_by_role('button', name=re.compile(r'^导\s*入$')).click()
     print('检查实际配置导入', flush=True)
@@ -122,12 +132,14 @@ with sync_playwright() as p:
     expect(page.get_by_text('配置导入成功', exact=True)).to_be_visible()
     page.get_by_role('dialog').get_by_role('button', name=re.compile(r'^确\s*定$')).click()
     assert saved['1']['plant']['flower']['lowStockPriority'] == 'closest'
+    assert saved['1']['plant']['flower']['lowStockAvoidElves'] is True
+    expect(field('避开果灵图鉴').get_by_role('switch')).to_have_attribute('aria-checked', 'true')
     expect(field('补库存优先级')).to_contain_text('优先补快满库存')
     for width in (1100, 390, 320):
         print(f'检查{width}px布局', flush=True)
         page.set_viewport_size({'width': width, 'height': 1000})
         field('最低库存').evaluate("el => el.scrollIntoView({block:'center'})")
-        for label in ['最低库存', '补库存优先级']:
+        for label in ['最低库存', '补库存优先级', '避开果灵图鉴']:
             box = field(label).bounding_box()
             assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1, (width, label, box)
             text = field(label).locator('.label-text')
@@ -139,4 +151,4 @@ with sync_playwright() as p:
     assert not errors, errors
     assert not unexpected, unexpected
     browser.close()
-print('库存优先级真实页面：旧配置默认、两项切换、保存重载、隐藏保值、跨渠道导入复制、1100/390/320布局通过；外网及真实账号访问为0')
+print('库存优先级及避开果灵图鉴真实页面：旧配置默认、开关切换、保存重载、隐藏保值、跨渠道导入复制、1100/390/320布局通过；外网及真实账号访问为0')

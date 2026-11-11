@@ -109,6 +109,7 @@ export interface GameConfig {
       plantingMode: 'quality' | 'count' | 'specific' | 'lowStock' | 'freeStyle' | string
       lowStockThreshold: number
       lowStockPriority: 'lowest' | 'closest'
+      lowStockAvoidElves: boolean
       freeStyleTemplate: string
       freeStyleList: Array<{
         name: string
