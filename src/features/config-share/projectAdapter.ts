@@ -1,3 +1,5 @@
+import { shareSections } from './sections'
+import { selectShareSections } from './sectionSelection'
 import { migrateMarketFriendFilters } from '../../pages/game-config/normalizeConfigSelects'
 import { shareProject } from './project'
 import {
@@ -10,12 +12,13 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value))
 export function createProjectShareAdapter<T>(normalize: (config: T) => T,
   migratePatch?: (config: unknown) => void): ConfigShareAdapter<T> {
   return {
+    sections: shareSections,
     project: shareProject,
     privacyNotice: '不包含账号登录信息和密码。好友、成员名单及高级设置会随配置分享，请仅发给需要的人。',
     applyNotice: '请核对资源消耗、自动购买等设置。应用后仍需点击页面“保存”，不会自动启动账号。',
-    exportConfig(current) {
+    exportConfig(current, selectedSections) {
       const config = sanitizeConfig(normalize(clone(current)), shareProject.schema).config
-      return { format: SHARE_FORMAT, project: shareProject.id, schemaVersion: shareProject.schemaVersion, config }
+      return { format: SHARE_FORMAT, project: shareProject.id, schemaVersion: shareProject.schemaVersion, config: selectShareSections(config, shareSections, selectedSections) }
     },
     preview(current, input) {
       // 旧字段须在白名单过滤和合并前迁移；只处理码中实际存在的字段，不补默认值。

@@ -305,6 +305,7 @@ const uiBundle = await build({
       export const Modal = wrapper('modal', ['open']);
       export const Tabs = wrapper('tabs'); Tabs.TabPane = wrapper('tab');
       export const Button = wrapper('button');
+      export const Checkbox = wrapper('checkbox'); Checkbox.Group = wrapper('checkbox-group');
       export const Alert = defineComponent({ props: ['message'], setup(p) { return () => h('alert', p.message) } });
       export const Input = {}; Input.TextArea = defineComponent({ props: ['value'], emits: ['update:value'], setup(p, { attrs, emit }) { return () => h('textarea', { ...attrs, value: p.value, onInput: e => emit('update:value', e.target.value) }) } });
       export const message = { success() {}, info() {} };

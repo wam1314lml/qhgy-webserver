@@ -2,9 +2,17 @@
   <Modal :open="open" title="配置分享" :footer="null" centered :width="560" :mask-closable="!busy" :closable="!busy" @cancel="close">
     <Tabs v-model:active-key="tab">
       <Tabs.TabPane key="create" tab="生成分享码">
-        <p>分享当前页面的设置，包含尚未保存的修改。生成后 24 小时内有效。</p>
+        <p>分享所选页签的设置，包含尚未保存的修改。生成后 24 小时内有效。</p>
+        <fieldset class="share-sections" :disabled="busy">
+          <legend>分享内容</legend>
+          <Checkbox.Group v-model:value="selectedSections" class="share-section-options" :disabled="busy" @change="selectionChanged">
+            <Checkbox v-for="section in adapter.sections" :key="section.key" :value="section.key">{{ section.label }}</Checkbox>
+          </Checkbox.Group>
+          <p class="share-section-hint">取消的页签不会进入分享码，导入时保留对方原有设置。</p>
+          <p v-if="!selectedSections.length" class="share-section-empty" role="status">请至少选择一个分享页签</p>
+        </fieldset>
         <Alert type="info" show-icon :message="adapter.privacyNotice" />
-        <Button v-if="!generated" class="share-action" type="primary" :loading="busy" :disabled="busy || remaining > 0" @click="generate">
+        <Button v-if="!generated" class="share-action" type="primary" :loading="busy" :disabled="busy || remaining > 0 || !selectedSections.length" @click="generate">
           {{ remaining > 0 ? `请等待 ${remaining} 秒` : '生成分享码' }}
         </Button>
         <template v-if="generated">
@@ -36,13 +44,15 @@
 
 <script setup lang="ts" generic="T">
 import { computed, onUnmounted, ref, shallowRef, watch } from 'vue'
-import { Alert, Button, Input, Modal, Tabs, message } from 'ant-design-vue'
+import { Alert, Button, Checkbox, Input, Modal, Tabs, message } from 'ant-design-vue'
 import type { ConfigShareAdapter } from './adapter'
 import type { ConfigShareApi, ShareMetadata } from './api'
 import { formatShareDate, formatShareText, parseShareText, type ShareResult } from './core'
 
 const props = defineProps<{ open: boolean; current: T; adapter: ConfigShareAdapter<T>; api: ConfigShareApi }>()
 const emit = defineEmits<{ 'update:open': [value: boolean]; apply: [config: T] }>()
+const selectedSections = ref<string[]>(props.adapter.sections.map(section => section.key))
+function selectionChanged() { generated.value = undefined; errorText.value = '' }
 const tab = ref('create')
 const input = ref('')
 const busy = ref(false)
@@ -68,15 +78,16 @@ function close() { if (!busy.value) emit('update:open', false) }
 watch(input, () => { preview.value = undefined; resolved.value = undefined; errorText.value = '' })
 watch(() => props.open, open => {
   generation++
+  if (open) selectedSections.value = props.adapter.sections.map(section => section.key)
   if (!open) { preview.value = undefined; resolved.value = undefined; generated.value = undefined; input.value = ''; errorText.value = '' }
 })
 onUnmounted(() => { generation++; if (countdown) clearInterval(countdown) })
 async function generate() {
-  if (busy.value || remaining.value || generated.value) return
+  if (busy.value || remaining.value || generated.value || !selectedSections.value.length) return
   const version = generation
   busy.value = true; errorText.value = ''
   try {
-    const result = await props.api.create(props.adapter.exportConfig(props.current))
+    const result = await props.api.create(props.adapter.exportConfig(props.current, selectedSections.value))
     if (version !== generation) return
     generated.value = result
   } catch (error) { if (version === generation) fail(error) }
@@ -120,4 +131,11 @@ async function copyText() {
 .share-preview { margin-top: 18px; padding: 14px; border-radius: 8px; background: #f5f8f6; }
 .share-preview ul { padding-left: 20px; }
 .share-error { margin-top: 16px; }
+
+.share-sections { min-width: 0; margin: 16px 0; padding: 0; border: 0; }
+.share-sections legend { margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+.share-section-options { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.share-section-options :deep(.ant-checkbox-wrapper) { min-height: 36px; margin-inline-start: 0; align-items: center; }
+.share-section-hint { margin: 8px 0 0; color: #667085; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.share-section-empty { margin: 4px 0 0; color: #b42318; font-size: 13px; }
 </style>
