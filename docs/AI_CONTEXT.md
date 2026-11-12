@@ -1,3 +1,7 @@
+## 2026-11-12 账密登录具体失败原因与单次提示
+
+AddAccountModal的账号密码login和bind均用handleErrorLocally；全局拦截器仅对精确login/bind路径且ACCOUNT_PASSWORD_业务码的游戏401交给页面，其余网站401继续原处理，网站令牌失效优先判断。页面catch跳过已全局处理的网站401，具体auth原因保留8秒；密码清理、失败不进选服和关闭/换轮隔离保持。安全提示上限400字符，与Web对齐过滤URL/凭据/原包/堆栈；本地网络断开/等待超时有单独文案，不能伪造auth最终结果。配套Web必须更新才能摆脱通用“登录未完成”。验证scripts/test-account-password-login.mjs、test-add-account-channels.mjs及test-account-password-errors-browser.py。
+
 ## 2026-11-11 微信1.0.53选项与资源
 
 微信目录已由MCP同源导出更新为305水果/51花瓶/777果艺、305张原生PNG；支付宝仍为独立300/50/774快照，zfb目录不变，不能跨渠道补齐数量。96果灵与36有效种植组合保持；官方旧系列210401～210412展示title同步星棱观曜，保留真实ID与来源，不补造图鉴。生成流程及渠道检查沿用既有脚本，本期新增与验证详见HANDOFF。

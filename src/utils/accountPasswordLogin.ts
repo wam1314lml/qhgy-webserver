@@ -34,8 +34,8 @@ export const normalizeAccountPasswordLogin = (data: any): {
 export const getSafeAccountPasswordError = (body: any, fallback = '账号密码操作失败，请稍后重试'): string => {
   const candidate = body?.message ?? body?.msg
   const isSafe = (text: unknown): text is string =>
-    typeof text === 'string' && text.trim().length > 0 && text.length <= 200 &&
-    !/https?:\/\/|\bBearer\s+|\beyJ[A-Za-z0-9_-]+\.|[{}]|(?:password|passwd|pwd|token|bind_?ticket|openid|open_id|opid|username|sessionid|cookie|authorization)\s*["']?\s*[:=]/i.test(text)
+    typeof text === 'string' && text.trim().length > 0 && text.length <= 400 &&
+    !/https?:\/\/|\bBearer\s+|\beyJ[A-Za-z0-9_-]+\.|[{}<>\x00-\x1f\x7f]|[A-Za-z]:[\\/]|(?:\d{1,3}\.){3}\d{1,3}|[A-Za-z0-9+/_-]{48,}={0,2}|(?:password|passwd|pwd|token|bind_?ticket|openid|open_id|opid|uid|username|account|sessionid|cookie|authorization|secret|api_?key|密码|口令|令牌|账号|帐号)\s*["']?\s*[:=：]/i.test(text)
   return isSafe(candidate) ? candidate.trim()
     : isSafe(fallback) ? fallback : '账号密码操作失败，请稍后重试'
 }

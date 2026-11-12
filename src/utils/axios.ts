@@ -246,8 +246,10 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(error)
       }
 
-      // 登录失效仍按原流程处理。
-      if (error.config?.handleErrorLocally && status !== 401) return Promise.reject(error)
+      // 游戏账密401由当前弹窗处理一次；网站401继续走原失效处理。
+      const isAccountPasswordFailure = /\/api\/game-accounts\/(?:login|bind)(?:[?#]|$)/.test(error.config?.url || '')
+        && typeof data?.code === 'string' && data.code.startsWith('ACCOUNT_PASSWORD_')
+      if (error.config?.handleErrorLocally && (status !== 401 || isAccountPasswordFailure)) return Promise.reject(error)
 
       // 优先尝试使用通用错误信息，如果没有再根据状态码处理
       const isWxReauthRequest = /\/api\/game-accounts\/wx\/reauth\/(?:start|poll|cancel)(?:[?#]|$)/.test(

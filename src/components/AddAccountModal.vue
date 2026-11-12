@@ -908,7 +908,7 @@ const handleLogin = async () => {
       username: username.value,
       password: password.value.trim(),
       platform: 0,
-    }, { timeout: 190_000 })
+    }, { timeout: 190_000, handleErrorLocally: true })
     if (generation !== accountLoginGeneration || !props.isOpen) return
     password.value = ''
     if (response.data.success) {
@@ -916,7 +916,7 @@ const handleLogin = async () => {
       if (!login) {
         const errorText = '未取得可绑定的角色区服，请确认账号已在游戏内创建角色'
         await finishLoginProgressError(errorText)
-        if (generation === accountLoginGeneration) message.error(errorText)
+        if (generation === accountLoginGeneration) message.error(errorText, 8)
         return
       }
       accountBindTicket.value = login.bindTicket
@@ -926,13 +926,22 @@ const handleLogin = async () => {
     } else {
       const errorText = getSafeAccountPasswordError(response.data, '账号密码登录失败')
       await finishLoginProgressError(errorText)
-      if (generation === accountLoginGeneration) message.error(errorText)
+      if (generation === accountLoginGeneration) message.error(errorText, 8)
     }
   } catch (error: any) {
     if (generation !== accountLoginGeneration || !props.isOpen) return
-    const errorText = getSafeAccountPasswordError(error.response?.data, '账号密码登录失败，请稍后重试')
+    // 网站401已由全局拦截器处理；游戏密码401仍在当前表单显示具体原因。
+    if (error.response?.status === 401 && !String(error.response?.data?.code ?? '').startsWith('ACCOUNT_PASSWORD_')) {
+      resetLoginProgress()
+      return
+    }
+    const fallback = ['ECONNABORTED', 'ETIMEDOUT'].includes(error.code)
+      ? '网站登录接口响应超时，尚未取得认证结果，请稍后重试'
+      : error.code === 'ERR_NETWORK' ? '网络连接失败，未收到网站登录结果，请检查网络后重试'
+        : '账号密码登录失败，请稍后重试'
+    const errorText = getSafeAccountPasswordError(error.response?.data, fallback)
     await finishLoginProgressError(errorText)
-    if (generation === accountLoginGeneration) message.error(errorText)
+    if (generation === accountLoginGeneration) message.error(errorText, 8)
   } finally {
     if (generation === accountLoginGeneration) {
       password.value = ''

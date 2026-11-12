@@ -214,6 +214,32 @@ for (const reason of ['账户不存在', '账号或密码错误']) for (const ht
   assert.equal(logs.length, 0)
 }
 
+
+// 使用真实响应拦截器复现截图：502与游戏401都只能由页面提示一次。
+for (const status of [400, 401, 403, 429, 502, 503]) {
+  const reason = '认证尝试 20 次均失败，最后一次原因：system.getSerList 被服务器拒绝（s=0，err.type=0）：当前网络请求受限，请稍后重试'
+  const { page, api, messages, requestOptions } = createPage({ withInterceptor: true,
+    login: { response: { status, data: { success: false, code: 'ACCOUNT_PASSWORD_LOGIN_FAILED', message: reason } } } })
+  await api.handleLogin()
+  assert.equal(requestOptions[0].handleErrorLocally, true)
+  assert.deepEqual(messages, [{ type: 'error', value: reason }])
+  assert.equal(page.currentStep.value, 'login'); assert.equal(page.loading.value, false)
+  assert.equal(page.loginForm.value.password, ''); assert.equal(page.accountBindTicket.value, '')
+}
+for (const [code, expected] of [['ECONNABORTED', '网站登录接口响应超时'], ['ERR_NETWORK', '网络连接失败']]) {
+  const { api, messages } = createPage({ withInterceptor: true, login: Object.assign(Error('private'), { code }) })
+  await api.handleLogin()
+  assert.equal(messages.length, 1); assert.ok(messages[0].value.startsWith(expected))
+}
+for (const message of ['<html>secret</html>', 'SDK失败\n at C:\\server\\auth.js', 'uid=private', '密码：private', 'x'.repeat(401)]) {
+  assert.equal(getSafeAccountPasswordError({ message }, '安全提示'), '安全提示')
+}
+{
+  const reason = '认证尝试 20 次均失败，最后一次原因：' + '服务器维护，请稍后重试。'.repeat(20)
+  assert.ok(reason.length > 200 && reason.length <= 400)
+  assert.equal(getSafeAccountPasswordError({ message: reason }), reason)
+}
+
 // 票据过期返回登录，不保留密码，也不留 loading 死锁；网络失败可用同票据重试。
 for (const asHttpError of [false, true]) {
   const body = { success: false, code: 'ACCOUNT_PASSWORD_BIND_EXPIRED', message: '登录凭据已过期，请重新输入账号密码' }
