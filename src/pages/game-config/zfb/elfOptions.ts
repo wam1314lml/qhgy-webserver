@@ -48,18 +48,18 @@ export const ELVES: Record<string, string> = {
   "210310": "【甜苹华舞】红菇娘花果灵（ID：210310）",
   "210311": "【甜苹华舞】汀南暖熹果灵（ID：210311）",
   "210312": "【甜苹华舞】苹果小屋果灵（ID：210312）",
-  "210401": "【白羊・星痕绘卷】蓝蜜西梅果灵（ID：210401）",
-  "210402": "【白羊・星痕绘卷】博洋72号果灵（ID：210402）",
-  "210403": "【白羊・星痕绘卷】绿天赞小菊果灵（ID：210403）",
-  "210404": "【白羊・星痕绘卷】黑刺果灵（ID：210404）",
-  "210405": "【白羊・星痕绘卷】绯樱金鱼草果灵（ID：210405）",
-  "210406": "【白羊・星痕绘卷】水果萝卜果灵（ID：210406）",
-  "210407": "【白羊・星痕绘卷】水晶杨梅果灵（ID：210407）",
-  "210408": "【白羊・星痕绘卷】浮宫杨梅果灵（ID：210408）",
-  "210409": "【白羊・星痕绘卷】朱胭甜椒果灵（ID：210409）",
-  "210410": "【白羊・星痕绘卷】蓝星沉夜果灵（ID：210410）",
-  "210411": "【白羊・星痕绘卷】仙芳漫舞果灵（ID：210411）",
-  "210412": "【白羊・星痕绘卷】静谧午后果灵（ID：210412）",
+  "210401": "【星棱观曜】蓝蜜西梅果灵（ID：210401）",
+  "210402": "【星棱观曜】博洋72号果灵（ID：210402）",
+  "210403": "【星棱观曜】绿天赞小菊果灵（ID：210403）",
+  "210404": "【星棱观曜】黑刺果灵（ID：210404）",
+  "210405": "【星棱观曜】绯樱金鱼草果灵（ID：210405）",
+  "210406": "【星棱观曜】水果萝卜果灵（ID：210406）",
+  "210407": "【星棱观曜】水晶杨梅果灵（ID：210407）",
+  "210408": "【星棱观曜】浮宫杨梅果灵（ID：210408）",
+  "210409": "【星棱观曜】朱胭甜椒果灵（ID：210409）",
+  "210410": "【星棱观曜】蓝星沉夜果灵（ID：210410）",
+  "210411": "【星棱观曜】蜜了个猴果灵（ID：210411）",
+  "210412": "【星棱观曜】静谧午后果灵（ID：210412）",
   "210501": "【金牛・丰穰星绘】凯特杏果灵（ID：210501）",
   "210502": "【金牛・丰穰星绘】博洋6号果灵（ID：210502）",
   "210503": "【金牛・丰穰星绘】玄雾金鱼草果灵（ID：210503）",
@@ -389,75 +389,75 @@ export const ELF_IDENTITIES: Record<string, { title: string; titleSource: string
     "secondaryFruitName": "苹果小屋"
   },
   "210401": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "蓝蜜西梅"
   },
   "210402": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "博洋72号"
   },
   "210403": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "绿天赞小菊"
   },
   "210404": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "黑刺"
   },
   "210405": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "绯樱金鱼草"
   },
   "210406": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "水果萝卜"
   },
   "210407": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "水晶杨梅"
   },
   "210408": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "浮宫杨梅"
   },
   "210409": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "朱胭甜椒"
   },
   "210410": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "蓝星沉夜"
   },
   "210411": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
-    "secondaryFruitName": "仙芳漫舞"
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
+    "secondaryFruitName": "蜜了个猴"
   },
   "210412": {
-    "title": "白羊・星痕绘卷",
-    "titleSource": "description",
-    "mainFruitName": "白羊・星痕绘卷",
+    "title": "星棱观曜",
+    "titleSource": "book",
+    "mainFruitName": "星棱观曜",
     "secondaryFruitName": "静谧午后"
   },
   "210501": {
