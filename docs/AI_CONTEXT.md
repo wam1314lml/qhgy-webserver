@@ -1,3 +1,7 @@
+## 2026-11-14 梦入仙洲领奖开关
+
+活动页新增“梦入仙洲”，activity.hdReward.hd104TaskRewardEnabled/hd100SignEnabled/hd96FundRewardEnabled均默认false、严格布尔、独立于仲夏夜enabled。任务按游戏实际进度领取多档奖励，20006仅领已完成视频次数对应奖励；登录福利按当期天数补领；基金按仙洲积分领取免费及已解锁付费档，不购买或解锁基金。类型/默认/normalize/生成分享schema同步，旧码缺字段保留当前值；Web API通用存储不变。脚本协议、直属确认与MCP来源见qhgy-assistant-master/docs/QHGY_XIANZHOU_HANDOFF.md。本期静态库与11月11日一致，水果/果灵选项及图片无更新。
+
 ## 2026-11-12 账密登录具体失败原因与单次提示
 
 AddAccountModal的账号密码login和bind均用handleErrorLocally；全局拦截器仅对精确login/bind路径且ACCOUNT_PASSWORD_业务码的游戏401交给页面，其余网站401继续原处理，网站令牌失效优先判断。页面catch跳过已全局处理的网站401，具体auth原因保留8秒；密码清理、失败不进选服和关闭/换轮隔离保持。安全提示上限400字符，与Web对齐过滤URL/凭据/原包/堆栈；本地网络断开/等待超时有单独文案，不能伪造auth最终结果。配套Web必须更新才能摆脱通用“登录未完成”。验证scripts/test-account-password-login.mjs、test-add-account-channels.mjs及test-account-password-errors-browser.py。

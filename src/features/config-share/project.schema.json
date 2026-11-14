@@ -1523,6 +1523,15 @@
               },
               "hd1002GiftEnabled": {
                 "type": "boolean"
+              },
+              "hd104TaskRewardEnabled": {
+                "type": "boolean"
+              },
+              "hd100SignEnabled": {
+                "type": "boolean"
+              },
+              "hd96FundRewardEnabled": {
+                "type": "boolean"
               }
             }
           },

@@ -2658,6 +2658,19 @@
             >
               <Switch v-model:checked="config.activity.actCardCollect.enabledCardCollect" />
             </CustomFormItem>
+            <Divider orientation="left">梦入仙洲</Divider>
+            <CustomFormItem label="仙洲活动任务领奖" name="activity.hdReward.hd104TaskRewardEnabled"
+              tooltip="默认关闭。按当前任务进度连续领取已达标的奖励档位；观看视频任务按游戏中已完成的次数领取。">
+              <Switch v-model:checked="config.activity.hdReward.hd104TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="仙洲登录福利" name="activity.hdReward.hd100SignEnabled"
+              tooltip="默认关闭。补领已达到登录天数、尚未领取的福利，天数以当期活动为准。">
+              <Switch v-model:checked="config.activity.hdReward.hd100SignEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="仙洲基金领奖" name="activity.hdReward.hd96FundRewardEnabled"
+              tooltip="默认关闭。按仙洲积分领取已达标的免费奖励，以及已购买基金的付费奖励；此开关不会购买或解锁基金。">
+              <Switch v-model:checked="config.activity.hdReward.hd96FundRewardEnabled" />
+            </CustomFormItem>
             <Divider orientation="left">仲夏夜之梦 · 萤夜蝶舞</Divider>
             <CustomFormItem label="七日福利签到" name="activity.hdReward.hd3013SignEnabled"
               tooltip="默认关闭。领取仲夏夜之梦中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励；可独立开启。">
