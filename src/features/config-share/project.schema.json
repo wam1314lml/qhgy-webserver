@@ -272,6 +272,21 @@
               "speedUpTicketMax": {
                 "type": "number"
               },
+              "autoBuyWater": {
+                "type": "boolean"
+              },
+              "buyWaterPreferVoucher": {
+                "type": "boolean"
+              },
+              "buyWaterWithDiamond": {
+                "type": "boolean"
+              },
+              "buyWaterDiamondReserve": {
+                "type": "number"
+              },
+              "buyWaterBelow": {
+                "type": "number"
+              },
               "waterThreshold": {
                 "type": "number"
               },

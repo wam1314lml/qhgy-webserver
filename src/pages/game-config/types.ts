@@ -99,6 +99,11 @@ export interface GameConfig {
       speedUpTicketMinMinutes: number
       speedUpTicketReserve: number
       speedUpTicketMax: number
+      autoBuyWater: boolean
+      buyWaterPreferVoucher: boolean
+      buyWaterWithDiamond: boolean
+      buyWaterDiamondReserve: number
+      buyWaterBelow: number
       waterThreshold: number
       strictLayout: boolean
       landGroupSize: number

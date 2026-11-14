@@ -1,3 +1,7 @@
+## 2026-11-14 种植设置自动买水（授权Git交付，未部署）
+
+种植配置plant.flower新增autoBuyWater=false、buyWaterPreferVoucher=true、buyWaterWithDiamond=false、buyWaterDiamondReserve=500、buyWaterBelow=0；布尔严格归一、数量0～9999999。仅自动种植开启时展示，买水关闭隐藏子项但保留值。百果券优先、勾玉独立授权，购买后保留勾玉，水滴严格低于门槛才买，0不限；需要VIP，仅常规水滴，不含每日特惠。同步类型/默认/归一化/生成分享schema，旧码缺字段保值；Web API通用存储无需变化。脚本ShopMgr独立于商店总开关按300秒检查、POST前复核及直属状态确认，详见脚本docs/QHGY_SHOP_LOGIC_HANDOFF.md。
+
 ## 2026-11-14 梦入仙洲领奖开关
 
 活动页新增“梦入仙洲”，activity.hdReward.hd104TaskRewardEnabled/hd100SignEnabled/hd96FundRewardEnabled均默认false、严格布尔、独立于仲夏夜enabled。任务按游戏实际进度领取多档奖励，20006仅领已完成视频次数对应奖励；登录福利按当期天数补领；基金按仙洲积分领取免费及已解锁付费档，不购买或解锁基金。类型/默认/normalize/生成分享schema同步，旧码缺字段保留当前值；Web API通用存储不变。脚本协议、直属确认与MCP来源见qhgy-assistant-master/docs/QHGY_XIANZHOU_HANDOFF.md。本期静态库与11月11日一致，水果/果灵选项及图片无更新。

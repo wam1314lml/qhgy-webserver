@@ -680,6 +680,47 @@
                 />
               </CustomFormItem>
               <CustomFormItem
+                label="自动买水"
+                name="plant.flower.autoBuyWater"
+                tooltip="自动种植开启且VIP有效时，按下方设置购买VIP商店常规水滴。默认关闭，与加速设置独立。"
+              >
+                <Switch v-model:checked="config.plant.flower.autoBuyWater" />
+              </CustomFormItem>
+              <template v-if="config.plant.flower.autoBuyWater">
+                <CustomFormItem
+                  label="优先使用百果券买水"
+                  name="plant.flower.buyWaterPreferVoucher"
+                  class="form-item--stack-mobile"
+                  tooltip="先用百果券买水；余额不足或限购用完后，只有开启勾玉买水才会继续。关闭此项则不使用百果券。"
+                >
+                  <Switch v-model:checked="config.plant.flower.buyWaterPreferVoucher" />
+                </CustomFormItem>
+                <CustomFormItem
+                  label="使用勾玉买水"
+                  name="plant.flower.buyWaterWithDiamond"
+                  class="form-item--stack-mobile"
+                  tooltip="允许用勾玉购买VIP商店常规水滴，默认关闭；不包含每日特惠。"
+                >
+                  <Switch v-model:checked="config.plant.flower.buyWaterWithDiamond" />
+                </CustomFormItem>
+                <CustomFormItem
+                  label="勾玉低于多少停止买水"
+                  name="plant.flower.buyWaterDiamondReserve"
+                  class="form-item--stack-mobile"
+                  tooltip="每笔购买后至少保留此数量的勾玉。0表示不保留，仍需余额足够。"
+                >
+                  <CustomInputNumber v-model:value="config.plant.flower.buyWaterDiamondReserve" :min="0" :max="9999999" :precision="0" class="w-42! sm:w-48!" />
+                </CustomFormItem>
+                <CustomFormItem
+                  label="水滴低于多少才买水"
+                  name="plant.flower.buyWaterBelow"
+                  class="form-item--stack-mobile"
+                  tooltip="实时水滴严格低于此值才买，每买一份重新检查；达到门槛停止。0表示不限水滴库存，按余额与商店限购购买。"
+                >
+                  <CustomInputNumber v-model:value="config.plant.flower.buyWaterBelow" :min="0" :max="9999999" :precision="0" class="w-42! sm:w-48!" />
+                </CustomFormItem>
+              </template>
+              <CustomFormItem
                 label="保留水滴"
                 name="plant.flower.waterThreshold"
                 tooltip="保留多少水滴不用于浇花"

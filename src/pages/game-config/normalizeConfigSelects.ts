@@ -323,6 +323,14 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
   cultivate.upgradeQualities = normalizeFlowerQualities(cultivate.upgradeQualities)
 
   const flower = config.plant.flower
+  flower.autoBuyWater = flower.autoBuyWater === true
+  flower.buyWaterPreferVoucher = flower.buyWaterPreferVoucher === undefined || flower.buyWaterPreferVoucher === true
+  flower.buyWaterWithDiamond = flower.buyWaterWithDiamond === true
+  for (const key of ['buyWaterDiamondReserve', 'buyWaterBelow'] as const) {
+    const value = Number(flower[key])
+    flower[key] = flower[key] != null && (flower[key] as unknown) !== '' && Number.isFinite(value)
+      ? Math.min(9999999, Math.max(0, Math.floor(value))) : (key === 'buyWaterDiamondReserve' ? 500 : 0)
+  }
   flower.delayedHarvestEnabled = flower.delayedHarvestEnabled === true
   flower.delayedHarvestStopAt500FriendCoin = flower.delayedHarvestStopAt500FriendCoin === true
   const flowerDelayedMinutes = Number(flower.delayedHarvestMinutes)
