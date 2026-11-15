@@ -17,8 +17,8 @@
       <a-alert class="activity-load-error" v-if="activityLoadFailed" type="warning" show-icon message="活动信息加载失败" style="margin-bottom:16px"><template #description><a-button size="small" @click="refreshActivities">重试加载活动</a-button></template></a-alert>
       <a-empty v-if="!availableActivityTabs.length && !activityLoadFailed" description="暂无开放的福利活动" />
       <a-tabs v-model:activeKey="activeTab" centered class="welfare-tabs">
-        <a-tab-pane v-if="activeActivityTypes.includes('guild_rally')" key="guild_rally" tab="公会集结"><ActivityWelfare v-if="activeTab === 'guild_rally'" type="guild_rally" /></a-tab-pane>
-        <a-tab-pane v-if="activeActivityTypes.includes('sign_in')" key="sign_in" tab="签到活动"><ActivityWelfare v-if="activeTab === 'sign_in'" type="sign_in" /></a-tab-pane>
+        <a-tab-pane v-if="visibleActivityTypes.includes('guild_rally')" key="guild_rally" tab="公会集结"><ActivityWelfare v-if="activeTab === 'guild_rally'" type="guild_rally" /></a-tab-pane>
+        <a-tab-pane v-if="visibleActivityTypes.includes('sign_in')" key="sign_in" tab="签到活动"><ActivityWelfare v-if="activeTab === 'sign_in'" type="sign_in" /></a-tab-pane>
         <a-tab-pane key="daily" tab="日常福利" v-if="lotteryInfo.dailyEnabled">
           <div class="tab-content">
             <!-- 日常福利次数显示 -->
@@ -223,7 +223,7 @@ interface LotteryRecord {
 
 const activeTab = ref('')
 const activitiesLoading = ref(true)
-const { activeActivityTypes, activityLoadFailed, refresh: refreshActivities } = useWelfareNotifications()
+const { visibleActivityTypes, activityLoadFailed, refresh: refreshActivities } = useWelfareNotifications()
 const SHOW_WELFARE_MINI_PROGRAM_PROMOTION = false
 const dailyWheelRef = ref()
 const rechargeWheelRef = ref()
@@ -428,7 +428,7 @@ onMounted(async () => {
 })
 
 const availableActivityTabs = computed(() => [
-  ...activeActivityTypes.value,
+  ...visibleActivityTypes.value,
   ...(lotteryInfo.value.dailyEnabled ? ['daily'] : []),
   ...(lotteryInfo.value.rechargeEnabled ? ['recharge'] : []),
 ])

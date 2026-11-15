@@ -66,6 +66,7 @@ export interface RewardState {
   day?: string
   accountId?: number
   eligible: boolean
+  achieved?: boolean
   claimed: boolean
 }
 export interface ActivityView extends ActivityConfig {

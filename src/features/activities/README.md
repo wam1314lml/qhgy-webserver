@@ -14,7 +14,9 @@
 
 `ActivityArtwork.vue` 的默认主题按当前项目配置（花园携带右半主题，其他目标站默认无图，管理员可上传）；`imageUpload.ts` 压缩上传，地址经活动配置保存。需要配套后端 `welfare_activity_images` 初始化、上传路由及公开只读图片路由。背景不属于锁定奖励规则。
 
-`useWelfareNotifications` 提供开放活动类型，福利页据此隐藏未开放的集结/签到页签，并在当前页签关闭时切换。`api.summary()` 优先读取 `/summary.activeTypes`；旧后端缺字段/格式错误或摘要不可用时，读取 `/api/activities` 中 `enabled && status === 'active'` 的类型去重。明确的空数组仍表示关闭，不回退；401/403 不回退。不能用 hasPending、角色数量或客户端时间判断入口。
+`useWelfareNotifications` 分别提供 activeActivityTypes（首页 new / 普通配额提醒）和 visibleActivityTypes（福利页签）。`api.summary()` 优先读取 `/summary.activeTypes/visibleTypes`；缺字段/格式错误或摘要不可用时，从列表服务端状态补齐：进行中为 active，额外包含 ended 集结为 visible。明确空数组仍表示关闭，不回退对应字段；401/403 不回退。不能用 hasPending、角色数量或客户端时间判断入口。
+
+2026-11-15：历史集结默认折叠且排在非历史活动后，显示标题和北京时间起止时间。以全账号 rewardStates 的 achieved 且未 claimed 数量提示金色礼包；无 achieved 的旧接口回退 eligible/claimed。展开保留完整界面，优先选有待领奖励的角色；刷新保留展开及选择，退出清空。领奖按钮以服务端 eligible 为准，已结束可补领、停用不可领，参与/分配继续关闭。需配套后端过期补领资格与 visibleTypes；先发布后端。
 
 查询均失败时 `activityLoadFailed` 显示福利页重试提示，暂时失败保留本账号已加载状态；鉴权拒绝/退出清空，退出后的延迟响应不可恢复入口。迁移需携带 api/composable、WelfarePage 的错误提示和重试接线，仍建议先发布后端 summary 再发布前端，避免兼容路径增加完整列表请求。
 

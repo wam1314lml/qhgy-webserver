@@ -21,7 +21,7 @@ const copy=v=>JSON.parse(JSON.stringify(v));const response=data=>({data:{success
 export default {
  async get(url,opts){state.calls.push({method:'GET',url});
  if(url==='/api/activities'){if(state.listError)throw Object.assign(Error('合成列表失败'),{response:{status:state.listError}});const result=response({activities:state.activities,accounts:state.accounts,hasPending:state.summary});if(state.holdNextList){state.holdNextList=false;await new Promise(resolve=>state.releaseList=resolve);delete state.releaseList}return result}
- if(url==='/api/activities/summary'){if(state.summaryError)throw Object.assign(Error('合成摘要失败'),{response:{status:state.summaryError}});return response({hasPending:state.summary,...(state.summaryMode==='legacy'?{}:{activeTypes:state.summaryMode==='invalid'?null:state.activeTypesOverride??[...new Set(state.activities.filter(a=>a.enabled&&a.status==='active').map(a=>a.type))]})})}
+ if(url==='/api/activities/summary'){if(state.summaryError)throw Object.assign(Error('合成摘要失败'),{response:{status:state.summaryError}});return response({hasPending:state.summary,...(state.summaryMode==='legacy'?{}:{activeTypes:state.summaryMode==='invalid'?null:state.activeTypesOverride??[...new Set(state.activities.filter(a=>a.enabled&&a.status==='active').map(a=>a.type))]}),...(state.summaryMode==='modern'?{visibleTypes:state.visibleTypesOverride??[...new Set(state.activities.filter(a=>(a.enabled&&a.status==='active')||(a.type==='guild_rally'&&a.status==='ended')).map(a=>a.type))]}:{})})}
  if(url==='/api/activities/claims')return response({records:state.claims,total:state.claims.length});
  if(url.endsWith('/allocate/status')){if(state.holdSync){state.holdSync=false;await new Promise(resolve=>state.releaseSync=resolve);delete state.releaseSync}return response({completed:!!state.allocationCompleted,ready:!!state.guildReady,message:state.guildReady?'已读取公会：新同步妖盟':'等待角色上线并同步最新公会信息',guild:{unionId:'99',unionName:'新同步妖盟'}})}
  if(url.startsWith('/api/game-accounts/')&&url.endsWith('/player_record'))return {data:{success:true,data:{isOnline:!!state.roleOnline}}};
@@ -42,7 +42,7 @@ export default {
  if(url.endsWith('/allocate/complete')){if(state.completeFailure)throw Error('点数不足，首日进度保留');state.allocationCompleted=true;const g=a.guilds[0];delete g.preparation;Object.assign(g,{canAllocate:false,canPrepare:false,requiresGuildSync:false,allocationCount:1,participants:1,unionName:'新同步妖盟',reason:'本期分配次数已用完'});return response({participationId:99,allocationCount:1})}
  if(url.endsWith('/allocate')){Object.assign(a.guilds[0],{participationId:21,participants:2,allocationCount:1,canAllocate:false,reason:'本期分配次数已用完'});a.rewardStates=[{rewardId:'g2',participationId:21,accountId:11,eligible:true,claimed:false}];return response({newBalance:95})}
  if(url.endsWith('/sign-in')){Object.assign(a.signIn,{signedToday:true,totalDays:1,canSignIn:false});a.rewardStates.forEach(r=>r.eligible=true);return response({signedToday:true,totalDays:1})}
- if(url.endsWith('/claim')){const reward=a.rewards.find(r=>r.id===body.rewardId), option=reward.options.find(o=>o.id===body.optionId);a.rewardStates.filter(r=>r.rewardId===reward.id&&(!body.day||r.day===body.day)).forEach(r=>r.claimed=true);const record={id:state.claims.length+1,activityId:a.id,title:a.title,rewardLabel:reward.label,type:option.type,value:option.value,createdAt:Date.now(),...(option.type==='card'?{cardCode:'FLKTESTTEST12345'}:{}),...(option.type==='time'?{targetNickname:'山间听雨'}:{})};state.claims.unshift(record);return response(record)}
+ if(url.endsWith('/claim')){const reward=a.rewards.find(r=>r.id===body.rewardId), option=reward.options.find(o=>o.id===body.optionId);a.rewardStates.filter(r=>r.rewardId===reward.id&&(!body.day||r.day===body.day)&&(!body.participationId||r.participationId===body.participationId)).forEach(r=>r.claimed=true);const record={id:state.claims.length+1,activityId:a.id,title:a.title,rewardLabel:reward.label,type:option.type,value:option.value,createdAt:Date.now(),...(option.type==='card'?{cardCode:'FLKTESTTEST12345'}:{}),...(option.type==='time'?{targetNickname:'山间听雨'}:{})};state.claims.unshift(record);return response(record)}
  throw Error('Unexpected POST '+url);
  },async put(url,body){state.calls.push({method:'PUT',url,body:copy(body)});return response({id:Number(url.split('/').pop())})},
  async delete(url){state.calls.push({method:'DELETE',url});const id=Number(url.split('/').pop()),a=state.activities.find(a=>a.id===id);if(a.endAt>Date.now())throw Error('活动尚未到期');state.activities=state.activities.filter(a=>a.id!==id);return response({id,deleted:true})}
@@ -108,8 +108,8 @@ try{
  await waitFor("!!document.querySelector('.guild-progress')");
  await evaluate('activityTest.refresh()');
  // 新版明确返回 [] 时不能用旧列表重新打开活动，也不能额外请求完整列表。
- const emptySummary = await evaluate(`(async()=>{activityFixture.activeTypesOverride=[];const before=activityFixture.calls.filter(c=>c.url==='/api/activities').length;const result=await activityTest.summary();delete activityFixture.activeTypesOverride;return {result,extraLists:activityFixture.calls.filter(c=>c.url==='/api/activities').length-before}})()`);
- assert.deepEqual(emptySummary,{result:{hasPending:true,activeTypes:[]},extraLists:0});
+ const emptySummary = await evaluate(`(async()=>{activityFixture.activeTypesOverride=[];activityFixture.visibleTypesOverride=[];const before=activityFixture.calls.filter(c=>c.url==='/api/activities').length;const result=await activityTest.summary();delete activityFixture.activeTypesOverride;delete activityFixture.visibleTypesOverride;return {result,extraLists:activityFixture.calls.filter(c=>c.url==='/api/activities').length-before}})()`);
+ assert.deepEqual(emptySummary,{result:{hasPending:true,activeTypes:[],visibleTypes:[]},extraLists:0});
  await evaluate("activityFixture.summaryMode='invalid'");
  assert.deepEqual(await evaluate('(async()=> (await activityTest.summary()).activeTypes)()'),['guild_rally','sign_in'],'字段格式错误使用列表兼容');
  await evaluate("activityFixture.summaryMode='modern'");
@@ -252,6 +252,40 @@ try{
  await waitFor("document.querySelectorAll('.welfare-tabs [role=tab]').length===2 && !!document.querySelector('.welfare-new')");
  assert.equal(await evaluate('activityTest.vm.activeTab'),'guild_rally');
  await waitFor("!!document.querySelector('.guild-progress')");
+ // 只有历史集结也保留页签；金色礼包按全部角色计数，默认折叠且可键盘展开。
+ await evaluate(`window.beforeHistory=structuredClone(activityFixture.activities);window.beforeHistoryClaims=structuredClone(activityFixture.claims);window.historyRally={...structuredClone(activityFixture.activities.find(a=>a.type==='guild_rally')),id:301,title:'十月同盟集结',status:'ended',startAt:Date.parse('2026-10-01T00:00:00+08:00'),endAt:Date.parse('2026-10-08T00:00:00+08:00'),enabled:true,guilds:[{accountId:11,nickname:'未参与角色',participants:0,allocationCount:0,canAllocate:false,canPrepare:false},...[12,13].map((id,i)=>({accountId:id,participationId:21+i,nickname:'待领角色'+id,unionName:'青山妖盟',participants:2,participantNames:['山间听雨','云中归客'],allocationCount:1,canAllocate:false,canPrepare:false,reason:'活动已结束'}))],rewards:[{id:'g2',label:'同盟聚首礼',kind:'guild',threshold:2,options:[{id:'points',type:'points',value:30}]}],rewardStates:[12,13].map((id,i)=>({rewardId:'g2',accountId:id,participationId:21+i,achieved:true,eligible:true,claimed:false}))};activityFixture.activities=[structuredClone(historyRally),{...structuredClone(historyRally),id:302,title:'九月同盟集结',startAt:Date.parse('2026-09-01T00:00:00+08:00'),endAt:Date.parse('2026-09-08T00:00:00+08:00'),rewardStates:[{rewardId:'g2',accountId:12,participationId:21,achieved:true,eligible:true,claimed:true}]}];activityFixture.summaryMode='modern';activityTest.refresh();window.dispatchEvent(new Event('activitiesChanged'))`);
+ await waitFor("document.querySelectorAll('.archive-toggle').length===2");
+ assert.equal(await evaluate("document.querySelectorAll('.activity-content').length"),0);
+ assert.equal(await evaluate("document.querySelectorAll('.archive-gift').length"),1);
+ assert.equal(await evaluate("!!document.querySelector('.welfare-new')"),false,'仅历史活动不显示进行中的new');
+ assert.match(await evaluate("document.querySelector('.archive-reward-hint').textContent"),/还有 2 份集结奖励未领取/);
+ assert.match(await evaluate("document.querySelector('.archive-period').textContent"),/2026\/10\/1.*2026\/10\/8/);
+ for(const width of [1280,390,320]) await layout(width,'rally-history-collapsed');
+ // 兼容已有 activeTypes、尚无 visibleTypes 的后端摘要。
+ await evaluate("activityFixture.summaryMode='previous'");
+ assert.deepEqual(await evaluate('activityTest.summary()'),{hasPending:false,activeTypes:[],visibleTypes:['guild_rally']});
+ await evaluate("activityFixture.summaryMode='modern';document.querySelector('.archive-toggle').focus()");
+ assert.equal(await evaluate("document.activeElement?.className"),'archive-toggle');
+ await command('Input.dispatchKeyEvent',{type:'rawKeyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
+ await command('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+ await waitFor("document.querySelector('.archive-toggle').getAttribute('aria-expanded')==='true'");
+ assert.match(await evaluate("document.querySelector('.role-selection').textContent"),/待领角色12/);
+ assert.equal(await evaluate("[...document.querySelectorAll('.guild-allocation button')].some(b=>!b.disabled)"),false);
+ await layout(390,'rally-history-expanded');
+ await click('选择奖励');await click('确认领取');
+ await waitFor("document.querySelector('.archive-reward-hint').textContent.includes('还有 1 份')");
+ assert.equal(await evaluate("document.querySelector('.archive-toggle').getAttribute('aria-expanded')"),'true','刷新不重置玩家展开状态');
+ await evaluate("activityTest.mode('guild_rally')");await waitFor("document.querySelectorAll('.archive-toggle').length===2 && !document.querySelector('.activity-content')");
+ await evaluate("document.querySelector('.archive-toggle').click()");
+ await waitFor("document.querySelector('.role-selection').textContent.includes('待领角色13')");
+ await click('选择奖励');await click('确认领取');
+ await waitFor("document.querySelector('.archive-reward-hint').textContent.includes('已全部领取')");
+ assert.equal(await evaluate("document.querySelectorAll('.archive-gift').length"),0);
+ await evaluate("document.querySelector('.archive-toggle').click()");
+ await layout(390,'rally-history-claimed');
+ await evaluate("activityFixture.activities=window.beforeHistory;activityFixture.claims=window.beforeHistoryClaims;activityFixture.summaryMode='legacy';activityTest.mode('page')");
+ await waitFor("!!document.querySelector('.guild-progress')");
+ console.log('PASS 历史集结：独立入口、默认折叠、活动起止时间、金色礼包汇总、键盘展开、默认待领角色、补领后计数及图标更新、旧摘要兼容、手机布局');
  // 两段式集结：先付款一天、失败重试、等待读条、刷新恢复及自动补足。
  await evaluate(`window.beforeStaged=JSON.parse(JSON.stringify(activityFixture.activities));window.stagedTemplate={...JSON.parse(JSON.stringify(activityFixture.activities.find(a=>a.type==='guild_rally'))),id:81,title:'六十天集结测试',quota:{days:60,points:60,maxPerRole:1},guilds:[{accountId:11,nickname:'山间听雨',unionId:'9',unionName:'待更新妖盟',participants:0,allocationCount:0,canAllocate:false,canPrepare:true,requiresGuildSync:true,firstPoints:1}],rewardStates:[]};activityFixture.activities=[JSON.parse(JSON.stringify(stagedTemplate))];activityFixture.guildReady=false;activityFixture.allocationCompleted=false;activityTest.mode('guild_rally')`);
  await waitFor("document.body.innerText.includes('先分配 1 天，准备同步公会')");

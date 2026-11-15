@@ -6,6 +6,7 @@ import type { ActivityType } from './types'
 
 const activitiesPending = ref(false)
 const activeActivityTypes = ref<ActivityType[]>([])
+const visibleActivityTypes = ref<ActivityType[]>([])
 const activityLoadFailed = ref(false)
 const hasActiveActivities = computed(() => activeActivityTypes.value.length > 0)
 const rechargePending = ref(false)
@@ -27,6 +28,7 @@ export function clearWelfareNotifications() {
   identity = ''
   activitiesPending.value = false
   activeActivityTypes.value = []
+  visibleActivityTypes.value = []
   activityLoadFailed.value = false
   rechargePending.value = false
   inFlight = undefined
@@ -55,9 +57,11 @@ export async function refreshWelfareNotifications() {
       if (activity.status === 'fulfilled') {
         activitiesPending.value = activity.value.hasPending
         activeActivityTypes.value = activity.value.activeTypes
+        visibleActivityTypes.value = activity.value.visibleTypes
       } else if (activity.reason?.response?.status === 401 || activity.reason?.response?.status === 403) {
         activitiesPending.value = false
         activeActivityTypes.value = []
+        visibleActivityTypes.value = []
       }
       if (lottery.status === 'fulfilled') {
         const info = lottery.value.data
@@ -116,5 +120,5 @@ export function useWelfareNotifications() {
     window.removeEventListener('storage', storage)
     clearWelfareNotifications()
   })
-  return { hasPending, activitiesPending, rechargePending, activeActivityTypes, hasActiveActivities, activityLoadFailed, refresh: refreshWelfareNotifications }
+  return { hasPending, activitiesPending, rechargePending, activeActivityTypes, visibleActivityTypes, hasActiveActivities, activityLoadFailed, refresh: refreshWelfareNotifications }
 }

@@ -44,23 +44,30 @@ async function mutate(path: string, payload: Record<string, unknown>, scope = ''
 
 export const activitiesApi = {
   async list(): Promise<ActivityData> { return unwrap((await axios.get(root, local)).data) },
-  async summary(): Promise<{ hasPending: boolean; activeTypes: ActivityType[] }> {
+  async summary(): Promise<{ hasPending: boolean; activeTypes: ActivityType[]; visibleTypes: ActivityType[] }> {
+    let summary: { hasPending: boolean; activeTypes: ActivityType[] } | undefined
     try {
-      const data = unwrap<{ hasPending: boolean; activeTypes?: unknown }>((await axios.get(`${root}/summary`, local)).data)
+      const data = unwrap<{ hasPending: boolean; activeTypes?: unknown; visibleTypes?: unknown }>((await axios.get(`${root}/summary`, local)).data)
       // 明确的空数组表示没有开放活动；缺字段则是旧版接口，不能当成关闭。
       if (Array.isArray(data?.activeTypes)) {
-        return { hasPending: !!data.hasPending, activeTypes: [...new Set(data.activeTypes.filter(isActivityType))] }
+        summary = { hasPending: !!data.hasPending, activeTypes: [...new Set(data.activeTypes.filter(isActivityType))] }
+        if (Array.isArray(data.visibleTypes)) return { ...summary, visibleTypes: [...new Set(data.visibleTypes.filter(isActivityType))] }
       }
     } catch (error: any) {
       // 登录/权限拒绝直接交给调用方；摘要不可用时可读取同样受鉴权保护的活动列表。
       if (error.response?.status === 401 || error.response?.status === 403) throw error
     }
     const data = await activitiesApi.list()
+    const activeTypes = summary?.activeTypes ?? [...new Set(data.activities
+      .filter(activity => activity.enabled && activity.status === 'active')
+      .map(activity => activity.type).filter(isActivityType))]
     return {
-      hasPending: data.hasPending,
-      activeTypes: [...new Set(data.activities
-        .filter(activity => activity.enabled && activity.status === 'active')
-        .map(activity => activity.type).filter(isActivityType))],
+      hasPending: summary?.hasPending ?? data.hasPending,
+      activeTypes,
+      // 兼容旧摘要；用列表的服务端状态识别历史，不用客户端时钟猜测到期。
+      visibleTypes: [...new Set([...activeTypes, ...data.activities
+        .filter(activity => activity.type === 'guild_rally' && activity.status === 'ended')
+        .map(activity => activity.type)])],
     }
   },
   allocate(id: number, accountId: number) { return mutate(`/${id}/allocate`, { accountId }) },

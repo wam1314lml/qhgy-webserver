@@ -7,7 +7,18 @@
     <a-alert v-if="error" :message="error" type="error" show-icon class="activity-alert" />
     <a-spin :spinning="loading && activities.length === 0">
       <div v-if="!loading && !visibleActivities.length && !error" class="activity-empty"><CalendarOutlined v-if="type === 'sign_in'" /><TeamOutlined v-else /><h3>{{ type === 'sign_in' ? '新的签到礼，敬请期待' : '下一场集结，期待与你相见' }}</h3><p>{{ type === 'sign_in' ? '当前没有进行中的签到活动，已领取的奖励仍可在下方查看。' : '活动发布后将在这里展示，过往奖励记录会为你保留。' }}</p></div>
-      <article v-for="activity in visibleActivities" :key="activity.id" class="activity-card">
+      <article v-for="activity in visibleActivities" :key="activity.id" class="activity-card" :class="{ 'activity-archived': isEndedRally(activity) }">
+        <button v-if="isEndedRally(activity)" type="button" class="archive-toggle" :aria-expanded="!!expandedActivities[activity.id]" :aria-controls="`activity-detail-${activity.id}`" :disabled="!!busy" @click="expandedActivities[activity.id] = !expandedActivities[activity.id]">
+          <span class="archive-symbol" :class="{ 'archive-gift': pendingRewards(activity) > 0 }"><GiftFilled v-if="pendingRewards(activity) > 0" aria-hidden="true" /><HistoryOutlined v-else aria-hidden="true" /></span>
+          <span class="archive-copy">
+            <span class="archive-eyebrow">历史集结 · 第 {{ activity.id }} 期 · 已结束</span>
+            <strong>{{ activity.title }}</strong>
+            <span class="archive-period">活动时间：{{ formatActivityTime(activity.startAt) }} — {{ formatActivityTime(activity.endAt) }}（北京时间）</span>
+            <span class="archive-reward-hint" :class="{ 'has-unclaimed': pendingRewards(activity) > 0 }" aria-live="polite">{{ rallyRewardHint(activity) }}</span>
+          </span>
+          <span class="archive-action">{{ expandedActivities[activity.id] ? '收起' : '展开' }}<DownOutlined aria-hidden="true" :class="{ expanded: expandedActivities[activity.id] }" /></span>
+        </button>
+        <div v-if="!isEndedRally(activity) || expandedActivities[activity.id]" :id="`activity-detail-${activity.id}`">
         <ActivityArtwork :type="activity.type" :background-url="activity.backgroundUrl" />
         <header class="activity-heading">
           <div class="activity-title-group"><span class="activity-seal"><TeamOutlined v-if="activity.type === 'guild_rally'" /><CalendarOutlined v-else /></span><div><span class="activity-id">{{ activity.type === 'guild_rally' ? '公会集结' : '签到活动' }} · 第 {{ activity.id }} 期</span><h3>{{ activity.title }}</h3></div></div>
@@ -16,6 +27,7 @@
         <p v-if="activity.description" class="activity-description">{{ activity.description }}</p>
         <div class="activity-period"><ClockCircleOutlined /><span>{{ formatActivityTime(activity.startAt) }} — {{ formatActivityTime(activity.endAt) }}<small>北京时间 · 活动 ID：{{ activity.id }}</small></span></div>
         <div class="activity-content">
+          <a-alert v-if="isEndedRally(activity)" class="archive-notice" :type="activity.enabled ? 'info' : 'warning'" show-icon :message="activity.enabled ? '活动已结束，已达标的集结奖励仍可领取；本期不再接受参与和配额分配。' : '本期活动已停用，暂时无法补领奖励。'" />
           <template v-if="activity.type === 'guild_rally'">
             <div class="role-selection"><label class="field-label" :for="`guild-account-${activity.id}`">参与角色</label><a-select :id="`guild-account-${activity.id}`" :value="guildFor(activity)?.accountId" :options="guildOptions(activity)" :disabled="!!busy" placeholder="请选择要参与的角色" class="activity-select" @change="(value: number) => selectedGuild[activity.id] = value" /></div>
             <div v-if="guildFor(activity)" class="rally-layout">
@@ -42,13 +54,14 @@
           <div class="rewards-heading"><h4><GiftOutlined />活动奖励</h4><span>每档任选一项，分别领取</span></div>
           <div class="reward-list">
             <div v-for="row in rewardRows(activity)" :key="row.key" class="reward-row" :class="{ 'reward-ready': row.state.eligible && !row.state.claimed, 'reward-claimed': row.state.claimed }">
-              <div class="reward-topline"><span><GiftOutlined />{{ row.reward.kind === 'daily' ? '每日签到礼' : row.reward.kind === 'guild' ? '公会集结礼' : '累计签到礼' }}</span><span class="reward-state">{{ row.state.claimed ? '已领取' : row.state.eligible ? '可领取' : '待解锁' }}</span></div>
+              <div class="reward-topline"><span><GiftOutlined />{{ row.reward.kind === 'daily' ? '每日签到礼' : row.reward.kind === 'guild' ? '公会集结礼' : '累计签到礼' }}</span><span class="reward-state">{{ row.state.claimed ? '已领取' : row.state.eligible ? '可领取' : row.state.achieved ? '暂停领取' : '未达成' }}</span></div>
               <div class="reward-copy"><strong>{{ row.reward.label }}</strong><p>{{ rewardRequirement(row.reward, row.state) }}</p></div>
               <div class="reward-options-text"><span v-for="option in row.reward.options" :key="option.id"><RewardIcon :type="option.type" />{{ rewardText(option.type, option.value) }}</span></div>
-              <a-button block :type="row.state.eligible && !row.state.claimed ? 'primary' : 'default'" :disabled="!row.state.eligible || row.state.claimed || activity.status !== 'active' || !!busy" @click="openClaim(activity, row.reward, row.state)">{{ row.state.claimed ? '已领取' : row.state.eligible ? '选择奖励' : '未达成' }}<CheckOutlined v-if="row.state.claimed" /></a-button>
+              <a-button block :type="row.state.eligible && !row.state.claimed ? 'primary' : 'default'" :disabled="!row.state.eligible || row.state.claimed || !!busy" @click="openClaim(activity, row.reward, row.state)">{{ row.state.claimed ? '已领取' : row.state.eligible ? '选择奖励' : row.state.achieved ? '暂停领取' : '未达成' }}<CheckOutlined v-if="row.state.claimed" /></a-button>
             </div>
           </div>
           </template>
+        </div>
         </div>
       </article>
     </a-spin>
@@ -74,7 +87,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Empty, message } from 'ant-design-vue'
-import { CalendarOutlined, CheckCircleOutlined, CheckOutlined, ClockCircleOutlined, GiftOutlined, HistoryOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons-vue'
+import { CalendarOutlined, CheckCircleOutlined, CheckOutlined, ClockCircleOutlined, DownOutlined, GiftFilled, GiftOutlined, HistoryOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import SignInCalendar from './SignInCalendar.vue'
 import ActivityArtwork from './ActivityArtwork.vue'
 import RewardIcon from './RewardIcon.vue'
@@ -89,7 +102,10 @@ const props = defineProps<{ type: ActivityType }>()
 useWelfareNotifications()
 const activities = ref<ActivityView[]>([])
 const accounts = ref<ActivityAccount[]>([])
-const visibleActivities = computed(() => activities.value.filter(item => item.type === props.type && (props.type !== 'sign_in' || item.status === 'active')))
+const visibleActivities = computed(() => activities.value
+  .filter(item => item.type === props.type && (props.type !== 'sign_in' || item.status === 'active'))
+  .sort((a, b) => Number(isEndedRally(a)) - Number(isEndedRally(b)) || b.startAt - a.startAt || b.id - a.id))
+const expandedActivities = ref<Record<number, boolean>>({})
 const selectedGuild = ref<Record<number, number>>({})
 const loading = ref(false)
 const error = ref('')
@@ -113,6 +129,14 @@ let reloadQueued = false
 let historyVersion = 0
 let poll: ReturnType<typeof setInterval> | undefined
 
+function isEndedRally(activity: ActivityView) { return activity.type === 'guild_rally' && activity.status === 'ended' }
+function earnedRewards(activity: ActivityView) { return (activity.rewardStates || []).filter(state => state.achieved ?? (state.eligible || state.claimed)) }
+function pendingRewards(activity: ActivityView) { return earnedRewards(activity).filter(state => !state.claimed).length }
+function rallyRewardHint(activity: ActivityView) {
+  const pending = pendingRewards(activity)
+  if (pending) return `还有 ${pending} 份集结奖励未领取${activity.enabled ? '，展开领取' : '，已暂停领奖'}`
+  return earnedRewards(activity).length ? '集结奖励已全部领取' : '无达标未领的集结奖励'
+}
 function guildFor(activity: ActivityView) {
   return activity.guilds?.find(item => item.accountId === selectedGuild.value[activity.id]) || activity.guilds?.[0]
 }
@@ -158,6 +182,13 @@ async function load(showLoading = false) {
         if (disposed || identity !== getCurrentUser()?.id) return
         activities.value = result.activities
         accounts.value = result.accounts
+        // 历史集结优先展示待领奖励对应角色，刷新时保留手动选择。
+        for (const activity of result.activities) {
+          if (selectedGuild.value[activity.id] === undefined && isEndedRally(activity)) {
+            const pending = activity.rewardStates?.find(state => state.eligible && !state.claimed)
+            if (pending?.accountId !== undefined) selectedGuild.value[activity.id] = pending.accountId
+          }
+        }
         claimTime.value = Date.now()
         if (targetAccountId.value !== undefined && !canReceiveTimeReward(accounts.value.find(account => account.id === targetAccountId.value), claimTime.value)) targetAccountId.value = undefined
         error.value = ''
@@ -238,7 +269,7 @@ function refreshVisible() { if (document.visibilityState === 'visible') void loa
 function changed() { void load() }
 function reset() {
   activities.value = []; accounts.value = []; claims.value = []
-  selectedGuild.value = {}; claimOpen.value = false; claimSelection.value = undefined
+  selectedGuild.value = {}; expandedActivities.value = {}; claimOpen.value = false; claimSelection.value = undefined
   historyVersion++
 }
 function storage(event: StorageEvent) {
