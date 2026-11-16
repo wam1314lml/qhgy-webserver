@@ -44,6 +44,7 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5412", label: "甜苹圆舞曲" },
   { value: "5414", label: "鎏廷花座" },
   { value: "5415", label: "夏日狂欢" },
+  { value: "5416", label: "天仪观星" },
   { value: "5419", label: "青丘画轴" },
   { value: "5422", label: "仙姝揽月" },
   { value: "5423", label: "青蛇灵踪" },

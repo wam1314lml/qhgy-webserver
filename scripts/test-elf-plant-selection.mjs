@@ -81,10 +81,10 @@ async function test(name, fn) {
   console.log(`PASS ${name}`)
 }
 
-await test('种植目录仅包含当前图鉴的 36 个有效主副果组合，逐项对应脚本导出', () => {
-  assert.equal(expected.length, 36)
-  assert.equal(m.elfPlantOptions.length, 36)
-  assert.equal(new Set(m.elfPlantOptions.map(option => option.value)).size, 36)
+await test('种植目录包含当前图鉴的 48 个有效主副果组合，逐项对应脚本导出', () => {
+  assert.equal(expected.length, 48)
+  assert.equal(m.elfPlantOptions.length, expected.length)
+  assert.equal(new Set(m.elfPlantOptions.map(option => option.value)).size, expected.length)
   assert.deepEqual(m.elfPlantOptions.map(option => option.value).sort(), expected.map(({ row }) => String(row.id)).sort())
   for (const { row, book } of expected) {
     const option = m.elfPlantOptions.find(item => item.value === String(row.id))
@@ -131,7 +131,7 @@ await test('未知非空 ID 和全无效列表不被归一化清空，保留顺�
   assert.deepEqual(m.normalizeSelectedElvesIds(values), ids)
   assert.deepEqual(selected(load(values)), ids)
   const options = m.getElfPlantOptions(ids)
-  assert.equal(options.length, 39)
+  assert.equal(options.length, expected.length + ids.length)
   for (const value of ids) {
     const option = options.find(item => item.value === value)
     assert.ok(option, `旧值 ${value} 应继续显示`)
@@ -180,7 +180,7 @@ await test('全非法及混合非法指定经加载保存分享仍为警告，�
   }
 })
 
-await test('所有 36 个有效图鉴旧 bookId 继续可识别，原值和顺序保留', () => {
+await test('所有有效图鉴旧 bookId 继续可识别，原值和顺序保留', () => {
   for (const option of m.elfPlantOptions) {
     const id = String(option.bookId)
     assert.deepEqual(m.normalizeSelectedElvesIds([id]), [id])
@@ -205,7 +205,7 @@ await test('空数组初始加载与连续保存重载均保留空，明确表�
   const notice = m.getElfPlantSelectionNotice([])
   assert.equal(notice.type, 'info')
   assert.match(notice.text, /双倍/)
-  assert.equal(m.getElfPlantOptions([]).length, 36)
+  assert.equal(m.getElfPlantOptions([]).length, expected.length)
 })
 
 await test('全无效提示暂停果灵种植并恢复原土地策略，不静默切到双倍', () => {
@@ -394,7 +394,7 @@ await test('真实 CustomSelect 空数组挂载与选项刷新不自动补第一
     assert.deepEqual(value.value, [])
     assert.deepEqual(emitted, [])
     assert.deepEqual(select().props.value, [])
-    assert.equal(select().props.options.length, 36)
+    assert.equal(select().props.options.length, expected.length)
     value.value = []
     await nextTick()
     assert.deepEqual(value.value, [])
@@ -413,7 +413,7 @@ await test('真实 CustomSelect 已选无效旧 ID 继续显示，清空可恢�
     await nextTick()
     assert.deepEqual(value.value, [])
     assert.deepEqual(emitted, [[]])
-    assert.equal(select().props.options.length, 36)
+    assert.equal(select().props.options.length, expected.length)
   })
 })
 

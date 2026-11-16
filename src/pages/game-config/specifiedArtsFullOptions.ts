@@ -764,6 +764,7 @@ export const specifiedArtsFullOptions: Array<{ value: string; label: string }> =
   { value: "541408", label: "鎏廷花座果艺品(昭华礼赞,马克菠萝,红豆)" },
   { value: "541409", label: "鎏廷花座果艺品(昭华礼赞,马克菠萝,黄豆)" },
   { value: "541501", label: "夏日狂欢果艺品(绚烂夏日,悠然海钓,香蕉)" },
+  { value: "541601", label: "天仪观星果艺品(星棱观曜,星海寄愿,杨桃星灯)" },
   { value: "541901", label: "青丘画轴果艺品(山海·灵狐引,赤狐幻莲,相思果)" },
   { value: "542201", label: "仙姝揽月果艺品(祈月共舞,桂树升月,太婆梨)" },
   { value: "542202", label: "仙姝揽月果艺品(祈月共舞,秋宵月影,太婆梨)" },

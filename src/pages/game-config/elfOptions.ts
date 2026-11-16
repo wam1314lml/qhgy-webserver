@@ -58,8 +58,8 @@ export const ELVES: Record<string, string> = {
   "210408": "【星棱观曜】浮宫杨梅果灵（ID：210408）",
   "210409": "【星棱观曜】朱胭甜椒果灵（ID：210409）",
   "210410": "【星棱观曜】蓝星沉夜果灵（ID：210410）",
-  "210411": "【星棱观曜】仙芳漫舞果灵（ID：210411）",
-  "210412": "【星棱观曜】静谧午后果灵（ID：210412）",
+  "210411": "【星棱观曜】山竹小屋果灵（ID：210411）",
+  "210412": "【星棱观曜】杨桃飞机果灵（ID：210412）",
   "210501": "【金牛・丰穰星绘】凯特杏果灵（ID：210501）",
   "210502": "【金牛・丰穰星绘】粉掌果灵（ID：210502）",
   "210503": "【金牛・丰穰星绘】玄雾金鱼草果灵（ID：210503）",
@@ -390,75 +390,75 @@ export const ELF_IDENTITIES: Record<string, { title: string; titleSource: string
   },
   "210401": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "蓝蜜西梅"
   },
   "210402": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "红掌"
   },
   "210403": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "绿天赞小菊"
   },
   "210404": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "黑刺"
   },
   "210405": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "绯樱金鱼草"
   },
   "210406": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "水果萝卜"
   },
   "210407": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "水晶杨梅"
   },
   "210408": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "浮宫杨梅"
   },
   "210409": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "朱胭甜椒"
   },
   "210410": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
     "secondaryFruitName": "蓝星沉夜"
   },
   "210411": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
-    "secondaryFruitName": "仙芳漫舞"
+    "secondaryFruitName": "山竹小屋"
   },
   "210412": {
     "title": "星棱观曜",
-    "titleSource": "description",
+    "titleSource": "book",
     "mainFruitName": "星棱观曜",
-    "secondaryFruitName": "静谧午后"
+    "secondaryFruitName": "杨桃飞机"
   },
   "210501": {
     "title": "金牛・丰穰星绘",
