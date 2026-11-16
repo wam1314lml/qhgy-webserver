@@ -58,8 +58,8 @@ export const ELVES: Record<string, string> = {
   "210408": "【星棱观曜】浮宫杨梅果灵（ID：210408）",
   "210409": "【星棱观曜】朱胭甜椒果灵（ID：210409）",
   "210410": "【星棱观曜】蓝星沉夜果灵（ID：210410）",
-  "210411": "【星棱观曜】蜜了个猴果灵（ID：210411）",
-  "210412": "【星棱观曜】静谧午后果灵（ID：210412）",
+  "210411": "【星棱观曜】山竹小屋果灵（ID：210411）",
+  "210412": "【星棱观曜】杨桃飞机果灵（ID：210412）",
   "210501": "【金牛・丰穰星绘】凯特杏果灵（ID：210501）",
   "210502": "【金牛・丰穰星绘】博洋6号果灵（ID：210502）",
   "210503": "【金牛・丰穰星绘】玄雾金鱼草果灵（ID：210503）",
@@ -452,13 +452,13 @@ export const ELF_IDENTITIES: Record<string, { title: string; titleSource: string
     "title": "星棱观曜",
     "titleSource": "book",
     "mainFruitName": "星棱观曜",
-    "secondaryFruitName": "蜜了个猴"
+    "secondaryFruitName": "山竹小屋"
   },
   "210412": {
     "title": "星棱观曜",
     "titleSource": "book",
     "mainFruitName": "星棱观曜",
-    "secondaryFruitName": "静谧午后"
+    "secondaryFruitName": "杨桃飞机"
   },
   "210501": {
     "title": "金牛・丰穰星绘",
