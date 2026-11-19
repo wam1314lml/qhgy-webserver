@@ -126,6 +126,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "51090", label: "油柑" },
   { value: "51096", label: "恶魔之吻" },
   { value: "51097", label: "丹木果" },
+  { value: "51110", label: "海星贝壳" },
   { value: "51118", label: "阳光青提" },
   { value: "51133", label: "翠霞星果" },
   { value: "51996", label: "虎尾兰" },
@@ -283,6 +284,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "53069", label: "提灯伴游" },
   { value: "53070", label: "诡园夜笑" },
   { value: "53074", label: "凤引扶桑" },
+  { value: "53075", label: "橘音泡泡" },
   { value: "53091", label: "莓飞色舞" },
   { value: "53092", label: "火热鱼艇" },
   { value: "53093", label: "绮梦星铃" },
@@ -306,6 +308,7 @@ export const flowerOptions: Array<{ value: string; label: string }> = [
   { value: "54023", label: "山海·青蛇缘" },
   { value: "54024", label: "贵妃醉酒" },
   { value: "54026", label: "幽夜奇遇" },
+  { value: "54029", label: "山海·红鲤谣" },
   { value: "54037", label: "在逃公主" },
   { value: "54041", label: "仲夏幻梦" },
 ]

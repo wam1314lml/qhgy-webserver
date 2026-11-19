@@ -50,6 +50,7 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5423", label: "青蛇灵踪" },
   { value: "5424", label: "华清醉晚" },
   { value: "5426", label: "万圣幻夜" },
+  { value: "5428", label: "红鲤听澜" },
   { value: "5436", label: "云屿仙堡" },
   { value: "5440", label: "幻梦之夜" },
 ]

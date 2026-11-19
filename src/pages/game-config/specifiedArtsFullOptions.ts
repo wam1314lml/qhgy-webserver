@@ -773,6 +773,7 @@ export const specifiedArtsFullOptions: Array<{ value: string; label: string }> =
   { value: "542401", label: "华清醉晚果艺品(贵妃醉酒,霓裳醉乐,山河映月)" },
   { value: "542601", label: "万圣幻夜果艺品(幽夜奇遇,提灯伴游,恶魔之吻)" },
   { value: "542602", label: "万圣幻夜果艺品(幽夜奇遇,诡园夜笑,恶魔之吻)" },
+  { value: "542801", label: "红鲤听澜果艺品(山海·红鲤谣,橘音泡泡,海星贝壳)" },
   { value: "543601", label: "云屿仙堡果艺品(在逃公主,莓飞色舞,阳光青提)" },
   { value: "543602", label: "云屿仙堡果艺品(在逃公主,火热鱼艇,阳光青提)" },
   { value: "543603", label: "云屿仙堡果艺品(在逃公主,绮梦星铃,阳光青提)" },
