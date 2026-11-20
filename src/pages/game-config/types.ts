@@ -436,6 +436,7 @@ export interface GameConfig {
     }
     actCardCollect: {
       enabledCardCollect: boolean
+      enabledOpenCardPack: boolean
       enabledSmoke: boolean
     }
     hdReward: {

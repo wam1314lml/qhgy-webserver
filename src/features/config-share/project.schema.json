@@ -1477,6 +1477,9 @@
               "enabledCardCollect": {
                 "type": "boolean"
               },
+              "enabledOpenCardPack": {
+                "type": "boolean"
+              },
               "enabledSmoke": {
                 "type": "boolean"
               }

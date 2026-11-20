@@ -2699,6 +2699,13 @@
             >
               <Switch v-model:checked="config.activity.actCardCollect.enabledCardCollect" />
             </CustomFormItem>
+            <CustomFormItem
+              label="自动开启卡包"
+              name="activity.actCardCollect.enabledOpenCardPack"
+              tooltip="默认关闭。自动逐个开启已有的1～5星普通卡包，不使用自选卡、不购买卡包；可独立开启。"
+            >
+              <Switch v-model:checked="config.activity.actCardCollect.enabledOpenCardPack" />
+            </CustomFormItem>
             <Divider orientation="left">梦入仙洲</Divider>
             <CustomFormItem label="仙洲活动任务领奖" name="activity.hdReward.hd104TaskRewardEnabled"
               tooltip="默认关闭。按当前任务进度连续领取已达标的奖励档位；观看视频任务按游戏中已完成的次数领取。">

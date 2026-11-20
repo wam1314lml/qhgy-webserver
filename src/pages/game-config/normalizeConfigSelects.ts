@@ -693,6 +693,11 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     fmlRace.diamondUpgradeReserve,
   )
   config.activity.fmlRace.enabled = !!config.activity.fmlRace.enabled
+  const actCardCollect = asRecord(config.activity.actCardCollect)
+  config.activity.actCardCollect = {
+    ...config.activity.actCardCollect,
+    enabledOpenCardPack: actCardCollect?.enabledOpenCardPack === true,
+  }
   const hdReward = asRecord(config.activity.hdReward)
   config.activity.hdReward = {
     enabled: (hdReward?.enabled ?? true) === true,

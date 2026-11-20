@@ -43,6 +43,32 @@ test('旧码仅改现有字段，新字段及当前其他设置保留', () => {
   assert.deepEqual(result.config, expected)
 })
 
+test('卡包默认关闭、独立开关、严格布尔和保存分享往返', () => {
+  assert.equal(fresh().activity.actCardCollect.enabledOpenCardPack, false)
+  for (const raw of [undefined, null, [], true, { enabledOpenCardPack: 'true' }, { enabledOpenCardPack: 1 }]) {
+    const config = fresh()
+    config.activity.actCardCollect = raw
+    m.normalizeGameConfigSelects(config)
+    assert.equal(config.activity.actCardCollect.enabledOpenCardPack, false)
+  }
+  for (const enabledCardCollect of [true, false]) {
+    for (const enabledOpenCardPack of [true, false]) {
+      const config = fresh()
+      Object.assign(config.activity.actCardCollect, { enabledCardCollect, enabledOpenCardPack })
+      const reloaded = JSON.parse(JSON.stringify(config))
+      m.normalizeGameConfigSelects(reloaded)
+      const imported = adapter.preview(fresh(), adapter.exportConfig(reloaded)).config
+      assert.equal(imported.activity.actCardCollect.enabledCardCollect, enabledCardCollect)
+      assert.equal(imported.activity.actCardCollect.enabledOpenCardPack, enabledOpenCardPack)
+      const old = adapter.preview(imported, payload({ activity: { actCardCollect: { enabledCardCollect: !enabledCardCollect } } })).config
+      assert.equal(old.activity.actCardCollect.enabledOpenCardPack, enabledOpenCardPack)
+      const changed = adapter.preview(imported, payload({ activity: { actCardCollect: { enabledOpenCardPack: !enabledOpenCardPack } } })).config
+      assert.equal(changed.activity.actCardCollect.enabledOpenCardPack, !enabledOpenCardPack)
+      assert.equal(changed.activity.actCardCollect.enabledCardCollect, enabledCardCollect)
+    }
+  }
+})
+
 test('开材料默认关闭、严格布尔、保存分享及旧码缺字段保值', () => {
   for (const raw of [undefined, null, [], true, { openMaterials: 'true' }, { openMaterials: 1 }]) {
     const config = fresh()
