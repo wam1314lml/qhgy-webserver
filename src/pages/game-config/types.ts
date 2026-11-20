@@ -437,6 +437,8 @@ export interface GameConfig {
     actCardCollect: {
       enabledCardCollect: boolean
       enabledOpenCardPack: boolean
+      enabledJadeGift: boolean
+      enabledCuttingFruit: boolean
       enabledSmoke: boolean
     }
     hdReward: {

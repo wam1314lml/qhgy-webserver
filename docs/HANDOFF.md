@@ -1,3 +1,13 @@
+## 2026-11-20 勾玉礼包与扦插育果（授权Git交付，未部署）
+
+- 用户最新要求仅保留购买开关，已回退礼包多选、奖励列表、刷新入口和目录读取请求；开启后逐档领免费档并购买勾玉档，售罄或余额不足停止。扦插育果保留，页面专项增加无刷新按钮/无礼包复选框断言。
+- 活动 → 卡册活动新增“自动购买勾玉礼包”和“自动扦插育果”，字段为activity.actCardCollect.enabledJadeGift/enabledCuttingFruit。默认关闭、严格布尔，保存/分享支持所有true/false组合，旧分享码不覆盖当前新字段；与既有卡册领奖、开包独立。后端沿用通用存储，无新增API。
+- 按用户选择实现勾选后全部购买：开启时弹窗说明领取免费档并依次购买全部可买勾玉档，直至售罄或余额不足，取消不启用。扦插育果说明领取普通浇水任务培养液（最多20份）、浇活动地、补领进度及已解锁豪华奖励，不额外买水/豪华特权。
+- 新 `node scripts/test-card-album-extras.mjs` 覆盖默认值、畸形输入及四个卡册开关16种组合的保存重载/分享，原分享17组也通过。正式npm run build通过（Vite44.48秒，沿用low混淆/移除Console，仅既有大包提示）。`python tools/check-card-album-extras-ui.py` 对实际dist和合成API验证默认关闭、消费弹窗取消/确认、独立开关、开启/关闭保存重载及1100/390/320宽度；页面异常/外网请求0，桌面和320截图已目视。
+- 显式应用类型检查 `node node_modules/vue-tsc/bin/vue-tsc.js -p tsconfig.app.json --noEmit` 未通过；与恢复本轮修改前文件的隔离副本比较，均为相同52项已有错误，无新增。原根tsconfig只有空files和项目引用，构建中的普通vue-tsc调用不能证明应用类型通过。本轮不扩大修改这些既有类型问题。
+- 配套脚本新增55组协议/流程专项通过，具体HD33/HD39路由与回包确认见其QHGY_WELFARE_LOGIC_HANDOFF。只读核对当前客户端方法，未取得当前角色Info状态，未操作真实账号购买/领奖。证据在artifacts/card-album-extras及对应build/typecheck日志。
+- 用户已授权将本轮两个开关、配置/分享契约、专项测试和对应说明提交推送origin/main，最终以Git远端记录为准；原有构建、ScriptConfig、GameConfigPage既有提示、试用资格及文档历史修改保留。未部署，需发布前端并更新/重启配套脚本，再按需开启。
+
 ## 2026-11-20 卡册自动开启卡包（授权Git交付，未部署）
 
 - 活动 → 卡册活动新增“自动开启卡包”，字段activity.actCardCollect.enabledOpenCardPack，默认false；独立于“领取卡册任务奖励”。提示说明只开已有1～5星普通卡包，保留自选卡、不购买。类型、默认值、严格布尔归一化和生成分享schema同步，后端沿用通用配置存储，无新增API。

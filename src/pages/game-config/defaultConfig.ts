@@ -453,6 +453,8 @@ export const createDefaultGameConfig = (): GameConfig =>
       actCardCollect: {
         enabledCardCollect: false,
         enabledOpenCardPack: false,
+        enabledJadeGift: false,
+        enabledCuttingFruit: false,
         enabledSmoke: false,
       },
       hdReward: {

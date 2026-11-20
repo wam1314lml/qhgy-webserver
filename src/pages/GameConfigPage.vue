@@ -2706,6 +2706,15 @@
             >
               <Switch v-model:checked="config.activity.actCardCollect.enabledOpenCardPack" />
             </CustomFormItem>
+            <CustomFormItem label="自动购买勾玉礼包" name="activity.actCardCollect.enabledJadeGift"
+              tooltip="默认关闭。开启后按顺序领取免费档并购买全部可购买的勾玉档位，直到售罄或勾玉不足；会持续消耗勾玉，价格以当期活动为准。">
+              <Switch :checked="config.activity.actCardCollect.enabledJadeGift"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.actCardCollect.enabledJadeGift', checked === true)" />
+            </CustomFormItem>
+            <CustomFormItem label="自动扦插育果" name="activity.actCardCollect.enabledCuttingFruit"
+              tooltip="默认关闭。领取平时浇水累计任务获得的培养液（最多20份），依次浇灌未完成的活动土地，补领进度回馈及已解锁的豪华奖励。不额外买水，不购买豪华特权。">
+              <Switch v-model:checked="config.activity.actCardCollect.enabledCuttingFruit" />
+            </CustomFormItem>
             <Divider orientation="left">梦入仙洲</Divider>
             <CustomFormItem label="仙洲活动任务领奖" name="activity.hdReward.hd104TaskRewardEnabled"
               tooltip="默认关闭。按当前任务进度连续领取已达标的奖励档位；观看视频任务按游戏中已完成的次数领取。">
@@ -3336,6 +3345,7 @@ type DiamondCostSwitchPath =
   | 'activity.hdReward.hd3009GiftEnabled'
   | 'activity.hdReward.hd1002GiftEnabled'
   | 'activity.hdReward.hd3013GiftEnabled'
+  | 'activity.actCardCollect.enabledJadeGift'
 
 const applyDiamondCostSwitchValue = (path: DiamondCostSwitchPath, enabled: boolean) => {
   if (path === 'order.palace.diamondRefresh') {
@@ -3359,7 +3369,9 @@ const handleDiamondCostSwitchChange = (path: DiamondCostSwitchPath, enabled: boo
 
   Modal.confirm({
     title: '开启确认',
-    content: DIAMOND_COST_WARNING,
+    content: path === 'activity.actCardCollect.enabledJadeGift'
+      ? '开启后将领取免费档，并按顺序购买本期全部可购买的勾玉礼包，直到售罄或勾玉不足，会持续消耗勾玉。是否确认开启？'
+      : DIAMOND_COST_WARNING,
     okText: '确认开启',
     cancelText: '取消',
     centered: true,

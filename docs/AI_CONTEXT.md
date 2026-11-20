@@ -1,3 +1,9 @@
+## 2026-11-20 勾玉礼包与扦插育果
+
+活动 → 卡册活动增加 `activity.actCardCollect.enabledJadeGift/enabledCuttingFruit` 两个独立开关，默认 false、严格布尔，完整接入类型/默认值/归一化/分享schema。礼包采用用户确认的“开启后全部购买”方案，开启弹窗明确按顺序领免费档并购买全部可买勾玉档，直到售罄或余额不足；取消保持关闭。扦插育果领取培养液（最多20份）、浇未完成土地、补领进度及已解锁豪华奖励，默认不额外买水/豪华特权。两项由脚本 WelfareMgr 执行，旧卡册领奖/开包开关独立，无新后端API。
+
+验证类型时需显式执行 `node node_modules/vue-tsc/bin/vue-tsc.js -p tsconfig.app.json --noEmit`。根 tsconfig 为 files:[]/references，现有构建中的普通 vue-tsc 调用不等于检查应用源文件。本轮实际应用检查与修改前隔离副本均为相同52项错误，无新增；正常生产构建和专项/页面验证通过。不得将已有构建成功记录当作全量类型检查通过。
+
 ## 2026-11-20 卡册自动开启卡包
 
 活动页卡册增加独立enabledOpenCardPack，路径activity.actCardCollect.enabledOpenCardPack，默认false、严格布尔；旧账号缺字段关闭，保存/分享保留true和false，旧分享码不覆盖当前新字段。现有enabledCardCollect仍只授权任务领奖。自动开启已有1～5星普通卡包，不使用自选卡、不购买。由配套脚本WelfareMgr执行，无新前端API；完整规则见脚本QHGY_WELFARE_LOGIC_HANDOFF同日节。

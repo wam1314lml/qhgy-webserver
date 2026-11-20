@@ -1,3 +1,7 @@
+## 2026-11-20 卡册勾玉礼包与扦插育果配置
+
+GameConfigPage 的卡册活动增加两个默认关闭的独立开关 enabledJadeGift/enabledCuttingFruit，位于 activity.actCardCollect；同步类型、默认配置、严格布尔归一化和生成分享schema。勾玉礼包复用消费确认并明确全部档位购买；扦插育果为培养液任务、活动地及进度奖励自动化，由配套脚本 WelfareMgr 执行。沿用通用账号配置保存，无新页面、API 或服务端字段迁移；验证和限制见 HANDOFF 同日节。
+
 ## 2026-11-14 梦入仙洲配置
 
 GameConfigPage活动页增加任务、登录福利、基金领奖三个独立开关，沿用activity.hdReward配置及现有保存/分享机制。默认值、类型、归一化与生成schema同步，无新页面/API；对应脚本HdRewardMgr负责HD104/100/96与HD99积分查询。静态水果目录无需更新。验证入口scripts/test-xianzhou-activities.mjs。
