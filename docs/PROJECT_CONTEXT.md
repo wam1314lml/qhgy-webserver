@@ -1,3 +1,7 @@
+## 2026-11-21 兑换码批量奖励
+
+RedeemCodeAdmin增加批量按钮、统一每码点数/原因弹窗、结果汇总及失败明细。一次调用后端batch-reward，覆盖所有可奖励码；不依赖列表当前页，无新配置或脚本改动。扩展tools/check-redeem-admin-ui.py验证单次批量API及异常恢复。
+
 ## 2026-11-21 兑换码奖励管理页
 
 components/admin/RedeemCodeAdmin.vue接入AdminPanel新tab和可见模块列表，复用统一axios与当前adminToken，API为/api/admin/redeem-codes。显示上传者userid、渠道、实际兑换、游戏奖励明细、SQL配额奖励；管理员填点数/原因后手动确认。没有普通用户发奖入口。

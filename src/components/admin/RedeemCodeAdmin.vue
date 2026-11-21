@@ -5,8 +5,19 @@
       <a-select v-model:value="channel" style="width:160px" :options="[{value:'wechat_douyin',label:'微信／抖音'},{value:'alipay',label:'支付宝'}]" />
       <a-input v-model:value="code" placeholder="精确查询兑换码（留空显示全部）" style="width:280px;max-width:100%" @pressEnter="search" />
       <a-button :loading="loading" @click="search">查询 / 刷新</a-button>
+      <a-button type="primary" :disabled="saving" @click="chooseBatch">批量发放奖励</a-button>
     </a-space>
     <a-alert v-if="error" type="error" show-icon :message="error" />
+    <a-alert v-if="batchResult" class="batch-result" :type="batchResult.failed || batchResult.mirrorPending ? 'warning' : 'success'" show-icon
+      message="批量处理结果"
+      :description="`确认新增 ${batchResult.issued} 条，共 ${batchResult.pointsIssued} 点；跳过已发奖 ${batchResult.alreadyRewarded} 条、不符合条件 ${batchResult.ineligible} 条；失败或待核对 ${batchResult.failed} 条。${batchResult.mirrorPending ? `其中 ${batchResult.mirrorPending} 条奖励已到账，更新器展示待同步。` : ''}`" />
+    <a-collapse v-if="batchResult?.failures.length">
+      <a-collapse-panel key="failures" :header="`查看 ${batchResult.failed} 条失败或待核对记录`">
+        <p class="hint">可刷新后再次批量发放，已到账的码会自动跳过。结果未确认不代表未到账，以奖励记录为准。</p>
+        <a-table :data-source="batchResult.failures" :columns="batchFailureColumns" row-key="id" size="small"
+          :pagination="{pageSize:10,showSizeChanger:false}" :scroll="{x:520}" />
+      </a-collapse-panel>
+    </a-collapse>
     <a-table :data-source="rows" :columns="columns" row-key="id" :loading="loading" :scroll="{x:1100}"
       :pagination="{current:page,pageSize:20,total,showSizeChanger:false}" @change="changePage">
       <template #bodyCell="{column,record}">
@@ -22,14 +33,17 @@
         </template>
       </template>
     </a-table>
-    <a-modal v-model:open="rewardOpen" title="发放兑换码贡献奖励" :confirm-loading="saving" :closable="!saving" :mask-closable="false" :cancel-button-props="{disabled:saving}" @ok="grant">
-      <p>上传者：网站用户 #{{ selected?.userId }}</p><p class="code">兑换码：{{ selected?.code }}</p>
+    <a-modal v-model:open="rewardOpen" :title="batchMode ? '批量发放兑换码贡献奖励' : '发放兑换码贡献奖励'" :confirm-loading="saving" :closable="!saving" :mask-closable="false" :cancel-button-props="{disabled:saving}" @ok="grant">
+      <a-alert v-if="batchMode" type="info" show-icon message="发放给全部符合条件的兑换码"
+        description="覆盖微信／抖音和支付宝全部分页，不受当前查询条件限制。仅奖励网站用户上传、已确认兑换成功且尚未发奖的码；同一用户有多个符合条件的码，按码累计奖励。" />
+      <template v-else><p>上传者：网站用户 #{{ selected?.userId }}</p><p class="code">兑换码：{{ selected?.code }}</p></template>
       <a-form layout="vertical">
-        <a-form-item label="奖励配额点数"><a-input-number v-model:value="amount" :min="1" :max="99999999" :precision="0" :disabled="saving" style="width:100%" /></a-form-item>
+        <a-form-item :label="batchMode ? '每个兑换码奖励点数' : '奖励配额点数'"><a-input-number v-model:value="amount" :min="1" :max="99999999" :precision="0" :disabled="saving" style="width:100%" /></a-form-item>
         <a-form-item label="发放原因"><a-textarea v-model:value="reason" :maxlength="200" :disabled="saving" /></a-form-item>
       </a-form>
       <a-alert v-if="rewardError" type="error" show-icon :message="rewardError" />
-      <p class="hint">确认后计入用户配额余额，并永久记录 SQL 流水。网络中断可重试同一码核对，不会重复发奖。</p>
+      <p v-if="batchMode" class="hint">确认后开始批量发放，请等待处理结果。个别失败不影响其他码；网络中断后可刷新并再次批量发放，已到账奖励自动跳过。</p>
+      <p v-else class="hint">确认后计入用户配额余额，并永久记录 SQL 流水。网络中断可重试同一码核对，不会重复发奖。</p>
     </a-modal>
     <a-drawer v-model:open="detailOpen" title="兑换与奖励记录" width="min(720px, 100vw)">
       <p class="code">{{ selected?.code }} · {{ channelLabel(selected?.channel) }}</p>
@@ -60,6 +74,12 @@ const options = () => ({headers:{Authorization:`Bearer ${props.token}`},handleEr
 const rows = ref<any[]>([]), total = ref(0), page = ref(1), loading = ref(false), error = ref('')
 const channel = ref('wechat_douyin'), code = ref(''), filter = ref({channel:'wechat_douyin',code:''})
 const selected = ref<any>(null), rewardOpen = ref(false), saving = ref(false), amount = ref<number|null>(null), reason = ref('兑换码贡献奖励'), rewardError = ref('')
+interface BatchRewardResult {
+  total: number; issued: number; alreadyRewarded: number; ineligible: number; failed: number; mirrorPending: number; pointsIssued: number
+  failures: { id: string; code: string; userId: string; message: string }[]
+}
+const batchMode = ref(false), batchResult = ref<BatchRewardResult|null>(null)
+const batchFailureColumns = [{title:'兑换码',dataIndex:'code'},{title:'上传者 userid',dataIndex:'userId'},{title:'原因',dataIndex:'message'}]
 const detailOpen = ref(false), detailLoading = ref(false), detailError = ref(''), attempts = ref<any[]>([]), attemptPage = ref(1), attemptTotal = ref(0)
 let listGeneration = 0, detailGeneration = 0
 const columns = [{title:'上传者 userid',key:'source',width:150},{title:'兑换码',dataIndex:'code',width:210},{title:'渠道',key:'channel',width:110},
@@ -80,12 +100,30 @@ async function load() {
 }
 function search() { filter.value = {channel:channel.value,code:code.value.trim()}; page.value = 1; void load() }
 function changePage(p:any) { page.value = p.current; void load() }
-function choose(row:any) { selected.value = row; amount.value = null; rewardError.value = ''; rewardOpen.value = true }
+function choose(row:any) { batchMode.value = false; selected.value = row; amount.value = null; rewardError.value = ''; rewardOpen.value = true }
+function chooseBatch() { batchMode.value = true; batchResult.value = null; amount.value = null; rewardError.value = ''; rewardOpen.value = true }
+function validBatchResult(value:any): value is BatchRewardResult {
+  const counts = ['total','issued','alreadyRewarded','ineligible','failed','mirrorPending','pointsIssued']
+  return value && counts.every(key => Number.isSafeInteger(value[key]) && value[key] >= 0)
+    && value.total === value.issued + value.alreadyRewarded + value.ineligible + value.failed
+    && value.pointsIssued === value.issued * Number(amount.value)
+    && value.mirrorPending <= value.issued + value.alreadyRewarded
+    && Array.isArray(value.failures) && value.failures.length === value.failed
+    && value.failures.every((row:any) => row && ['id','code','userId','message'].every(key => typeof row[key] === 'string'))
+}
 async function grant() {
   if (saving.value) return
   if (!Number.isSafeInteger(amount.value) || Number(amount.value) < 1 || !reason.value.trim()) { rewardError.value = '请填写正整数配额点数和发放原因'; return }
   saving.value = true; rewardError.value = ''
   try {
+    if (batchMode.value) {
+      const {data} = await axios.post('/api/admin/redeem-codes/batch-reward', {amount:amount.value,reason:reason.value.trim()}, {...options(),timeout:180000})
+      if (!data.success || !validBatchResult(data.data)) throw Error('批量发放结果未确认，请刷新记录后重试；已到账奖励不会重复发放')
+      batchResult.value = data.data
+      rewardOpen.value = false
+      await load()
+      return
+    }
     const {data} = await axios.post(`/api/admin/redeem-codes/${selected.value.id}/reward`, {amount:amount.value,reason:reason.value.trim()}, options())
     if (!data.success || !data.data?.reward?.transaction_id) throw Error('发放结果未确认，请刷新记录或重试同一码核对')
     rewardOpen.value = false
