@@ -78,6 +78,9 @@ try:
         dialog = page.get_by_role('dialog', name='上传兑换码')
         expect(dialog).to_contain_text('同渠道兑换码不区分英文字母大小写，重复不占次数')
         code = page.get_by_label('限时兑换码', exact=True)
+        time = dialog.locator('#redeem-upload-time')
+        expect(dialog).to_contain_text('从收录当天该整点起尝试')
+        expect(dialog).to_contain_text('失败后每小时重试')
         submit = dialog.get_by_role('button', name='提交兑换码', exact=True)
         expect(dialog.get_by_role('radio')).to_have_count(2)
         expect(dialog.get_by_role('radio', name='微信／抖音')).to_be_checked()
@@ -89,18 +92,20 @@ try:
         code.fill('  合成AbC-123  ')
         submit.evaluate('(button) => { button.click(); button.click() }')
         expect(dialog).to_contain_text('上传成功，已加入所选渠道的限时码。')
-        assert submissions == [{'channel': 'wechat_douyin', 'code': '合成AbC-123'}]
+        assert submissions == [{'channel': 'wechat_douyin', 'code': '合成AbC-123', 'startHour': -1}]
         expect(dialog).to_contain_text('下次可新增')
         expect(submit).to_be_enabled()
         state['mode'] = 'duplicate'
         submit.click()
         expect(dialog).to_contain_text('该兑换码已收录，本次不占提交次数。')
         dialog.get_by_text('支付宝', exact=True).click()
+        time.fill('16:00')
+        page.locator('.ant-select-item-option').filter(has_text='16:00（16点起）').click()
         code.fill('支付宝合成CODE')
         state['mode'] = 'limited'
         submit.click()
         expect(dialog).to_contain_text('每位用户每30分钟可新增一个兑换码，请稍后再试')
-        assert submissions[-1] == {'channel': 'alipay', 'code': '支付宝合成CODE'}
+        assert submissions[-1] == {'channel': 'alipay', 'code': '支付宝合成CODE', 'startHour':16}
         expect(page.locator('.ant-message-notice')).to_have_count(0)
         state['mode'] = 'unavailable'
         submit.click()
@@ -123,13 +128,14 @@ try:
         open_dialog()
         expect(dialog).to_contain_text('下次可新增')
         dialog.get_by_role('button', name=re.compile(r'^关\s*闭$')).click()
-        state.update(pending={'channel': 'wechat_douyin', 'code': '待确认合成码'}, retryAfter=0)
+        state.update(pending={'channel': 'wechat_douyin', 'code': '待确认合成码', 'startHour':23}, retryAfter=0)
         open_dialog()
         expect(code).to_have_value('待确认合成码')
+        expect(dialog.locator('.ant-select-selection-item')).to_contain_text('23:00')
         expect(dialog.get_by_role('radio', name='微信／抖音')).to_be_checked()
         dialog.get_by_role('button', name='重试确认').click()
         expect(dialog).to_contain_text('上传成功')
-        assert submissions[-1] == {'channel': 'wechat_douyin', 'code': '待确认合成码'}
+        assert submissions[-1] == {'channel': 'wechat_douyin', 'code': '待确认合成码', 'startHour':23}
         dialog.get_by_role('button', name=re.compile(r'^关\s*闭$')).click()
         state['statusError'] = True
         open_dialog()
@@ -137,7 +143,7 @@ try:
         code.fill('查询失败后重试')
         submit.click()
         expect(dialog).to_contain_text('上传成功')
-        assert all(set(body) == {'channel', 'code'} for body in submissions)
+        assert all(set(body) == {'channel', 'code', 'startHour'} for body in submissions)
         assert not errors, errors
         assert not unexpected, unexpected
         browser.close()

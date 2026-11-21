@@ -1,3 +1,7 @@
+## 2026-11-21 兑换码开始时间
+
+现有features/redeem-upload表单和API增加可选startHour；不增加路由，复用原上传接口。RedeemCodeAdmin读取后端startAt显示北京时间开始时刻/全天。按时兑换与小时重试由脚本负责，前端不创建兑换定时任务。对应页面回归为tools/check-redeem-upload-ui.py及check-redeem-admin-ui.py。
+
 ## 2026-11-21 兑换码批量奖励
 
 RedeemCodeAdmin增加批量按钮、统一每码点数/原因弹窗、结果汇总及失败明细。一次调用后端batch-reward，覆盖所有可奖励码；不依赖列表当前页，无新配置或脚本改动。扩展tools/check-redeem-admin-ui.py验证单次批量API及异常恢复。

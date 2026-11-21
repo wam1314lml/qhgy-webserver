@@ -1,7 +1,7 @@
 import axios from '@/utils/axios'
 
 export type RedeemChannel = 'wechat_douyin' | 'alipay'
-export interface RedeemInput { channel: RedeemChannel; code: string }
+export interface RedeemInput { channel: RedeemChannel; code: string; startHour?: number }
 export interface RedeemStatus { retryAfter: number; pending: RedeemInput | null }
 export interface RedeemResult extends RedeemStatus { outcome: 'added' | 'duplicate' }
 const root = '/api/redeem-uploads'
@@ -21,7 +21,8 @@ export const redeemUploadApi = {
 function readStatus(value: RedeemStatus): RedeemStatus {
   if (!Number.isInteger(value.retryAfter) || value.retryAfter < 0 || value.retryAfter > 1800 ||
       (value.pending !== null && (!value.pending ||
-        !['wechat_douyin', 'alipay'].includes(value.pending.channel) || typeof value.pending.code !== 'string' || codeInputError(value.pending.code)))) {
+        !['wechat_douyin', 'alipay'].includes(value.pending.channel) || typeof value.pending.code !== 'string' || codeInputError(value.pending.code)
+        || (value.pending.startHour !== undefined && (!Number.isInteger(value.pending.startHour) || value.pending.startHour < -1 || value.pending.startHour > 23))))) {
     throw new Error('上传状态尚未确认，请稍后重试')
   }
   return value

@@ -12,6 +12,9 @@
         <label class="redeem-label" for="redeem-upload-code">限时兑换码</label>
         <Input id="redeem-upload-code" v-model:value="code" :disabled="busy || loading" :maxlength="256"
           placeholder="每次填写一个兑换码" autocomplete="off" allow-clear />
+        <label class="redeem-label" for="redeem-upload-time">开始兑换时间（北京时间）</label>
+        <Select id="redeem-upload-time" v-model:value="startHour" :options="timeOptions" show-search option-filter-prop="label" :disabled="busy || loading" style="width:100%" aria-label="开始兑换时间" />
+        <p class="redeem-rules">全天：收录后即可尝试；选择几点：从收录当天该整点起尝试。失败后每小时重试，成功后停止该周期重试。重复提交不会修改原兑换时间。</p>
         <p class="redeem-rules">每位用户每30分钟可新增一个，两个渠道共用次数。同渠道兑换码不区分英文字母大小写，重复不占次数。</p>
         <p v-if="remaining > 0" class="redeem-wait" role="status">
           下次可新增：{{ waitText }}后。重复码仍可提交，不会延长等待时间。
@@ -31,13 +34,15 @@
 
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { Alert, Button, Input, Modal, Radio } from 'ant-design-vue'
+import { Alert, Button, Input, Modal, Radio, Select } from 'ant-design-vue'
 import { codeInputError, redeemUploadApi, type RedeemChannel, type RedeemStatus } from './api'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ 'update:open': [value: boolean] }>()
 const channel = ref<RedeemChannel>('wechat_douyin')
 const code = ref('')
+const startHour = ref(-1)
+const timeOptions = [{value:-1,label:'全天'}, ...Array.from({length:24}, (_, hour) => ({value:hour,label:`${String(hour).padStart(2,'0')}:00（${hour}点起）`}))]
 const busy = ref(false), loading = ref(false), pending = ref(false)
 const feedback = ref(''), feedbackType = ref<'success' | 'info' | 'error'>('info')
 const remaining = ref(0)
@@ -61,6 +66,7 @@ function applyStatus(status: RedeemStatus, restore = false) {
   if (restore && status.pending) {
     channel.value = status.pending.channel
     code.value = status.pending.code
+    startHour.value = status.pending.startHour ?? -1
   }
 }
 function fail(error: unknown) {
@@ -70,12 +76,12 @@ function fail(error: unknown) {
   if (typeof body?.retryAfter === 'number' && body.retryAfter > 0) setCooldown(body.retryAfter)
 }
 function close() { if (!busy.value) emit('update:open', false) }
-watch([channel, code], () => { feedback.value = '' })
+watch([channel, code, startHour], () => { feedback.value = '' })
 watch(() => props.open, async open => {
   const current = ++generation
   stopTimer()
   if (!open) return
-  code.value = ''; feedback.value = ''; pending.value = false; remaining.value = 0
+  code.value = ''; startHour.value = -1; feedback.value = ''; pending.value = false; remaining.value = 0
   loading.value = true
   try {
     const status = await redeemUploadApi.status()
@@ -90,7 +96,7 @@ async function submit() {
   const current = generation
   busy.value = true; feedback.value = ''
   try {
-    const result = await redeemUploadApi.submit({ channel: channel.value, code: code.value.trim() })
+    const result = await redeemUploadApi.submit({ channel: channel.value, code: code.value.trim(), startHour: startHour.value })
     if (current !== generation) return
     applyStatus(result)
     feedbackType.value = result.outcome === 'added' ? 'success' : 'info'

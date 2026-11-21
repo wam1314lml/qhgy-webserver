@@ -64,6 +64,7 @@ try:
     with sync_playwright() as p:
         browser=p.chromium.launch(channel='msedge',headless=True)
         context=browser.new_context(viewport={'width':1280,'height':900},reduced_motion='reduce')
+        rows[0].update(startHour=16, startAt=1795248000000)
         context.route('**/*',handle)
         token='fixture.'+base64.urlsafe_b64encode(json.dumps({'exp':4102444800}).encode()).decode().rstrip('=')+'.fixture'
         user=dict(id=99,username='合成管理用户',role='subadmin',points=100)
@@ -75,6 +76,9 @@ try:
         expect(panel).to_contain_text('不区分英文字母大小写')
         expect(panel).to_contain_text('网站用户 #123');expect(panel).to_contain_text('管理员上传')
         first=panel.get_by_role('row').filter(has_text='合成成功CODE')
+        expect(panel).to_contain_text('开始兑换时间（北京时间）')
+        expect(first).to_contain_text('16:00:00 起')
+        expect(panel.get_by_role('row').filter(has_text='合成管理员CODE')).to_contain_text('全天')
         for text in ['合成管理员CODE','合成失败CODE']:
             expect(panel.get_by_role('row').filter(has_text=text).get_by_role('button',name='发放配额')).to_be_disabled()
         first.get_by_role('button',name='发放配额').click()

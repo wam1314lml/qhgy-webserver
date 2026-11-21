@@ -29,6 +29,7 @@
         <template v-else-if="column.key === 'gameReward'">{{ record.gameRewardSeen === '1' ? '已见奖励明细' : '未见奖励明细' }}</template>
         <template v-else-if="column.key === 'reward'"><a-tag :color="record.reward ? 'green' : 'default'">{{ record.reward ? `已发 ${record.reward.amount} 点` : '未发放' }}</a-tag></template>
         <template v-else-if="column.key === 'time'">{{ date(record.uploadedAt || record.lastAttemptAt) }}</template>
+        <template v-else-if="column.key === 'schedule'">{{ record.startAt > 0 ? `${beijingDate(record.startAt)} 起` : '全天' }}</template>
         <template v-else-if="column.key === 'actions'">
           <a-space wrap><a-button size="small" @click="details(record)">记录</a-button>
             <a-button v-if="['wechat_douyin','alipay'].includes(record.channel)" size="small" :disabled="retrySaving" @click="chooseRetry(record)">清理失败</a-button>
@@ -40,7 +41,7 @@
       :closable="!retrySaving" :mask-closable="false" :keyboard="!retrySaving" :cancel-button-props="{disabled:retrySaving}" @ok="retryFailed">
       <p class="code">兑换码：{{ retrySelected?.code }} · {{ channelLabel(retrySelected?.channel) }}</p>
       <p>仅清理这个渠道、这个码今天明确兑换失败账号的尝试标记，大小写视为同一码。成功账号、结果未确认的账号、其他兑换码和奖励流水保留。</p>
-      <p class="hint">请在兑换码已生效后操作。清理后用户无需重启脚本，下一轮检查即可重试，默认每30秒检查。历史失败记录保留；再次失败需再次手动清理。</p>
+      <p class="hint">新版脚本会在下个整点后自动重试明确失败的码，也可手动提前放行。清理后用户无需重启脚本，下一轮检查即可重试，默认每30秒检查；仍遵守该码的开始兑换时间，历史失败记录保留。</p>
       <a-alert v-if="retryError" type="error" show-icon :message="retryError" />
     </a-modal>
     <a-modal v-model:open="rewardOpen" :title="batchMode ? '批量发放兑换码贡献奖励' : '发放兑换码贡献奖励'" :confirm-loading="saving" :closable="!saving" :mask-closable="false" :cancel-button-props="{disabled:saving}" @ok="grant">
@@ -96,11 +97,12 @@ const batchFailureColumns = [{title:'兑换码',dataIndex:'code'},{title:'上传
 const detailOpen = ref(false), detailLoading = ref(false), detailError = ref(''), attempts = ref<any[]>([]), attemptPage = ref(1), attemptTotal = ref(0)
 let listGeneration = 0, detailGeneration = 0
 const columns = [{title:'上传者 userid',key:'source',width:150},{title:'兑换码',dataIndex:'code',width:210},{title:'渠道',key:'channel',width:110},
-  {title:'是否兑换成功',key:'success',width:145},{title:'游戏奖励回包',key:'gameReward',width:130},{title:'配额奖励（SQL）',key:'reward',width:140},{title:'收录时间',key:'time',width:180},{title:'操作',key:'actions',width:270}]
+  {title:'开始兑换时间（北京时间）',key:'schedule',width:195},{title:'是否兑换成功',key:'success',width:145},{title:'游戏奖励回包',key:'gameReward',width:130},{title:'配额奖励（SQL）',key:'reward',width:140},{title:'收录时间',key:'time',width:180},{title:'操作',key:'actions',width:270}]
 const attemptColumns = [{title:'实际渠道',key:'field'},{title:'兑换周期',dataIndex:'stamp'},{title:'结果',key:'status'},{title:'游戏奖励',key:'gameReward'},{title:'时间',key:'at'}]
 const channelLabel = (v:string) => ({wechat_douyin:'微信／抖音',alipay:'支付宝',permanent:'永久',weekly:'周码'} as Record<string,string>)[v] || v
 const successLabel = (r:any) => r.redeemSuccess === '1' ? '已确认成功' : r.lastStatus === 'failed' ? '尚未成功' : r.lastStatus === 'unknown' ? '结果未确认' : '等待兑换'
 const date = (v:any) => { if (!v) return '—'; const d = new Date(/^\d+$/.test(String(v)) ? Number(v) : v); return Number.isFinite(d.getTime()) ? d.toLocaleString('zh-CN') : '—' }
+const beijingDate = (v:any) => { const d = new Date(Number(v)); return Number.isFinite(d.getTime()) ? d.toLocaleString('zh-CN', {timeZone:'Asia/Shanghai',hour12:false}) : '—' }
 const err = (e:any) => e.response?.data?.message || e.message || '请求失败，请稍后重试'
 async function load() {
   const generation = ++listGeneration; loading.value = true; error.value = ''
