@@ -1,0 +1,10 @@
+.game-config-page .config-missing-summary { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:8px 12px; background:#fff7ed; color:#7c4218; font-size:12px; line-height:1.5; }
+.game-config-page .config-missing-summary button { border:0; border-radius:5px; background:transparent; color:#9a3412; padding:4px 0; cursor:pointer; text-align:left; }
+.game-config-page .config-missing-tab-count { border:0; border-radius:12px; padding:1px 5px; min-width:20px; margin-left:5px; background:#b91c1c; color:white; font-size:11px; line-height:18px; cursor:pointer; }
+.game-config-page .config-missing-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#c53030; margin-left:5px; flex-shrink:0; vertical-align:middle; }
+.game-config-page .config-missing-section-count { display:inline-block; margin-left:8px; color:#b91c1c; font-size:12px; font-weight:400; white-space:nowrap; }
+.game-config-page [data-config-missing-highlight] { outline:2px solid #d97706; outline-offset:3px; border-radius:4px; }
+.game-config-page .config-missing-summary button:focus-visible, .game-config-page .config-missing-tab-count:focus-visible { outline:2px solid #1d4ed8; outline-offset:2px; }
+@media(max-width:480px) { .game-config-page .config-missing-summary { padding:6px 4px; gap:2px 8px; } .game-config-page .config-missing-section .ant-divider-inner-text { white-space:nowrap; } }
+
+.game-config-page .config-missing-section .ant-divider-inner-text{display:inline-flex;flex-wrap:wrap;align-items:center;gap:3px;white-space:normal}

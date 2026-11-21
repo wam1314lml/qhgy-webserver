@@ -37,13 +37,18 @@
       <a-affix :offset-top="56">
         <div class="tabs-container bg-white pt-2!">
           <a-tabs v-model:activeKey="activeTab">
-            <a-tab-pane v-for="tab in tabs" :key="tab" :tab="tab"></a-tab-pane>
+            <a-tab-pane v-for="tab in tabs" :key="tab"><template #tab><span>{{ tab }}<button v-if="missingTabCounts[tab]" type="button" class="config-missing-tab-count" :aria-label="'未设置 ' + missingTabCounts[tab] + ' 项，点击定位'" :disabled="loading || importConfigLoading" @click.stop="goToFirstMissingConfig(tab)">{{ missingTabCounts[tab] }}</button></span></template></a-tab-pane>
           </a-tabs>
         </div>
       </a-affix>
 
       <!-- 配置内容 -->
-      <div class="config-main">
+
+      <div v-if="missingConfigFields.length" class="config-missing-summary">
+        <button type="button" :disabled="loading || importConfigLoading" @click="goToFirstMissingConfig()">未设置 {{ missingConfigFields.length }} 项 · 点击定位</button>
+        <span>红点项当前显示默认值，修改后红点消失，需保存才生效。</span>
+      </div>
+<div class="config-main">
         <!-- 加载状态 -->
         <div
           v-if="loading"
@@ -3163,6 +3168,11 @@
 </template>
 
 <script setup lang="ts">
+import { configFieldRows } from 'virtual:game-config-fields'
+import { vConfigMissing } from '../utils/configMissing'
+import { useConfigMissing } from '../utils/useConfigMissing'
+import '../utils/config-missing.css'
+
 import { ref, computed, onMounted, onBeforeUnmount, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -3280,6 +3290,12 @@ const formRules = {
 }
 
 const config = ref<GameConfig>(createDefaultGameConfig())
+const missingConfig = useConfigMissing(config, createDefaultGameConfig(), configFieldRows, () => accountId.value, () => loading.value || importConfigLoading.value)
+const missingConfigFields = missingConfig.fields
+const missingConfigMarkers = missingConfig.markers
+const missingTabCounts = missingConfig.tabCounts
+const goToFirstMissingConfig = (tab?: string) => missingConfig.locate(activeTab, tab)
+
 normalizeGameConfigSelects(config.value, accountPlatform.value)
 
 const elfPlantPickerOptions = computed(() => getElfPlantOptions(config.value.plant.elves.selectedElvesIds, accountPlatform.value))
@@ -3703,6 +3719,7 @@ const fetchConfig = async () => {
     return
   }
 
+  const missingToken = missingConfig.begin()
   loading.value = true
   try {
     const response = await axios.get(`/api/game-accounts/${requestedId}/setting`)
@@ -3714,6 +3731,8 @@ const fetchConfig = async () => {
         if (!current()) return
         accountPlatform.value = platform
         // 使用账号所属渠道归一化，不能从分享数据或上一账号继承渠道。
+        if (!missingConfig.current(missingToken)) return
+        missingConfig.record(response.data.data, missingToken)
         migrateLegacyFmlRaceTaskPriority(response.data.data)
         migrateLegacyFloralShopCatalog(response.data.data)
         migrateLegacyFlowerCompeteSelection(response.data.data)
@@ -3788,12 +3807,15 @@ const saveConfig = async () => {
 
     normalizeGameConfigSelects(config.value, accountPlatform.value)
 
-    const response = await axios.put(`/api/game-accounts/${targetId}/setting`, config.value)
+    const missingToken = missingConfig.capture()
+    const submittedConfig = JSON.parse(JSON.stringify(config.value))
+    const response = await axios.put(`/api/game-accounts/${targetId}/setting`, submittedConfig)
     if (!current()) return
 
     console.log('📨 服务器响应:', response.data)
 
     if (response.data.success) {
+      missingConfig.record(submittedConfig, missingToken)
       showConfigNoticeModal('配置保存成功', '请注意：保存配置后，需要先停止再启动才能生效。')
     } else {
       console.error('❌ 保存失败 - 服务器返回:', response.data)
@@ -3908,6 +3930,7 @@ const importConfigFromSelectedAccount = async () => {
       message.warning(rangeError)
       return
     }
+    const missingToken = missingConfig.capture()
     const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
 
     if (!saveResponse.data?.success) {
@@ -3916,6 +3939,7 @@ const importConfigFromSelectedAccount = async () => {
     }
 
     if (!current()) return
+    missingConfig.record(payload, missingToken)
     config.value = payload
     normalizeGameConfigSelects(config.value, accountPlatform.value)
     importConfigModalVisible.value = false

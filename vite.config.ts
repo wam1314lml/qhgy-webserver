@@ -1,3 +1,4 @@
+import { configMissingPlugin } from './scripts/config-missing-plugin.mjs'
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
@@ -116,6 +117,7 @@ export default defineConfig(({ mode }) => {
       __ENABLE_SECURITY__: JSON.stringify(buildConfig.REMOVE_CONSOLE),
     },
     plugins: [
+      configMissingPlugin(new URL('./src/pages/GameConfigPage.vue', import.meta.url).pathname),
       vue(),
       UnoCSS(),
       basicSsl(), // 启用 HTTPS 支持（自签名证书）
