@@ -36,7 +36,7 @@ def handle(route):
     elif p.endswith('/reward'):
         requests.append(req.post_data_json)
         if state['fail']: route.fulfill(status=503,json={'success':False,'message':'发奖结果未确认，请重试同一码核对'}); return
-        reward = dict(amount=30,admin_id=99,admin_username='合成管理员',transaction_id=12,created_at='2026-11-21T00:00:00Z',reason='测试贡献奖励')
+        reward = dict(amount=30,uploader_user_id=456,admin_id=99,admin_username='合成管理员',transaction_id=12,created_at='2026-11-21T00:00:00Z',reason='测试贡献奖励')
         rows[0]['reward'] = reward
         data = {'reward':reward,'mirrorSynced':True,'replayed':False}
     elif p == '/api/game-accounts/list': data = []
@@ -64,6 +64,7 @@ try:
         page.goto(f'http://127.0.0.1:{server.server_port}',wait_until='networkidle')
         page.get_by_role('menuitem',name='管理面板',exact=True).click()
         panel=page.locator('.redeem-admin');expect(panel).to_be_visible()
+        expect(panel).to_contain_text('不区分英文字母大小写')
         expect(panel).to_contain_text('网站用户 #123');expect(panel).to_contain_text('管理员上传')
         first=panel.get_by_role('row').filter(has_text='合成成功CODE')
         for text in ['合成管理员CODE','合成失败CODE']:
@@ -81,6 +82,8 @@ try:
         assert requests==[{'amount':30,'reason':'测试贡献奖励'}]*2
         first.get_by_role('button',name=re.compile(r'^记\s*录$')).click()
         drawer=page.locator('.ant-drawer-content');expect(drawer).to_contain_text('流水 #12');expect(drawer).to_contain_text('兑换成功')
+        # 历史大小写记录合并后，实际收款人仍以原SQL为准，不改成当前最早收录者。
+        expect(drawer).to_contain_text('上传者：网站用户 #123');expect(drawer).to_contain_text('实际受奖 userid：456')
         page.wait_for_function("() => { const r=document.querySelector('.ant-drawer-content')?.getBoundingClientRect(); return r && r.right <= innerWidth + 1 && r.width >= 700 }")
         page.screenshot(path=str(OUT/'detail-1280.png'))
         drawer.get_by_role('button',name='Close',exact=True).click()

@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-admin">
-    <a-alert type="info" show-icon message="兑换码贡献奖励" description="只向上传该码的网站用户发放配额点数。游戏确认兑换成功后可手动奖励，每个渠道的同一码只奖励一次；管理员上传与历史未知来源不参与奖励。" />
+    <a-alert type="info" show-icon message="兑换码贡献奖励" description="同渠道兑换码不区分英文字母大小写，合并展示并归属最早收录者。游戏确认兑换成功后可手动奖励，每码只奖励一次；管理员上传与历史未知来源不参与奖励。" />
     <a-space wrap>
       <a-select v-model:value="channel" style="width:160px" :options="[{value:'wechat_douyin',label:'微信／抖音'},{value:'alipay',label:'支付宝'}]" />
       <a-input v-model:value="code" placeholder="精确查询兑换码（留空显示全部）" style="width:280px;max-width:100%" @pressEnter="search" />
@@ -49,10 +49,10 @@
       <p class="code">{{ selected?.code }} · {{ channelLabel(selected?.channel) }}</p>
       <p>上传者：{{ selected?.source === 'website' ? `网站用户 #${selected.userId}` : selected?.source === 'admin' ? '管理员上传' : '历史来源未知' }}</p>
       <a-alert v-if="selected?.reward" type="success" show-icon :message="`配额奖励已发放：${selected.reward.amount} 点`"
-        :description="`管理员 ${selected.reward.admin_username}（#${selected.reward.admin_id}）；${date(selected.reward.created_at)}；流水 #${selected.reward.transaction_id}；原因：${selected.reward.reason}`" />
+        :description="`实际受奖 userid：${selected.reward.uploader_user_id}；管理员 ${selected.reward.admin_username}（#${selected.reward.admin_id}）；${date(selected.reward.created_at)}；流水 #${selected.reward.transaction_id}；原因：${selected.reward.reason}`" />
       <a-alert v-else message="尚无配额奖励 SQL 流水" type="info" />
       <a-alert v-if="detailError" :message="detailError" type="error" />
-      <a-table :data-source="attempts" :columns="attemptColumns" :loading="detailLoading" :pagination="{current:attemptPage,pageSize:20,total:attemptTotal,showSizeChanger:false}" @change="changeAttemptPage" :scroll="{x:520}" :row-key="(r:any)=>`${r.accountHash}:${r.field}:${r.stamp}`">
+      <a-table :data-source="attempts" :columns="attemptColumns" :loading="detailLoading" :pagination="{current:attemptPage,pageSize:20,total:attemptTotal,showSizeChanger:false}" @change="changeAttemptPage" :scroll="{x:520}" :row-key="(r:any)=>JSON.stringify([r.accountHash,r.field,r.stamp,r.code])">
         <template #bodyCell="{column,record}">
           <template v-if="column.key === 'field'">{{ ({official:'微信',douyin:'抖音',alipay:'支付宝',permanent:'永久码',weekly:'周码'} as Record<string,string>)[record.field] || record.field }}</template>
           <template v-else-if="column.key === 'status'">{{ ({success:'兑换成功',failed:'兑换失败',unknown:'结果未确认'} as Record<string,string>)[record.status] }}</template>

@@ -12,7 +12,7 @@
         <label class="redeem-label" for="redeem-upload-code">限时兑换码</label>
         <Input id="redeem-upload-code" v-model:value="code" :disabled="busy || loading" :maxlength="256"
           placeholder="每次填写一个兑换码" autocomplete="off" allow-clear />
-        <p class="redeem-rules">每位用户每30分钟可新增一个，两个渠道共用次数。重复兑换码不占次数。</p>
+        <p class="redeem-rules">每位用户每30分钟可新增一个，两个渠道共用次数。同渠道兑换码不区分英文字母大小写，重复不占次数。</p>
         <p v-if="remaining > 0" class="redeem-wait" role="status">
           下次可新增：{{ waitText }}后。重复码仍可提交，不会延长等待时间。
         </p>

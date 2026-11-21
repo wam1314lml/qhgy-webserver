@@ -76,6 +76,7 @@ try:
 
         open_dialog()
         dialog = page.get_by_role('dialog', name='上传兑换码')
+        expect(dialog).to_contain_text('同渠道兑换码不区分英文字母大小写，重复不占次数')
         code = page.get_by_label('限时兑换码', exact=True)
         submit = dialog.get_by_role('button', name='提交兑换码', exact=True)
         expect(dialog.get_by_role('radio')).to_have_count(2)
