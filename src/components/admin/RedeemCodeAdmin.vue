@@ -8,6 +8,8 @@
       <a-button type="primary" :disabled="saving" @click="chooseBatch">批量发放奖励</a-button>
     </a-space>
     <a-alert v-if="error" type="error" show-icon :message="error" />
+    <a-alert v-if="retryResult" class="retry-result" type="info" show-icon message="指定码失败清理结果"
+      :description="`${retryResult.code}（${channelLabel(retryResult.channel)}）：本次符合条件 ${retryResult.eligible} 条，已放行重试 ${retryResult.cleared} 条，跳过 ${retryResult.skipped} 条，尝试标记不存在 ${retryResult.missing} 条。运行中的脚本将在下一轮检查时尝试，默认每30秒检查；离线或忙碌账号需等待恢复。`" />
     <a-alert v-if="batchResult" class="batch-result" :type="batchResult.failed || batchResult.mirrorPending ? 'warning' : 'success'" show-icon
       message="批量处理结果"
       :description="`确认新增 ${batchResult.issued} 条，共 ${batchResult.pointsIssued} 点；跳过已发奖 ${batchResult.alreadyRewarded} 条、不符合条件 ${batchResult.ineligible} 条；失败或待核对 ${batchResult.failed} 条。${batchResult.mirrorPending ? `其中 ${batchResult.mirrorPending} 条奖励已到账，更新器展示待同步。` : ''}`" />
@@ -28,11 +30,19 @@
         <template v-else-if="column.key === 'reward'"><a-tag :color="record.reward ? 'green' : 'default'">{{ record.reward ? `已发 ${record.reward.amount} 点` : '未发放' }}</a-tag></template>
         <template v-else-if="column.key === 'time'">{{ date(record.uploadedAt || record.lastAttemptAt) }}</template>
         <template v-else-if="column.key === 'actions'">
-          <a-space><a-button size="small" @click="details(record)">记录</a-button>
+          <a-space wrap><a-button size="small" @click="details(record)">记录</a-button>
+            <a-button v-if="['wechat_douyin','alipay'].includes(record.channel)" size="small" :disabled="retrySaving" @click="chooseRetry(record)">清理失败</a-button>
             <a-button size="small" type="primary" :disabled="record.source !== 'website' || record.redeemSuccess !== '1' || !!record.reward" @click="choose(record)">发放配额</a-button></a-space>
         </template>
       </template>
     </a-table>
+    <a-modal v-model:open="retryOpen" title="清理指定兑换码的失败尝试" ok-text="清理失败，允许重试" :confirm-loading="retrySaving"
+      :closable="!retrySaving" :mask-closable="false" :keyboard="!retrySaving" :cancel-button-props="{disabled:retrySaving}" @ok="retryFailed">
+      <p class="code">兑换码：{{ retrySelected?.code }} · {{ channelLabel(retrySelected?.channel) }}</p>
+      <p>仅清理这个渠道、这个码今天明确兑换失败账号的尝试标记，大小写视为同一码。成功账号、结果未确认的账号、其他兑换码和奖励流水保留。</p>
+      <p class="hint">请在兑换码已生效后操作。清理后用户无需重启脚本，下一轮检查即可重试，默认每30秒检查。历史失败记录保留；再次失败需再次手动清理。</p>
+      <a-alert v-if="retryError" type="error" show-icon :message="retryError" />
+    </a-modal>
     <a-modal v-model:open="rewardOpen" :title="batchMode ? '批量发放兑换码贡献奖励' : '发放兑换码贡献奖励'" :confirm-loading="saving" :closable="!saving" :mask-closable="false" :cancel-button-props="{disabled:saving}" @ok="grant">
       <a-alert v-if="batchMode" type="info" show-icon message="发放给全部符合条件的兑换码"
         description="覆盖微信／抖音和支付宝全部分页，不受当前查询条件限制。仅奖励网站用户上传、已确认兑换成功且尚未发奖的码；同一用户有多个符合条件的码，按码累计奖励。" />
@@ -79,11 +89,14 @@ interface BatchRewardResult {
   failures: { id: string; code: string; userId: string; message: string }[]
 }
 const batchMode = ref(false), batchResult = ref<BatchRewardResult|null>(null)
+interface RetryResult { requestId:string; code:string; channel:string; day:string; eligible:number; cleared:number; skipped:number; missing:number }
+const retryOpen = ref(false), retrySaving = ref(false), retrySelected = ref<any>(null), retryError = ref(''), retryResult = ref<RetryResult|null>(null)
+let retryRequestId = ''
 const batchFailureColumns = [{title:'兑换码',dataIndex:'code'},{title:'上传者 userid',dataIndex:'userId'},{title:'原因',dataIndex:'message'}]
 const detailOpen = ref(false), detailLoading = ref(false), detailError = ref(''), attempts = ref<any[]>([]), attemptPage = ref(1), attemptTotal = ref(0)
 let listGeneration = 0, detailGeneration = 0
 const columns = [{title:'上传者 userid',key:'source',width:150},{title:'兑换码',dataIndex:'code',width:210},{title:'渠道',key:'channel',width:110},
-  {title:'是否兑换成功',key:'success',width:145},{title:'游戏奖励回包',key:'gameReward',width:130},{title:'配额奖励（SQL）',key:'reward',width:140},{title:'收录时间',key:'time',width:180},{title:'操作',key:'actions',width:180}]
+  {title:'是否兑换成功',key:'success',width:145},{title:'游戏奖励回包',key:'gameReward',width:130},{title:'配额奖励（SQL）',key:'reward',width:140},{title:'收录时间',key:'time',width:180},{title:'操作',key:'actions',width:270}]
 const attemptColumns = [{title:'实际渠道',key:'field'},{title:'兑换周期',dataIndex:'stamp'},{title:'结果',key:'status'},{title:'游戏奖励',key:'gameReward'},{title:'时间',key:'at'}]
 const channelLabel = (v:string) => ({wechat_douyin:'微信／抖音',alipay:'支付宝',permanent:'永久',weekly:'周码'} as Record<string,string>)[v] || v
 const successLabel = (r:any) => r.redeemSuccess === '1' ? '已确认成功' : r.lastStatus === 'failed' ? '尚未成功' : r.lastStatus === 'unknown' ? '结果未确认' : '等待兑换'
@@ -102,6 +115,26 @@ function search() { filter.value = {channel:channel.value,code:code.value.trim()
 function changePage(p:any) { page.value = p.current; void load() }
 function choose(row:any) { batchMode.value = false; selected.value = row; amount.value = null; rewardError.value = ''; rewardOpen.value = true }
 function chooseBatch() { batchMode.value = true; batchResult.value = null; amount.value = null; rewardError.value = ''; rewardOpen.value = true }
+function chooseRetry(row:any) {
+  retrySelected.value = row; retryError.value = ''; retryResult.value = null
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  retryRequestId = [...bytes].map(value => value.toString(16).padStart(2,'0')).join('').replace(/^(........)(....)(....)(....)(............)$/, '$1-$2-$3-$4-$5')
+  retryOpen.value = true
+}
+async function retryFailed() {
+  if (retrySaving.value) return
+  retrySaving.value = true; retryError.value = ''
+  try {
+    const {data} = await axios.post(`/api/admin/redeem-codes/${retrySelected.value.id}/retry-failed`, {requestId:retryRequestId}, {...options(),timeout:180000})
+    const result = data.data
+    if (!data.success || !result || result.requestId !== retryRequestId || result.code !== retrySelected.value.code || result.channel !== retrySelected.value.channel
+      || !['eligible','cleared','skipped','missing'].every(key => Number.isSafeInteger(result[key]) && result[key] >= 0)
+      || result.eligible !== result.cleared + result.skipped + result.missing) throw Error('清理结果未确认，请在当前窗口重试核对')
+    retryResult.value = result; retryOpen.value = false
+    await load()
+  } catch(e) { retryError.value = err(e) }
+  finally { retrySaving.value = false }
+}
 function validBatchResult(value:any): value is BatchRewardResult {
   const counts = ['total','issued','alreadyRewarded','ineligible','failed','mirrorPending','pointsIssued']
   return value && counts.every(key => Number.isSafeInteger(value[key]) && value[key] >= 0)

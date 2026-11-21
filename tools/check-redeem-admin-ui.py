@@ -14,7 +14,8 @@ rows = [dict(id='wechat_douyin:' + 'a'*64, source='website', userId='123', chann
         dict(id='wechat_douyin:'+'c'*64, source='website', userId='456', channel='wechat_douyin', code='合成失败CODE', lastStatus='failed', reward=None)]
 errors, outside, requests = [], [], []
 batch_requests = []
-state = {'fail': True, 'batch': 'fail', 'empty_list': False}
+retry_requests = []
+state = {'fail': True, 'batch': 'fail', 'empty_list': False, 'retry': 'fail'}
 class Handler(SimpleHTTPRequestHandler):
     def log_message(self, *args): pass
 
@@ -32,6 +33,13 @@ def handle(route):
         elif state['batch'] == 'empty': data = dict(total=27,issued=0,alreadyRewarded=25,ineligible=2,failed=0,mirrorPending=0,pointsIssued=0,failures=[])
         else: data = dict(total=27,issued=23,alreadyRewarded=2,ineligible=1,failed=1,mirrorPending=1,pointsIssued=46,
             failures=[dict(id='synthetic-failed',code='待核对CODE',userId='456',message='结果未确认，请刷新记录后重试')])
+    elif p.endswith('/retry-failed'):
+        retry_requests.append((p, req.post_data_json))
+        if state['retry'] == 'fail': route.fulfill(status=503,json={'success':False,'message':'清理结果未确认，请在当前窗口重试核对'}); return
+        target = next(row for row in rows if row['id'] in p)
+        data = dict(requestId=req.post_data_json['requestId'],code=target['code'],channel=target['channel'],day='2026-11-21',eligible=3,cleared=2,skipped=1,missing=0)
+        if state['retry'] == 'malformed': data['cleared'] = 99
+        if state['retry'] == 'empty': data.update(eligible=0,cleared=0,skipped=0,missing=0)
     elif p.endswith('/attempts'): data = {'records':[{'accountHash':'synthetic','field':'official','stamp':'2026-11-21','status':'success','gameRewardSeen':True,'at':1795190400000}],'total':1}
     elif p.endswith('/reward'):
         requests.append(req.post_data_json)
@@ -88,6 +96,35 @@ try:
         page.screenshot(path=str(OUT/'detail-1280.png'))
         drawer.get_by_role('button',name='Close',exact=True).click()
         expect(drawer).to_be_hidden()
+        # 每行只操作指定码；已存在成功用户/奖励的码仍可有其他失败账号。
+        first.get_by_role('button',name='清理失败',exact=True).click()
+        retry=page.get_by_role('dialog',name='清理指定兑换码的失败尝试',exact=True)
+        expect(retry).to_contain_text('合成成功CODE');expect(retry).to_contain_text('奖励流水保留')
+        retry.get_by_role('button',name=re.compile(r'^取\s*消$')).click();assert not retry_requests
+        failed=panel.get_by_role('row').filter(has_text='合成失败CODE')
+        failed.get_by_role('button',name='清理失败',exact=True).click()
+        expect(retry).to_contain_text('合成失败CODE');expect(retry).to_contain_text('无需重启脚本')
+        retry_confirm=retry.get_by_role('button',name='清理失败，允许重试',exact=True)
+        retry_confirm.evaluate('(b)=>{b.click();b.click()}');expect(retry).to_contain_text('清理结果未确认')
+        assert len(retry_requests)==1 and set(retry_requests[0][1])=={'requestId'}
+        state['retry']='malformed';retry_confirm.click();expect(retry).to_contain_text('清理结果未确认')
+        assert len(retry_requests)==2
+        state['retry']='ok';retry_confirm.click();expect(retry).to_be_hidden()
+        assert len(retry_requests)==3 and retry_requests[0]==retry_requests[1]==retry_requests[2]
+        assert retry_requests[0][0].endswith(rows[2]['id']+'/retry-failed')
+        expect(panel.locator('.retry-result')).to_contain_text('已放行重试 2 条')
+        expect(panel.locator('.retry-result')).to_contain_text('合成失败CODE')
+        first.get_by_role('button',name='清理失败',exact=True).click();state['retry']='empty'
+        page.set_viewport_size({'width':320,'height':900})
+        expect(retry).to_be_visible()
+        page.wait_for_function("() => [...document.querySelectorAll('.ant-modal')].some(e => e.getBoundingClientRect().width > 200 && getComputedStyle(e).opacity === '1' && !e.getAnimations({subtree:true}).some(a => a.playState === 'running'))")
+        assert retry.evaluate('(e)=>e.getBoundingClientRect().right <= innerWidth+1')
+        page.screenshot(path=str(OUT/'retry-modal-320.png'))
+        retry_confirm.click();expect(retry).to_be_hidden()
+        expect(panel.locator('.retry-result')).to_contain_text('符合条件 0 条')
+        assert retry_requests[-1][1]['requestId']!=retry_requests[0][1]['requestId']
+        assert len(requests)==2 and not batch_requests, '清理失败不调用发奖接口'
+        page.set_viewport_size({'width':1280,'height':900})
         # 当前精确查询没有结果，也能发放全部分页；浏览器只发一次批量API，不逐码POST。
         state['empty_list']=True
         panel.get_by_placeholder('精确查询兑换码（留空显示全部）').fill('不存在的合成查询')
