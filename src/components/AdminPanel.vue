@@ -56,6 +56,9 @@
           <QuotaTransferAdmin :token="token" />
         </a-tab-pane>
 
+        <a-tab-pane key="redeem-codes" tab="兑换码奖励" v-if="hasModuleAccess('redeem_codes')">
+          <RedeemCodeAdmin :token="token" />
+        </a-tab-pane>
         <!-- 配额设置 -->
         <a-tab-pane key="quota" v-if="hasModuleAccess('quota_settings')">
           <template #tab>
@@ -2141,6 +2144,7 @@ import type { FormInstance } from 'ant-design-vue'
 import QuotaSettings from './QuotaSettings.vue'
 import ActivityAdmin from '@/features/activities/ActivityAdmin.vue'
 import QuotaTransferAdmin from './admin/QuotaTransferAdmin.vue'
+import RedeemCodeAdmin from './admin/RedeemCodeAdmin.vue'
 import PermissionSettings from './PermissionSettings.vue'
 import AdminPaymentSettings from './AdminPaymentSettings.vue'
 import RechargePackageManagement from './admin/RechargePackageManagement.vue'
@@ -2325,6 +2329,7 @@ const activeAdminTab = ref('')
 // 顺序与模板一致，用于首次载入及撤权后选择可见模块。
 const adminTabs: [string, string[]][] = [
   ['users', ['user_management']], ['invites', ['vip_invites']], ['quota-transfers', ['quota_transfers']],
+  ['redeem-codes', ['redeem_codes']],
   ['quota', ['quota_settings']], ['activities', ['activity_management']], ['permissions', ['permission_settings']],
   ['recharge', ['recharge_packages']], ['packages', ['recharge_packages']], ['lottery', ['lottery_system']],
   ['card-key', ['card_keys']], ['invite-settings', ['invite_settings']], ['payment-settings', ['payment_settings']],

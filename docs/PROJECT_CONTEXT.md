@@ -1,3 +1,11 @@
+## 2026-11-21 兑换码奖励管理页
+
+components/admin/RedeemCodeAdmin.vue接入AdminPanel新tab和可见模块列表，复用统一axios与当前adminToken，API为/api/admin/redeem-codes。显示上传者userid、渠道、实际兑换、游戏奖励明细、SQL配额奖励；管理员填点数/原因后手动确认。没有普通用户发奖入口。
+
+## 2026-11-21 兑换码上传入口
+
+新增features/redeem-upload/api.ts及RedeemUploadDialog.vue，由ScriptConfig悬浮菜单礼物按钮打开。支持微信／抖音合并和支付宝两渠道，接入POST /api/redeem-uploads、GET /api/redeem-uploads/status，展示重复/新增/冷却和未确认恢复。不属于账号游戏配置或分享schema，不新增轮询；配套Web后端负责Redis写入与网站用户限额。
+
 ## 2026-11-20 卡册勾玉礼包与扦插育果配置
 
 GameConfigPage 的卡册活动增加两个默认关闭的独立开关 enabledJadeGift/enabledCuttingFruit，位于 activity.actCardCollect；同步类型、默认配置、严格布尔归一化和生成分享schema。勾玉礼包复用消费确认并明确全部档位购买；扦插育果为培养液任务、活动地及进度奖励自动化，由配套脚本 WelfareMgr 执行。沿用通用账号配置保存，无新页面、API 或服务端字段迁移；验证和限制见 HANDOFF 同日节。

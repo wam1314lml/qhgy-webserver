@@ -1,3 +1,11 @@
+## 2026-11-21 兑换码贡献奖励管理
+
+AdminPanel通过redeem_codes模块权限显示RedeemCodeAdmin；只读分页、详情与奖励状态以Web API/SQL为准。前端不自报上传userid/接收userid/管理员id，发奖正文仅amount/reason；后端从持久归属和认证身份确定。游戏奖励明细与网站配额奖励分开展示，失败/未知或管理员来源不能发奖。按钮防连点和禁用仅辅助，SQL码ID唯一约束才是防重依据；503保留原码与金额重试，不能当作未发奖换请求。
+
+## 2026-11-21 用户上传限时兑换码
+
+账号首页悬浮菜单的RedeemUploadDialog提供wechat_douyin（微信／抖音）和alipay（支付宝），每次一个限时码；两渠道共用网站用户30分钟新增额度，重复不占次数。前端冷却仅展示，不禁用重复提交；后端负责权威去重、并发和计次。每次打开读取本用户状态，未完成操作填回原渠道/码；失败保留输入且只由弹窗提示一次，不能将未知回包当成功。沿用统一axios身份/HMAC，正文只含channel/code，不传用户ID或Redis key。后端同步原official/douyin两集合，脚本无需变更；详见后端REDEEM_UPLOAD.md。修改验证tools/check-redeem-upload-ui.py及生产构建，不连接业务Redis。
+
 ## 2026-11-20 御前献珍勾玉刷新品质
 
 `activity.imperialTribute.jadeRefreshQualities`为number[]，1绿/2蓝/3紫/4金/5红；默认/缺字段全选兼容旧版，空数组表示不花勾玉，null/非数组归空，合法数字字符串可归一化，去重升序。刷新开关下方复选框可多选，关闭刷新隐藏保值，关闭进贡禁用保值；仅限制付费清冷却，红色免费广告与自然到期提交保持。类型、默认、归一化、分享schema必须同步。加载/账号导入/批量复制先prepareImperialTributeQualities再deepMerge，防止显式坏值回落全选；分享预处理只处理码中存在的字段，旧码缺字段不覆盖接收方当前选择。执行端ActImperialTributeMgr同步过滤并在POST前复核，无新Web API。前后端须配套发布，保存后重启账号。

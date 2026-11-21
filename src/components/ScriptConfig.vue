@@ -600,6 +600,8 @@
       </div>
     </a-modal>
 
+    <RedeemUploadDialog v-model:open="redeemUploadOpen" />
+
     <!-- 悬浮按钮组 -->
     <a-float-button-group
       trigger="click"
@@ -644,6 +646,11 @@
         <template #icon>
           <PlusOutlined />
         </template>
+      </a-float-button>
+
+      <a-float-button tooltip="上传兑换码" aria-label="上传兑换码" class="redeem-upload-button"
+        @click="redeemUploadOpen = true; floatButtonOpen = false">
+        <template #icon><GiftOutlined /></template>
       </a-float-button>
 
       <a-tooltip placement="right" :open="groupChatTooltipOpen">
@@ -705,6 +712,7 @@
 <script setup lang="ts">
 import AccountGuildSummary from './AccountGuildSummary.vue'
 import BatchAccountActions from './BatchAccountActions.vue'
+import RedeemUploadDialog from '../features/redeem-upload/RedeemUploadDialog.vue'
 import { ref, onMounted, onUnmounted, watch, onBeforeUnmount, h, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '../utils/axios'
@@ -1668,6 +1676,7 @@ watch(showCustomerServiceModal, (newVal) => {
 
 // 浮动按钮组展开状态
 const floatButtonOpen = ref(false)
+const redeemUploadOpen = ref(false)
 
 // 支付宝重新认证相关状态
 const alipayReauthPolling = ref<number | null>(null)
