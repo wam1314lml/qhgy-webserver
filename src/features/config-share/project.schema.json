@@ -1212,6 +1212,12 @@
               },
               "jadeRefreshEnabled": {
                 "type": "boolean"
+              },
+              "jadeRefreshQualities": {
+                "type": "array",
+                "item": {
+                  "type": "number"
+                }
               }
             }
           },

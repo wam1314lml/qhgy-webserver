@@ -349,6 +349,7 @@ export interface GameConfig {
       tributeEnabled: boolean
       goldTributeEnabled: boolean
       jadeRefreshEnabled: boolean
+      jadeRefreshQualities: number[]
     }
     actCyclicStory: {
       enabled: boolean

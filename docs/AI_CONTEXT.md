@@ -1,3 +1,7 @@
+## 2026-11-20 御前献珍勾玉刷新品质
+
+`activity.imperialTribute.jadeRefreshQualities`为number[]，1绿/2蓝/3紫/4金/5红；默认/缺字段全选兼容旧版，空数组表示不花勾玉，null/非数组归空，合法数字字符串可归一化，去重升序。刷新开关下方复选框可多选，关闭刷新隐藏保值，关闭进贡禁用保值；仅限制付费清冷却，红色免费广告与自然到期提交保持。类型、默认、归一化、分享schema必须同步。加载/账号导入/批量复制先prepareImperialTributeQualities再deepMerge，防止显式坏值回落全选；分享预处理只处理码中存在的字段，旧码缺字段不覆盖接收方当前选择。执行端ActImperialTributeMgr同步过滤并在POST前复核，无新Web API。前后端须配套发布，保存后重启账号。
+
 ## 2026-11-20 勾玉礼包与扦插育果
 
 活动 → 卡册活动增加 `activity.actCardCollect.enabledJadeGift/enabledCuttingFruit` 两个独立开关，默认 false、严格布尔，完整接入类型/默认值/归一化/分享schema。礼包采用用户确认的“开启后全部购买”方案，开启弹窗明确按顺序领免费档并购买全部可买勾玉档，直到售罄或余额不足；取消保持关闭。扦插育果领取培养液（最多20份）、浇未完成土地、补领进度及已解锁豪华奖励，默认不额外买水/豪华特权。两项由脚本 WelfareMgr 执行，旧卡册领奖/开包开关独立，无新后端API。

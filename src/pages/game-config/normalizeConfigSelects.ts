@@ -62,6 +62,26 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null
 }
 
+/** 付费品质只接受1～5；缺字段兼容旧版全选，显式空选或坏值不扩大消费范围。 */
+function normalizeImperialRefreshQualities(value: unknown): number[] {
+  if (value === undefined) return [1, 2, 3, 4, 5]
+  if (!Array.isArray(value)) return []
+  return [...new Set(value
+    .filter(item => typeof item === 'number' || typeof item === 'string' && item.trim())
+    .map(Number).filter(item => Number.isInteger(item) && item >= 1 && item <= 5))]
+    .sort((a, b) => a - b)
+}
+
+/** 默认值深度合并前处理显式坏值，防止null/对象被数组默认值覆盖为全选。 */
+export function prepareImperialTributeQualities(config: unknown): void {
+  const root = asRecord(config)
+  const activity = asRecord(root?.activity)
+  const tribute = asRecord(activity?.imperialTribute)
+  if (tribute && Object.prototype.hasOwnProperty.call(tribute, 'jadeRefreshQualities')) {
+    tribute.jadeRefreshQualities = normalizeImperialRefreshQualities(tribute.jadeRefreshQualities)
+  }
+}
+
 /** 在默认配置参与深度合并前迁移旧花园世界任务 type，避免默认新键掩盖旧自定义值。 */
 export function migrateLegacyFmlRaceTaskPriority(config: unknown): void {
   const root = asRecord(config)
@@ -741,6 +761,7 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     tributeEnabled: imperialTribute?.tributeEnabled === true,
     goldTributeEnabled: imperialTribute?.goldTributeEnabled === true,
     jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
+    jadeRefreshQualities: normalizeImperialRefreshQualities(imperialTribute?.jadeRefreshQualities),
   }
   const cyclicStory = asRecord(config.activity.actCyclicStory)
   const bfgq = asRecord(config.activity.actBfgq)

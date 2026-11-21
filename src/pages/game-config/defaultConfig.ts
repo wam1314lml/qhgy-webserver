@@ -365,6 +365,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         tributeEnabled: false,
         goldTributeEnabled: false,
         jadeRefreshEnabled: false,
+        jadeRefreshQualities: [1, 2, 3, 4, 5],
       },
       actCyclicStory: {
         enabled: false,

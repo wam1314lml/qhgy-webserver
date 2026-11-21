@@ -1,24 +1,32 @@
 # -*- coding: utf-8 -*-
 """御前献珍真实Vue页面，全部请求为合成接口。"""
 from pathlib import Path
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from functools import partial
 from urllib.parse import urlparse
+import atexit
 import base64
 import json
 import re
+import threading
 from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'artifacts'
 OUT.mkdir(exist_ok=True)
-BASE = 'https://127.0.0.1:18132'
-(OUT / 'imperial-tribute-test.html').write_text('''<!doctype html><html lang="zh-CN">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<div id="app"></div><script type="module">
-import {createApp,h} from 'vue'; import {RouterView} from 'vue-router'; import router from '/src/router';
-import Antd from 'ant-design-vue'; import 'ant-design-vue/dist/reset.css';
-import '/src/index.scss'; import 'virtual:uno.css';
-await router.push('/game-config/1'); createApp({render:()=>h(RouterView)}).use(router).use(Antd).mount('#app');
-</script></html>''', encoding='utf-8')
+class Handler(SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+    def do_GET(self):
+        if self.path.startswith('/game-config/'):
+            self.path = '/index.html'
+        super().do_GET()
+
+server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'dist')))
+threading.Thread(target=server.serve_forever, daemon=True).start()
+atexit.register(server.shutdown)
+BASE = f'http://127.0.0.1:{server.server_port}'
 saved = {'activity': {}}
 errors, unexpected, writes = [], [], []
 
@@ -38,13 +46,15 @@ def handler(route):
         route.fulfill(json={'success': True, 'points': '100'})
     elif url.path == '/api/flower-market/settings':
         route.fulfill(json={'success': True, 'data': {'enabled': False}})
+    elif url.path == '/api/game-accounts/list':
+        route.fulfill(json={'success': True, 'data': [{'id': 1, 'nickname': '合成御贡', 'platform': 3}]})
     elif url.path == '/api/game-accounts/1/setting':
         if req.method == 'PUT':
             saved = req.post_data_json
             writes.append(saved)
             route.fulfill(json={'success': True})
         else:
-            route.fulfill(json={'success': True, 'data': saved})
+            route.fulfill(json={'success': True, 'platform': 3, 'data': saved})
     else:
         unexpected.append((req.method, url.path))
         route.fulfill(status=404, json={'success': False})
@@ -59,8 +69,10 @@ with sync_playwright() as p:
     page.on('pageerror', lambda e: errors.append(str(e)))
 
     def load():
-        page.goto(BASE + '/artifacts/imperial-tribute-test.html', wait_until='networkidle')
-        page.get_by_role('button', name='我知道了', exact=True).click()
+        page.goto(BASE + '/game-config/1', wait_until='networkidle')
+        notice = page.get_by_role('button', name='我知道了', exact=True)
+        if notice.is_visible():
+            notice.click()
         page.get_by_role('tab', name='活动', exact=True).click()
 
     def field(label):
@@ -83,10 +95,10 @@ with sync_playwright() as p:
     expect(refresh).to_be_disabled()
     reward.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5]}
     gold.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5]}
     load()
     expect(gold).to_have_attribute('aria-checked', 'true')
     expect(gold).to_be_enabled()
@@ -97,13 +109,41 @@ with sync_playwright() as p:
     refresh.click()
     page.get_by_role('button', name='确认开启', exact=True).click()
     expect(refresh).to_have_attribute('aria-checked', 'true')
+    qualities = field('勾玉刷新品质')
+    for color in ('绿', '蓝', '紫', '金', '红'):
+        expect(qualities.get_by_role('checkbox', name=color, exact=True)).to_be_checked()
+    for color in ('绿', '蓝', '紫', '金'):
+        qualities.get_by_role('checkbox', name=color, exact=True).uncheck()
     save()
-    assert all(writes[-1]['activity']['imperialTribute'].values())
+    assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [5]
+    load()
+    expect(qualities.get_by_role('checkbox', name='红', exact=True)).to_be_checked()
+    expect(qualities.get_by_role('checkbox', name='金', exact=True)).not_to_be_checked()
+    qualities.get_by_role('checkbox', name='金', exact=True).check()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
+    refresh.click()
+    expect(qualities).to_be_hidden()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
+    refresh.click()
+    page.get_by_role('button', name='确认开启', exact=True).click()
+    for color in ('金', '红'):
+        qualities.get_by_role('checkbox', name=color, exact=True).uncheck()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == []
+    load()
+    expect(qualities.get_by_role('checkbox', checked=True)).to_have_count(0)
+    for color in ('金', '红'):
+        qualities.get_by_role('checkbox', name=color, exact=True).check()
+    save()
     load()
     auto.click()
     expect(refresh).to_be_disabled()
     expect(refresh).to_have_attribute('aria-checked', 'true')
+    expect(qualities.get_by_role('checkbox', name='红', exact=True)).to_be_disabled()
     save()
+    assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
     load()
     expect(refresh).to_be_disabled()
     expect(reward).to_have_attribute('aria-checked', 'true')
@@ -114,13 +154,18 @@ with sync_playwright() as p:
         page.get_by_role('tab', name='活动', exact=True).click()
         expect(reward).to_be_visible()
         page.locator('.imperial-tribute-settings').evaluate("el => {el.style.scrollMarginTop='140px'; el.scrollIntoView({block:'start'});}")
-        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却'):
+        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却', '勾玉刷新品质'):
             box = field(label).bounding_box()
             assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1, (width, label, box)
             assert field(label).locator('.label-text').evaluate('(el) => el.scrollWidth <= el.clientWidth + 1'), (width, label)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), width
+        for color in ('绿', '蓝', '紫', '金', '红'):
+            checkbox = qualities.get_by_role('checkbox', name=color, exact=True)
+            expect(checkbox).to_be_visible()
+            box = checkbox.bounding_box()
+            assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1
         page.screenshot(path=str(OUT / f'imperial-tribute-{width}.png'))
     assert not errors, errors
     assert not unexpected, unexpected
     browser.close()
-print('PASS 御前献珍真实页面：独立领奖及金币提交、勾玉确认/取消、配置保值、保存重载及1100/390/320布局')
+print('PASS 御前献珍生产dist：勾玉确认/取消、只红/金红/空选、关闭保值、保存重载及1100/390/320布局；外网请求0')

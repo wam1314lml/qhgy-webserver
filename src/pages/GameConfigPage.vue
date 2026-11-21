@@ -2878,12 +2878,24 @@
                 <Switch v-model:checked="config.activity.imperialTribute.goldTributeEnabled" />
               </CustomFormItem>
               <CustomFormItem label="勾玉刷新进贡冷却" name="activity.imperialTribute.jadeRefreshEnabled"
-                tooltip="开启后，在有足够水果可再次提交时，使用勾玉刷新各品质冷却。费用随剩余冷却变化，持续开启会持续消耗勾玉。默认关闭。">
+                tooltip="开启后，在有足够水果可再次提交时，仅使用勾玉刷新下方勾选品质的冷却。费用随剩余冷却变化，持续开启会持续消耗勾玉。默认关闭。">
                 <Switch :checked="config.activity.imperialTribute.jadeRefreshEnabled"
                   @change="(checked) => handleDiamondCostSwitchChange('activity.imperialTribute.jadeRefreshEnabled', checked === true)"
                   :disabled="!config.activity.imperialTribute.tributeEnabled" />
               </CustomFormItem>
-              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。免费广告刷新只用于红色绝品；勾玉刷新关闭时，广告用完后等待自然冷却，当前为6小时。</p>
+              <CustomFormItem v-if="config.activity.imperialTribute.jadeRefreshEnabled"
+                label="勾玉刷新品质" name="activity.imperialTribute.jadeRefreshQualities"
+                tooltip="可多选，默认全选。只选红就只用勾玉刷新红色，选金和红就只刷新金色、红色。全部取消则不消耗勾玉；免费广告不受此选择限制。">
+                <Checkbox.Group v-model:value="config.activity.imperialTribute.jadeRefreshQualities"
+                  class="imperial-refresh-qualities" :disabled="!config.activity.imperialTribute.tributeEnabled">
+                  <Checkbox :value="1">绿</Checkbox>
+                  <Checkbox :value="2">蓝</Checkbox>
+                  <Checkbox :value="3">紫</Checkbox>
+                  <Checkbox :value="4">金</Checkbox>
+                  <Checkbox :value="5">红</Checkbox>
+                </Checkbox.Group>
+              </CustomFormItem>
+              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。勾玉只刷新勾选品质，全部取消则不消耗勾玉；免费广告刷新仍只用于红色绝品。其他冷却等待自然结束，当前为6小时。</p>
             </div>
 
             <div class="bfgq-settings">
@@ -3198,6 +3210,7 @@ import {
   migrateLegacyFlowerCompeteSelection,
   migrateLegacyFmlRaceTaskPriority,
   normalizeGameConfigSelects,
+  prepareImperialTributeQualities,
 } from './game-config/normalizeConfigSelects'
 import type { GameConfig } from './game-config/types'
 import {
@@ -3704,6 +3717,7 @@ const fetchConfig = async () => {
         migrateLegacyFmlRaceTaskPriority(response.data.data)
         migrateLegacyFloralShopCatalog(response.data.data)
         migrateLegacyFlowerCompeteSelection(response.data.data)
+        prepareImperialTributeQualities(response.data.data)
         const mergedConfig = deepMerge(createDefaultGameConfig(), response.data.data)
         normalizeGameConfigSelects(mergedConfig, accountPlatform.value)
         config.value = mergedConfig
@@ -3886,6 +3900,7 @@ const importConfigFromSelectedAccount = async () => {
     migrateLegacyFmlRaceTaskPriority(sourceResponse.data.data)
     migrateLegacyFloralShopCatalog(sourceResponse.data.data)
     migrateLegacyFlowerCompeteSelection(sourceResponse.data.data)
+    prepareImperialTributeQualities(sourceResponse.data.data)
     const payload = deepMerge(createDefaultGameConfig(), sourceResponse.data.data)
     normalizeGameConfigSelects(payload, accountPlatform.value)
     const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
@@ -3950,6 +3965,7 @@ const copyConfigToSelectedAccounts = async () => {
     migrateLegacyFmlRaceTaskPriority(raw)
     migrateLegacyFloralShopCatalog(raw)
     migrateLegacyFlowerCompeteSelection(raw)
+    prepareImperialTributeQualities(raw)
     const payload = deepMerge(createDefaultGameConfig(), raw)
     normalizeGameConfigSelects(payload, accountPlatform.value)
     const rangeError = validateFmlRaceScoreRanges(payload.union.fmlRace.acceptRules)
@@ -4030,7 +4046,10 @@ const configShareAdapter = createProjectShareAdapter<GameConfig>((value) => {
   if (error) throw new Error(error)
   normalizeGameConfigSelects(value, accountPlatform.value)
   return value
-}, migrateLegacyFlowerCompeteSelection)
+}, (value) => {
+  migrateLegacyFlowerCompeteSelection(value)
+  prepareImperialTributeQualities(value)
+})
 const configShareApi = createConfigShareApi(configShareAdapter.project.id)
 const openConfigShare = () => {
   if (!configLoaded.value || loading.value) return
@@ -4050,6 +4069,17 @@ const applySharedConfig = (value: GameConfig) => {
 </script>
 
 <style lang="scss" scoped>
+.imperial-refresh-qualities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+
+  :deep(.ant-checkbox-wrapper) {
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+  }
+}
+
 .elf-identity-select :deep(.ant-select-selection-item) {
   height: auto;
   white-space: normal;
