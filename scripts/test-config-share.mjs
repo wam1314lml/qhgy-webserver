@@ -324,6 +324,7 @@ const uiBundle = await build({
   stdin: { contents: compiled.content, resolveDir: fileURLToPath(new URL('../src/features/config-share/', import.meta.url)), loader: 'ts' },
   bundle: true, write: false, platform: 'node', format: 'cjs', external: ['vue'],
   plugins: [{ name: 'ant-test-host', setup(build) {
+    build.onLoad({ filter: /\.vue$/ }, async ({ path }) => ({ contents: compileScript(parse(await readFile(path, 'utf8')).descriptor, { id: 'share-child-test', inlineTemplate: true }).content, loader: 'ts' }))
     build.onResolve({ filter: /^ant-design-vue$/ }, () => ({ path: 'ant', namespace: 'test' }))
     build.onLoad({ filter: /.*/, namespace: 'test' }, () => ({ contents: `
       import { defineComponent, h } from 'vue';
@@ -331,6 +332,7 @@ const uiBundle = await build({
       export const Modal = wrapper('modal', ['open']);
       export const Tabs = wrapper('tabs'); Tabs.TabPane = wrapper('tab');
       export const Button = wrapper('button');
+      export const Select = wrapper('select');
       export const Checkbox = wrapper('checkbox'); Checkbox.Group = wrapper('checkbox-group');
       export const Alert = defineComponent({ props: ['message'], setup(p) { return () => h('alert', p.message) } });
       export const Input = {}; Input.TextArea = defineComponent({ props: ['value'], emits: ['update:value'], setup(p, { attrs, emit }) { return () => h('textarea', { ...attrs, value: p.value, onInput: e => emit('update:value', e.target.value) }) } });

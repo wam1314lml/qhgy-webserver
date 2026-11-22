@@ -10,14 +10,7 @@
       >
         <template #right-prefix>
           <Space>
-            <a-button :disabled="loading || !configLoaded" @click="openConfigShare">分享</a-button>
-            <a-button
-              :loading="importConfigLoading"
-              :disabled="loading || !configLoaded"
-              @click="openImportConfigModal"
-            >
-              导入
-            </a-button>
+            <a-button :disabled="loading || !configLoaded" @click="openConfigShare">分享/导入</a-button>
             <a-button
               @click="onSave"
               class="save-button"
@@ -3120,7 +3113,7 @@
 
     <Modal
       v-model:open="importConfigModalVisible"
-      title="配置复制"
+      title="分享/导入"
       :confirm-loading="importConfigLoading"
       :okText="configCopyMode === 'out' ? '复制' : '导入'"
       :closable="!importConfigLoading"
@@ -3132,6 +3125,7 @@
       centered
       @ok="configCopyMode === 'out' ? copyConfigToSelectedAccounts() : importConfigFromSelectedAccount()"
     >
+      <TransferModeTabs value="same" :disabled="importConfigLoading" @change="mode => { if (mode === 'share') { importConfigModalVisible = false; configShareVisible = true } }" />
       <div class="import-config-modal">
         <Radio.Group v-model:value="configCopyMode" button-style="solid" :disabled="importConfigLoading" class="config-copy-tabs">
           <Radio.Button value="in">从其他号导入</Radio.Button>
@@ -3162,6 +3156,10 @@
       :current="config"
       :adapter="configShareAdapter"
       :api="configShareApi"
+      :account-id="accountId"
+      :account-api="accountImportApi"
+      @same-account="openImportConfigModal"
+      @imported="fetchConfig"
       @apply="applySharedConfig"
     />
   </div>
@@ -3191,6 +3189,8 @@ import {
 } from 'ant-design-vue'
 import axios from '../utils/axios'
 import ConfigShareDialog from '../features/config-share/ConfigShareDialog.vue'
+import TransferModeTabs from '../features/config-share/TransferModeTabs.vue'
+import { accountImportApi } from '../features/config-share/accountImportApi'
 import ActivityShopSettings from './game-config/ActivityShopSettings.vue'
 import FmlShopSettings from './game-config/FmlShopSettings.vue'
 import { activityShopCatalogs } from './game-config/activityShop'
@@ -3931,7 +3931,7 @@ const importConfigFromSelectedAccount = async () => {
       return
     }
     const missingToken = missingConfig.capture()
-    const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting`, payload)
+    const saveResponse = await axios.put(`/api/game-accounts/${accountId.value}/setting/import`, payload)
 
     if (!saveResponse.data?.success) {
       message.error(saveResponse.data?.message || '导入配置失败')
@@ -4002,19 +4002,12 @@ const copyConfigToSelectedAccounts = async () => {
         const targetPayload = JSON.parse(JSON.stringify(payload))
         normalizeGameConfigSelects(targetPayload, importAccountOptions.value.find(option => option.value === ids[index])?.platform)
         const saved = await axios.put(
-          `/api/game-accounts/${ids[index]}/setting`,
+          `/api/game-accounts/${ids[index]}/setting/import`,
           targetPayload,
         )
         if (!saved.data?.success) throw new Error('复制失败')
       } catch {
         failed.push(ids[index])
-      }
-      if (index < ids.length - 1) {
-        for (let seconds = 11; seconds > 0; seconds--) {
-          if (!current()) return
-          copyConfigProgress.value = `已处理 ${index + 1}/${ids.length}，${seconds} 秒后继续`
-          await wait(1000)
-        }
       }
     }
     if (!current()) return
