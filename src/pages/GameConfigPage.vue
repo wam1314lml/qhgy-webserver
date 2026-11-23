@@ -4059,10 +4059,12 @@ onMounted(() => {
 // 分享模块复用花园实现，只接入本页已有配置归一化与保存规则。
 const configShareVisible = ref(false)
 const configShareAdapter = createProjectShareAdapter<GameConfig>((value) => {
-  const error = validateFmlRaceScoreRanges(value.union.fmlRace.acceptRules)
+  // 原始账号配置可能缺少节点；默认值只供校验，保存仍按分享字段投影。
+  const prepared = deepMerge(createDefaultGameConfig(), value)
+  const error = validateFmlRaceScoreRanges(prepared.union.fmlRace.acceptRules)
   if (error) throw new Error(error)
-  normalizeGameConfigSelects(value, accountPlatform.value)
-  return value
+  normalizeGameConfigSelects(prepared, accountPlatform.value)
+  return prepared
 }, (value) => {
   migrateLegacyFlowerCompeteSelection(value)
   prepareImperialTributeQualities(value)

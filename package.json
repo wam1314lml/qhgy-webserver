@@ -10,7 +10,7 @@
     "lint": "eslint . --ext ts,vue --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "prebuild": "node scripts/sync-config-share.mjs",
-    "test:config-share": "node scripts/test-config-share.mjs"
+    "test:config-share": "node scripts/test-config-share.mjs && node scripts/test-share-missing-config.mjs"
   },
   "dependencies": {
     "@alttiri/base85": "^1.8.0",

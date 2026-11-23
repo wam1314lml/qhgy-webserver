@@ -33,7 +33,8 @@ export const accountImportApi: AccountImportApi = {
   },
   async read(id) {
     const body = checkResponse(await axios.get(`/api/game-accounts/${id}/setting`, options))
-    if (!isObject(body.data) || !Object.keys(body.data).length || body.data.error) {
+    // 接口明确成功时，空对象表示尚未配置，允许由分享字段创建配置。
+    if (!isObject(body.data) || body.data.error) {
       throw new Error('未读取到有效的已保存配置，未覆盖该账号')
     }
     return body.data
