@@ -1,5 +1,5 @@
 /** 网页和小程序共用的批量启停流程；只重用单账号接口，不重试写请求。 */
-export type BatchAction = 'start' | 'stop'
+export type BatchAction = 'start' | 'stop' | 'restart'
 export type BatchResult = {
   id: number
   label: string
@@ -13,7 +13,7 @@ export async function runAccountBatch(options: {
   action: BatchAction
   getStarted: (id: number) => Promise<boolean | undefined>
   getExpired: (id: number) => Promise<boolean | undefined>
-  execute: (id: number, action: BatchAction) => Promise<ActionResponse>
+  execute: (id: number, action: 'start' | 'stop') => Promise<ActionResponse>
   isCancelled: () => boolean
   onStarted: (id: number, started: boolean) => void
   onProgress: (completed: number, total: number) => void
@@ -21,7 +21,7 @@ export async function runAccountBatch(options: {
   const accounts = options.accounts.filter((account, index, all) =>
     Number.isSafeInteger(account.id) && account.id > 0 && all.findIndex(row => row.id === account.id) === index)
   const results: BatchResult[] = []
-  const wantStarted = options.action === 'start'
+  const wantStarted = options.action !== 'stop'
   let abortReason = ''
   options.onProgress(0, accounts.length)
   for (const account of accounts) {
@@ -37,7 +37,7 @@ export async function runAccountBatch(options: {
           status = 'cancelled'; reason = '已取消尚未执行的账号'
         } else if (typeof started !== 'boolean') {
           reason = '未获取到运行状态，请刷新后重试'
-        } else if (started === wantStarted) {
+        } else if (options.action !== 'restart' && started === wantStarted) {
           status = 'skipped'; reason = wantStarted ? '已经启动' : '已经停止'
         } else {
           const expired = wantStarted ? await options.getExpired(account.id) : false
@@ -48,10 +48,21 @@ export async function runAccountBatch(options: {
           } else if (expired) {
             status = 'skipped'; reason = '配额已过期，请先增加配额'
           } else {
-            const response = await options.execute(account.id, options.action)
+            // Stop and start one account at a time; never stop the whole list first.
+            if (options.action === 'restart' && started) {
+              const stopped = await options.execute(account.id, 'stop')
+              if (stopped?.success !== true) throw new Error(`停止失败，未启动：${actionFailure(stopped)}`)
+              options.onStarted(account.id, false)
+            }
+            if (options.isCancelled()) {
+              results.push({ ...account, status: 'cancelled', reason: options.action === 'restart' && started ? '已停止，取消后未启动' : '已取消尚未执行的账号' })
+              options.onProgress(results.length, accounts.length)
+              continue
+            }
+            const response = await options.execute(account.id, wantStarted ? 'start' : 'stop')
             if (response?.success === true) {
               status = 'success'
-              reason = wantStarted ? '启动成功' : '停止成功'
+              reason = options.action === 'restart' ? '停止再启动成功' : wantStarted ? '启动成功' : '停止成功'
               options.onStarted(account.id, wantStarted)
             } else {
               reason = actionFailure(response)

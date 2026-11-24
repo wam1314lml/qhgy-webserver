@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const root=process.cwd(),require=createRequire(path.join(root,'package.json'));
+const prefix=root.endsWith('newGarden')?'src/reference':'src';
+const {build}=require('esbuild');
+const compiled=await build({entryPoints:[path.join(root,prefix,'utils/accountBatch.ts')],bundle:true,write:false,format:'esm',platform:'node'});
+const {runAccountBatch,batchSummary}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const accounts=[1,2,3].map(id=>({id,label:`测试${id}`}));
+function setup(patch={}){let calls=[],states=[],progress=[];const options={accounts,action:'restart',getStarted:async id=>id!==2,getExpired:async()=>false,execute:async(id,act)=>{calls.push([id,act]);return {success:true}},isCancelled:()=>false,onStarted:(...a)=>states.push(a),onProgress:(...a)=>progress.push(a),...patch};return{options,calls,states,progress}}
+test('逐号停止再启动，未启动账号只启动，不发不存在的restart接口',async()=>{const s=setup();const r=await runAccountBatch(s.options);assert.deepEqual(s.calls,[[1,'stop'],[1,'start'],[2,'start'],[3,'stop'],[3,'start']]);assert.ok(r.every(x=>x.status==='success'));assert.deepEqual(s.progress.at(-1),[3,3]);assert.deepEqual(s.states,[[1,false],[1,true],[2,true],[3,false],[3,true]])});
+test('未知状态、过期配额均不停止运行账号',async()=>{const s=setup({getStarted:async id=>id===1?undefined:true,getExpired:async id=>id===2?true:undefined});const r=await runAccountBatch(s.options);assert.deepEqual(s.calls,[]);assert.deepEqual(r.map(x=>x.status),['failed','skipped','failed'])});
+test('停止失败不启动该号，后续号仍独立处理',async()=>{let calls=[];const s=setup({execute:async(id,act)=>{calls.push([id,act]);return id===1?{success:false,message:'拒绝停止'}:{success:true}}});const r=await runAccountBatch(s.options);assert.deepEqual(calls,[[1,'stop'],[2,'start'],[3,'stop'],[3,'start']]);assert.equal(r[0].status,'failed');assert.match(r[0].reason,/拒绝停止/)});
+test('停止期间取消或切号，停止结果保留但不再启动',async()=>{let cancelled=false,calls=[];const s=setup({execute:async(id,act)=>{calls.push([id,act]);cancelled=true;return{success:true}},isCancelled:()=>cancelled});const r=await runAccountBatch(s.options);assert.deepEqual(calls,[[1,'stop']]);assert.deepEqual(s.states,[[1,false]]);assert.ok(r.every(x=>x.status==='cancelled'))});
+test('读取状态期间取消不得写入',async()=>{let cancelled=false;const s=setup({getStarted:async()=>{cancelled=true;return true},isCancelled:()=>cancelled});await runAccountBatch(s.options);assert.deepEqual(s.calls,[])});
+test('权限失效停止全部后续请求，不重试停止或启动',async()=>{for(const status of[401,403]){let calls=[];const s=setup({execute:async(id,act)=>{calls.push([id,act]);throw {response:{status,data:{message:'权限失效'}}}}});const r=await runAccountBatch(s.options);assert.deepEqual(calls,[[1,'stop']]);assert.deepEqual(r.map(x=>x.status),['failed','cancelled','cancelled'])}});
+test('停止成功但启动失败，不假报已启动，不重试',async()=>{const s=setup({accounts:[accounts[0]],execute:async(id,act)=>({success:act==='stop',message:'启动失败'})});const r=await runAccountBatch(s.options);assert.equal(r[0].status,'failed');assert.deepEqual(s.states,[[1,false]])});
+test('去重与非法账号过滤，不改变原有启动/停止幂等语义',async()=>{const s=setup({accounts:[accounts[0],accounts[0],{id:-1,label:'无效'},{id:1.1,label:'无效'}]});await runAccountBatch(s.options);assert.equal(s.calls.length,2);for(const action of['start','stop']){const t=setup({action,getStarted:async()=>action==='start'});const r=await runAccountBatch(t.options);assert.equal(t.calls.length,0);assert.ok(r.every(x=>x.status==='skipped'))}});
+if(root.endsWith('garden/garden-webserver'))test('交易安全停止尚未完成时不重启、不伪造停止状态',async()=>{const s=setup({accounts:[accounts[0]],execute:async()=>({success:true,data:{pendingStop:true}})});const r=await runAccountBatch(s.options);assert.equal(r[0].status,'pending');assert.deepEqual(s.states,[]);assert.match(batchSummary(r),/待安全停止 1/)});

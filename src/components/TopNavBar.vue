@@ -13,12 +13,6 @@
         </a-button>
       </div>
 
-      <!-- Logo -->
-      <div v-if="!props.title" class="logo" @click="$router.push('/')">
-        <span class="logo-icon">🍎</span>
-        <span class="logo-text">奇幻果园</span>
-      </div>
-
       <!-- 标题 -->
       <div
         v-if="props.title"

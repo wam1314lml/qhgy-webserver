@@ -2,6 +2,7 @@
   <BatchProgress v-model:open="progressOpen" :running="running" :busy="busy" :cancelled="cancelled" :dismissed="dismissed" :action="action" :completed="completed" :total="total" :results="results" :summary="summary" :label="currentLabel" :plan-label="planLabel" :request-pending="requestPending" @cancel="cancelled = true" @dismiss="dismissed = true" />
   <FloatButton.Group v-if="showMenu !== false && accounts.length" v-model:open="menuOpen" class="account-fab account-batch-fab" trigger="click" type="primary" shape="square" :style="{ left: '24px', right: 'auto', borderRadius: '8px' }" description="批量" @keydown.esc="menuOpen = false">
     <template #icon><CaretRightOutlined /></template><template #closeIcon><CaretRightOutlined /></template>
+    <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="confirmAction('restart')"><span class="account-batch-action-icon account-batch-action-icon--start"><CaretRightOutlined /></span><span>停止再启动全部</span></button>
     <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="confirmAction('start')"><span class="account-batch-action-icon account-batch-action-icon--start"><CaretRightOutlined /></span><span>启动全部</span></button>
     <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="confirmAction('stop')"><span class="account-batch-action-icon account-batch-action-icon--stop"><span class="account-batch-stop-mark" /></span><span>停止全部</span></button>
     <button type="button" class="account-batch-action" :disabled="disabled || busy" @click="openQuota"><span class="account-batch-action-icon account-batch-action-icon--quota"><ShoppingCartOutlined /></span><span>全部配额</span></button>
@@ -58,7 +59,7 @@ const snapshot = ref<QuotaAccount[]>([]), plans = ref<(QuotaPlan & { label?: str
 const selectedPlan = ref(0), extra = ref<number | null>(0), balance = ref(0)
 let owner: string | null = null, ownerKey = '', disposed = false, generation = 0
 let dialog: ReturnType<typeof Modal.confirm> | undefined
-const actionLabel = computed(() => action.value === 'quota' ? '全部配额' : action.value === 'start' ? '全部启动' : '全部停止')
+const actionLabel = computed(() => action.value === 'quota' ? '全部配额' : action.value === 'restart' ? '停止再启动全部' : action.value === 'start' ? '全部启动' : '全部停止')
 const summary = computed(() => action.value === 'quota' ? quotaBatchSummary(results.value as QuotaBatchResult[]) : batchSummary(results.value as BatchResult[]))
 const visibleResults = computed(() => action.value === 'quota' ? results.value : results.value.filter(row => row.status !== 'success'))
 const quote = computed(() => {
@@ -85,14 +86,14 @@ function prepare(kind: BatchAction | 'quota') {
 }
 function confirmAction(kind: BatchAction) {
   if (!acquire()) return
-  dialog = Modal.confirm({ okText: '确认', cancelText: '取消', title: kind === 'start' ? '全部启动' : '全部停止', content: `将依次处理 ${snapshot.value.length} 个账号，可取消剩余账号。`,
+  dialog = Modal.confirm({ okText: '确认', cancelText: '取消', title: kind === 'restart' ? '停止再启动全部' : kind === 'start' ? '全部启动' : '全部停止', content: `将依次处理 ${snapshot.value.length} 个账号，可取消剩余账号。`,
     onCancel: () => { dialog = undefined; release() },
     onOk: () => { dialog = undefined; if (!current()) { release(); return }; void executeAction(kind) },
   })
 }
 async function executeAction(kind: BatchAction) {
   if (running.value || !busy.value || !current()) return
-  planLabel.value = `依次处理 ${snapshot.value.length} 个角色 · 已处于目标状态的角色会跳过`
+  planLabel.value = `依次处理 ${snapshot.value.length} 个角色 · ${kind === 'restart' ? '逐个停止后再启动' : '已处于目标状态的角色会跳过'}`
   prepare(kind)
   try {
     const rows = await runAccountBatch({ accounts: snapshot.value, action: kind,
@@ -172,9 +173,9 @@ onBeforeUnmount(() => { window.removeEventListener('beforeunload', beforeUnload)
 .account-fab :deep(> .ant-float-btn .ant-float-btn-content) { padding: 4px; gap: 2px; }
 .account-fab :deep(> .ant-float-btn .ant-float-btn-icon) { margin: 0; height: 18px; font-size: 18px; line-height: 18px; }
 .account-fab :deep(> .ant-float-btn .ant-float-btn-description) { margin: 0; font-size: 12px; line-height: 16px; white-space: nowrap; }
-.account-batch-fab :deep(.ant-float-btn-group-wrap) { width: 136px; background: transparent; box-shadow: none; }
+.account-batch-fab :deep(.ant-float-btn-group-wrap) { width: 176px; background: transparent; box-shadow: none; }
 .account-batch-action {
-  display: flex; align-items: center; gap: 10px; width: 136px; min-height: 44px;
+  display: flex; align-items: center; gap: 10px; width: 176px; min-height: 44px;
   margin: 0 0 8px; padding: 8px 12px; border: 0; border-radius: 10px;
   background: #fff; color: #26334d; box-shadow: 0 4px 16px rgba(27, 50, 92, .16);
   font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer;

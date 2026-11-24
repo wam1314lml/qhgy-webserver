@@ -1,6 +1,6 @@
 <template>
     <div v-if="!busy && results.length && !dismissed" class="quota-batch-receipt">
-      <div class="quota-batch-receipt-icon"><ShoppingCartOutlined v-if="action === 'quota'" /><CaretRightOutlined v-else-if="action === 'start'" /><span v-else class="account-batch-stop-mark" style="background: currentColor" /></div>
+      <div class="quota-batch-receipt-icon"><ShoppingCartOutlined v-if="action === 'quota'" /><CaretRightOutlined v-else-if="(action === 'start' || action === 'restart')" /><span v-else class="account-batch-stop-mark" style="background: currentColor" /></div>
       <div class="quota-batch-receipt-text">
         <strong>{{ title }}</strong>
         <span>{{ summary }}</span>
@@ -23,7 +23,7 @@
     >
       <template #title>
         <div class="quota-progress-heading">
-          <span class="quota-progress-icon"><ShoppingCartOutlined v-if="action === 'quota'" /><CaretRightOutlined v-else-if="action === 'start'" /><span v-else class="account-batch-stop-mark" style="background: currentColor" /></span>
+          <span class="quota-progress-icon"><ShoppingCartOutlined v-if="action === 'quota'" /><CaretRightOutlined v-else-if="(action === 'start' || action === 'restart')" /><span v-else class="account-batch-stop-mark" style="background: currentColor" /></span>
           <div><span class="quota-progress-kicker">{{ operationLabel }}</span><h2>{{ title }}</h2></div>
         </div>
       </template>
@@ -81,13 +81,13 @@
 import { computed, toRefs } from 'vue'
 import { Modal, Button } from 'ant-design-vue'
 import { ShoppingCartOutlined, CaretRightOutlined, SyncOutlined, LockOutlined } from '@ant-design/icons-vue'
-const props = defineProps<{ open: boolean; running: boolean; busy: boolean; cancelled: boolean; dismissed: boolean; action: 'start' | 'stop' | 'quota'; completed: number; total: number; results: {id: number; label: string; status: string; reason: string}[]; summary: string; label: string; planLabel: string; requestPending: boolean }>()
+const props = defineProps<{ open: boolean; running: boolean; busy: boolean; cancelled: boolean; dismissed: boolean; action: 'start' | 'stop' | 'restart' | 'quota'; completed: number; total: number; results: {id: number; label: string; status: string; reason: string}[]; summary: string; label: string; planLabel: string; requestPending: boolean }>()
 const { open, running, busy, cancelled, dismissed, action, completed, total, results, summary, label, planLabel, requestPending } = toRefs(props)
 const emit = defineEmits<{ 'update:open': [value: boolean]; cancel: []; dismiss: [] }>()
 function close() { if (!running.value) emit('update:open', false) }
 function dismiss() { if (!running.value) { close(); emit('dismiss') } }
-const operationLabel = computed(() => action.value === 'quota' ? '全部配额' : action.value === 'start' ? '启动全部' : '停止全部')
-const operationVerb = computed(() => action.value === 'quota' ? '分配配额' : action.value === 'start' ? '启动' : '停止')
+const operationLabel = computed(() => action.value === 'quota' ? '全部配额' : action.value === 'restart' ? '停止再启动全部' : action.value === 'start' ? '启动全部' : '停止全部')
+const operationVerb = computed(() => action.value === 'quota' ? '分配配额' : action.value === 'restart' ? '停止再启动' : action.value === 'start' ? '启动' : '停止')
 const resultLabels: Record<string, string> = { success: '成功', skipped: '跳过', failed: '失败', cancelled: '已取消', unknown: '待核对' }
 const stats = computed(() => (action.value === 'quota' ? ['success', 'failed', 'cancelled', 'unknown'] : ['success', 'skipped', 'failed', 'cancelled']).map(status => ({
   status, label: resultLabels[status], count: results.value.filter(row => row.status === status).length,
