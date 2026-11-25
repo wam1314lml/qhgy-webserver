@@ -121,6 +121,9 @@ for (const pageName of ['GameConfigPage', 'FreeStylePlantingPage']) {
       Modal:{error(){throw Error('unexpected modal')}}, message:{error(){throw Error('unexpected toast')}},
       router:{push(){throw Error('unexpected navigation')}},
     }
+    // 当前页面同时维护缺省字段红点的加载代次；在异步渠道测试中提供独立代次。
+    const missingGuard = m.createAccountLoadGuard()
+    context.missingConfig = { begin: () => missingGuard.begin(), current: token => missingGuard.isCurrent(token), record() {} }
     context.currentSnapshot = {get value(){return JSON.stringify(context.config.value.plant.flower)}}
     const pending=[]
     context.axios={get(url){return new Promise(resolve=>pending.push({url,resolve}))}}

@@ -458,6 +458,10 @@ export interface GameConfig {
       hd3009TaskRewardEnabled: boolean
       hd3009DrawEnabled: boolean
       hd3009GiftEnabled: boolean
+      hd4812SignEnabled: boolean
+      hd4811TaskRewardEnabled: boolean
+      hd4811DrawEnabled: boolean
+      hd4811GiftEnabled: boolean
       hd1002SignEnabled: boolean
       hd1002TaskRewardEnabled: boolean
       hd1002DrawEnabled: boolean

@@ -32,6 +32,7 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5304", label: "葵光小筑" },
   { value: "5305", label: "柔紫携芳" },
   { value: "5307", label: "闲趣萌宠" },
+  { value: "5308", label: "甜荷茶坞" },
   { value: "5309", label: "果乐园邀约" },
   { value: "5311", label: "椰风漫曲" },
   { value: "5317", label: "灵境朝辉" },
@@ -53,4 +54,5 @@ export const flowerArtOptions: Array<{ value: string; label: string }> = [
   { value: "5428", label: "红鲤听澜" },
   { value: "5436", label: "云屿仙堡" },
   { value: "5440", label: "幻梦之夜" },
+  { value: "5441", label: "弦琴合音" },
 ]

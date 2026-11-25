@@ -76,6 +76,7 @@ export const orchardCompanionOptions: ShopOption[] = [
   { value: 10149, label: "葵光小筑(百果券×500)" },
   { value: 10150, label: "柔紫携芳(百果券×500)" },
   { value: 10152, label: "闲趣萌宠(百果券×500)" },
+  { value: 10153, label: "甜荷茶坞(百果券×500)" },
   { value: 10042, label: "灵花幻域(百果券×600)" },
 ]
 

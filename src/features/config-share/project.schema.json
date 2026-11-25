@@ -1545,6 +1545,18 @@
               "hd3009GiftEnabled": {
                 "type": "boolean"
               },
+              "hd4812SignEnabled": {
+                "type": "boolean"
+              },
+              "hd4811TaskRewardEnabled": {
+                "type": "boolean"
+              },
+              "hd4811DrawEnabled": {
+                "type": "boolean"
+              },
+              "hd4811GiftEnabled": {
+                "type": "boolean"
+              },
               "hd1002SignEnabled": {
                 "type": "boolean"
               },

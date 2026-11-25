@@ -2792,6 +2792,25 @@
                 :disabled="!config.activity.hdReward.hd3009DrawEnabled"
                 @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd3009GiftEnabled', checked === true)" />
             </CustomFormItem>
+            <Divider orientation="left">感恩乐颂</Divider>
+            <CustomFormItem label="感恩七日福利签到" name="activity.hdReward.hd4812SignEnabled"
+              tooltip="默认关闭。领取感恩乐颂中已达到登录天数、尚未领取的七日福利，可补领已解锁奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd4812SignEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="庆贺乐会每日任务领奖" name="activity.hdReward.hd4811TaskRewardEnabled"
+              tooltip="默认关闭。领取每日任务、广告任务、全部任务奖励，以及68、198、520庆贺音符的进度奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd4811TaskRewardEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动庆祝" name="activity.hdReward.hd4811DrawEnabled"
+              tooltip="默认关闭。有乐会钢琴时按50、10、1次自动庆祝；达到520后仍会使用已有钢琴领取道具奖励。">
+              <Switch v-model:checked="config.activity.hdReward.hd4811DrawEnabled" />
+            </CustomFormItem>
+            <CustomFormItem label="自动购买乐会礼包" name="activity.hdReward.hd4811GiftEnabled"
+              tooltip="需开启自动庆祝。先用已有钢琴，用完后用勾玉逐包购买并继续庆祝；庆贺音符达到520立即停止购买。本期每包50勾玉换10个钢琴，每日限购10次，实际以游戏为准。">
+              <Switch :checked="config.activity.hdReward.hd4811GiftEnabled"
+                :disabled="!config.activity.hdReward.hd4811DrawEnabled"
+                @change="(checked) => handleDiamondCostSwitchChange('activity.hdReward.hd4811GiftEnabled', checked === true)" />
+            </CustomFormItem>
             <Divider orientation="left">王国庆典</Divider>
             <CustomFormItem label="登录有礼签到领奖" name="activity.hdReward.hd42SignEnabled"
               tooltip="默认关闭。领取王国庆典中已达到登录天数、尚未领取的签到奖励。">
@@ -3391,6 +3410,7 @@ type DiamondCostSwitchPath =
   | 'activity.imperialTribute.jadeRefreshEnabled'
   | 'activity.hdReward.hd44GiftEnabled'
   | 'activity.hdReward.hd3009GiftEnabled'
+  | 'activity.hdReward.hd4811GiftEnabled'
   | 'activity.hdReward.hd1002GiftEnabled'
   | 'activity.hdReward.hd3013GiftEnabled'
   | 'activity.actCardCollect.enabledJadeGift'
