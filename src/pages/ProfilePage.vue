@@ -66,24 +66,46 @@
               </div>
             </div>
 
-            <div v-if="inviteInfo.invited_users?.length > 0" class="invited-users">
-              <h4>邀请的用户</h4>
-              <div class="invited-list">
-                <div v-for="invitedUser in inviteInfo.invited_users.slice(0, 5)" :key="invitedUser.id"
-                  class="invited-user">
+            <div class="invited-users" :aria-busy="inviteLoading">
+              <div class="invited-users-heading">
+                <h4>邀请的用户</h4>
+                <span>共 {{ inviteInfo.pagination.total }} 人</span>
+              </div>
+              <div class="invited-list profile-invited-list">
+                <div
+                  v-for="invitedUser in inviteInfo.invited_users"
+                  :key="invitedUser.id"
+                  class="invited-user"
+                >
                   <span class="invited-username">{{ invitedUser.username }}</span>
                   <span class="invited-date">
                     {{ formatDate(invitedUser.created_at) }}
                   </span>
                 </div>
-                <div v-if="inviteInfo.invited_users.length > 5" class="more-invites">
-                  还有 {{ inviteInfo.invited_users.length - 5 }} 人...
-                </div>
+                <p v-if="!inviteInfo.invited_users.length" class="invite-empty">暂无邀请用户</p>
+              </div>
+              <div class="invite-pagination">
+                <span class="invite-page-status" role="status">{{ inviteLoading ? '加载中…' : `每页 ${inviteInfo.pagination.pageSize} 人` }}</span>
+                <a-pagination
+                  v-if="inviteInfo.pagination.total > inviteInfo.pagination.pageSize"
+                  simple
+                  size="small"
+                  :current="inviteInfo.pagination.page"
+                  :page-size="inviteInfo.pagination.pageSize"
+                  :total="inviteInfo.pagination.total"
+                  :show-size-changer="false"
+                  :disabled="inviteLoading"
+                  @change="fetchInviteInfo"
+                />
               </div>
             </div>
           </div>
-          <div v-else class="loading h-[80px] flex items-center justify-center">
+          <div v-else-if="inviteLoading" class="loading h-[80px] flex items-center justify-center" role="status">
             加载邀请信息中...
+          </div>
+          <div v-if="inviteError" class="invite-error" role="alert">
+            <span>{{ inviteError }}</span>
+            <a-button size="small" :loading="inviteLoading" @click="fetchInviteInfo(inviteRequestedPage)">重试</a-button>
           </div>
         </div>
 
@@ -203,7 +225,7 @@
 
 <script setup lang="ts">
 import PointTransactionHistory from '../components/PointTransactionHistory.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted , onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClipboard } from '@vueuse/core'
 import { message, Modal } from 'ant-design-vue'
@@ -236,6 +258,7 @@ interface InviteInfo {
     email: string
     created_at: string
   }>
+  pagination: { page: number; pageSize: number; total: number; totalPages: number }
 }
 
 const router = useRouter()
@@ -249,6 +272,10 @@ const token = ref<string>('')
 const currentPoints = ref(0)
 const transactionHistory = ref<InstanceType<typeof PointTransactionHistory> | null>(null)
 const inviteInfo = ref<InviteInfo | null>(null)
+const inviteLoading = ref(false)
+const inviteError = ref('')
+const inviteRequestedPage = ref(1)
+let inviteRequestSequence = 0
 
 // 福利卡 & 卡密兑换
 const welfareCards = ref<any[]>([])
@@ -315,16 +342,29 @@ const fetchBalance = async () => {
 const fetchTransactions = () => transactionHistory.value?.refresh()
 
 // 获取邀请信息
-const fetchInviteInfo = async () => {
+const fetchInviteInfo = async (page: number = 1) => {
+  const sequence = ++inviteRequestSequence
+  inviteRequestedPage.value = page
+  inviteLoading.value = true
+  inviteError.value = ''
   try {
-    console.log('开始获取邀请信息...')
-    const response = await axios.get('/api/invite/info')
-    console.log('邀请信息获取成功:', response.data)
+    const response = await axios.get('/api/invite/info', {
+      params: new URLSearchParams({ page: String(page), pageSize: '5' }),
+    })
+    if (sequence !== inviteRequestSequence) return
+    if (!response.data.pagination || !Array.isArray(response.data.invited_users)) {
+      throw new Error('邀请列表分页数据不完整')
+    }
     inviteInfo.value = response.data
   } catch (error) {
+    if (sequence !== inviteRequestSequence) return
+    inviteError.value = '邀请用户加载失败，请重试'
     console.error('获取邀请信息失败:', error)
+  } finally {
+    if (sequence === inviteRequestSequence) inviteLoading.value = false
   }
 }
+onBeforeUnmount(() => { inviteRequestSequence++ })
 
 // 获取客服信息
 const fetchCustomerServiceInfo = async () => {
@@ -564,6 +604,25 @@ const loadMoreOperationLogs = async () => {
 </script>
 
 <style scoped>
+.invited-users-heading, .invite-pagination, .invite-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.invited-users-heading { margin-bottom: 8px; }
+.invited-users-heading h4 { margin: 0; }
+.invited-users-heading > span, .invite-page-status { font-size: 12px; color: #666; }
+.profile-invited-list { max-height: none; overflow: visible; }
+.profile-invited-list .invited-user { gap: 8px; flex-wrap: wrap; }
+.profile-invited-list .invited-username { min-width: 0; overflow-wrap: anywhere; }
+.profile-invited-list .invited-date { flex-shrink: 0; }
+.invite-pagination { margin-top: 12px; }
+.invite-empty { padding: 12px 0; margin: 0; color: #888; }
+.invite-error { justify-content: flex-start; margin-top: 12px; color: #b45309; font-size: 13px; }
+
+
 @import '../components/Dashboard.css';
 
 .profile-wrapper {
