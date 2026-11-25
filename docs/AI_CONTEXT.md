@@ -1,3 +1,11 @@
+## 2026-11-25 御前献珍保留勾玉
+
+activity.imperialTribute.jadeReserve默认0（不额外保留），前后端统一0～9999999整数，数字字符串可接受，有限数向下取整并截断，非数值回退0。刷新开启时显示输入，进贡关闭时禁用但保值；仅限制该活动每笔勾玉刷新后的余额。类型、默认、归一化、分享schema同步，旧码无字段保留接收方值，显式0允许覆盖；不能用本地每日计数替代余额门槛。
+
+## 2026-11-25 果漾糖衣
+
+activity.fruitCandy与silkEmbroidery结构一致，领奖/商店开关独立默认false；shop默认提前5分钟、水滴ID2。商品目录以商店行ID1～4表示，不能改成物品ID；HD21协议实际由脚本处理。新增活动字段必须覆盖类型、默认、归一化、activityShopCatalogs和生成的分享schema。ActivityShopSettings固定宽度控件同时限制max-width:100%，避免手机被页面overflow隐藏截断。
+
 ## 2026-11-22 分享/导入与多账号覆盖（Git 交付，未部署）
 
 同步修正配置扫描插件的 Windows 文件 URL 路径解析，使用 `fileURLToPath`，避免盘符重复导致构建失败；不改变配置字段或扫描规则。

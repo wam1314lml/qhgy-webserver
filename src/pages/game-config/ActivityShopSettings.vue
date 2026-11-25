@@ -22,10 +22,10 @@ function update(key: keyof ActivityShopConfig, value: unknown) {
   <template v-if="modelValue.enabled">
     <CustomFormItem label="提前清仓（分钟）" :name="`${configPath}.beforeEndMinutes`">
       <CustomInputNumber :value="modelValue.beforeEndMinutes" :min="1" :max="1440" :precision="0"
-        class="w-42! sm:w-48!" @update:value="update('beforeEndMinutes', $event)" />
+        class="w-42! sm:w-48!" style="max-width: 100%" @update:value="update('beforeEndMinutes', $event)" />
     </CustomFormItem>
     <CustomFormItem label="兑换商品" :name="`${configPath}.shopItemId`">
-      <CustomSelect :value="modelValue.shopItemId" :options="options" :wide="wide" :class="wide ? '' : 'w-64! sm:w-80!'"
+      <CustomSelect :value="modelValue.shopItemId" :options="options" :wide="wide" :class="wide ? '' : 'w-64! sm:w-80!'" style="max-width: 100%"
         @update:value="update('shopItemId', $event)" />
     </CustomFormItem>
     <p class="activity-shop-help">

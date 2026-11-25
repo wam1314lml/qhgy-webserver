@@ -19,10 +19,10 @@ const load = raw => {
 }
 const page = await loadSharePageModel(root), defaults = load({})
 const allQualities = [1, 2, 3, 4, 5]
-assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, goldTributeEnabled: false, jadeRefreshEnabled: false, jadeRefreshQualities: allQualities })
+assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, goldTributeEnabled: false, jadeRefreshEnabled: false, jadeRefreshQualities: allQualities, jadeReserve: 0 })
 let checks = 1
 for (let mask = 0; mask < 16; mask++) {
-  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4), goldTributeEnabled: !!(mask & 8), jadeRefreshQualities: allQualities }
+  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4), goldTributeEnabled: !!(mask & 8), jadeRefreshQualities: allQualities, jadeReserve: 500 }
   const config = load({ activity: { imperialTribute: value } })
   assert.deepEqual(config.activity.imperialTribute, value)
   assert.deepEqual(load(JSON.parse(JSON.stringify(config))).activity.imperialTribute, value)
@@ -71,4 +71,18 @@ for (const [value, expected] of [
   }
   checks++
 }
-console.log(`PASS 御前献珍前端 ${checks}组：开关组合、全部品质组合、空选、保存/分享、旧码保值及坏值过滤`)
+for (const [value, expected] of [[undefined, 0], [null, 0], ['', 0], ['500', 500], [500.9, 500],
+  [-1, 0], [10000000, 9999999], [Infinity, 0], [NaN, 0], [true, 0], [[500], 0], [{}, 0]]) {
+  assert.equal(load({ activity: { imperialTribute: { jadeReserve: value } } }).activity.imperialTribute.jadeReserve, expected)
+  checks++
+}
+for (const jadeReserve of [0, 500, 9999999]) {
+  const config = load({ activity: { imperialTribute: { jadeReserve } } })
+  assert.equal(load(JSON.parse(JSON.stringify(config))).activity.imperialTribute.jadeReserve, jadeReserve)
+  assert.equal(page.adapter.preview(defaults, page.adapter.exportConfig(config)).config.activity.imperialTribute.jadeReserve, jadeReserve)
+  assert.equal(page.adapter.preview(config, legacy).config.activity.imperialTribute.jadeReserve, jadeReserve)
+  const reset = { ...legacy, config: { activity: { imperialTribute: { jadeReserve: 0 } } } }
+  assert.equal(page.adapter.preview(config, reset).config.activity.imperialTribute.jadeReserve, 0)
+  checks++
+}
+console.log(`PASS 御前献珍前端 ${checks}组：开关/品质/保留勾玉、保存/分享、旧码保值及坏值过滤`)

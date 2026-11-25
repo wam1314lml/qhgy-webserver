@@ -62,6 +62,25 @@ assert.deepEqual(m.getActivityShopOptions(m.activityShopCatalogs.silkEmbroidery)
   ['加速卡×4（50金丝绣线）', '水滴×4（50金丝绣线）', '百果券×4（50金丝绣线）', '金币×1000（25金丝绣线）'])
 
 const page = await loadSharePageModel(root)
+assert.deepEqual(defaults.activity.fruitCandy, { enabled: false, shop: { enabled: false, beforeEndMinutes: 5, shopItemId: 2 } })
+for (const enabled of [false, true]) for (const shopEnabled of [false, true]) for (const shopItemId of [1, 2, 3, 4]) {
+  const fruitCandy = { enabled, shop: { enabled: shopEnabled, beforeEndMinutes: 7, shopItemId } }
+  const currentFruit = load({ activity: { fruitCandy } })
+  assert.deepEqual(load(JSON.parse(JSON.stringify(currentFruit))).activity.fruitCandy, fruitCandy)
+  const appliedFruit = page.adapter.preview(defaults, page.adapter.exportConfig(currentFruit)).config
+  assert.deepEqual(appliedFruit.activity.fruitCandy, fruitCandy)
+  const oldFruit = page.adapter.preview(currentFruit, { format: 1, project: 'qhgy', schemaVersion: 1,
+    config: { activity: { hdReward: { enabled: false } } } }).config
+  assert.deepEqual(oldFruit.activity.fruitCandy, fruitCandy, '旧分享码不覆盖新增果露设置')
+}
+for (const shopItemId of [false, '', 'bad', -1, 99, 2.5]) {
+  assert.equal(load({ activity: { fruitCandy: { shop: { enabled: true, shopItemId } } } }).activity.fruitCandy.shop.enabled, false)
+}
+for (const [input, expected] of [[null, 5], ['', 5], ['7', 7], [0, 1], [2000, 1440]]) {
+  assert.equal(load({ activity: { fruitCandy: { shop: { beforeEndMinutes: input } } } }).activity.fruitCandy.shop.beforeEndMinutes, expected)
+}
+assert.deepEqual(m.getActivityShopOptions(m.activityShopCatalogs.fruitCandy).map(row => row.label),
+  ['加速卡×5（40果露）', '水滴×5（40果露）', '百果券×5（50果露）', '金币×1000（10果露）'])
 const current = load({ activity: { flowerCompete: { autoSelect: true, selectIndex: 1, autoLike: true, autoClaimRewards: true },
   silkEmbroidery: { enabled: true, shop: { enabled: true, beforeEndMinutes: 7, shopItemId: 3 } } } })
 const payload = page.adapter.exportConfig(current)
@@ -104,6 +123,8 @@ for (const relative of ['src/pages/GameConfigPage.vue', 'src/pages/game-config/A
       assert.ok(source.includes(`v-model:checked="config.activity.${field}"`))
     }
     assert.ok(source.includes('v-model="config.activity.silkEmbroidery.shop"'))
+    assert.ok(source.includes('v-model:checked="config.activity.fruitCandy.enabled"'))
+    assert.ok(source.includes('v-model="config.activity.fruitCandy.shop"'))
     assert.ok(source.includes('配合花艺上架功能就可快速完成任务'))
     assert.ok(source.includes('v-model:value="config.activity.flowerCompete.selectIndex"'))
     assert.ok(source.includes('<Select.Option :value="0">左侧（第一个）</Select.Option>'))

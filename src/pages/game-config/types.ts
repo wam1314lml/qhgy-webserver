@@ -350,6 +350,7 @@ export interface GameConfig {
       goldTributeEnabled: boolean
       jadeRefreshEnabled: boolean
       jadeRefreshQualities: number[]
+      jadeReserve: number
     }
     actCyclicStory: {
       enabled: boolean
@@ -481,6 +482,10 @@ export interface GameConfig {
       shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }
     }
     silkEmbroidery: {
+      enabled: boolean
+      shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }
+    }
+    fruitCandy: {
       enabled: boolean
       shop: { enabled: boolean; beforeEndMinutes: number; shopItemId: number }
     }

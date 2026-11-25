@@ -366,6 +366,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         goldTributeEnabled: false,
         jadeRefreshEnabled: false,
         jadeRefreshQualities: [1, 2, 3, 4, 5],
+        jadeReserve: 0,
       },
       actCyclicStory: {
         enabled: false,
@@ -490,6 +491,10 @@ export const createDefaultGameConfig = (): GameConfig =>
       silkEmbroidery: {
         enabled: false,
         shop: createDefaultActivityShop('silkEmbroidery'),
+      },
+      fruitCandy: {
+        enabled: false,
+        shop: createDefaultActivityShop('fruitCandy'),
       },
       flowerEmbroidery: {
         enabled: false,

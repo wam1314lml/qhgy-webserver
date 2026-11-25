@@ -756,12 +756,16 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     autoClaimRewards: flowerCompete?.autoClaimRewards === true,
   }
   const imperialTribute = asRecord(config.activity.imperialTribute)
+  const rawJadeReserve = imperialTribute?.jadeReserve
+  const jadeReserve = (typeof rawJadeReserve === 'number' || typeof rawJadeReserve === 'string' && rawJadeReserve.trim())
+    ? Number(rawJadeReserve) : NaN
   config.activity.imperialTribute = {
     taskRewardEnabled: imperialTribute?.taskRewardEnabled === true,
     tributeEnabled: imperialTribute?.tributeEnabled === true,
     goldTributeEnabled: imperialTribute?.goldTributeEnabled === true,
     jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
     jadeRefreshQualities: normalizeImperialRefreshQualities(imperialTribute?.jadeRefreshQualities),
+    jadeReserve: Number.isFinite(jadeReserve) ? Math.min(9999999, Math.max(0, Math.floor(jadeReserve))) : 0,
   }
   const cyclicStory = asRecord(config.activity.actCyclicStory)
   const bfgq = asRecord(config.activity.actBfgq)
@@ -808,6 +812,11 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     shop: normalizeActivityShop(silkEmbroidery?.shop, 'silkEmbroidery'),
   }
   normalizeCyclicNoteOrderGuard(config.activity.cyclicNote)
+  const fruitCandy = asRecord(config.activity.fruitCandy)
+  config.activity.fruitCandy = {
+    enabled: fruitCandy?.enabled === true,
+    shop: normalizeActivityShop(fruitCandy?.shop, 'fruitCandy'),
+  }
 }
 
 function normalizeTimeHM(

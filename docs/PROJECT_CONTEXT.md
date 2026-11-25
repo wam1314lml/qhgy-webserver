@@ -1,3 +1,7 @@
+## 2026-11-25 果漾糖衣配置
+
+GameConfigPage活动页增加activity.fruitCandy，复用ActivityShopSettings及商品目录，支持独立领奖和结束前果露兑换；同样经过默认/归一化/分享生成流程。无新路由、接口或前端定时任务，游戏操作由脚本HdRewardMgr执行。详见HD_REWARD_HANDOFF。
+
 ## 2026-11-21 兑换码开始时间
 
 现有features/redeem-upload表单和API增加可选startHour；不增加路由，复用原上传接口。RedeemCodeAdmin读取后端startAt显示北京时间开始时刻/全天。按时兑换与小时重试由脚本负责，前端不创建兑换定时任务。对应页面回归为tools/check-redeem-upload-ui.py及check-redeem-admin-ui.py。

@@ -2876,7 +2876,7 @@
                 <Switch v-model:checked="config.activity.imperialTribute.goldTributeEnabled" />
               </CustomFormItem>
               <CustomFormItem label="勾玉刷新进贡冷却" name="activity.imperialTribute.jadeRefreshEnabled"
-                tooltip="开启后，在有足够水果可再次提交时，仅使用勾玉刷新下方勾选品质的冷却。费用随剩余冷却变化，持续开启会持续消耗勾玉。默认关闭。">
+                tooltip="开启后，在有足够水果可再次提交时，仅使用勾玉刷新下方勾选品质的冷却。每次刷新后必须满足保留勾玉数量，费用随剩余冷却变化。默认关闭。">
                 <Switch :checked="config.activity.imperialTribute.jadeRefreshEnabled"
                   @change="(checked) => handleDiamondCostSwitchChange('activity.imperialTribute.jadeRefreshEnabled', checked === true)"
                   :disabled="!config.activity.imperialTribute.tributeEnabled" />
@@ -2893,7 +2893,14 @@
                   <Checkbox :value="5">红</Checkbox>
                 </Checkbox.Group>
               </CustomFormItem>
-              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。勾玉只刷新勾选品质，全部取消则不消耗勾玉；免费广告刷新仍只用于红色绝品。其他冷却等待自然结束，当前为6小时。</p>
+              <CustomFormItem v-if="config.activity.imperialTribute.jadeRefreshEnabled"
+                label="保留勾玉" name="activity.imperialTribute.jadeReserve"
+                tooltip="每次付费刷新后至少保留此数量的勾玉，不足则等待自然冷却。0表示不额外保留；免费广告刷新不受影响。此限制仅用于御前献珍刷新。">
+                <CustomInputNumber v-model:value="config.activity.imperialTribute.jadeReserve"
+                  :min="0" :max="9999999" :precision="0" class="w-42! sm:w-48!" style="max-width: 100%"
+                  :disabled="!config.activity.imperialTribute.tributeEnabled" />
+              </CustomFormItem>
+              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。勾玉只刷新勾选品质，并保证刷新后不少于保留数量；全部取消品质则不消耗勾玉。免费广告刷新仍只用于红色绝品，其他冷却等待自然结束，当前为6小时。</p>
             </div>
 
             <div class="bfgq-settings">
@@ -2978,6 +2985,18 @@
               v-model="config.activity.silkEmbroidery.shop"
               :catalog="activityShopCatalogs.silkEmbroidery"
               config-path="activity.silkEmbroidery.shop"
+            />
+
+            <Divider orientation="left">果漾糖衣</Divider>
+            <p class="activity-task-help">收获水果有概率获得果露，累计果露达标后自动领取进度奖励。</p>
+            <CustomFormItem label="自动领取奖励" name="activity.fruitCandy.enabled">
+              <Switch v-model:checked="config.activity.fruitCandy.enabled" />
+            </CustomFormItem>
+            <p class="activity-task-help">果露商店：活动结束前自动兑换，可单独开启。</p>
+            <ActivityShopSettings
+              v-model="config.activity.fruitCandy.shop"
+              :catalog="activityShopCatalogs.fruitCandy"
+              config-path="activity.fruitCandy.shop"
             />
 
             <Divider orientation="left">甘之如饴</Divider>

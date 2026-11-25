@@ -11,6 +11,18 @@
       { "shopItemId": 4, "name": "金币", "amount": 1000, "price": 25 }
     ]
   },
+  "fruitCandy": {
+    "name": "果露商店",
+    "currencyName": "果露",
+    "defaultShopItemId": 2,
+    "fallbackShopItemId": 4,
+    "items": [
+      { "shopItemId": 1, "name": "加速卡", "amount": 5, "price": 40 },
+      { "shopItemId": 2, "name": "水滴", "amount": 5, "price": 40 },
+      { "shopItemId": 3, "name": "百果券", "amount": 5, "price": 50 },
+      { "shopItemId": 4, "name": "金币", "amount": 1000, "price": 10 }
+    ]
+  },
   "actBfgq": {
     "name": "缤纷果趣活动商店",
     "currencyName": "活动币",

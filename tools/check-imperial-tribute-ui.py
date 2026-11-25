@@ -70,10 +70,11 @@ with sync_playwright() as p:
 
     def load():
         page.goto(BASE + '/game-config/1', wait_until='networkidle')
+        expect(page.get_by_role('tab', name=re.compile(r'^活动(?:\s|$)'))).to_be_visible()
         notice = page.get_by_role('button', name='我知道了', exact=True)
-        if notice.is_visible():
-            notice.click()
-        page.get_by_role('tab', name='活动', exact=True).click()
+        notice.click()
+        expect(page.get_by_role('dialog')).to_be_hidden()
+        page.get_by_role('tab', name=re.compile(r'^活动(?:\s|$)')).click()
 
     def field(label):
         return page.locator('.imperial-tribute-settings .ant-form-item').filter(has=page.get_by_text(label, exact=True))
@@ -95,10 +96,10 @@ with sync_playwright() as p:
     expect(refresh).to_be_disabled()
     reward.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5]}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
     gold.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5]}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
     load()
     expect(gold).to_have_attribute('aria-checked', 'true')
     expect(gold).to_be_enabled()
@@ -109,6 +110,9 @@ with sync_playwright() as p:
     refresh.click()
     page.get_by_role('button', name='确认开启', exact=True).click()
     expect(refresh).to_have_attribute('aria-checked', 'true')
+    reserve = field('保留勾玉').get_by_role('spinbutton')
+    expect(reserve).to_have_value('0')
+    reserve.fill('500')
     qualities = field('勾玉刷新品质')
     for color in ('绿', '蓝', '紫', '金', '红'):
         expect(qualities.get_by_role('checkbox', name=color, exact=True)).to_be_checked()
@@ -116,7 +120,9 @@ with sync_playwright() as p:
         qualities.get_by_role('checkbox', name=color, exact=True).uncheck()
     save()
     assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [5]
+    assert writes[-1]['activity']['imperialTribute']['jadeReserve'] == 500
     load()
+    expect(reserve).to_have_value('500')
     expect(qualities.get_by_role('checkbox', name='红', exact=True)).to_be_checked()
     expect(qualities.get_by_role('checkbox', name='金', exact=True)).not_to_be_checked()
     qualities.get_by_role('checkbox', name='金', exact=True).check()
@@ -124,8 +130,10 @@ with sync_playwright() as p:
     assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
     refresh.click()
     expect(qualities).to_be_hidden()
+    expect(reserve).to_be_hidden()
     save()
     assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
+    assert writes[-1]['activity']['imperialTribute']['jadeReserve'] == 500
     refresh.click()
     page.get_by_role('button', name='确认开启', exact=True).click()
     for color in ('金', '红'):
@@ -142,6 +150,7 @@ with sync_playwright() as p:
     expect(refresh).to_be_disabled()
     expect(refresh).to_have_attribute('aria-checked', 'true')
     expect(qualities.get_by_role('checkbox', name='红', exact=True)).to_be_disabled()
+    expect(reserve).to_be_disabled()
     save()
     assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
     load()
@@ -151,14 +160,17 @@ with sync_playwright() as p:
     auto.click()
     for width in (1100, 390, 320):
         page.set_viewport_size({'width': width, 'height': 1000})
-        page.get_by_role('tab', name='活动', exact=True).click()
+        page.get_by_role('tab', name=re.compile(r'^活动(?:\s|$)')).click()
         expect(reward).to_be_visible()
         page.locator('.imperial-tribute-settings').evaluate("el => {el.style.scrollMarginTop='140px'; el.scrollIntoView({block:'start'});}")
-        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却', '勾玉刷新品质'):
+        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却', '勾玉刷新品质', '保留勾玉'):
             box = field(label).bounding_box()
             assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1, (width, label, box)
             assert field(label).locator('.label-text').evaluate('(el) => el.scrollWidth <= el.clientWidth + 1'), (width, label)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), width
+        expect(reserve).to_have_value('500')
+        box = reserve.bounding_box()
+        assert box and box['x'] >= 0 and box['x'] + box['width'] <= width - 8
         for color in ('绿', '蓝', '紫', '金', '红'):
             checkbox = qualities.get_by_role('checkbox', name=color, exact=True)
             expect(checkbox).to_be_visible()
@@ -168,4 +180,4 @@ with sync_playwright() as p:
     assert not errors, errors
     assert not unexpected, unexpected
     browser.close()
-print('PASS 御前献珍生产dist：勾玉确认/取消、只红/金红/空选、关闭保值、保存重载及1100/390/320布局；外网请求0')
+print('PASS 御前献珍生产dist：勾玉确认/取消、品质选择、保留勾玉、关闭保值、保存重载及1100/390/320布局；外网请求0')

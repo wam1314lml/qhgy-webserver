@@ -1218,6 +1218,9 @@
                 "item": {
                   "type": "number"
                 }
+              },
+              "jadeReserve": {
+                "type": "number"
               }
             }
           },
@@ -1677,6 +1680,28 @@
             }
           },
           "silkEmbroidery": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "shop": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "beforeEndMinutes": {
+                    "type": "number"
+                  },
+                  "shopItemId": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "fruitCandy": {
             "type": "object",
             "properties": {
               "enabled": {
