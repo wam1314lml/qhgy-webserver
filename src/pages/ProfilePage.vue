@@ -69,7 +69,8 @@
             <div class="invited-users" :aria-busy="inviteLoading">
               <div class="invited-users-heading">
                 <h4>邀请的用户</h4>
-                <span>共 {{ inviteInfo.pagination.total }} 人</span>
+                <span v-if="inviteInfo.pagination">共 {{ inviteInfo.pagination.total }} 人</span>
+                <span v-else>已加载 {{ inviteInfo.invited_users.length }} 人</span>
               </div>
               <div class="invited-list profile-invited-list">
                 <div
@@ -84,7 +85,7 @@
                 </div>
                 <p v-if="!inviteInfo.invited_users.length" class="invite-empty">暂无邀请用户</p>
               </div>
-              <div class="invite-pagination">
+              <div v-if="inviteInfo.pagination" class="invite-pagination">
                 <span class="invite-page-status" role="status">{{ inviteLoading ? '加载中…' : `每页 ${inviteInfo.pagination.pageSize} 人` }}</span>
                 <a-pagination
                   v-if="inviteInfo.pagination.total > inviteInfo.pagination.pageSize"
@@ -98,6 +99,7 @@
                   @change="fetchInviteInfo"
                 />
               </div>
+              <p v-else-if="inviteInfo.invited_users.length" class="invite-page-status">显示最近的邀请用户</p>
             </div>
           </div>
           <div v-else-if="inviteLoading" class="loading h-[80px] flex items-center justify-center" role="status">
@@ -258,7 +260,7 @@ interface InviteInfo {
     email: string
     created_at: string
   }>
-  pagination: { page: number; pageSize: number; total: number; totalPages: number }
+  pagination?: { page: number; pageSize: number; total: number; totalPages: number }
 }
 
 const router = useRouter()
@@ -352,9 +354,10 @@ const fetchInviteInfo = async (page: number = 1) => {
       params: new URLSearchParams({ page: String(page), pageSize: '5' }),
     })
     if (sequence !== inviteRequestSequence) return
-    if (!response.data.pagination || !Array.isArray(response.data.invited_users)) {
-      throw new Error('邀请列表分页数据不完整')
+    if (!Array.isArray(response.data?.invited_users)) {
+      throw new Error('邀请列表数据不完整')
     }
+    // 旧接口只有最近20位名单，不含pagination；仍展示邀请码及名单，不伪造完整分页。
     inviteInfo.value = response.data
   } catch (error) {
     if (sequence !== inviteRequestSequence) return
