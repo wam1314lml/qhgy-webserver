@@ -1,3 +1,10 @@
+## 2026-11-25 个人中心 CSS 导入告警与生产构建排查（授权Git交付，未部署）
+
+- ProfilePage 原有两个 scoped 样式块，公共部分逐字相同，第一块的 Dashboard.css 导入位于普通规则后，引发 PostCSS 导入顺序警告。现合并为一个样式块并将导入放到首行，保留邀请列表覆盖样式及原服务区样式；没有修改 useTheme.ts 或生产混淆/压缩配置。
+- `python tools/check-profile-invite-ui.py` 六组真实页面专项通过：旧接口空列表/最近20人、新接口完整分页、翻页失败重试、错误恢复、1280/390/320布局，页面异常及外部请求0。320截图已目视核对，全部返回名单可正常展开。
+- 用户报告的真正失败是 esbuild service 写管道 EPIPE。已核对本地 esbuild 0.25.9 的子进程与 afterClose 实现，该堆栈不能单独定位为 useTheme.ts 语法错误，也不能证明 OOM；服务器内存、Node 版本及内核退出记录尚待补充。修正 CSS 告警不代表已解决服务器进程退出。
+- Node 22.20.0 / Vite 7.1.4 下，prebuild/schema 与项目 build 中的 vue-tsc 步骤通过（不等同于显式全量 app 类型检查）；保留远端混淆/移除Console参数的 Vite 生产构建47.56秒通过，仅余既有大包提示，CSS导入告警消失，未复现 EPIPE。独立工作区共享 node_modules 的 junction 会使原混淆插件的 node_modules 排除规则失配，已终止该次验证；后续通过 Vite API 临时设置 resolve.preserveSymlinks=true 还原排除范围，不写入发布配置。验证调用不得使用 node --input-type=module，以免该参数传递给 Terser 的 CommonJS eval worker。
+
 ## 2026-11-25 邀请码与名单不显示（授权Git交付，未部署）
 
 - 用户截图的邀请请求HTTP200且有邀请码/名单，但没有pagination；新版个人中心把分页字段设为必需，主动抛出“邀请列表分页数据不完整”，导致整块inviteInfo未赋值，邀请码显示N/A。已与本地旧接口实现核对，不属于脚本EVT/CPU优化。

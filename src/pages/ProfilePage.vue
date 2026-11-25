@@ -607,6 +607,8 @@ const loadMoreOperationLogs = async () => {
 </script>
 
 <style scoped>
+@import '../components/Dashboard.css';
+
 .invited-users-heading, .invite-pagination, .invite-error {
   display: flex;
   align-items: center;
@@ -624,105 +626,6 @@ const loadMoreOperationLogs = async () => {
 .invite-pagination { margin-top: 12px; }
 .invite-empty { padding: 12px 0; margin: 0; color: #888; }
 .invite-error { justify-content: flex-start; margin-top: 12px; color: #b45309; font-size: 13px; }
-
-
-@import '../components/Dashboard.css';
-
-.profile-wrapper {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0;
-  margin: 0;
-}
-
-.profile-container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.profile-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* 服务中心面板样式 */
-.service-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.service-content {
-  width: 100%;
-}
-
-.service-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.service-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4f8 100%);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  min-height: 100px;
-}
-
-.service-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-  background: linear-gradient(135deg, #f0f4ff 0%, #e0f0f6 100%);
-}
-
-.service-icon {
-  font-size: 32px;
-  color: #667eea;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.service-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #2c3e50;
-  text-align: center;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .service-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .service-item {
-    padding: 16px;
-    min-height: 80px;
-  }
-
-  .service-icon {
-    font-size: 28px;
-  }
-}
-</style>
-
-
-<style scoped>
-@import '../components/Dashboard.css';
 
 .profile-wrapper {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
