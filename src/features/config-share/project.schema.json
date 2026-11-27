@@ -1210,6 +1210,15 @@
               "goldTributeEnabled": {
                 "type": "boolean"
               },
+              "adRefreshEnabled": {
+                "type": "boolean"
+              },
+              "adRefreshQualities": {
+                "type": "array",
+                "item": {
+                  "type": "number"
+                }
+              },
               "jadeRefreshEnabled": {
                 "type": "boolean"
               },

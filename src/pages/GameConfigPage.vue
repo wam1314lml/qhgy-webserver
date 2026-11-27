@@ -2887,12 +2887,29 @@
                 <Switch v-model:checked="config.activity.imperialTribute.taskRewardEnabled" />
               </CustomFormItem>
               <CustomFormItem label="自动进贡珍果" name="activity.imperialTribute.tributeEnabled"
-                tooltip="每个品质优先提交库存足够的当期特选水果，获取双倍奖励；多个特选中选库存最多的，没有可提交的特选时选该品质库存最多的水果。先提交红色绝品并使用前三次免费广告刷新，再处理其他品质。">
+                tooltip="每个品质优先提交库存足够的当期特选水果，获取双倍奖励；多个特选中选库存最多的，没有可提交的特选时选该品质库存最多的水果。免费广告与勾玉刷新分别按下方开关和所选品质执行。">
                 <Switch v-model:checked="config.activity.imperialTribute.tributeEnabled" />
               </CustomFormItem>
               <CustomFormItem label="筹办贡运金币提交" name="activity.imperialTribute.goldTributeEnabled"
                 tooltip="独立开启后，按服务器档位依次提交金币。当前四档分别消耗30万、60万、90万、120万金币，共300万；余额不足或全部完成时停止，不使用广告或勾玉刷新。">
                 <Switch v-model:checked="config.activity.imperialTribute.goldTributeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem label="免费广告刷新" name="activity.imperialTribute.adRefreshEnabled"
+                tooltip="开启后，有足够已培育水果可再次进贡时，使用每日三次免费广告刷新所选品质的冷却。次数以服务器剩余机会为准；默认开启并只选红色。">
+                <Switch v-model:checked="config.activity.imperialTribute.adRefreshEnabled"
+                  :disabled="!config.activity.imperialTribute.tributeEnabled" />
+              </CustomFormItem>
+              <CustomFormItem v-if="config.activity.imperialTribute.adRefreshEnabled"
+                label="广告刷新品质" name="activity.imperialTribute.adRefreshQualities"
+                tooltip="可多选，默认只选红色。所选品质从红到绿优先刷新，共用三次免费机会；库存不足时检查下一个已选品质。全部取消则不使用广告，不影响自然冷却后进贡或勾玉刷新设置。">
+                <Checkbox.Group v-model:value="config.activity.imperialTribute.adRefreshQualities"
+                  class="imperial-refresh-qualities" :disabled="!config.activity.imperialTribute.tributeEnabled">
+                  <Checkbox :value="1">绿</Checkbox>
+                  <Checkbox :value="2">蓝</Checkbox>
+                  <Checkbox :value="3">紫</Checkbox>
+                  <Checkbox :value="4">金</Checkbox>
+                  <Checkbox :value="5">红</Checkbox>
+                </Checkbox.Group>
               </CustomFormItem>
               <CustomFormItem label="勾玉刷新进贡冷却" name="activity.imperialTribute.jadeRefreshEnabled"
                 tooltip="开启后，在有足够水果可再次提交时，仅使用勾玉刷新下方勾选品质的冷却。每次刷新后必须满足保留勾玉数量，费用随剩余冷却变化。默认关闭。">
@@ -2919,7 +2936,7 @@
                   :min="0" :max="9999999" :precision="0" class="w-42! sm:w-48!" style="max-width: 100%"
                   :disabled="!config.activity.imperialTribute.tributeEnabled" />
               </CustomFormItem>
-              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。勾玉只刷新勾选品质，并保证刷新后不少于保留数量；全部取消品质则不消耗勾玉。免费广告刷新仍只用于红色绝品，其他冷却等待自然结束，当前为6小时。</p>
+              <p class="activity-task-help">同品质优先库存足够的当期特选水果，其次选择库存最多的。免费广告与勾玉刷新分别开关、分别选择品质；空选不执行对应刷新。广告按所选品质从高到低使用，共享每日三次机会；勾玉刷新后不少于保留数量。其余等待自然冷却，当前为6小时。</p>
             </div>
 
             <div class="bfgq-settings">

@@ -62,9 +62,9 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null
 }
 
-/** 付费品质只接受1～5；缺字段兼容旧版全选，显式空选或坏值不扩大消费范围。 */
-function normalizeImperialRefreshQualities(value: unknown): number[] {
-  if (value === undefined) return [1, 2, 3, 4, 5]
+/** 刷新品质只接受1～5；缺字段沿用各自默认，显式空选或坏值不扩大刷新范围。 */
+function normalizeImperialRefreshQualities(value: unknown, fallback = [1, 2, 3, 4, 5]): number[] {
+  if (value === undefined) return [...fallback]
   if (!Array.isArray(value)) return []
   return [...new Set(value
     .filter(item => typeof item === 'number' || typeof item === 'string' && item.trim())
@@ -72,13 +72,19 @@ function normalizeImperialRefreshQualities(value: unknown): number[] {
     .sort((a, b) => a - b)
 }
 
-/** 默认值深度合并前处理显式坏值，防止null/对象被数组默认值覆盖为全选。 */
+/** 默认值深度合并前处理显式坏值，防止null恢复默认广告开关/品质。 */
 export function prepareImperialTributeQualities(config: unknown): void {
   const root = asRecord(config)
   const activity = asRecord(root?.activity)
   const tribute = asRecord(activity?.imperialTribute)
   if (tribute && Object.prototype.hasOwnProperty.call(tribute, 'jadeRefreshQualities')) {
     tribute.jadeRefreshQualities = normalizeImperialRefreshQualities(tribute.jadeRefreshQualities)
+  }
+  if (tribute && Object.prototype.hasOwnProperty.call(tribute, 'adRefreshQualities')) {
+    tribute.adRefreshQualities = normalizeImperialRefreshQualities(tribute.adRefreshQualities, [5])
+  }
+  if (tribute && tribute.adRefreshEnabled !== undefined) {
+    tribute.adRefreshEnabled = tribute.adRefreshEnabled === true
   }
 }
 
@@ -767,6 +773,8 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     taskRewardEnabled: imperialTribute?.taskRewardEnabled === true,
     tributeEnabled: imperialTribute?.tributeEnabled === true,
     goldTributeEnabled: imperialTribute?.goldTributeEnabled === true,
+    adRefreshEnabled: imperialTribute?.adRefreshEnabled === undefined ? true : imperialTribute.adRefreshEnabled === true,
+    adRefreshQualities: normalizeImperialRefreshQualities(imperialTribute?.adRefreshQualities, [5]),
     jadeRefreshEnabled: imperialTribute?.jadeRefreshEnabled === true,
     jadeRefreshQualities: normalizeImperialRefreshQualities(imperialTribute?.jadeRefreshQualities),
     jadeReserve: Number.isFinite(jadeReserve) ? Math.min(9999999, Math.max(0, Math.floor(jadeReserve))) : 0,

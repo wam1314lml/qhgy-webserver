@@ -348,6 +348,8 @@ export interface GameConfig {
       taskRewardEnabled: boolean
       tributeEnabled: boolean
       goldTributeEnabled: boolean
+      adRefreshEnabled: boolean
+      adRefreshQualities: number[]
       jadeRefreshEnabled: boolean
       jadeRefreshQualities: number[]
       jadeReserve: number

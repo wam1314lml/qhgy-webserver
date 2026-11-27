@@ -19,10 +19,10 @@ const load = raw => {
 }
 const page = await loadSharePageModel(root), defaults = load({})
 const allQualities = [1, 2, 3, 4, 5]
-assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, goldTributeEnabled: false, jadeRefreshEnabled: false, jadeRefreshQualities: allQualities, jadeReserve: 0 })
+assert.deepEqual(defaults.activity.imperialTribute, { taskRewardEnabled: false, tributeEnabled: false, goldTributeEnabled: false, adRefreshEnabled: true, adRefreshQualities: [5], jadeRefreshEnabled: false, jadeRefreshQualities: allQualities, jadeReserve: 0 })
 let checks = 1
-for (let mask = 0; mask < 16; mask++) {
-  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4), goldTributeEnabled: !!(mask & 8), jadeRefreshQualities: allQualities, jadeReserve: 500 }
+for (let mask = 0; mask < 32; mask++) {
+  const value = { taskRewardEnabled: !!(mask & 1), tributeEnabled: !!(mask & 2), jadeRefreshEnabled: !!(mask & 4), goldTributeEnabled: !!(mask & 8), adRefreshEnabled: !!(mask & 16), adRefreshQualities: [4, 5], jadeRefreshQualities: allQualities, jadeReserve: 500 }
   const config = load({ activity: { imperialTribute: value } })
   assert.deepEqual(config.activity.imperialTribute, value)
   assert.deepEqual(load(JSON.parse(JSON.stringify(config))).activity.imperialTribute, value)
@@ -85,4 +85,43 @@ for (const jadeReserve of [0, 500, 9999999]) {
   assert.equal(page.adapter.preview(config, reset).config.activity.imperialTribute.jadeReserve, 0)
   checks++
 }
-console.log(`PASS 御前献珍前端 ${checks}组：开关/品质/保留勾玉、保存/分享、旧码保值及坏值过滤`)
+// 广告品质与勾玉品质独立保存/分享；旧码缺字段不重置接收方选择。
+for (let mask = 0; mask < 32; mask++) {
+  const qualities = allQualities.filter(color => mask & (1 << (color - 1)))
+  const config = load({ activity: { imperialTribute: { tributeEnabled: true, adRefreshEnabled: true,
+    adRefreshQualities: qualities, jadeRefreshQualities: [2, 4] } } })
+  const selected = value => value.activity.imperialTribute.adRefreshQualities
+  assert.deepEqual(selected(config), qualities)
+  assert.deepEqual(selected(load(JSON.parse(JSON.stringify(config)))), qualities)
+  const shared = page.adapter.exportConfig(config)
+  assert.deepEqual(selected(page.adapter.preview(defaults, shared).config), qualities)
+  assert.deepEqual(selected(page.adapter.preview(config, legacy).config), qualities)
+  assert.deepEqual(config.activity.imperialTribute.jadeRefreshQualities, [2, 4])
+  config.activity.imperialTribute.tributeEnabled = false
+  config.activity.imperialTribute.adRefreshEnabled = false
+  assert.deepEqual(selected(load(config)), qualities)
+  assert.equal(page.adapter.preview(config, legacy).config.activity.imperialTribute.adRefreshEnabled, false)
+  assert.equal(page.adapter.preview(defaults, page.adapter.exportConfig(config)).config.activity.imperialTribute.adRefreshEnabled, false)
+  checks++
+}
+for (const [value, expected] of [
+  [undefined, [5]], [null, []], [false, []], [true, []], [5, []], ['5', []], [{ 0: 5 }, []],
+  [[5, '4', 5, '1', 0, 6, 2.5, null, true, false, {}, [], [2], 'bad'], [1, 4, 5]], [[6, 0, 'bad'], []],
+]) {
+  assert.deepEqual(load({ activity: { imperialTribute: { adRefreshQualities: value } } }).activity.imperialTribute.adRefreshQualities, expected)
+  if (value !== undefined) {
+    const code = { ...legacy, config: { activity: { imperialTribute: { adRefreshQualities: value } } } }
+    assert.deepEqual(page.adapter.preview(defaults, code).config.activity.imperialTribute.adRefreshQualities, expected)
+  }
+  checks++
+}
+for (const value of [false, null, 1, 'true', 'false', [], {}]) {
+  assert.equal(load({ activity: { imperialTribute: { adRefreshEnabled: value } } }).activity.imperialTribute.adRefreshEnabled, false)
+  const code = { ...legacy, config: { activity: { imperialTribute: { adRefreshEnabled: value } } } }
+  assert.equal(page.adapter.preview(defaults, code).config.activity.imperialTribute.adRefreshEnabled, false)
+  checks++
+}
+const snapshot = load({})
+snapshot.activity.imperialTribute.adRefreshQualities.length = 0
+assert.deepEqual(load({}).activity.imperialTribute.adRefreshQualities, [5])
+console.log(`PASS 御前献珍前端 ${checks}组：广告/勾玉开关与品质、保留勾玉、保存/分享、旧码保值及坏值过滤`)

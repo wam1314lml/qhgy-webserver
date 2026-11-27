@@ -364,6 +364,8 @@ export const createDefaultGameConfig = (): GameConfig =>
         taskRewardEnabled: false,
         tributeEnabled: false,
         goldTributeEnabled: false,
+        adRefreshEnabled: true,
+        adRefreshQualities: [5],
         jadeRefreshEnabled: false,
         jadeRefreshQualities: [1, 2, 3, 4, 5],
         jadeReserve: 0,

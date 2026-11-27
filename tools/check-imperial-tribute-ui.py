@@ -96,14 +96,46 @@ with sync_playwright() as p:
     expect(refresh).to_be_disabled()
     reward.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': False, 'adRefreshEnabled': True, 'adRefreshQualities': [5], 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
     gold.click()
     save()
-    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
+    assert writes[-1]['activity']['imperialTribute'] == {'taskRewardEnabled': True, 'tributeEnabled': False, 'goldTributeEnabled': True, 'adRefreshEnabled': True, 'adRefreshQualities': [5], 'jadeRefreshEnabled': False, 'jadeRefreshQualities': [1, 2, 3, 4, 5], 'jadeReserve': 0}
     load()
     expect(gold).to_have_attribute('aria-checked', 'true')
     expect(gold).to_be_enabled()
+    ad = field('免费广告刷新').get_by_role('switch')
+    ad_qualities = field('广告刷新品质')
+    expect(ad).to_have_attribute('aria-checked', 'true')
+    expect(ad).to_be_disabled()
+    expect(ad_qualities.get_by_role('checkbox', name='红', exact=True)).to_be_checked()
     auto.click()
+    expect(ad).to_be_enabled()
+    ad_qualities.get_by_role('checkbox', name='红', exact=True).uncheck()
+    ad_qualities.get_by_role('checkbox', name='绿', exact=True).check()
+    ad_qualities.get_by_role('checkbox', name='紫', exact=True).check()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['adRefreshQualities'] == [1, 3]
+    load()
+    expect(ad_qualities.get_by_role('checkbox', name='绿', exact=True)).to_be_checked()
+    expect(ad_qualities.get_by_role('checkbox', name='紫', exact=True)).to_be_checked()
+    expect(ad_qualities.get_by_role('checkbox', name='红', exact=True)).not_to_be_checked()
+    ad.click()
+    expect(ad_qualities).to_be_hidden()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['adRefreshEnabled'] is False
+    assert writes[-1]['activity']['imperialTribute']['adRefreshQualities'] == [1, 3]
+    load()
+    expect(ad).to_have_attribute('aria-checked', 'false')
+    ad.click()
+    for color in ('绿', '紫'):
+        ad_qualities.get_by_role('checkbox', name=color, exact=True).uncheck()
+    save()
+    assert writes[-1]['activity']['imperialTribute']['adRefreshQualities'] == []
+    load()
+    expect(ad_qualities.get_by_role('checkbox', checked=True)).to_have_count(0)
+    for color in ('金', '红'):
+        ad_qualities.get_by_role('checkbox', name=color, exact=True).check()
+    save()
     refresh.click()
     page.get_by_role('dialog').get_by_role('button', name=re.compile(r'^取\s*消$')).click()
     expect(refresh).to_have_attribute('aria-checked', 'false')
@@ -148,11 +180,15 @@ with sync_playwright() as p:
     load()
     auto.click()
     expect(refresh).to_be_disabled()
+    expect(ad).to_be_disabled()
+    expect(ad).to_have_attribute('aria-checked', 'true')
+    expect(ad_qualities.get_by_role('checkbox', name='红', exact=True)).to_be_disabled()
     expect(refresh).to_have_attribute('aria-checked', 'true')
     expect(qualities.get_by_role('checkbox', name='红', exact=True)).to_be_disabled()
     expect(reserve).to_be_disabled()
     save()
     assert writes[-1]['activity']['imperialTribute']['jadeRefreshQualities'] == [4, 5]
+    assert writes[-1]['activity']['imperialTribute']['adRefreshQualities'] == [4, 5]
     load()
     expect(refresh).to_be_disabled()
     expect(reward).to_have_attribute('aria-checked', 'true')
@@ -163,7 +199,7 @@ with sync_playwright() as p:
         page.get_by_role('tab', name=re.compile(r'^活动(?:\s|$)')).click()
         expect(reward).to_be_visible()
         page.locator('.imperial-tribute-settings').evaluate("el => {el.style.scrollMarginTop='140px'; el.scrollIntoView({block:'start'});}")
-        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '勾玉刷新进贡冷却', '勾玉刷新品质', '保留勾玉'):
+        for label in ('宫廷委托奖励自动领取', '自动进贡珍果', '筹办贡运金币提交', '免费广告刷新', '广告刷新品质', '勾玉刷新进贡冷却', '勾玉刷新品质', '保留勾玉'):
             box = field(label).bounding_box()
             assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1, (width, label, box)
             assert field(label).locator('.label-text').evaluate('(el) => el.scrollWidth <= el.clientWidth + 1'), (width, label)
@@ -172,12 +208,13 @@ with sync_playwright() as p:
         box = reserve.bounding_box()
         assert box and box['x'] >= 0 and box['x'] + box['width'] <= width - 8
         for color in ('绿', '蓝', '紫', '金', '红'):
-            checkbox = qualities.get_by_role('checkbox', name=color, exact=True)
-            expect(checkbox).to_be_visible()
-            box = checkbox.bounding_box()
-            assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1
+            for group in (qualities, ad_qualities):
+                checkbox = group.get_by_role('checkbox', name=color, exact=True)
+                expect(checkbox).to_be_visible()
+                box = checkbox.bounding_box()
+                assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1
         page.screenshot(path=str(OUT / f'imperial-tribute-{width}.png'))
     assert not errors, errors
     assert not unexpected, unexpected
     browser.close()
-print('PASS 御前献珍生产dist：勾玉确认/取消、品质选择、保留勾玉、关闭保值、保存重载及1100/390/320布局；外网请求0')
+print('PASS 御前献珍生产dist：广告开关/多选/空选、勾玉确认/取消、保留勾玉、关闭保值、保存重载及1100/390/320布局；外网请求0')
