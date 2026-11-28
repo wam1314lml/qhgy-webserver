@@ -10,7 +10,7 @@ bundle: true, write: false, platform: 'node', format: 'esm' })
 const m = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`)
 const page = await loadSharePageModel(root), adapter = page.adapter
 const fresh = () => structuredClone(page.current)
-const fields = ['enabledJadeGift', 'enabledCuttingFruit']
+const fields = ['enabledJadeGift', 'enabledCuttingFruit', 'enabledFruitCake']
 for (const field of fields) {
   assert.equal(fresh().activity.actCardCollect[field], false)
   for (const value of [undefined, null, false, 1, 'true', 'false']) {
@@ -20,9 +20,9 @@ for (const field of fields) {
   }
 }
 let combinations = 0
-for (const enabledJadeGift of [false, true]) for (const enabledCuttingFruit of [false, true]) {
+for (const enabledJadeGift of [false, true]) for (const enabledCuttingFruit of [false, true]) for (const enabledFruitCake of [false, true]) {
   for (const enabledCardCollect of [false, true]) for (const enabledOpenCardPack of [false, true]) {
-    const values = { enabledJadeGift, enabledCuttingFruit, enabledCardCollect, enabledOpenCardPack }
+    const values = { enabledJadeGift, enabledCuttingFruit, enabledFruitCake, enabledCardCollect, enabledOpenCardPack }
     const config = fresh(); Object.assign(config.activity.actCardCollect, values)
     const saved = JSON.parse(JSON.stringify(config)); m.normalizeGameConfigSelects(saved)
     const imported = adapter.preview(fresh(), adapter.exportConfig(saved)).config
@@ -33,4 +33,4 @@ for (const enabledJadeGift of [false, true]) for (const enabledCuttingFruit of [
     combinations++
   }
 }
-console.log(`PASS 卡册礼包/扦插默认关闭、严格布尔、${combinations}种独立组合保存/分享及旧码保值`)
+console.log(`PASS 卡册礼包/扦插/缀果成糕默认关闭、严格布尔、${combinations}种独立组合保存/分享及旧码保值`)

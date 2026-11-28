@@ -2713,6 +2713,10 @@
               tooltip="默认关闭。领取平时浇水累计任务获得的培养液（最多20份），依次浇灌未完成的活动土地，补领进度回馈及已解锁的豪华奖励。不额外买水，不购买豪华特权。">
               <Switch v-model:checked="config.activity.actCardCollect.enabledCuttingFruit" />
             </CustomFormItem>
+            <CustomFormItem label="自动缀果成糕" name="activity.actCardCollect.enabledFruitCake"
+              tooltip="默认关闭。使用收获水果获得的已有果酱逐次制作蛋糕，补领普通进度回馈及已解锁的豪华奖励；消耗和次数上限以当期活动为准，不购买豪华特权。">
+              <Switch v-model:checked="config.activity.actCardCollect.enabledFruitCake" />
+            </CustomFormItem>
             <Divider orientation="left">梦入仙洲</Divider>
             <CustomFormItem label="仙洲活动任务领奖" name="activity.hdReward.hd104TaskRewardEnabled"
               tooltip="默认关闭。按当前任务进度连续领取已达标的奖励档位；观看视频任务按游戏中已完成的次数领取。">

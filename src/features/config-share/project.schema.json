@@ -1504,6 +1504,9 @@
               "enabledCuttingFruit": {
                 "type": "boolean"
               },
+              "enabledFruitCake": {
+                "type": "boolean"
+              },
               "enabledSmoke": {
                 "type": "boolean"
               }

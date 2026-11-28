@@ -1,3 +1,7 @@
+## 2026-11-28 卡册缀果成糕
+
+活动→卡册活动新增“自动缀果成糕”，`activity.actCardCollect.enabledFruitCake`默认false、严格布尔，独立于其他卡册开关。类型、默认、归一化及生成分享schema均须同步，旧分享无字段保留当前选择。脚本HD40按已有果酱制作并补领普通及已解锁豪华进度，费用/次数由当期服务器配置决定；前端不固定120/20、不购买特权。Web API通用存储保持，发布需配套脚本并重启账号。验证入口test-card-album-extras及check-fruit-cake-ui.py，协议与实号验证边界见脚本QHGY_WELFARE_LOGIC_HANDOFF。
+
 ## 2026-11-27 御前献珍免费广告品质
 
 `activity.imperialTribute.adRefreshEnabled/adRefreshQualities`默认true/[5]兼容旧版；显式开关只接受布尔true，品质数字1～5可多选、空选不广告。两字段与勾玉刷新独立，广告关闭隐藏品质但保值，进贡关闭禁用广告及品质但保值。默认深度合并前须用prepareImperialTributeQualities处理两套数组及显式广告开关，防止null回退开启/红色；加载、复制、高级JSON及分享均共用，旧分享码缺字段保留接收方值。脚本优先已选广告品质并在组内高品质优先，共享每日三次机会，实际服务端资格为准；前端不维护次数。该规则覆盖历史“广告固定只刷红色”。类型、默认、归一化、分享schema和两端必须配套发布。

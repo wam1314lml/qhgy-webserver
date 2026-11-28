@@ -459,6 +459,7 @@ export const createDefaultGameConfig = (): GameConfig =>
         enabledOpenCardPack: false,
         enabledJadeGift: false,
         enabledCuttingFruit: false,
+        enabledFruitCake: false,
         enabledSmoke: false,
       },
       hdReward: {

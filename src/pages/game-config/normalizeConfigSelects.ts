@@ -725,6 +725,7 @@ export function normalizeGameConfigSelects(config: GameConfig, platform?: unknow
     enabledOpenCardPack: actCardCollect?.enabledOpenCardPack === true,
     enabledJadeGift: actCardCollect?.enabledJadeGift === true,
     enabledCuttingFruit: actCardCollect?.enabledCuttingFruit === true,
+    enabledFruitCake: actCardCollect?.enabledFruitCake === true,
   }
   const hdReward = asRecord(config.activity.hdReward)
   config.activity.hdReward = {

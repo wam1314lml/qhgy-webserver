@@ -443,6 +443,7 @@ export interface GameConfig {
       enabledOpenCardPack: boolean
       enabledJadeGift: boolean
       enabledCuttingFruit: boolean
+      enabledFruitCake: boolean
       enabledSmoke: boolean
     }
     hdReward: {
